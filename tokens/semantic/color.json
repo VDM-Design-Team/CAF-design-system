@@ -11,7 +11,7 @@
       "$value": "{color.slate.500}"
     },
     "subtle": {
-      "$value": "{color.slate.400}"
+      "$value": "{color.slate.500}"
     },
     "disabled": {
       "$value": "{color.slate.300}"
