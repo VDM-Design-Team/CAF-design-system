@@ -16,9 +16,8 @@
  * Disabled and deselected states are exempt (WCAG 1.4.3). A translucent
  * surface is composited over surface.base first.
  *
- * Report-only for now: the values come from the CAF Figma file, so a fix
- * belongs there (then refresh the snapshot). Make it --strict in CI once
- * Light and Dark both pass.
+ * `npm test` runs it with --strict: Light and Dark both pass. The values come
+ * from the CAF Figma file, so a fix belongs there (then refresh the snapshot).
  */
 import { readFileSync } from 'node:fs';
 
