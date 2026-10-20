@@ -1,8 +1,8 @@
 # Unreleased changes
 
 Every PR that changes what CAF ships (`tokens/`,
-`style-dictionary.config.mjs`, or the GDL version in `package-lock.json`)
-adds **one file here** with its changelog entry, instead of editing
+`style-dictionary.config.mjs`, the GDL version in `package-lock.json`, or a
+component in `src/`, stories aside) adds **one file here** with its changelog entry, instead of editing
 `CHANGELOG.md`. Two PRs never write the same file, so entries can't
 conflict. At release time `npm run changelog` combines the files into
 `CHANGELOG.md`, newest first, and deletes them.
@@ -30,6 +30,8 @@ bump: patch
 - **The body** is the entry as it will read in `CHANGELOG.md`: a `### `
   heading naming the change and the month, then the prose. Say which screens
   or components look different, in Light and Dark.
+  - A new component, or a new variant or prop, is `minor`. A visual fix is
+    `patch`. A renamed or removed prop or variant is `major`.
 
 `npm test` (and CI) fails three kinds of PR:
 - one that changes those files without a file here

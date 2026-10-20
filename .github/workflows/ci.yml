@@ -21,4 +21,10 @@ jobs:
         run: |
           npm run import:figma
           git diff --exit-code tokens/ || (echo "::error::tokens/ differs from figma-export/ — never hand-edit tokens/; refresh the snapshot and run 'npm run import:figma'." && exit 1)
+      - name: Install the browser the story tests run in
+        run: npx playwright install --with-deps chromium
+      # Lint, build, contract, contrast report, changelog entry, typecheck,
+      # and the story tests (every story renders, play functions pass, axe).
       - run: npm test
+      - name: Storybook builds
+        run: npm run storybook:build

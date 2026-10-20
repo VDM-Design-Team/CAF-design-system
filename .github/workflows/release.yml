@@ -23,6 +23,8 @@ jobs:
         run: |
           v="v$(node -p "require('./package.json').version")"
           [ "$v" = "${GITHUB_REF_NAME}" ] || (echo "::error::Release tag ${GITHUB_REF_NAME} does not match package.json version $v" && exit 1)
+      - name: Install the browser the story tests run in
+        run: npx playwright install --with-deps chromium
       - run: npm test
       - run: npm publish
         env:
