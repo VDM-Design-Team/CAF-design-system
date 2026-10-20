@@ -39,7 +39,7 @@ The package is published to GitHub Packages (`.npmrc`:
 
 ```bash
 npm install            # pulls GDL from its git tag — no token needed
-npm test               # lint tokens, build, GDL contract, contrast report, changelog entry
+npm test               # lint tokens, build, GDL contract, contrast (strict), changelog entry
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
 ```
 
@@ -76,9 +76,8 @@ Merge that as the release PR, then create a GitHub release tagged
 - Tokens only. Components come next, built straight from the CAF Figma
   library onto these tokens (shared ones move up into GDL once a second
   brand needs them).
-- Dark mode has 34 semantic pairs below WCAG AA, and Light has 3
-  (`text.subtle`). Run `npm run check:contrast` for the list. Fix them in Figma;
-  the check becomes `--strict` once they pass.
+- Every semantic pair meets WCAG AA in Light and Dark. `npm test` runs
+  `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
 - No `stroke.field` or `surface.track` yet. GDL recommends both.
 
 ## Figma

@@ -37,7 +37,7 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "lint:changes": "node scripts/lint-changes.mjs",
     "changelog": "node scripts/changelog.mjs",
-    "test": "npm run lint:tokens && npm run build && npm run check:contract && npm run check:contrast && npm run lint:changes",
+    "test": "npm run lint:tokens && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes",
     "prepack": "npm run build"
   },
   "devDependencies": {
