@@ -1,0 +1,87 @@
+{
+  "color": {
+    "$type": "color",
+    "caf-blue": {
+      "50": {
+        "$value": "#f3f3f7"
+      },
+      "100": {
+        "$value": "#e6e5f0"
+      },
+      "200": {
+        "$value": "#c5c3e0"
+      },
+      "300": {
+        "$value": "#9b96cf"
+      },
+      "400": {
+        "$value": "#6b63c5"
+      },
+      "500": {
+        "$value": "#5145cd"
+      },
+      "600": {
+        "$value": "#352c96"
+      },
+      "700": {
+        "$value": "#292461"
+      },
+      "800": {
+        "$value": "#181532"
+      },
+      "900": {
+        "$value": "#0d0c18"
+      },
+      "950": {
+        "$value": "#06050a"
+      },
+      "$description": "Primitive. Do not apply directly; reference through a Semantics token."
+    },
+    "caf-blue-on-dark": {
+      "50": {
+        "$value": "#09090b",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/50). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "100": {
+        "$value": "#13141b",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/100). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "200": {
+        "$value": "#1f2133",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/200). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "300": {
+        "$value": "#292e56",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/300). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "400": {
+        "$value": "#2a3498",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/400). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "500": {
+        "$value": "#6875f5",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/500). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "600": {
+        "$value": "#979fed",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/600). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "700": {
+        "$value": "#bbbfe7",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/700). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "800": {
+        "$value": "#d6d8eb",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/800). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "900": {
+        "$value": "#eaeaf1",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/900). Referenced by action/* tokens in the Semantics Dark mode."
+      },
+      "950": {
+        "$value": "#f7f7f8",
+        "$description": "Brand tint tuned for dark surfaces (formerly the Dark mode of CAF-blue/950). Referenced by action/* tokens in the Semantics Dark mode."
+      }
+    }
+  }
+}

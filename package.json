@@ -1,0 +1,47 @@
+{
+  "name": "@vdm-design-team/caf",
+  "version": "0.1.0",
+  "description": "CAF Design System — CAF's brand tokens built on GDL (the General Design Library). CAF keeps its brand ramp, its UI font and its semantic colour values; everything else is inherited from @vdm-design-team/gdl.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VDM-Design-Team/CAF-design-system.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "tokens",
+    "docs"
+  ],
+  "exports": {
+    "./theme.css": "./dist/theme.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.dark.css": "./dist/tokens.dark.css",
+    "./typography.desktop.css": "./dist/typography.desktop.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./tokens.flat.json": "./dist/tokens.flat.json",
+    "./tokens/*": "./tokens/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "import:figma": "node scripts/import-figma.mjs",
+    "build": "style-dictionary build --config style-dictionary.config.mjs",
+    "lint:tokens": "node scripts/lint-tokens.mjs",
+    "check:contract": "gdl-check-contract --light tokens/semantic/color.json --dark tokens/semantic/color.dark.json --core tokens/core/color.json",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "lint:changes": "node scripts/lint-changes.mjs",
+    "changelog": "node scripts/changelog.mjs",
+    "test": "npm run lint:tokens && npm run build && npm run check:contract && npm run check:contrast && npm run lint:changes",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@vdm-design-team/gdl": "github:VDM-Design-Team/GDL-design-system#semver:^0.1.0",
+    "style-dictionary": "^5.7.0"
+  }
+}

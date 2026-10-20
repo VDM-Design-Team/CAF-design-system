@@ -1,0 +1,29 @@
+name: Release
+# Publishes @vdm-design-team/caf to GitHub Packages when a GitHub release is published.
+# The release tag must match package.json ("v" + version).
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@vdm-design-team'
+      - run: npm ci
+      - name: Tag matches package.json
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          [ "$v" = "${GITHUB_REF_NAME}" ] || (echo "::error::Release tag ${GITHUB_REF_NAME} does not match package.json version $v" && exit 1)
+      - run: npm test
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

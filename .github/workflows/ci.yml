@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+  push: { branches: [main] }
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        # Full history, so lint:changes can compare the branch with main.
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      # GDL comes from its public git tag (package.json), so no registry token is needed.
+      - run: npm ci
+      - name: tokens/ matches the Figma snapshot
+        run: |
+          npm run import:figma
+          git diff --exit-code tokens/ || (echo "::error::tokens/ differs from figma-export/ — never hand-edit tokens/; refresh the snapshot and run 'npm run import:figma'." && exit 1)
+      - run: npm test

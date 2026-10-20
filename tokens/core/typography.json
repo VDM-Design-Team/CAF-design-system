@@ -1,0 +1,11 @@
+{
+  "font": {
+    "family": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": "{font.family.inter}",
+        "$description": "CAF's UI face: every CAF Figma text style is set in Inter. Overrides GDL's default; the type ramp (sizes, line heights, weights, tracking) is GDL's."
+      }
+    }
+  }
+}
