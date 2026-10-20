@@ -42,7 +42,7 @@
     "storybook": "npm run build && storybook dev -p ${PORT:-6006}",
     "storybook:build": "npm run build && storybook build",
     "changelog": "node scripts/changelog.mjs",
-    "test": "npm run lint:tokens && npm run lint:components && npm run build && npm run check:contract && npm run check:contrast && npm run lint:changes && npm run typecheck && npm run test:stories",
+    "test": "npm run lint:tokens && npm run lint:components && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes && npm run typecheck && npm run test:stories",
     "prepack": "npm run build"
   },
   "peerDependencies": {

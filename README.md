@@ -41,7 +41,7 @@ The package is published to GitHub Packages (`.npmrc`:
 ```bash
 npm install            # pulls GDL from its git tag — no token needed
 npx playwright install chromium   # once: the browser the story tests run in
-npm test               # lint, build, GDL contract, contrast report, changelog entry, typecheck, story tests
+npm test               # lint, build, GDL contract, contrast (strict), changelog entry, typecheck, story tests
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
 ```
@@ -81,8 +81,9 @@ names. A component that a second brand needs moves up to GDL.
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
 is a Vitest test: it must render, its play function must pass, and axe must
-find nothing. The exception is token contrast still being fixed in Figma,
-which is reported, not failed. Components use only token utilities:
+find nothing. One exception: Tonal's label/fill pairs are below AA in Figma.
+Their own story reports them in the a11y panel without failing, until the
+Figma fix lands. Components use only token utilities:
 `bg-action-primary-surface-default`, `text-label-md-semibold`, `rounded-8`,
 `shadow-elevation-2`, and spacing on GDL's scale. `npm run lint:components`
 fails on hex, px or arbitrary values. Where code departs from Figma, the
@@ -120,9 +121,8 @@ Merge that as the release PR, then create a GitHub release tagged
 - Tokens, plus the first component (`Button`) in Storybook. More
   components follow, built straight from the CAF Figma library onto these
   tokens (shared ones move up into GDL once a second brand needs them).
-- Dark mode has 34 semantic pairs below WCAG AA, and Light has 3
-  (`text.subtle`). Run `npm run check:contrast` for the list. Fix them in Figma;
-  the check becomes `--strict` once they pass.
+- Every semantic pair meets WCAG AA in Light and Dark. `npm test` runs
+  `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
 - No `stroke.field` or `surface.track` yet. GDL recommends both.
 
 ## Figma

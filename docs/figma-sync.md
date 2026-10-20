@@ -93,21 +93,33 @@ Also in Figma: Text / Hover keeps a zero-width raw-blue stroke, which is
 invisible and has no effect on code. The label's letter spacing is 0 in
 Figma; the GDL ramp gives Label/md-semibold 0.1px.
 
-Figma gaps the code copies exactly. These are for the designer to decide:
+Figma gaps the code copies exactly. These are for the designer to decide
+(ratios from the tokens after PR #1's contrast fixes):
 
+- **Tonal fails WCAG AA.** Its label is `action/primary/surface/default` on
+  `surface/brand/faint → subtle → medium`:
+
+  | Tonal | Default | Hover | Pressed |
+  |---|---|---|---|
+  | Light | 5.46 | **3.98** | **2.48** |
+  | Dark | **3.59** | **2.79** | **1.77** |
+
+  These are component pairs, so `npm run check:contrast` doesn't list them.
+  In Storybook the per-size grids skip Tonal in axe's contrast check only.
+  The "Tonal contrast — Light/Dark" stories report them in the a11y panel
+  without failing the run. Once Figma's Tonal passes, delete
+  `CONTRAST_TODO` in `Button.stories.tsx`.
 - **Tonal Disabled looks the same as Tonal Default.** It has no disabled
   look.
 - **Destructive and Success labels use `action/primary/content/default`,**
-  not their own `accent/*/filled/content`. In Light both are white. In Dark,
-  #eaeaf1 sits on red at 3.18:1 and on green at 2.69:1. Their own content
-  tokens (#020617) would give 5.30:1 and 6.27:1.
-- **Contrast below AA.** The grid stories in Storybook report these in the
-  a11y panel without failing tests. They are component pairs, so most of
-  them aren't in `npm run check:contrast`:
-  - Light: Tonal Hover 3.98:1, Pressed 2.48:1.
-  - Dark: Default 3.22 / 2.06 / 1.50, Destructive 3.18 / 2.41 / 1.60,
-    Success 2.69 / 1.85 / 1.49, Tonal 3.59 / 2.79 / 1.77
-    (Default / Hover / Pressed).
+  not their own `accent/*/filled/content`. They pass AA now:
+  - Dark Destructive: 4.82 / 6.36 / 9.57 (Default / Hover / Pressed).
+  - Dark Success: 5.70 / 8.28 / 10.32.
+  - Light: both white, 4.77 and up.
+
+  The binding still ties them to the primary button's label, so a future
+  change to `action/primary/content` moves them too. Their own tokens would
+  give Dark 5.30 / 6.98 / 10.51 and 6.27 / 9.10 / 11.34.
 
 Not built yet: `Button / Icon` (`461:1151`) and `Button / Menu Trigger`
 (`461:1459`). They are separate components on the same page.

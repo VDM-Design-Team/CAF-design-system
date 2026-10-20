@@ -28,8 +28,8 @@ const preview: Preview = {
   ],
   parameters: {
     // Every story is an axe test, and a violation fails `npm test` (as in VCP).
-    // A story that shows a known token contrast failure says so, with
-    // `a11y: { test: 'todo' }` and a pointer to where it is tracked.
+    // The one exception is a component pair Figma binds below AA: a story
+    // that shows it uses `a11y: { test: 'todo' }` and says where it's tracked.
     a11y: { test: 'error' },
     options: {
       storySort: { order: ['Components', ['Button']] },

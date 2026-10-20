@@ -38,9 +38,9 @@ Read `docs/inheritance.md` before changing anything structural.
    (stories aside) adds `changes/<branch-name>.md` with
    `bump: patch|minor|major`. Never edit `CHANGELOG.md` directly. See
    `changes/README.md`.
-8. **Contrast is reported, not yet enforced.** `npm run check:contrast`
-   lists every semantic pair below WCAG AA. Don't add new failures. Fixes go
-   to Figma (rule 2), not into `tokens/`.
+8. **Contrast is enforced.** Every semantic pair meets WCAG AA in Light
+   and Dark, and `npm test` runs `check:contrast --strict`, so a new failure
+   fails CI. Fix a failure in Figma (rule 2), not in `tokens/`.
 
 ## Components
 
@@ -72,9 +72,12 @@ Read `docs/inheritance.md` before changing anything structural.
 - **Stories show every variant × state, in Light and Dark.** Force Hover
   and Pressed with `storybook-addon-pseudo-states`
   (`pseudo: { rootSelector: 'body', … }`), and wait for them in a play
-  function. Every story is an axe test that fails `npm test`. The only
-  exception is a story showing token contrast that's still being fixed in
-  Figma: it uses `a11y: { test: 'todo' }` with a comment naming the pairs.
+  function. Every story is an axe test that fails `npm test` (contrast is
+  enforced, rule 8). If a Figma binding gives a component pair below AA
+  (Tonal, today), the grids skip only those cells, and only in axe's
+  contrast check. A separate story for them uses `a11y: { test: 'todo' }`,
+  so the pairs stay visible in the a11y panel. List the ratios in
+  `docs/figma-sync.md`, and remove the exception when Figma passes.
 - A component a second brand needs moves up to GDL (rule 6).
 
 ## Naming
@@ -93,12 +96,12 @@ Read `docs/inheritance.md` before changing anything structural.
 | `npm run import:figma` | `figma-export/` → `tokens/`, checked against GDL |
 | `npm run build` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
 | `npm run check:contract` | GDL's semantic contract, Light and Dark |
-| `npm run check:contrast` | WCAG AA report for the semantic pairs |
+| `npm run check:contrast` | WCAG AA report for the semantic pairs (`-- --strict` fails on any) |
 | `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
 | `npm run typecheck` | `tsc --noEmit` over `src/` and `.storybook/` |
 | `npm run test:stories` | Every story in Vitest + Playwright: renders, play passes, axe clean |
 | `npm run storybook` | Build `dist/`, then Storybook on :6006 (Light/Dark toolbar) |
-| `npm test` | What CI runs: the lints, build, contract, contrast report, changelog-entry lint, typecheck, story tests |
+| `npm test` | What CI runs: the lints, build, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |
 
 ## Workflow

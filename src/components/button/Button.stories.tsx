@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Plus } from '@phosphor-icons/react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { Button, BUTTON_SIZES, BUTTON_VARIANTS, type ButtonProps } from './Button';
+import { Button, BUTTON_SIZES, BUTTON_VARIANTS } from './Button';
 
 /* The Figma components use Phosphor's Plus (Regular). */
 const icon = <Plus />;
@@ -69,8 +69,10 @@ export const Disabled: Story = {
 
 const STATES = ['default', 'hover', 'pressed', 'disabled'] as const;
 type State = (typeof STATES)[number];
+type Variant = (typeof BUTTON_VARIANTS)[number];
+type Size = (typeof BUTTON_SIZES)[number];
 const STATE_LABEL: Record<State, string> = { default: 'Default', hover: 'Hover', pressed: 'Pressed', disabled: 'Disabled' };
-const STYLE_LABEL: Record<(typeof BUTTON_VARIANTS)[number], string> = {
+const STYLE_LABEL: Record<Variant, string> = {
   default: 'Default',
   outlined: 'Outlined',
   text: 'Text',
@@ -78,8 +80,19 @@ const STYLE_LABEL: Record<(typeof BUTTON_VARIANTS)[number], string> = {
   tonal: 'Tonal',
   success: 'Success',
 };
+const SIZE_LABEL: Record<Size, string> = { big: 'Big', normal: 'Normal', small: 'Small' };
 
-function Matrix({ size }: { size: NonNullable<ButtonProps['size']> }) {
+/* Tonal's label (action.primary.surface.default) on its surface.brand fills
+   is below WCAG AA: Light Hover 3.98, Pressed 2.48; Dark Default 3.59,
+   Hover 2.79, Pressed 1.77. It's a Figma binding, tracked in
+   docs/figma-sync.md ("Button"). Until it's fixed, axe's contrast rule skips
+   cells marked like this in the per-size grids, and reports them in the
+   Tonal grids below without failing the run. */
+const CONTRAST_TODO: ReadonlySet<Variant> = new Set(['tonal']);
+
+type Row = { label: string; variant: Variant; size: Size; withIcon: boolean };
+
+function Matrix({ rows, rowHeader }: { rows: Row[]; rowHeader: string }) {
   return (
     // No colour transition here: the forced states must be settled before
     // axe and Chromatic look at them.
@@ -87,7 +100,7 @@ function Matrix({ size }: { size: NonNullable<ButtonProps['size']> }) {
       <thead>
         <tr>
           <th scope="col" className="text-caption-md-medium text-text-secondary">
-            Style
+            {rowHeader}
           </th>
           {STATES.map((s) => (
             <th key={s} scope="col" className="text-caption-md-medium text-text-secondary">
@@ -97,48 +110,46 @@ function Matrix({ size }: { size: NonNullable<ButtonProps['size']> }) {
         </tr>
       </thead>
       <tbody>
-        {BUTTON_VARIANTS.flatMap((variant) =>
-          [false, true].map((withIcon) => (
-            <tr key={`${variant}-${withIcon}`}>
-              <th scope="row" className="pr-4 text-caption-md-medium text-text-secondary">
-                {STYLE_LABEL[variant]}
-                {withIcon ? ' · icon' : ''}
-              </th>
-              {STATES.map((state) => (
-                <td key={state}>
-                  <Button
-                    variant={variant}
-                    size={size}
-                    leftIcon={withIcon ? icon : undefined}
-                    disabled={state === 'disabled'}
-                    data-pseudo={state}
-                  >
-                    Label
-                  </Button>
-                </td>
-              ))}
-            </tr>
-          )),
-        )}
+        {rows.map(({ label, variant, size, withIcon }) => (
+          <tr key={label}>
+            <th scope="row" className="pr-4 text-caption-md-medium text-text-secondary">
+              {label}
+            </th>
+            {STATES.map((state) => (
+              <td key={state}>
+                <Button
+                  variant={variant}
+                  size={size}
+                  leftIcon={withIcon ? icon : undefined}
+                  disabled={state === 'disabled'}
+                  data-pseudo={state}
+                  data-a11y-todo={CONTRAST_TODO.has(variant) ? 'contrast' : undefined}
+                >
+                  Label
+                </Button>
+              </td>
+            ))}
+          </tr>
+        ))}
       </tbody>
     </table>
   );
 }
 
-const matrix = (size: NonNullable<ButtonProps['size']>, theme: 'light' | 'dark'): Story => ({
-  name: `${size[0].toUpperCase()}${size.slice(1)} — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  render: () => <Matrix size={size} />,
+const withAndWithoutIcon = (label: string, variant: Variant, size: Size): Row[] => [
+  { label, variant, size, withIcon: false },
+  { label: `${label} · icon`, variant, size, withIcon: true },
+];
+
+const grid = (name: string, rowHeader: string, rows: Row[], theme: 'light' | 'dark', a11y: object): Story => ({
+  name: `${name} — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => <Matrix rows={rows} rowHeader={rowHeader} />,
   globals: { theme },
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
     pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'], active: ['[data-pseudo="pressed"]'] },
-    /* The grid shows the tokens exactly as Figma binds them, including the
-       pairs below WCAG AA (Tonal Hover/Pressed in Light; Default, Destructive,
-       Success and Tonal labels in Dark). axe reports them in the a11y panel
-       without failing the run: CAF's rule 8, contrast is reported until the
-       Figma fixes land. Tracked in docs/figma-sync.md ("Button"). */
-    a11y: { test: 'todo' },
+    a11y,
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -160,9 +171,37 @@ const matrix = (size: NonNullable<ButtonProps['size']>, theme: 'light' | 'dark')
   },
 });
 
-export const BigLight = matrix('big', 'light');
-export const BigDark = matrix('big', 'dark');
-export const NormalLight = matrix('normal', 'light');
-export const NormalDark = matrix('normal', 'dark');
-export const SmallLight = matrix('small', 'light');
-export const SmallDark = matrix('small', 'dark');
+/* Per size: every Style, as in Figma. axe fails the run on any violation;
+   only the contrast check skips the Tonal cells (CONTRAST_TODO). */
+const sizeGrid = (size: Size, theme: 'light' | 'dark') =>
+  grid(
+    SIZE_LABEL[size],
+    'Style',
+    BUTTON_VARIANTS.flatMap((v) => withAndWithoutIcon(STYLE_LABEL[v], v, size)),
+    theme,
+    {
+      test: 'error',
+      config: { rules: [{ id: 'color-contrast', selector: '*:not([data-a11y-todo~="contrast"])' }] },
+    },
+  );
+
+export const BigLight = sizeGrid('big', 'light');
+export const BigDark = sizeGrid('big', 'dark');
+export const NormalLight = sizeGrid('normal', 'light');
+export const NormalDark = sizeGrid('normal', 'dark');
+export const SmallLight = sizeGrid('small', 'light');
+export const SmallDark = sizeGrid('small', 'dark');
+
+/* Tonal in every size: its contrast is reported in the a11y panel, not
+   failed, until the Figma binding is fixed (see CONTRAST_TODO). */
+const tonalGrid = (theme: 'light' | 'dark') =>
+  grid(
+    'Tonal contrast',
+    'Size',
+    BUTTON_SIZES.flatMap((size) => withAndWithoutIcon(SIZE_LABEL[size], 'tonal', size)),
+    theme,
+    { test: 'todo' },
+  );
+
+export const TonalContrastLight = tonalGrid('light');
+export const TonalContrastDark = tonalGrid('dark');
