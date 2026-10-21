@@ -34,13 +34,55 @@ Read `docs/inheritance.md` before changing anything structural.
 6. **Something a second brand needs moves up to GDL.** Make the change in
    GDL (its own PR and release), then bump GDL here.
 7. **Changes are versioned.** Every PR that changes `tokens/`,
-   `style-dictionary.config.mjs` or the GDL version adds
-   `changes/<branch-name>.md` with `bump: patch|minor|major`. Never edit
-   `CHANGELOG.md` directly. See `changes/README.md`.
+   `style-dictionary.config.mjs`, the GDL version or a component in `src/`
+   (stories aside) adds `changes/<branch-name>.md` with
+   `bump: patch|minor|major`. Never edit `CHANGELOG.md` directly. See
+   `changes/README.md`.
 8. **Contrast is enforced.** Every semantic pair meets WCAG AA in Light
    and Dark: text and labels 4.5:1, the focus ring and component borders
    3:1. `npm test` runs `check:contrast --strict`, so a new failure fails
    CI. Fix a failure in Figma (rule 2), not in `tokens/`.
+
+## Components
+
+`src/components/<name>/` holds `<Name>.tsx`, `<Name>.stories.tsx` and
+`index.ts`, exported from `src/index.ts`. Button is the reference.
+
+- **Build from the CAF Figma library itself.** Read the component set's
+  variants, states and variable bindings with the Figma connector (the
+  `figma-design-to-code` skill). Never go through an intermediate export:
+  VCP's Claude Design export invented its own vocabulary.
+- **Figma's names are the API.** Figma's Style becomes `variant`, because
+  React reserves `style`. The component set's size becomes `size`. Other
+  properties keep their names, lower-cased (`big`, `outlined`). A Figma
+  state is the element's own state: Hover is `:hover`, Pressed is `:active`,
+  Disabled is `disabled`. Don't add props Figma doesn't have.
+- **Copy every binding exactly.** Use the semantic utility for the variable
+  the layer is bound to in that state, even when it looks wrong. A wrong
+  binding is fixed in Figma, then here.
+- **Only token utilities.** Semantic colours (`bg-action-primary-surface-default`),
+  GDL's type ramp (`text-label-md-semibold`), radius (`rounded-8`),
+  elevation (`shadow-elevation-2`) and spacing on GDL's scale (`h-9` = 36px
+  = `space.36`). `npm run lint:components` fails on hex, px, arbitrary
+  values and off-scale spacing. Merge classes with `cn()` from
+  `src/lib/cn.ts`, which knows GDL's names.
+- **When Figma has a raw value**, use the nearest GDL token. Record the
+  departure, and the Figma fix that would remove it, under "Components" in
+  `docs/figma-sync.md`. Do the same for anything code adds that Figma
+  lacks, like a focus ring.
+- **Stories show every variant × state, in Light and Dark.** Force Hover
+  and Pressed with `storybook-addon-pseudo-states`
+  (`pseudo: { rootSelector: 'body', … }`), and check them in the story's
+  `afterEach`, not `play`: the addon rewrites its CSS on `STORY_RENDERED`,
+  which fires after play, so a play function never sees the forced states
+  in a static build (Chromatic). Every story is an axe test that fails
+  `npm test` (contrast is enforced, rule 8). If a Figma binding gives a
+  component pair below AA (Tonal, today), the grids skip only those cells,
+  and only in axe's contrast check. A separate story for them uses
+  `a11y: { test: 'todo' }`, so the pairs stay visible in the a11y panel.
+  List the ratios in `docs/figma-sync.md`, and remove the exception when
+  Figma passes.
+- A component a second brand needs moves up to GDL (rule 6).
 
 ## Naming
 
@@ -59,7 +101,11 @@ Read `docs/inheritance.md` before changing anything structural.
 | `npm run build` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
 | `npm run check:contract` | GDL's semantic contract, Light and Dark |
 | `npm run check:contrast` | WCAG AA report for the semantic text, focus and border pairs (`-- --strict` fails on any) |
-| `npm test` | What CI runs: lint, build, contract, contrast (strict), changelog-entry lint |
+| `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
+| `npm run typecheck` | `tsc --noEmit` over `src/` and `.storybook/` |
+| `npm run test:stories` | Every story in Vitest + Playwright: renders, play and afterEach pass, axe clean |
+| `npm run storybook` | Build `dist/`, then Storybook on :6006 (Light/Dark toolbar) |
+| `npm test` | What CI runs: the lints, build, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |
 
 ## Workflow
@@ -69,7 +115,8 @@ Read `docs/inheritance.md` before changing anything structural.
 - Touch only the files the task needs. Before committing, list the changed
   files and confirm they match the task.
 - Open a draft PR early. Describe the change in product terms and say which
-  CAF screens or components look different, in Light and Dark.
+  CAF screens or components look different, in Light and Dark. A component
+  change is checked in Storybook against the Figma render.
 - Merge `main` into your branch, never rebase; never force-push.
 - Finish by reporting files changed and why, checks run with results, any
   breaking change, and a PR description.
