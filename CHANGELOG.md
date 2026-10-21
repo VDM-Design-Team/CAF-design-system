@@ -1,6 +1,68 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-10-21
+
+### Components: Button, and the component layer (October 2026)
+
+CAF gets its first component, `Button`, built straight from the CAF Figma
+library (page **Buttons**: `Button / Big`, `Button / Normal`,
+`Button / Small`). Its API uses Figma's own names:
+- `variant` is the Style: `default`, `outlined`, `text`, `destructive`,
+  `tonal`, `success`.
+- `size` is `big`, `normal` or `small`.
+- `leftIcon` and `rightIcon` are Show Icons.
+- Hover, Pressed and Disabled are the button's own states.
+
+Every colour is the semantic token the Figma layer is bound to, in Light and
+Dark. Spacing, radius, type and elevation come from GDL.
+
+Where the code differs from Figma (details in `docs/figma-sync.md`):
+- **Heights** are fixed at 48 / 36 / 32px. Figma's heights follow Inter's
+  auto line height, so they come out at 46–48 / 35–36 / 33px.
+- **Icon gap** is 8px. Figma's Big and Normal use a raw 10px, which isn't on
+  GDL's space scale.
+- **Hover shadow** is `shadow.elevation.2`, the closest GDL elevation to
+  Figma's raw hover shadow.
+- **Focus ring** is a `stroke.focused` outline. Figma has no Focus state yet.
+
+The component layer comes with it:
+- React and Tailwind v4 via `cn()`, which knows GDL's type ramp, radius and
+  elevation names.
+- Storybook 10 on `dist/theme.css`, with a Light/Dark toolbar (`.dark` on
+  `<html>`).
+- Story tests with axe in Vitest, plus `lint:components` (no hex, px or
+  arbitrary values; spacing on GDL's scale) and a typecheck, all in
+  `npm test`.
+
+Components aren't in the published package yet. They're Storybook-only until
+the JS build is wired up.
+
+### Every semantic pair meets WCAG AA, Light and Dark (October 2026)
+
+The 37 pairs the contrast report flagged now pass. Each fix moves an alias
+to another step of the same ramp in the CAF Figma library: 1 variable in
+Light, 28 in Dark. No names change. `npm test` now runs `check:contrast
+--strict`, so a pair that drops below AA fails CI.
+
+- **Light.** `text.subtle` is slate-500 instead of slate-400, so subtle
+  text reads a little darker.
+- **Dark, text and focus.** Brand text is lighter: `text.brand.medium` is
+  caf-blue-300 and `text.brand.strong` is caf-blue-200. The focus ring
+  (`stroke.focused`) is caf-blue-300. The pressed link colour
+  (`text.link.pressed`) is GDL blue-400 instead of a raw hex.
+- **Dark, primary buttons.** Labels and icons are near-black
+  (caf-blue-on-dark-100) on the unchanged periwinkle fill, in every state
+  including selected.
+- **Dark, selected secondary and tertiary buttons.** Labels are
+  caf-blue-on-dark-700 instead of a dark tint that disappeared on the fill.
+- **Dark, neutral buttons.** Outline labels stay slate-300 in every state.
+  Tonal hover, pressed and selected use a slate-50 label on a slate-500 fill,
+  so the three states now look the same. Filled buttons lighten on hover and
+  selected (slate-300) and pressed (slate-200) instead of darkening.
+- **Dark, accent tonal badges and buttons.** Hover labels on pending and
+  critical are one step lighter (/200). Pressed labels are lighter on all
+  five accents (/100, or blue-200 for info). Info outline's default label is
+  blue-400, the same as its hover.
 
 ### First release — CAF's tokens on GDL (October 2026)
 
