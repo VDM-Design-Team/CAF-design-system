@@ -76,7 +76,8 @@ Merge that as the release PR, then create a GitHub release tagged
 - Tokens only. Components come next, built straight from the CAF Figma
   library onto these tokens (shared ones move up into GDL once a second
   brand needs them).
-- Every semantic pair meets WCAG AA in Light and Dark. `npm test` runs
+- Every semantic pair meets WCAG AA in Light and Dark: text and labels
+  4.5:1, the focus ring and component borders 3:1. `npm test` runs
   `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
 - No `stroke.field` or `surface.track` yet. GDL recommends both.
 

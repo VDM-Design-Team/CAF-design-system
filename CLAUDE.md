@@ -38,8 +38,9 @@ Read `docs/inheritance.md` before changing anything structural.
    `changes/<branch-name>.md` with `bump: patch|minor|major`. Never edit
    `CHANGELOG.md` directly. See `changes/README.md`.
 8. **Contrast is enforced.** Every semantic pair meets WCAG AA in Light
-   and Dark, and `npm test` runs `check:contrast --strict`, so a new failure
-   fails CI. Fix a failure in Figma (rule 2), not in `tokens/`.
+   and Dark: text and labels 4.5:1, the focus ring and component borders
+   3:1. `npm test` runs `check:contrast --strict`, so a new failure fails
+   CI. Fix a failure in Figma (rule 2), not in `tokens/`.
 
 ## Naming
 
@@ -57,7 +58,7 @@ Read `docs/inheritance.md` before changing anything structural.
 | `npm run import:figma` | `figma-export/` → `tokens/`, checked against GDL |
 | `npm run build` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
 | `npm run check:contract` | GDL's semantic contract, Light and Dark |
-| `npm run check:contrast` | WCAG AA report for the semantic pairs (`-- --strict` fails on any) |
+| `npm run check:contrast` | WCAG AA report for the semantic text, focus and border pairs (`-- --strict` fails on any) |
 | `npm test` | What CI runs: lint, build, contract, contrast (strict), changelog-entry lint |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |
 
