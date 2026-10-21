@@ -1,0 +1,107 @@
+name: Chromatic
+on:
+  pull_request:
+  push: { branches: [main] }
+
+# GDL's setup (GDL-design-system/.github/workflows/chromatic.yml), which is
+# VCP's, adapted to CAF: the stories are components, every Style × State
+# grid in Light and Dark.
+#
+# CAF has no Chromatic project yet. Until the CHROMATIC_PROJECT_TOKEN secret
+# is set on this repo, the job says so and passes, so it never blocks a PR.
+jobs:
+  chromatic:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # the visual-review comment below
+    env:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+    steps:
+      - name: No Chromatic project yet
+        if: env.CHROMATIC_PROJECT_TOKEN == ''
+        run: echo "::notice::CHROMATIC_PROJECT_TOKEN is not set on this repo, so no visual snapshots were taken. Create the CAF project on chromatic.com and add its token as a repo secret."
+
+      - uses: actions/checkout@v4
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        with: { fetch-depth: 0 }   # Chromatic needs full history for baselines
+      - uses: actions/setup-node@v4
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        with: { node-version: 22, cache: npm }
+      - if: env.CHROMATIC_PROJECT_TOKEN != ''
+        run: npm ci
+      - uses: chromaui/action@latest
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        id: chromatic
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          # storybook:build runs `npm run build` first, so dist/ is fresh.
+          buildScriptName: 'storybook:build'
+          onlyChanged: true        # TurboSnap: only snapshot affected stories
+          # The stories read dist/theme.css, built from tokens/ and GDL (via
+          # the lockfile) and gitignored, so a token change traces to no
+          # story. `externals` turns TurboSnap off when one of these changes,
+          # so a token or GDL change snapshots every story (VCP's PR #66).
+          externals: '{tokens/**,style-dictionary.config.mjs,package-lock.json}'
+          exitOnceUploaded: true
+          # Every build on main becomes the new baseline, as in VCP and GDL.
+          # PR builds diff against main, which is the comparison worth reading.
+          autoAcceptChanges: main
+
+      # One sticky comment per PR with the two links a reviewer needs, updated
+      # in place on every push (same marker and wording as VCP's and GDL's).
+      - name: Post visual review links on the PR
+        if: github.event_name == 'pull_request' && env.CHROMATIC_PROJECT_TOKEN != ''
+        uses: actions/github-script@v7
+        env:
+          BUILD_URL: ${{ steps.chromatic.outputs.buildUrl }}
+          STORYBOOK_URL: ${{ steps.chromatic.outputs.storybookUrl }}
+        with:
+          script: |
+            const marker = '<!-- visual-review-links -->';
+            // TurboSnap skips the whole build when a push touches nothing
+            // visual; a skipped build has no URLs, so never render dead links.
+            const buildUrl = process.env.BUILD_URL;
+            const storybookUrl = process.env.STORYBOOK_URL;
+            const skipped = !buildUrl || buildUrl === 'undefined';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.data.find(c => c.body.includes(marker));
+            // A skipped push says nothing about the PR as a whole; keep the
+            // last real links and note that this push added nothing visual.
+            const staleNote = '_The latest push had nothing visual to diff; links are from the last snapshotted push._';
+            if (skipped && existing && existing.body.includes('chromatic.com/build')) {
+              if (!existing.body.includes(staleNote)) {
+                await github.rest.issues.updateComment({
+                  owner, repo, comment_id: existing.id,
+                  body: existing.body + '\n\n' + staleNote,
+                });
+              }
+              return;
+            }
+            const lines = [marker, '## 🔍 Visual review', ''];
+            if (skipped) {
+              lines.push(
+                '_This push changes no story, component or token files — there is nothing visual to diff, so Chromatic skipped snapshotting it._'
+              );
+            } else {
+              lines.push(
+                '| What | Where |',
+                '|---|---|',
+                `| **Before → after diffs** — every story this PR changes, side by side against \`main\` | [Open in Chromatic](${buildUrl}) |`,
+                `| **Live Storybook for this branch** | [Open Storybook](${storybookUrl}) |`,
+                '',
+                '_A token change repaints every story — the diffs link is the one to read._',
+                '',
+                '_Updated automatically on every push. Diffs may take a minute to finish after this comment appears._',
+                '_The diff link asks you to sign in the first time — use **Connect with GitHub** and your access to this repo carries over. The Storybook link needs no account._'
+              );
+            }
+            const body = lines.join('\n');
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

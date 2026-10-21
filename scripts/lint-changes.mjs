@@ -3,8 +3,8 @@
  * a merge never breaks every other open PR's `CHANGELOG.md`. This check:
  *
  * 1. Fails a branch that changes what CAF ships — tokens/, the build config,
- *    or the GDL version it builds on — without adding or editing a file in
- *    `changes/`.
+ *    the GDL version it builds on, or a component in src/ (stories aside) —
+ *    without adding or editing a file in `changes/`.
  * 2. Fails a branch that edits `CHANGELOG.md` directly. The release step is
  *    the exception: it edits `CHANGELOG.md` while deleting fragments, or, with
  *    none to fold in, only dates the `— unreleased` heading.
@@ -58,8 +58,9 @@ if (mergeBase) {
       return false;
     }
   };
+  const isComponent = (p) => /^src\//.test(p) && !/\.stories\.tsx?$/.test(p);
   const touchesCode =
-    changed.some((c) => /^tokens\//.test(c.path) || c.path === 'style-dictionary.config.mjs') ||
+    changed.some((c) => /^tokens\//.test(c.path) || c.path === 'style-dictionary.config.mjs' || isComponent(c.path)) ||
     (changed.some((c) => c.path === 'package-lock.json') && bumpsGdl());
   const addsFragment = changed.some((c) => inChanges(c) && c.status !== 'D');
   const deletesFragment = changed.some((c) => inChanges(c) && c.status === 'D');
@@ -78,7 +79,7 @@ if (mergeBase) {
 
   if (touchesCode && !addsFragment)
     fail(
-      `This branch changes tokens/, the build config or the GDL version but adds no changelog entry.\n` +
+      `This branch changes tokens/, the build config, the GDL version or a component in src/ but adds no changelog entry.\n` +
         `  Add changes/<branch-name>.md — see changes/README.md for the format.`,
     );
   if (editsChangelog && !deletesFragment && !onlyDatesRelease())

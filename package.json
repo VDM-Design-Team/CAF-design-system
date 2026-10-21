@@ -1,7 +1,7 @@
 {
   "name": "@vdm-design-team/caf",
   "version": "0.1.0",
-  "description": "CAF Design System — CAF's brand tokens built on GDL (the General Design Library). CAF keeps its brand ramp, its UI font and its semantic colour values; everything else is inherited from @vdm-design-team/gdl.",
+  "description": "CAF Design System — CAF’s brand tokens built on GDL (the General Design Library), and CAF’s React components. CAF keeps its brand ramp, its UI font, its semantic colour values and its components; everything else is inherited from @vdm-design-team/gdl.",
   "type": "module",
   "license": "UNLICENSED",
   "repository": {
@@ -33,15 +33,57 @@
     "import:figma": "node scripts/import-figma.mjs",
     "build": "style-dictionary build --config style-dictionary.config.mjs",
     "lint:tokens": "node scripts/lint-tokens.mjs",
+    "lint:components": "node scripts/lint-hardcoded-values.mjs",
     "check:contract": "gdl-check-contract --light tokens/semantic/color.json --dark tokens/semantic/color.dark.json --core tokens/core/color.json",
     "check:contrast": "node scripts/check-contrast.mjs",
     "lint:changes": "node scripts/lint-changes.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:stories": "vitest --run --project=storybook",
+    "storybook": "npm run build && storybook dev -p ${PORT:-6006}",
+    "storybook:build": "npm run build && storybook build",
     "changelog": "node scripts/changelog.mjs",
-    "test": "npm run lint:tokens && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes",
+    "test": "npm run lint:tokens && npm run lint:components && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes && npm run typecheck && npm run test:stories",
     "prepack": "npm run build"
   },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0"
+  },
   "devDependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@storybook/addon-a11y": "^10.6.3",
+    "@storybook/addon-docs": "^10.6.3",
+    "@storybook/addon-vitest": "^10.6.3",
+    "@storybook/react-vite": "^10.6.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vdm-design-team/gdl": "github:VDM-Design-Team/GDL-design-system#semver:^0.1.0",
-    "style-dictionary": "^5.7.0"
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/browser-playwright": "^4.1.12",
+    "chromatic": "^18.13.0",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "storybook": "^10.6.3",
+    "storybook-addon-pseudo-states": "^10.6.3",
+    "style-dictionary": "^5.7.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^4.1.12"
   }
 }
