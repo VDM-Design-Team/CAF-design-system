@@ -180,7 +180,7 @@
             "$value": "{color.caf-blue-on-dark.700}"
           },
           "selected": {
-            "$value": "{color.caf-blue-on-dark.300}"
+            "$value": "{color.caf-blue-on-dark.600}"
           },
           "deselected": {
             "$value": "{color.caf-blue-on-dark.600}"
@@ -881,7 +881,7 @@
           },
           "border": {
             "default": {
-              "$value": "{color.blue.600}"
+              "$value": "{color.blue.500}"
             },
             "hover": {
               "$value": "{color.blue.500}"
