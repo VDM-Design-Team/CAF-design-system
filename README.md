@@ -63,13 +63,17 @@ names. A component that a second brand needs moves up to GDL.
 | Component | Figma | Story |
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
+| `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 
 ```tsx
-// src/components/button — not in the published package yet (see below)
+// src/components — not in the published package yet (see below)
 <Button>Save</Button>                                   // Style=Default, Normal
 <Button variant="outlined" size="small">Cancel</Button>
 <Button variant="destructive">Delete</Button>
 <Button variant="tonal" leftIcon={<Plus />}>View Changes</Button>  // Phosphor icon
+
+<label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
+<Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -77,6 +81,9 @@ names. A component that a second brand needs moves up to GDL.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
 - Hover, Pressed and Disabled are the element's own states.
+- `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
+  Selected and Mixed-State are `checked` and `indeterminate`. Label it with
+  a `<label>` or `aria-label`.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
@@ -118,7 +125,7 @@ Merge that as the release PR, then create a GitHub release tagged
 
 ## Status (v0.1)
 
-- Tokens, plus the first component (`Button`) in Storybook. More
+- Tokens, plus the first components (`Button`, `Checkbox`) in Storybook. More
   components follow, built straight from the CAF Figma library onto these
   tokens (shared ones move up into GDL once a second brand needs them).
 - Every semantic pair meets WCAG AA in Light and Dark. `npm test` runs
