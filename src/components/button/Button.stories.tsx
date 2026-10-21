@@ -153,21 +153,27 @@ const grid = (name: string, rowHeader: string, rows: Row[], theme: 'light' | 'da
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
-  // pseudo-states forces Hover and Pressed just after the first render. Wait
-  // for it, so this also proves every Style has its own Hover and Pressed look
-  // and axe (which runs after play) judges the forced states, not Default.
-  play: async ({ canvasElement }) => {
+  // Every Style has its own Hover and Pressed look. This is checked in
+  // afterEach, not play: pseudo-states rewrites the :hover / :active CSS on
+  // STORY_RENDERED, which Storybook emits only after play has finished. So in
+  // a fresh static build (Chromatic) a play function could never see the
+  // forced states. afterEach runs after that event, as axe does; a failure
+  // here still fails the story.
+  afterEach: async ({ canvasElement }) => {
     const look = (el: Element) => {
       const cs = getComputedStyle(el);
       return `${cs.backgroundColor} ${cs.color} ${cs.boxShadow}`;
     };
-    await waitFor(() => {
-      for (const row of canvasElement.querySelectorAll('tbody tr')) {
-        const [rest, hover, pressed] = row.querySelectorAll('button');
-        expect(look(hover)).not.toBe(look(rest));
-        expect(look(pressed)).not.toBe(look(hover));
-      }
-    });
+    await waitFor(
+      () => {
+        for (const row of canvasElement.querySelectorAll('tbody tr')) {
+          const [rest, hover, pressed] = row.querySelectorAll('button');
+          expect(look(hover)).not.toBe(look(rest));
+          expect(look(pressed)).not.toBe(look(hover));
+        }
+      },
+      { timeout: 3000 },
+    );
   },
 });
 
