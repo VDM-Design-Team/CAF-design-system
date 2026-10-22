@@ -13,8 +13,10 @@
  *   - every `….content.<state>` on its sibling `….surface.<state>`
  *     (action, neutral and accent styles)                       4.5:1
  *   - stroke.focused on surface.{canvas,base}                   3:1 (WCAG 1.4.11)
- * Disabled and deselected states are exempt (WCAG 1.4.3). A translucent
- * surface is composited over surface.base first.
+ *   - every `….border.<state>` on surface.{canvas,base}, and on its
+ *     sibling `….surface.<state>` where that fill is opaque      3:1 (WCAG 1.4.11)
+ * Disabled and deselected states are exempt (WCAG 1.4.3, 1.4.11). A
+ * translucent surface is composited over surface.base first.
  *
  * `npm test` runs it with --strict: Light and Dark both pass. The values come
  * from the CAF Figma file, so a fix belongs there (then refresh the snapshot).
@@ -50,17 +52,26 @@ const ratio = (a, b) => {
   return (x + 0.05) / (y + 0.05);
 };
 
+const EXEMPT = ['disabled', 'deselected'];
+
 const pairsFor = (tokens) => {
   const pairs = [];
   const texts = [...tokens.keys()].filter((k) => /^text\.(primary|secondary|tertiary|subtle|link\.(default|hover|pressed|selected)|brand\.(medium|strong|stronger))$/.test(k));
   for (const fg of texts) for (const bg of ['surface.canvas', 'surface.base', 'surface.elevated']) pairs.push([fg, bg, 4.5]);
   for (const fg of tokens.keys()) {
     const m = fg.match(/^(.+)\.content\.(\w+)$/);
-    if (!m || ['disabled', 'deselected'].includes(m[2])) continue;
+    if (!m || EXEMPT.includes(m[2])) continue;
     const bg = `${m[1]}.surface.${m[2]}`;
     if (tokens.has(bg)) pairs.push([fg, bg, 4.5]);
   }
   for (const bg of ['surface.canvas', 'surface.base']) pairs.push(['stroke.focused', bg, 3]);
+  for (const fg of tokens.keys()) {
+    const m = fg.match(/^(.+)\.border\.(\w+)$/);
+    if (!m || EXEMPT.includes(m[2])) continue;
+    for (const bg of ['surface.canvas', 'surface.base']) pairs.push([fg, bg, 3]);
+    const fill = `${m[1]}.surface.${m[2]}`;
+    if (tokens.has(fill) && rgba(tokens.get(fill))[3] === 1) pairs.push([fg, fill, 3]);
+  }
   return pairs;
 };
 
