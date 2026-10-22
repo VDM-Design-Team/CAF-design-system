@@ -158,3 +158,54 @@ Figma gaps the code copies exactly. These are for the designer to decide:
   blue fill, which shows as a light grey edge in Light.
 - **Hover is defined only for Deselected.** A checked box doesn't change on
   hover.
+
+### TableCell (22 Oct 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Cell` (`460:900`), the
+generic body cell, Type × its text properties. Code:
+`src/components/table-cell/`. This replaces the older `Table / Cell Text`
+(`99:203`), which is only a Body/sm-regular text layer with no padding.
+Type=Text is that same text inside the cell. Every text style and colour
+binding is copied exactly. The Storybook grids are checked against them:
+58 checks in Light and 59 in Dark (padding, alignment, every text layer's
+style and colour, gaps, the list bullet), with no mismatches.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Vertical padding | Raw 14px, unbound | 12px (`space/12`). With GDL's 20px Body/sm line height, a Text cell is 44px (Figma 45) | Bind to `space/12` |
+| Line height | Inter's auto line height (17px for Body/sm) | GDL's ramp (20px), so List (Expanded) is 106px (Figma 100) | Bind the text styles' line heights to the ramp |
+| List toggle | A text layer with no states | A `<button>` with `aria-expanded`, in `text/link/default`, with a 2px `stroke.focused` focus ring | Add Hover and Focus states for the toggle |
+| Nested Status Pill, Tag, Row Actions | Instances | `children` until those components are built. The stories show labelled stand-ins | None needed |
+
+Contrast: the cell has no fill of its own, so its text sits on the row.
+
+| Text | Light, `surface/base` / `canvas` | Dark, `surface/base` / `canvas` |
+|---|---|---|
+| `text/primary` | 20.17 / 19.28 | 14.63 / 17.85 |
+| `text/subtle` (secondary line, date) | 4.76 / 4.55 | 5.71 / 6.96 |
+| `text/link/default` (list toggle) | 5.01 / 4.79 | 6.73 / 8.22 |
+
+All of them pass. `text/subtle` on Light canvas (4.55) is the closest to
+the 4.5:1 limit.
+
+For later, when Table / Row is built: the generic Row's **Selected** fill
+is `action/primary/surface/default`. Every cell colour fails on it:
+- Light: primary 2.96, subtle 1.43, link 1.36.
+- Dark: 3.85, 1.50, 1.77.
+
+Selected needs a lighter fill (`surface/brand/faint`, say) or inverted
+cell text.
+
+Figma gaps the code doesn't copy:
+
+- **Frames pinned to Dark.** The "Generic Table Parts" section holding
+  `Table / Cell` and `Table / Row` is pinned to Semantics Dark. That only
+  affects how the library page looks: instances placed elsewhere follow
+  their own frame. But the variants of the older `Table / Row – Cost` and
+  `Table / Header – Costs` are pinned to Dark themselves, so every
+  instance of them renders Dark, Light screens included (56 cost rows on
+  the CAF screens). Clear those explicit modes, as with Pagination.
+- **Widths are set per column** (Figma: 200 / 56 / 220 / 180px). The cell
+  has no width; the table sets it.

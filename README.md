@@ -65,6 +65,7 @@ names. A component that a second brand needs moves up to GDL.
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
+| `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -75,6 +76,13 @@ names. A component that a second brand needs moves up to GDL.
 
 <label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
 <Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
+
+<tr>                                                               // TableCell is a <td>
+  <TableCell type="checkbox"><Checkbox aria-label="Select row" /></TableCell>
+  <TableCell>123456</TableCell>                                    // Type=Text
+  <TableCell type="two-line" primary="Admin Account" secondary="admin1@geekee.com" />
+  <TableCell type="list" items={['Reporting', 'Exports']} />       // +1 more
+</tr>
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -130,7 +138,7 @@ Merge that as the release PR, then create a GitHub release tagged
 
 ## Status (v0.1)
 
-- Tokens, plus the first components (`Button`, `Checkbox`) in Storybook. More
+- Tokens, plus the first components (`Button`, `Checkbox`, `TableCell`) in Storybook. More
   components follow, built straight from the CAF Figma library onto these
   tokens (shared ones move up into GDL once a second brand needs them).
 - Every semantic pair meets WCAG AA in Light and Dark: text and labels
