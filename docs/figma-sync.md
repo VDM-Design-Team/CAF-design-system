@@ -257,3 +257,51 @@ Figma gaps the code doesn't copy:
   Active pill that shows Dark. In code both statuses follow the page's
   theme: Pending is orange-500 with a slate-950 label in Dark. Clear the
   explicit mode on the variant.
+
+### TableHeaderCell (22 Oct 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Header Cell` (`460:717`):
+Sortable × Sort, with a Label text property. It heads the columns of the
+Costs and Recurring Costs tables (124 instances on the CAF screens, all
+Sortable=true, Sort=None). Code: `src/components/table-header-cell/`.
+Every colour binding is copied exactly, and the Storybook grids check
+each variant's label and arrows against the variables they're bound to,
+in Light and Dark.
+
+- **Label:** Body/sm-regular, `text/secondary` when unsorted and
+  `text/primary` when sorted.
+- **Arrows:** Phosphor Regular at 20px: ArrowsDownUp in `text/tertiary`
+  when unsorted, ArrowUp / ArrowDown in `text/primary` when sorted. Code
+  draws Phosphor's own paths, which match Figma's vectors exactly.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Padding and gap | Raw 6px, unbound | 6px (`space/6`) | Bind to `space/6` |
+| Height | Hugs Inter's auto line height: 32 with the arrows, 29 without | 32 for both, on GDL's 20px Body/sm line height | Bind the text style's line height to the ramp |
+| Letter spacing | 0 | GDL's Body/sm-regular, 0.4px, so a label is about 2px wider | As above |
+| Sort control | Part of the cell, with no states | A `<button>` around the label and arrows that calls `onSort`, with a 2px `stroke.focused` focus ring. A sorted column sets `aria-sort` on the `<th>` | Add Hover and Focus states for the sort control |
+| Default | Sortable=true | `sortable` is off unless set, because a sortable header needs an `onSort` handler | None needed |
+
+Contrast: the cell has no fill, so it sits on the header row. Every
+pair passes. The label must reach 4.5:1 and the arrows 3:1 (WCAG 1.4.11).
+
+| Colour | Light, `surface/base` / `canvas` | Dark, `surface/base` / `canvas` |
+|---|---|---|
+| `text/primary` (sorted label and arrows) | 20.17 / 19.28 | 14.63 / 17.85 |
+| `text/secondary` (unsorted label) | 10.35 / 9.90 | 11.87 / 14.48 |
+| `text/tertiary` (unsorted arrows) | 4.76 / 4.55 | 9.85 / 12.02 |
+
+Figma gaps the code doesn't copy:
+
+- **The sorted variants don't use the Label property.** In Sort=Ascending
+  and Sort=Descending the label text isn't connected to `Label`, so the
+  property doesn't set a sorted header's text; it has to be edited by
+  hand. Connect the text layer to the Label property in those two
+  variants.
+- **Header rows pinned to Dark.** `Table / Header – Recurring Costs` is
+  pinned to Semantics Dark, like `Table / Header – Costs` (see TableCell),
+  so its header cells render Dark on Light screens. Clear the explicit
+  mode.
+

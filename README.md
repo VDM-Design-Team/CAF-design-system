@@ -67,6 +67,7 @@ names. A component that a second brand needs moves up to GDL.
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
+| `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -77,6 +78,11 @@ names. A component that a second brand needs moves up to GDL.
 
 <label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
 <Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
+
+<tr>                                                               // TableHeaderCell is a <th scope="col">
+  <TableHeaderCell>Payment Method</TableHeaderCell>                 // Sortable=false
+  <TableHeaderCell sortable sort="ascending" onSort={sortByAmount}>Amount</TableHeaderCell>
+</tr>
 
 <tr>                                                               // TableCell is a <td>
   <TableCell type="checkbox"><Checkbox aria-label="Select row" /></TableCell>
@@ -97,6 +103,9 @@ names. A component that a second brand needs moves up to GDL.
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
   Selected and Mixed-State are `checked` and `indeterminate`. Label it with
   a `<label>` or `aria-label`.
+- `TableHeaderCell` is Figma's Header Cell: `sortable` makes the label a
+  button that calls `onSort` (the table owns the order), and `sort` is
+  `none`, `ascending` or `descending`. A sorted column sets `aria-sort`.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
   `active`, and the label is `children`. It has no states.
 
