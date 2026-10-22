@@ -66,6 +66,7 @@ names. A component that a second brand needs moves up to GDL.
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
+| `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -82,7 +83,10 @@ names. A component that a second brand needs moves up to GDL.
   <TableCell>123456</TableCell>                                    // Type=Text
   <TableCell type="two-line" primary="Admin Account" secondary="admin1@geekee.com" />
   <TableCell type="list" items={['Reporting', 'Exports']} />       // +1 more
+  <TableCell type="tag"><StatusPill>Pending</StatusPill></TableCell>
 </tr>
+
+<StatusPill status="active">Active</StatusPill>                 // Status=Active
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -93,6 +97,8 @@ names. A component that a second brand needs moves up to GDL.
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
   Selected and Mixed-State are `checked` and `indeterminate`. Label it with
   a `<label>` or `aria-label`.
+- `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
+  `active`, and the label is `children`. It has no states.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
