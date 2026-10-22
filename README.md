@@ -43,6 +43,7 @@ npm install            # pulls GDL from its git tag — no token needed
 npx playwright install chromium   # once: the browser the story tests run in
 npm test               # lint, build, GDL contract, contrast (strict), changelog entry, typecheck, story tests
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
+npm run storybook:build && npm run test:static   # every story against the production build, as Chromatic runs it
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
 ```
 
@@ -63,13 +64,17 @@ names. A component that a second brand needs moves up to GDL.
 | Component | Figma | Story |
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
+| `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 
 ```tsx
-// src/components/button — not in the published package yet (see below)
+// src/components — not in the published package yet (see below)
 <Button>Save</Button>                                   // Style=Default, Normal
 <Button variant="outlined" size="small">Cancel</Button>
 <Button variant="destructive">Delete</Button>
 <Button variant="tonal" leftIcon={<Plus />}>View Changes</Button>  // Phosphor icon
+
+<label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
+<Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -77,13 +82,20 @@ names. A component that a second brand needs moves up to GDL.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
 - Hover, Pressed and Disabled are the element's own states.
+- `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
+  Selected and Mixed-State are `checked` and `indeterminate`. Label it with
+  a `<label>` or `aria-label`.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
 is a Vitest test: it must render, its play function must pass, and axe must
 find nothing. One exception: Tonal's label/fill pairs are below AA in Figma.
 Their own story reports them in the a11y panel without failing, until the
-Figma fix lands. Components use only token utilities:
+Figma fix lands. Vitest renders stories differently from the static build
+Chromatic snapshots, so `npm run test:static` runs every story again against
+`storybook-static/`, as Chromatic does, and fails on the same errors. CI runs
+it after building Storybook; run it before opening a component PR.
+Components use only token utilities:
 `bg-action-primary-surface-default`, `text-label-md-semibold`, `rounded-8`,
 `shadow-elevation-2`, and spacing on GDL's scale. `npm run lint:components`
 fails on hex, px or arbitrary values. Where code departs from Figma, the
@@ -118,7 +130,7 @@ Merge that as the release PR, then create a GitHub release tagged
 
 ## Status (v0.1)
 
-- Tokens, plus the first component (`Button`) in Storybook. More
+- Tokens, plus the first components (`Button`, `Checkbox`) in Storybook. More
   components follow, built straight from the CAF Figma library onto these
   tokens (shared ones move up into GDL once a second brand needs them).
 - Every semantic pair meets WCAG AA in Light and Dark: text and labels

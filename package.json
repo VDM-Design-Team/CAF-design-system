@@ -39,6 +39,7 @@
     "lint:changes": "node scripts/lint-changes.mjs",
     "typecheck": "tsc --noEmit",
     "test:stories": "vitest --run --project=storybook",
+    "test:static": "node scripts/test-static-stories.mjs",
     "storybook": "npm run build && storybook dev -p ${PORT:-6006}",
     "storybook:build": "npm run build && storybook build",
     "changelog": "node scripts/changelog.mjs",
