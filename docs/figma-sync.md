@@ -177,7 +177,7 @@ Code departs from Figma here:
 | Vertical padding | Raw 14px, unbound | 12px (`space/12`). With GDL's 20px Body/sm line height, a Text cell is 44px (Figma 45) | Bind to `space/12` |
 | Line height | Inter's auto line height (17px for Body/sm) | GDL's ramp (20px), so List (Expanded) is 106px (Figma 100) | Bind the text styles' line heights to the ramp |
 | List toggle | A text layer with no states | A `<button>` with `aria-expanded`, in `text/link/default`, with a 2px `stroke.focused` focus ring | Add Hover and Focus states for the toggle |
-| Nested Status Pill, Tag, Row Actions | Instances | `children` until those components are built. The stories show labelled stand-ins | None needed |
+| Nested Status Pill, Tag, Row Actions | Instances | `children`. Type=Tag takes `StatusPill`; the stories show labelled stand-ins for Tag and Row Actions until they're built | None needed |
 
 Contrast: the cell has no fill of its own, so its text sits on the row.
 
@@ -209,3 +209,51 @@ Figma gaps the code doesn't copy:
   the CAF screens). Clear those explicit modes, as with Pagination.
 - **Widths are set per column** (Figma: 200 / 56 / 220 / 180px). The cell
   has no width; the table sets it.
+
+### StatusPill (22 Oct 2026)
+
+Source: page **Tags** (`89:858`), set `Status Pill` (`446:11344`): Status
+(Pending, Active) and a Label text property. It's the filled pill in the
+Costs and Recurring Costs tables, nested in every cost row (128 instances
+on the CAF screens). Its labels there are "Pending", "Recurring" and
+"Active". Code: `src/components/status-pill/`. Every colour binding is
+copied exactly, and the Storybook grids check each pill against the
+variables its layers are bound to, in Light and Dark.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Horizontal padding | Raw 10px, unbound | 12px (`space/12`), as Tag binds | Bind to `space/12` |
+| Vertical padding | Raw 4px, unbound | 4px (`space/4`) | Bind to `space/4` |
+| Radius | Raw 9999 | `radius/full`, as Tag binds | Bind to `radius-full` |
+| Line height | Inter's auto (15px for Caption/md) | GDL's ramp (16px), so the pill is 24px tall (Figma 23) | Bind the text style's line height to the ramp |
+| Letter spacing | 0 | GDL's Caption/md-semibold, 0.3px | As above |
+
+With the padding and letter spacing, "Pending" is 74px wide (Figma 68)
+and "Recurring" 84px (Figma 77).
+
+Contrast: every label passes AA.
+
+| Status | Light | Dark |
+|---|---|---|
+| Pending | 5.18 | 7.20 |
+| Active | 6.81 | 4.77 |
+
+Figma gaps the code copies exactly:
+
+- **Pending's label is bound to `accent/warning/filled/content/default`,**
+  not `accent/pending/filled/content/default`. Both are white in Light and
+  slate-950 in Dark today, so nothing looks different. But a change to the
+  warning label would move the pending pill too. Rebind it to
+  `accent/pending/filled/content/default`.
+
+Figma gaps the code doesn't copy:
+
+- **Status=Pending is pinned to Semantics Light,** on the variant and on
+  every Pending instance (17 on the Table page). It always renders Light, even on a
+  Dark screen. Inside the cost rows, which are pinned to Dark (see
+  TableCell), Pending shows Light (orange-700, white label) next to an
+  Active pill that shows Dark. In code both statuses follow the page's
+  theme: Pending is orange-500 with a slate-950 label in Dark. Clear the
+  explicit mode on the variant.

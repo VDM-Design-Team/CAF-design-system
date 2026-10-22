@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Checkbox } from '../checkbox';
+import { StatusPill } from '../status-pill';
 import { TableCell } from './TableCell';
 
-/* Stand-ins for components that aren't built yet (Status Pill, Tag, Row
-   Actions). Dashed and labelled, so nobody mistakes them for the real thing. */
+/* Stand-ins for components that aren't built yet (Tag, Row Actions). Dashed and labelled, so nobody mistakes them for the real thing. */
 function Pending({ children, label }: { children: ReactNode; label: string }) {
   return (
     <span
@@ -53,8 +53,8 @@ const meta = {
           'Built from the CAF Figma library, page **Table** (`Table / Cell`, the generic body cell). It is a `<td>`. ' +
           '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list` and `status-date`. ' +
           'Value is `children`; Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
-          'Tag, Checkbox, Actions and Status + Date take their component as `children`; Status Pill, Tag and the row ' +
-          'actions button are not built yet, so the stories show labelled stand-ins.',
+          'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`. ' +
+          'Tag and the row actions button are not built yet, so the stories show labelled stand-ins for them.',
       },
     },
   },
@@ -125,7 +125,7 @@ export const CheckboxCell: Story = {
 const TYPES: { label: string; cell: ReactNode }[] = [
   { label: 'Text', cell: <TableCell className="w-50">Cell value</TableCell> },
   { label: 'Two Line', cell: <TableCell className="w-50" type="two-line" primary="Admin Account" secondary="admin1@geekee.com" /> },
-  { label: 'Tag', cell: <TableCell className="w-50" type="tag"><Pending label="Status Pill">Pending</Pending></TableCell> },
+  { label: 'Tag', cell: <TableCell className="w-50" type="tag"><StatusPill>Pending</StatusPill></TableCell> },
   { label: 'Checkbox', cell: <TableCell className="w-14" type="checkbox"><Checkbox aria-label="Select row" /></TableCell> },
   { label: 'Actions', cell: <TableCell className="w-14" type="actions"><Pending label="Row actions">•••</Pending></TableCell> },
   { label: 'List (Collapsed)', cell: <TableCell className="w-55" type="list" items={['TESTING FEATURE', 'Reporting']} /> },
@@ -172,7 +172,7 @@ export const InARow: Story = {
         <TableCell className="w-50" type="two-line" primary="Admin Account" secondary="admin1@geekee.com" />
         <TableCell className="w-50">USD 5130553.37</TableCell>
         <TableCell className="w-50" type="tag">
-          <Pending label="Status Pill">Pending</Pending>
+          <StatusPill>Pending</StatusPill>
         </TableCell>
         <TableCell className="w-50">Wiretransfer</TableCell>
         <TableCell className="w-14" type="actions">

@@ -15,8 +15,8 @@ import { cn } from '../../lib/cn';
  * - Text properties: Value → `children`, Primary / Secondary → `primary` /
  *   `secondary`, Date → `date`.
  * - Nested components are passed in as `children`: Type=Checkbox takes
- *   `<Checkbox>`; Type=Tag, Actions and Status + Date take Status Pill, the
- *   row actions button and Tag, which aren't built yet.
+ *   `<Checkbox>` and Type=Tag takes `<StatusPill>`; Actions and Status + Date
+ *   take the row actions button and Tag, which aren't built yet.
  * - Figma sets the width per column; so does the table (`className`).
  *
  * Every colour and type style is the one the Figma layer is bound to. The
