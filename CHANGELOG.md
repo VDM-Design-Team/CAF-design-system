@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.2.0 — 2026-10-22
+
+### Components: Checkbox (October 2026)
+
+`Checkbox` is built straight from the CAF Figma library (page **Selection
+Controls**, `Checkbox`). It is a real `<input type="checkbox">`, so forms,
+labels, the keyboard and screen readers work as usual, including "mixed".
+Its API uses Figma's own names:
+- `size` is `16` (default) or `20`.
+- The States are the checkbox's own: Deselected is unchecked, Selected is
+  `checked`, Mixed-State is `indeterminate`, and Hover is hovering an
+  unchecked box.
+
+Every colour is the semantic token the Figma layer is bound to, in Light and
+Dark. The check and the mixed bar are Figma's own vectors.
+
+Where the code differs from Figma (details in `docs/figma-sync.md`):
+- **Focus ring:** a `stroke.focused` outline, as on Button. Figma has no
+  Focus state yet.
+- **Disabled:** Figma has no Disabled state, so a disabled checkbox only
+  changes its cursor.
+
+The unchecked border is 1.48:1 in Light and 1.93:1 in Dark, below the 3:1
+WCAG asks of a control's boundary. That's a Figma binding, and
+`docs/figma-sync.md` has the suggested fix.
+
+Checkbox is the first piece of Table selection: the CAF screens use it 65
+times, in table headers and selectable rows.
+
+### Component borders meet WCAG 1.4.11, Light and Dark (October 2026)
+
+The contrast report now checks borders as well as text. Every
+`….border.<state>` must reach 3:1 against `surface.canvas`, `surface.base`
+and its own fill when that fill is opaque. Disabled and deselected states
+are exempt. The 15 failing pairs came from 7 Figma variables. Each now
+aliases another step of the same ramp in the CAF Figma library: 5 in Light,
+2 in Dark. No names change.
+
+- **Light, outline buttons and badges.** Default borders are one step
+  darker: neutral is slate-500, success green-600 and pending orange-600.
+  Each now matches its hover border, and the hover and pressed fills still
+  change. Warning's default and hover borders are yellow-700, the same as
+  pressed. That makes them clearly visible on white.
+- **Dark, info outline.** The default border is blue-500, the same as hover.
+- **Dark, selected secondary buttons.** The border is caf-blue-on-dark-600,
+  the same as hover. The old border was dark navy and nearly vanished on
+  the fill. This matches Light, where selected and hover share CAF-blue-600.
+
 ## 0.1.0 — 2026-10-21
 
 ### Components: Button, and the component layer (October 2026)
