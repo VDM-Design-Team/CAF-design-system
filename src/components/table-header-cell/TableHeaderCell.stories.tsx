@@ -63,7 +63,8 @@ const VARIANTS: { name: string; props: Partial<TableHeaderCellProps>; bound: [st
   { name: 'Sortable=true, Sort=Descending', props: { sortable: true, sort: 'descending' }, bound: ['text-primary', 'text-primary'] },
 ];
 
-/* A token's computed colour in the current theme. */
+/* A token's computed colour in the current theme. Measure before waitFor, never inside it:
+   the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
 function tokenColour(token: string) {
   const probe = document.createElement('span');
   probe.style.color = `var(--color-${token})`;
@@ -94,14 +95,17 @@ const variants = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
+    const colourOf = Object.fromEntries(
+      ['text-primary', 'text-secondary', 'text-tertiary'].map((t) => [t, tokenColour(t)]),
+    );
     await waitFor(() => {
       for (const { name, props, bound } of VARIANTS) {
         const row = canvasElement.querySelector<HTMLElement>(`[data-variant="${name}"]`)!;
         const th = row.querySelector('th')!;
         const [label, arrows] = bound;
-        expect(getComputedStyle(th.querySelector('th > span, button > span')!).color).toBe(tokenColour(label));
+        expect(getComputedStyle(th.querySelector('th > span, button > span')!).color).toBe(colourOf[label]);
         const svg = th.querySelector('svg');
-        if (arrows) expect(getComputedStyle(svg!).color).toBe(tokenColour(arrows));
+        if (arrows) expect(getComputedStyle(svg!).color).toBe(colourOf[arrows]);
         else expect(svg).toBeNull();
         expect(th.querySelector('button') !== null).toBe(props.sortable);
         expect(th.getAttribute('aria-sort')).toBe(props.sort && props.sort !== 'none' ? props.sort : null);
