@@ -123,3 +123,38 @@ Figma gaps the code copies exactly. These are for the designer to decide
 
 Not built yet: `Button / Icon` (`461:1151`) and `Button / Menu Trigger`
 (`461:1459`). They are separate components on the same page.
+
+### Checkbox (21 Oct 2026)
+
+Source: page **Selection Controls** (`241:5133`), set `Checkbox`
+(`253:248`): State (Deselected, Hover, Selected, Mixed-State) × Size
+(16px, 20px). Code: `src/components/checkbox/`. Every colour binding is
+copied exactly. The Storybook grids are checked against them: 36 checks in
+Light and 36 in Dark, with no mismatches.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Selected artwork | Exports as one flattened SVG with the Light colours baked in (#5145CD fill, #CBD5E1 border, white check) | The box is drawn with the bound tokens. The check and the mixed bar are Figma's vectors (same path, 1.5 / 2px stroke, round caps and joins), drawn in the box's own coordinates in `action.primary.content.default` | None needed |
+| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
+| Disabled | No Disabled state | The native `disabled` attribute works, but only the cursor changes | Add a Disabled state (Radio has one) |
+
+Figma gaps the code copies exactly. These are for the designer to decide:
+
+- **The unchecked border is below WCAG 1.4.11,** which wants 3:1 for a
+  control's boundary.
+  - Light: `stroke/default` on `surface/base` is 1.48:1; Hover's
+    `stroke/strong` is 2.56:1.
+  - Dark: 1.93:1 and 3.07:1.
+
+  GDL's contract recommends `stroke.field` ("Resting border of a form
+  control. Must reach 3:1"), which CAF doesn't have yet. Binding the
+  Checkbox border to it would fix this. axe doesn't check non-text
+  contrast, so the story tests can't catch it.
+- **The corner radius changes on check.** Deselected and Hover use radius 2
+  (the inner rectangle); Selected and Mixed-State use radius 4.
+- **Selected and Mixed-State keep the `stroke/default` border** around the
+  blue fill, which shows as a light grey edge in Light.
+- **Hover is defined only for Deselected.** A checked box doesn't change on
+  hover.
