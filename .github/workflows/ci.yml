@@ -28,3 +28,8 @@ jobs:
       - run: npm test
       - name: Storybook builds
         run: npm run storybook:build
+      # Every story again, against that production build, as Chromatic runs
+      # it: Vitest renders stories differently, so a story can pass npm test
+      # and still fail in Chromatic.
+      - name: Stories pass in the static build
+        run: npm run test:static

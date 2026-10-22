@@ -43,6 +43,7 @@ npm install            # pulls GDL from its git tag — no token needed
 npx playwright install chromium   # once: the browser the story tests run in
 npm test               # lint, build, GDL contract, contrast (strict), changelog entry, typecheck, story tests
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
+npm run storybook:build && npm run test:static   # every story against the production build, as Chromatic runs it
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
 ```
 
@@ -90,7 +91,11 @@ with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
 is a Vitest test: it must render, its play function must pass, and axe must
 find nothing. One exception: Tonal's label/fill pairs are below AA in Figma.
 Their own story reports them in the a11y panel without failing, until the
-Figma fix lands. Components use only token utilities:
+Figma fix lands. Vitest renders stories differently from the static build
+Chromatic snapshots, so `npm run test:static` runs every story again against
+`storybook-static/`, as Chromatic does, and fails on the same errors. CI runs
+it after building Storybook; run it before opening a component PR.
+Components use only token utilities:
 `bg-action-primary-surface-default`, `text-label-md-semibold`, `rounded-8`,
 `shadow-elevation-2`, and spacing on GDL's scale. `npm run lint:components`
 fails on hex, px or arbitrary values. Where code departs from Figma, the
