@@ -107,6 +107,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
                     tone={tone}
                     data-tone={tone}
                     data-pseudo={state}
+                    // No colour transition in the grid, so the check reads the end colour, not a frame of the fade.
+                    className="transition-none"
                   />
                 </td>
               )),
