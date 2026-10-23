@@ -305,3 +305,74 @@ Figma gaps the code doesn't copy:
   so its header cells render Dark on Light screens. Clear the explicit
   mode.
 
+### Icon (23 Oct 2026)
+
+The CAF Figma library places Phosphor icons (MIT) at Regular weight, as
+components named like `CaretDown / Style=Regular, Size=20px`. Code:
+`src/components/icon/`. Each glyph is Phosphor's own path, from
+`@phosphor-icons/core`. Checked against Figma's vectors (bounds of
+caret, x, calendar, file, download, trash, arrows), they match.
+
+- **The set** is the 39 icons the library and the CAF screens place,
+  listed in `scripts/icons.mjs`. `npm run icons` writes
+  `src/components/icon/icons.ts`, and `npm test` fails if that file is out
+  of date. To add an icon, add its Phosphor name there.
+- **Sizes:** 16, 20, 24, 32 and 48, the sizes Figma places.
+- **Colour:** currentColor, so an icon takes the text token around it.
+
+Not Phosphor, so not in the set yet:
+
+- **`Bolt`** (Tag, Status=Active) is Heroicons' micro "bolt": its vector
+  bounds (12×14 at 2,1 on a 16 grid) match Heroicons, not Phosphor's
+  `lightning`. Decide when Tag is built: switch Figma to Phosphor
+  `Lightning`, or add Heroicons' bolt as a custom glyph.
+- The older screens also place `heroicons-micro/check` and
+  `heroicons-solid/plus`. Their library equivalents are Phosphor `check`
+  and `plus`.
+
+### IconButton (23 Oct 2026)
+
+Source: page **Buttons** (`217:1679`), set `Button / Icon` (`461:1151`):
+Size (32, 40) × Tone (Ghost, Tonal, Destructive) × State (Default, Hover).
+Code: `src/components/icon-button/`. Every colour binding is copied
+exactly, and the Storybook grids check each tone's fill at rest and on
+hover, its glyph colour and its glyph size, in Light and Dark.
+
+| Tone | Fill at rest | Fill on hover | Glyph |
+|---|---|---|---|
+| Ghost | none | `neutral/tonal/surface/default` | `text/secondary` |
+| Tonal | `surface/base` | `neutral/tonal/surface/default` | `text/primary` |
+| Destructive | none | `accent/critical/tonal/surface/default` | `accent/critical/tonal/content/default` |
+
+Size 32 holds a 16px glyph and size 40 a 20px one.
+
+Contrast: the glyph is a graphic, so it needs 3:1 (WCAG 1.4.11). Every
+pair passes, the lowest being 5.22:
+
+| Tone | Light, at rest (base / canvas) / hover | Dark, at rest (base / canvas) / hover |
+|---|---|---|
+| Ghost | 10.35 / 9.90 / 8.40 | 11.87 / 14.48 / 6.15 |
+| Tonal | 20.17 / — / 16.36 | 14.63 / — / 7.58 |
+| Destructive | 8.36 / 7.99 / 6.85 | 7.62 / 9.30 / 5.22 |
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Radius | Raw 8 | `radius/8` | Bind to `radius/8` |
+| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
+| Disabled, Pressed | No such states | Native `disabled` only removes the hover and shows a not-allowed cursor; no Pressed look | Add them if the screens need them |
+| Name | The glyph is the only content | `label` is required and becomes `aria-label` | None needed |
+
+Older icon buttons in the library that Button / Icon replaces. Code has
+no separate component for them; each is an IconButton:
+
+| Figma component | Differences from Button / Icon | In code |
+|---|---|---|
+| `Menu / Row Actions Button` (`405:551`, 56 on the screens) | Radius 6, 20px glyph in `text/primary`, no hover, **pinned to Dark** | `<IconButton icon="dots-three" label="Row actions" />` |
+| `Navigation / Icon Button` (`4:235`) | 40×40 with a 24px glyph whose colour isn't bound | `<IconButton size={40} …/>` (20px glyph) |
+| `Modal / Close Button` (`348:8264`) | 24×32, 24px X | `<IconButton icon="x" label="Close" />` |
+
+Fix in Figma: swap these for `Button / Icon` instances (Ghost 32 for row
+actions and close, Ghost 40 in the header).
+
