@@ -323,9 +323,8 @@ caret, x, calendar, file, download, trash, arrows), they match.
 Not Phosphor, so not in the set yet:
 
 - **`Bolt`** (Tag, Status=Active) is Heroicons' micro "bolt": its vector
-  bounds (12×14 at 2,1 on a 16 grid) match Heroicons, not Phosphor's
-  `lightning`. Decide when Tag is built: switch Figma to Phosphor
-  `Lightning`, or add Heroicons' bolt as a custom glyph.
+  bounds (12×14 at 2,1 on a 16 grid) match Heroicons, not Phosphor. Code
+  uses Phosphor `lightning` instead (see Tag).
 - The older screens also place `heroicons-micro/check` and
   `heroicons-solid/plus`. Their library equivalents are Phosphor `check`
   and `plus`.
@@ -375,4 +374,56 @@ no separate component for them; each is an IconButton:
 
 Fix in Figma: swap these for `Button / Icon` instances (Ghost 32 for row
 actions and close, Ghost 40 in the header).
+
+### Tag (23 Oct 2026)
+
+Source: page **Tags** (`89:858`), set `Tag` (`330:3828`): Status
+(Pending, Active, Completed, Error, Warning, Info, Neutral) × Show Icon.
+Code: `src/components/tag/`. Every binding is copied exactly: padding
+`space/4` / `space/12`, gap `space/4`, `radius-full`, Label/sm-medium. The
+Storybook grids check each status's fill, label and icon colour, in Light
+and Dark.
+
+| Status | Fill / label and icon | Icon |
+|---|---|---|
+| Pending | `accent/pending/tonal` surface / content | `clock` |
+| Active | `accent/info/tonal` | `lightning` (see below) |
+| Completed | `accent/success/tonal` | `check-circle` |
+| Error | `accent/critical/tonal` | `x-circle` |
+| Warning | `accent/warning/tonal` | `warning` |
+| Info | `accent/info/tonal` | `info` |
+| Neutral | `neutral/tonal` | `minus-circle` |
+
+Active and Info share the same colours and differ only by icon.
+
+**The label** isn't a Figma property: each variant's text is its status
+name. The screens override it ("Deleted", "Updated", "Failed", "Excel",
+"Zip", version numbers), so in code it's `children`.
+
+Contrast: every label passes AA on its fill. Light Pending and Warning
+are close to the limit.
+
+| Status | Light | Dark |
+|---|---|---|
+| Pending | 4.52 | 5.56 |
+| Active, Info | 5.60 | 5.72 |
+| Completed | 6.49 | 6.46 |
+| Error | 6.85 | 5.22 |
+| Warning | 4.59 | 6.53 |
+| Neutral | 8.40 | 5.10 |
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Active's icon | `Bolt`: Heroicons' micro bolt, not Phosphor | Phosphor `lightning` | Swap to Phosphor `Lightning` |
+| Pending's icon | `Clock` drawn as a 1px stroked outline, coloured through its stroke | Phosphor `clock` (filled path, like every other icon) | Use the Phosphor `Clock` glyph |
+| Height | 25px, on Inter's auto line height | 26px, on GDL's 18px Label/sm line height | Bind the text style's line height to the ramp |
+| Letter spacing | 0 | GDL's 0.2px; widths stay within about 1px of Figma | As above |
+
+Figma gaps the code doesn't copy:
+
+- **Status=Completed pins a remote "Semantics" collection** (another
+  library's, not CAF's) to Light. Its bindings are CAF's own variables, so
+  the pin does nothing. Clear the explicit mode.
 

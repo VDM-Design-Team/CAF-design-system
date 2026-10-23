@@ -3,9 +3,11 @@ import type { ReactNode } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
 import { Checkbox } from '../checkbox';
 import { StatusPill } from '../status-pill';
+import { Tag } from '../tag';
 import { TableCell } from './TableCell';
 
-/* Stand-ins for components that aren't built yet (Tag, Row Actions). Dashed and labelled, so nobody mistakes them for the real thing. */
+/* A stand-in for a component that isn't built yet (Row Actions). Dashed and
+   labelled, so nobody mistakes it for the real thing. */
 function Pending({ children, label }: { children: ReactNode; label: string }) {
   return (
     <span
@@ -53,8 +55,8 @@ const meta = {
           'Built from the CAF Figma library, page **Table** (`Table / Cell`, the generic body cell). It is a `<td>`. ' +
           '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list` and `status-date`. ' +
           'Value is `children`; Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
-          'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`. ' +
-          'Tag and the row actions button are not built yet, so the stories show labelled stand-ins for them.',
+          'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`, Status + Date ' +
+          'takes `Tag`. The row actions button is not built yet, so the stories show a labelled stand-in.',
       },
     },
   },
@@ -132,7 +134,7 @@ const TYPES: { label: string; cell: ReactNode }[] = [
   { label: 'List (Expanded)', cell: <TableCell className="w-55" type="list" items={['One', 'Two', 'Three']} defaultExpanded /> },
   {
     label: 'Status + Date',
-    cell: <TableCell className="w-45" type="status-date" date="2026-10-08"><Pending label="Tag">Completed</Pending></TableCell>,
+    cell: <TableCell className="w-45" type="status-date" date="2026-10-08"><Tag status="completed">Completed</Tag></TableCell>,
   },
 ];
 

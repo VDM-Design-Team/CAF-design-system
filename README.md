@@ -69,6 +69,7 @@ names. A component that a second brand needs moves up to GDL.
 | `IconButton` | Buttons → `Button / Icon` | Components/IconButton |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
+| `Tag` | Tags → `Tag` | Components/Tag |
 | `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
 
 ```tsx
@@ -99,6 +100,8 @@ names. A component that a second brand needs moves up to GDL.
 </tr>
 
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
+<Tag status="completed">Completed</Tag>                          // tonal, with its icon
+<Tag status="error" showIcon={false}>Deleted</Tag>
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -117,6 +120,9 @@ names. A component that a second brand needs moves up to GDL.
 - `TableHeaderCell` is Figma's Header Cell: `sortable` makes the label a
   button that calls `onSort` (the table owns the order), and `sort` is
   `none`, `ascending` or `descending`. A sorted column sets `aria-sort`.
+- `Tag` is Figma's tonal Tag: `status` sets the colours and icon
+  (`pending`, `active`, `completed`, `error`, `warning`, `info`,
+  `neutral`), `showIcon` is Show Icon, and the label is `children`.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
   `active`, and the label is `children`. It has no states.
 
