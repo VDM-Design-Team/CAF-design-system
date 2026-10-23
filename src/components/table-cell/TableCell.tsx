@@ -15,8 +15,8 @@ import { cn } from '../../lib/cn';
  * - Text properties: Value → `children`, Primary / Secondary → `primary` /
  *   `secondary`, Date → `date`.
  * - Nested components are passed in as `children`: Type=Checkbox takes
- *   `<Checkbox>` and Type=Tag takes `<StatusPill>`; Actions and Status + Date
- *   take the row actions button and Tag, which aren't built yet.
+ *   `<Checkbox>`, Type=Tag takes `<StatusPill>` and Status + Date takes
+ *   `<Tag>`; Actions takes the row actions button, which isn't built yet.
  * - Figma sets the width per column; so does the table (`className`).
  *
  * Every colour and type style is the one the Figma layer is bound to. The
@@ -74,7 +74,7 @@ export type TableCellProps = Td &
         children: React.ReactNode;
       }
     | { type: 'list'; items: React.ReactNode[]; defaultExpanded?: boolean }
-    | { /** Status + Date: the Tag goes in children. */ type: 'status-date'; children: React.ReactNode; date: React.ReactNode }
+    | { /** Status + Date: a `<Tag>` goes in children. */ type: 'status-date'; children: React.ReactNode; date: React.ReactNode }
   );
 
 type AnyCellProps = Td & {

@@ -18,7 +18,7 @@ const ICONS = [
   // Actions
   'check', 'dots-three', 'download-simple', 'list', 'magnifying-glass', 'note-pencil', 'plus', 'trash', 'upload', 'x',
   // Status: tags, alerts, toasts, stat cards
-  'check-circle', 'clock', 'info', 'minus-circle', 'warning', 'warning-circle', 'x-circle',
+  'check-circle', 'clock', 'info', 'lightning', 'minus-circle', 'warning', 'warning-circle', 'x-circle',
   // Objects: filters, files, header, cards, empty states
   'bell', 'calendar-blank', 'credit-card', 'currency-circle-dollar', 'file-arrow-up', 'file-text', 'files', 'funnel',
   'moon', 'rocket-launch', 'sun', 'tag', 'tray', 'user',
