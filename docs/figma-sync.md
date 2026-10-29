@@ -324,3 +324,35 @@ Figma gaps the code doesn't copy:
   so its header cells render Dark on Light screens. Clear the explicit
   mode.
 
+### TableRow (22 Oct 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Row` (`460:964`): State
+(Default, Hover, Selected), the generic body row built from `Table / Cell`.
+Code: `src/components/table-row/`, a `<tr>` with a `selected` prop. The
+Storybook grids check the row fills and the selected-row text colours in
+Light and Dark, and axe checks every text pair on the tint.
+
+- **Default:** no fill, and a 1px `stroke/subtle` bottom border.
+- **Hover:** `surface/base`.
+- **Selected:** `action/primary/surface/default` at 16% opacity. The row's
+  checkbox is checked.
+- **Height:** 63px with a Two Line cell, as in Figma.
+
+On the Selected tint, TableCell darkens its secondary text to
+`text/secondary` and its links to `text/link/selected`, so they pass AA in
+Light. The ratios and the decision are under TableCell. Figma overrides
+only the sample row's Two Line cell; code applies the rule to every
+secondary line, date and link a cell can show.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Selected + Hover | No such state | A selected row keeps its Selected fill under the pointer | None needed |
+| Selected, for assistive tech | The checkbox is checked | The same: put a checked `Checkbox` in the row. A plain table row can't carry `aria-selected`, so the checkbox is what screen readers announce | None needed |
+
+Not built: the older `Table / Row – Cost`, `Table / Row – Cost
+(Selectable)` and `Table / Row – Recurring Cost`. Their Selected state is
+a 2px `stroke/focused` border, not a tint, and the cost rows are pinned to
+Dark (see TableCell).
+
