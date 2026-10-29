@@ -65,6 +65,8 @@ names. A component that a second brand needs moves up to GDL.
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
+| `PaginationItem` | Pagination → `Pagination / Item` | Components/PaginationItem |
+| `Pagination` | Pagination → `Pagination` | Components/Pagination |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
 | `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
@@ -78,6 +80,8 @@ names. A component that a second brand needs moves up to GDL.
 
 <label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
 <Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
+
+<Pagination page={page} pageCount={25} onPageChange={setPage} />  // Page 1 of 25  ‹ 1 2 3 4 5 … 25 ›
 
 <tr>                                                               // TableHeaderCell is a <th scope="col">
   <TableHeaderCell>Payment Method</TableHeaderCell>                 // Sortable=false
@@ -100,6 +104,9 @@ names. A component that a second brand needs moves up to GDL.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
 - Hover, Pressed and Disabled are the element's own states.
+- `Pagination` takes the current `page` and `pageCount` and calls
+  `onPageChange` with the page to show. Its items are `PaginationItem`s
+  (Figma's Pagination / Item: `selected`, `disabled`).
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
   Selected and Mixed-State are `checked` and `indeterminate`. Label it with
   a `<label>` or `aria-label`.
