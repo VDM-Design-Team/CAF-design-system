@@ -190,13 +190,32 @@ Contrast: the cell has no fill of its own, so its text sits on the row.
 All of them pass. `text/subtle` on Light canvas (4.55) is the closest to
 the 4.5:1 limit.
 
-For later, when Table / Row is built: the generic Row's **Selected** fill
-is `action/primary/surface/default`. Every cell colour fails on it:
-- Light: primary 2.96, subtle 1.43, link 1.36.
-- Dark: 3.85, 1.50, 1.77.
+For Table / Row: the generic Row's **Selected** fill is
+`action/primary/surface/default` at **16% opacity**, a light tint. An
+earlier version of this note measured it at full opacity. Composited over
+`surface/base` / `surface/canvas`, the cell text on it is:
 
-Selected needs a lighter fill (`surface/brand/faint`, say) or inverted
-cell text.
+| Text on a Selected row | Light | Dark |
+|---|---|---|
+| `text/primary` | 15.76 / 15.12 | 11.98 / 14.68 |
+| `text/subtle` (secondary line, date) | **3.72 / 3.57** | 4.67 / 5.72 |
+| `text/link/default` (list toggle) | **3.92 / 3.76** | 5.51 / 6.76 |
+
+No visible tint can fix the Light failures: `text/subtle` is only 4.55 on
+`surface/canvas` without one. The fix (22 Oct 2026) keeps the tint and
+darkens the text in a Selected row only:
+
+| In a Selected row | Light | Dark |
+|---|---|---|
+| Secondary text → `text/secondary` | 8.09 / 7.76 | 9.72 / 11.90 |
+| Links → `text/link/selected` | 5.36 / 5.14 | 5.51 / 6.76 |
+
+`text/link/hover` would look the same in Light, but it fails in Dark
+(3.77), so links use `text/link/selected`. In Figma, `Table / Row`
+State=Selected now overrides the Two Line cell's secondary text to
+`text/secondary`. The component's description records the rule for other
+cell types, because Figma can't bind a cell's text to its row's state.
+Code applies it when Table / Row is built.
 
 Figma gaps the code doesn't copy:
 
@@ -304,6 +323,38 @@ Figma gaps the code doesn't copy:
   pinned to Semantics Dark, like `Table / Header – Costs` (see TableCell),
   so its header cells render Dark on Light screens. Clear the explicit
   mode.
+
+### TableRow (22 Oct 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Row` (`460:964`): State
+(Default, Hover, Selected), the generic body row built from `Table / Cell`.
+Code: `src/components/table-row/`, a `<tr>` with a `selected` prop. The
+Storybook grids check the row fills and the selected-row text colours in
+Light and Dark, and axe checks every text pair on the tint.
+
+- **Default:** no fill, and a 1px `stroke/subtle` bottom border.
+- **Hover:** `surface/base`.
+- **Selected:** `action/primary/surface/default` at 16% opacity. The row's
+  checkbox is checked.
+- **Height:** 63px with a Two Line cell, as in Figma.
+
+On the Selected tint, TableCell darkens its secondary text to
+`text/secondary` and its links to `text/link/selected`, so they pass AA in
+Light. The ratios and the decision are under TableCell. Figma overrides
+only the sample row's Two Line cell; code applies the rule to every
+secondary line, date and link a cell can show.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Selected + Hover | No such state | A selected row keeps its Selected fill under the pointer | None needed |
+| Selected, for assistive tech | The checkbox is checked | The same: put a checked `Checkbox` in the row. A plain table row can't carry `aria-selected`, so the checkbox is what screen readers announce | None needed |
+
+Not built: the older `Table / Row – Cost`, `Table / Row – Cost
+(Selectable)` and `Table / Row – Recurring Cost`. Their Selected state is
+a 2px `stroke/focused` border, not a tint, and the cost rows are pinned to
+Dark (see TableCell).
 
 ### Icon (23 Oct 2026)
 
