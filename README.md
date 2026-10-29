@@ -94,6 +94,19 @@ names. A component that a second brand needs moves up to GDL.
 | `SelectOption` | Form → `Select / Option` | Components/SelectOption |
 | `SelectMenu` | Form → `Select / Menu` | Components/SelectMenu |
 | `Select` | Form → `_Dropdown Input` + `Select / Menu` (composed) | Components/Select |
+| `Overlay` | Patterns – Admin → the "Overlay" frame (code only) | Components/Overlay |
+| `ModalHeaderIcon` | Modals → `Modal / Header Icon` | Components/ModalHeaderIcon |
+| `ModalHeader` | Modals → `Modal / Header` | Components/ModalHeader |
+| `ModalDialog` | Modals → `Modal / Dialog` | Components/ModalDialog |
+| `ModalConfirm` | Modals → `Modal / Confirm` | Components/ModalConfirm |
+| `SideSheet` | Modals → `Panel / Side Sheet` | Components/SideSheet |
+| `Alert` | Feedback → `Alert` | Components/Alert |
+| `Toast`, `ToastProvider`, `useToast` | Feedback → `Toast` (the host is code only, from pattern 12) | Components/Toast |
+| `Tooltip` | Feedback → `Tooltip` | Components/Tooltip |
+| `Skeleton` | Feedback → `Skeleton` | Components/Skeleton |
+| `SkeletonTableRow` | Feedback → `Skeleton / Table Row` | Components/SkeletonTableRow |
+| `Spinner` | Feedback → `Spinner` | Components/Spinner |
+| `EmptyState` | Feedback → `Empty State` | Components/EmptyState |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -190,6 +203,48 @@ names. A component that a second brand needs moves up to GDL.
 <label htmlFor="frequency">Frequency</label>
 <Select id="frequency" placeholder="Select option"
         options={[{ value: 'monthly', label: 'Monthly' }, { value: 'yearly', label: 'Yearly' }]} />
+
+<ModalDialog open={open} onClose={close} title="Add New Cost Center" size="medium"   // Size=Medium; renders in a portal
+  footer={<><Button variant="text" onClick={close}>Cancel</Button><Button onClick={save}>Save</Button></>}>
+  {fields}                                                                     // Content
+</ModalDialog>
+<ModalConfirm open={open} onClose={close} onConfirm={remove} type="destructive"  // Delete, critical icon
+  title="Delete cost center?" message="“Employee Expenses” will be permanently deleted." />
+<SideSheet open={open} onClose={close} title="Edit Recurring Cost #1882" footer={actions}>{form}</SideSheet>
+<Overlay open={open} onClose={close} aria-labelledby="schedules-title" className="max-w-lg rounded-12 bg-surface-base">
+  <ModalHeader title="Payment Schedules" description="Upcoming and processed payments" titleId="schedules-title" onClose={close} />
+</Overlay>
+
+<Alert title="Temporary password" message="A temporary password is emailed to the user." />  // Type=Info, Size=Default
+<Alert type="error" size="compact" message="This cost was deleted" />                        // one line
+<Alert type="warning" title="Unsaved changes" message="Save before you leave." showDismiss onDismiss={onClose} />
+
+<ToastProvider>{app}</ToastProvider>                                                          // once, near the root
+const { toast } = useToast();
+toast({ type: 'success', message: 'Cost saved.' });                                          // closes after 5 seconds
+toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Retry', onAction: retry });  // stays
+
+<Tooltip text="Downloads the filtered rows as CSV">           // Placement=Top
+  <Button variant="outlined">Export</Button>
+</Tooltip>
+<Tooltip text="Updated nightly at 02:00" placement="bottom">   // Placement=Bottom
+  <IconButton icon="info" label="About sync status" />
+</Tooltip>
+
+<Skeleton className="w-32" />                                    // Shape=Line, sized by className
+<Skeleton shape="circle" />                                      // 32×32
+<table aria-busy="true">                                         // loading: skeleton rows under the real header
+  <thead>…</thead>
+  <tbody><SkeletonTableRow columns={3} /><SkeletonTableRow columns={3} /></tbody>
+</table>
+<Spinner size={24} label="Loading export details" />            // role="status"; the label is visually hidden
+
+<EmptyState                                                      // Size=Default
+  title="No announcements yet"
+  description="Create an announcement to tell users what’s new."
+  action={<Button leftIcon={<Plus />}>Add New</Button>}          // Show Action
+/>
+<td colSpan={4}><EmptyState size="compact" title="No items found" /></td>
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -302,6 +357,57 @@ names. A component that a second brand needs moves up to GDL.
 - `SelectMenu` (Select / Menu, a `role="listbox"`) and `SelectOption`
   (Select / Option: `selected` is State=Selected, Hover is `:hover`) are
   its list and rows, for a control that drives its own list.
+- `ModalDialog` is Figma's Modal / Dialog. `size` is `small`, `medium` or
+  `large`. `title` names the dialog, and `description` / `showDescription`
+  are Description and Show Description. `children` is the Content slot,
+  `footer` holds the actions, and `showFooter` is Show Footer. The close
+  button, Escape and a backdrop click call `onClose`; you set `open`.
+- `ModalConfirm` is Modal / Confirm, an `alertdialog`. `type` is `default`
+  or `destructive` (critical icon and Destructive button). `title` and
+  `message` are Title and Message; `confirmLabel` and `cancelLabel` are the
+  button labels. Focus opens on Cancel. Cancel and Escape call `onClose`,
+  and the other button calls `onConfirm`.
+- `SideSheet` is Panel / Side Sheet: 672 wide and full height on the right.
+  It takes `title`, `children`, `footer` and `showFooter`, and closes the
+  same way ModalDialog does.
+- `Overlay` is the modal layer under all three: the `surface.overlay` scrim,
+  the portal, the focus trap, Escape, the inert page, the scroll lock and
+  focus return. Use it with `ModalHeader` (icon, title, description, close)
+  for modals Figma composes by hand, like Payment Schedules. Point
+  `aria-labelledby` at the header's `titleId`.
+- `Alert` is Figma's Alert, the inline banner: `type` (`info`, `success`,
+  `warning`, `error`) sets the tonal colours and icon, `size` is `default`
+  (title over message) or `compact` (one line, the message only), and
+  `title`, `message` and `showDismiss` are Title, Message and Show
+  Dismiss. The X hides the alert and calls `onDismiss`. Error and Warning
+  are `role="alert"`; Info and Success are `role="status"`.
+- `Toast` is Figma's Toast: `type`, `message`, `action` (default "Undo")
+  with `showAction` and `onAction`, and an X that calls `onDismiss`. Raise
+  toasts with `useToast().toast({ … })` under one `ToastProvider`. They
+  stack at the bottom right in an `aria-live="polite"` region. Info and
+  Success close after 5 seconds; Warning, Error and toasts with an action
+  stay until dismissed; hover and focus pause the timer.
+- `Tooltip` is Figma's Tooltip. `text` is the hint and `placement` is
+  `top` (default) or `bottom`. Wrap one focusable target (`children`): it
+  gets `aria-describedby`, and the tooltip has `role="tooltip"`. It opens on
+  hover and on keyboard focus, closes on Escape, blur and pointer leave, and
+  flips or nudges itself to stay on screen. Keep it to plain text: nothing
+  interactive, and nothing the page doesn't also say.
+- `Skeleton` is Figma's loading placeholder: `shape` is `line` (default),
+  `circle` or `block`. Size it with `className` (`w-32`, `size-10`). Line
+  and Block fill their container by default. It pulses, except under
+  reduced motion, and is hidden from screen readers. Mark the loading
+  region `aria-busy`.
+- `SkeletonTableRow` is Figma's Skeleton / Table Row: a TableRow with one
+  Skeleton line per column (`columns`, default 5). Stack several in the
+  real table's `<tbody>` while it loads. It is as tall as a loaded row.
+- `Spinner` is Figma's Spinner: `size` is `16`, `24` or `32`. It is a
+  `role="status"` region. `label` (visually hidden, default "Loading")
+  says what is loading. It stands still under reduced motion.
+- `EmptyState` is Figma's Empty State: `size` is `default` (page level:
+  icon tile, `title`, `description` and an optional `action` Button) or
+  `compact` (a small icon and the `title`, inside a table body). It
+  centres itself in the page or in a `<td colSpan>`.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
