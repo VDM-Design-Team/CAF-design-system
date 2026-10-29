@@ -65,6 +65,8 @@ names. A component that a second brand needs moves up to GDL.
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
+| `PaginationItem` | Pagination → `Pagination / Item` | Components/PaginationItem |
+| `Pagination` | Pagination → `Pagination` | Components/Pagination |
 | `Icon` | Phosphor icons (Regular) the library places | Components/Icon |
 | `IconButton` | Buttons → `Button / Icon` | Components/IconButton |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
@@ -83,6 +85,7 @@ names. A component that a second brand needs moves up to GDL.
 <label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
 <Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
 
+<Pagination page={page} pageCount={25} onPageChange={setPage} />  // Page 1 of 25  ‹ 1 2 3 4 5 … 25 ›
 <Icon name="calendar-blank" size={20} />                          // takes the text colour around it
 <IconButton icon="dots-three" label="Row actions" />              // Size=32, Tone=Ghost
 <IconButton icon="trash" label="Remove" tone="destructive" size={40} />
@@ -110,6 +113,9 @@ names. A component that a second brand needs moves up to GDL.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
 - Hover, Pressed and Disabled are the element's own states.
+- `Pagination` takes the current `page` and `pageCount` and calls
+  `onPageChange` with the page to show. Its items are `PaginationItem`s
+  (Figma's Pagination / Item: `selected`, `disabled`).
 - `Icon` draws a Phosphor glyph by name (`caret-down`) at 16, 20, 24, 32 or
   48px. To add one, add its name to `scripts/icons.mjs` and run
   `npm run icons`.
