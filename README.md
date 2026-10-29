@@ -67,6 +67,8 @@ names. A component that a second brand needs moves up to GDL.
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 | `Icon` | Phosphor icons (Regular) the library places | Components/Icon |
 | `IconButton` | Buttons → `Button / Icon` | Components/IconButton |
+| `PaginationItem` | Pagination → `Pagination / Item` | Components/PaginationItem |
+| `Pagination` | Pagination → `Pagination` | Components/Pagination |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
 | `Tag` | Tags → `Tag` | Components/Tag |
@@ -86,6 +88,7 @@ names. A component that a second brand needs moves up to GDL.
 <Icon name="calendar-blank" size={20} />                          // takes the text colour around it
 <IconButton icon="dots-three" label="Row actions" />              // Size=32, Tone=Ghost
 <IconButton icon="trash" label="Remove" tone="destructive" size={40} />
+<Pagination page={page} pageCount={25} onPageChange={setPage} />  // Page 1 of 25  ‹ 1 2 3 4 5 … 25 ›
 
 <tr>                                                               // TableHeaderCell is a <th scope="col">
   <TableHeaderCell>Payment Method</TableHeaderCell>                 // Sortable=false
@@ -115,6 +118,9 @@ names. A component that a second brand needs moves up to GDL.
   `npm run icons`.
 - `IconButton` is Figma's Button / Icon: `size` 32 or 40, `tone` ghost,
   tonal or destructive, and a required `label` (its accessible name).
+- `Pagination` takes the current `page` and `pageCount` and calls
+  `onPageChange` with the page to show. Its items are `PaginationItem`s
+  (Figma's Pagination / Item: `selected`, `disabled`).
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
   Selected and Mixed-State are `checked` and `indeterminate`. Label it with
   a `<label>` or `aria-label`.

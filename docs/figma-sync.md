@@ -478,3 +478,55 @@ Figma gaps the code doesn't copy:
   library's, not CAF's) to Light. Its bindings are CAF's own variables, so
   the pin does nothing. Clear the explicit mode.
 
+### PaginationItem and Pagination (29 Oct 2026)
+
+Source: page **Pagination** (`256:2590`):
+- `Pagination / Item` (`405:566`): State (Default, Selected, Disabled)
+  with a Page label.
+- `Pagination` (`446:11483`): Page Info, Show Page Info, and the nested
+  items ‹ 1 2 3 4 5 … 25 ›.
+
+Code: `src/components/pagination-item/` and `src/components/pagination/`.
+The CAF screens place 89 items directly rather than through `Pagination`,
+so in code the bar is what tables use.
+
+| Item state | Fill | Stroke | Label |
+|---|---|---|---|
+| Default | none | 1px inside `stroke/subtle` | `text/primary` |
+| Selected | `action/primary/surface/default` | none | `action/primary/content/default` |
+| Disabled | none | 1px inside `stroke/subtle` | `text/disabled` |
+
+All items are Body/sm-semibold, 32×32. "Page X of Y" is Body/sm-regular in
+`text/subtle`, with an 8px gap.
+
+**Changed in Figma on 29 Oct 2026** (the user chose these; the library
+needs publishing):
+- **Selected's label** was bound to `text/primary`: 2.96 (Light) and 3.85
+  (Dark) on the blue, below AA. It's now `action/primary/content/default`
+  (6.81 / 4.77), as on Button and Status Pill.
+- **Disabled's label** was `text/primary`, identical to Default, so ‹ on
+  the first page looked clickable. It's now `text/disabled`.
+- **Disabled's text wasn't connected to the Page property,** so the
+  Previous arrow in `Pagination` showed the variant's default "1". It's
+  connected now and shows ‹.
+
+Contrast: the labels pass AA. Default is `text/primary` on the page
+(20.17 Light, 14.63 Dark, on `surface/base`); Selected is 6.81 / 4.77;
+Page Info is 4.76 / 5.71 on `surface/base`. Disabled is exempt.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Radius | Raw 6 | `radius/6` | Bind to `radius/6` |
+| Focus, Hover | No such states | 2px `stroke.focused` focus ring, as on Button; no hover | Add Hover and Focus states |
+| The … gap | An Item with the label "…" | A non-interactive `<span>` with the item's look, hidden from screen readers | None needed |
+| Arrows and pages | Labels only | `aria-label` "Previous page", "Next page" and "Page N"; the current page has `aria-current="page"`; ‹ / › are `disabled` at the ends | None needed |
+| Page window | Figma shows 1 2 3 4 5 … 25 | Up to 7 pages show them all. Otherwise the first and last, plus five pages at an end or three around the current page | None needed |
+| Letter spacing | 0 | GDL's ramp, so "Page 1 of 25" is 86px (Figma 83) | Bind the text styles to the ramp |
+
+Figma gaps the code doesn't copy:
+
+- **`Pagination` is pinned to Semantics Dark,** so it renders Dark on
+  Light screens. Clear the explicit mode.
+
