@@ -102,7 +102,10 @@ export interface PopoverProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
    * meant to operate now (a date picker's calendar).
    */
   autoFocus?: boolean;
-  /** The panel's accessible name, with `panelRole`. Leave it off and the trigger names the panel. */
+  /**
+   * The panel's accessible name, with `panelRole`. Leave it off and the trigger
+   * names the panel, unless `panelProps` carries an `aria-labelledby`.
+   */
   label?: string;
   /** The panel's role, which also sets the trigger's `aria-haspopup`. MenuDropdown passes `"menu"`. */
   panelRole?: PopoverPanelRole;
@@ -274,9 +277,10 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
           ref={mergeRefs<HTMLDivElement>(panelRef, panelRefProp)}
           id={panelId}
           role={panelRole}
-          /* A panel with a role needs a name: its own, or the trigger's. */
+          /* A panel with a role needs a name: its own (`label`, or an `aria-labelledby`
+             in panelProps, which Select passes on from its own), or the trigger's. */
           aria-label={panelRole && label ? label : undefined}
-          aria-labelledby={panelRole && !label ? triggerId : undefined}
+          aria-labelledby={panelRole && !label ? (panelProps?.['aria-labelledby'] ?? triggerId) : undefined}
           tabIndex={panelProps?.tabIndex ?? -1}
           data-placement={side.placement}
           data-align={side.align}
