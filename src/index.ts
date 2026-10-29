@@ -6,4 +6,5 @@ export * from './components/status-pill';
 export * from './components/table-cell';
 export * from './components/table-header-cell';
 export * from './components/table-row';
+export * from './components/tag';
 export { cn } from './lib/cn';
