@@ -190,13 +190,32 @@ Contrast: the cell has no fill of its own, so its text sits on the row.
 All of them pass. `text/subtle` on Light canvas (4.55) is the closest to
 the 4.5:1 limit.
 
-For later, when Table / Row is built: the generic Row's **Selected** fill
-is `action/primary/surface/default`. Every cell colour fails on it:
-- Light: primary 2.96, subtle 1.43, link 1.36.
-- Dark: 3.85, 1.50, 1.77.
+For Table / Row: the generic Row's **Selected** fill is
+`action/primary/surface/default` at **16% opacity**, a light tint. An
+earlier version of this note measured it at full opacity. Composited over
+`surface/base` / `surface/canvas`, the cell text on it is:
 
-Selected needs a lighter fill (`surface/brand/faint`, say) or inverted
-cell text.
+| Text on a Selected row | Light | Dark |
+|---|---|---|
+| `text/primary` | 15.76 / 15.12 | 11.98 / 14.68 |
+| `text/subtle` (secondary line, date) | **3.72 / 3.57** | 4.67 / 5.72 |
+| `text/link/default` (list toggle) | **3.92 / 3.76** | 5.51 / 6.76 |
+
+No visible tint can fix the Light failures: `text/subtle` is only 4.55 on
+`surface/canvas` without one. The fix (22 Oct 2026) keeps the tint and
+darkens the text in a Selected row only:
+
+| In a Selected row | Light | Dark |
+|---|---|---|
+| Secondary text → `text/secondary` | 8.09 / 7.76 | 9.72 / 11.90 |
+| Links → `text/link/selected` | 5.36 / 5.14 | 5.51 / 6.76 |
+
+`text/link/hover` would look the same in Light, but it fails in Dark
+(3.77), so links use `text/link/selected`. In Figma, `Table / Row`
+State=Selected now overrides the Two Line cell's secondary text to
+`text/secondary`. The component's description records the rule for other
+cell types, because Figma can't bind a cell's text to its row's state.
+Code applies it when Table / Row is built.
 
 Figma gaps the code doesn't copy:
 
@@ -304,6 +323,160 @@ Figma gaps the code doesn't copy:
   pinned to Semantics Dark, like `Table / Header – Costs` (see TableCell),
   so its header cells render Dark on Light screens. Clear the explicit
   mode.
+
+### TableRow (22 Oct 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Row` (`460:964`): State
+(Default, Hover, Selected), the generic body row built from `Table / Cell`.
+Code: `src/components/table-row/`, a `<tr>` with a `selected` prop. The
+Storybook grids check the row fills and the selected-row text colours in
+Light and Dark, and axe checks every text pair on the tint.
+
+- **Default:** no fill, and a 1px `stroke/subtle` bottom border.
+- **Hover:** `surface/base`.
+- **Selected:** `action/primary/surface/default` at 16% opacity. The row's
+  checkbox is checked.
+- **Height:** 63px with a Two Line cell, as in Figma.
+
+On the Selected tint, TableCell darkens its secondary text to
+`text/secondary` and its links to `text/link/selected`, so they pass AA in
+Light. The ratios and the decision are under TableCell. Figma overrides
+only the sample row's Two Line cell; code applies the rule to every
+secondary line, date and link a cell can show.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Selected + Hover | No such state | A selected row keeps its Selected fill under the pointer | None needed |
+| Selected, for assistive tech | The checkbox is checked | The same: put a checked `Checkbox` in the row. A plain table row can't carry `aria-selected`, so the checkbox is what screen readers announce | None needed |
+
+Not built: the older `Table / Row – Cost`, `Table / Row – Cost
+(Selectable)` and `Table / Row – Recurring Cost`. Their Selected state is
+a 2px `stroke/focused` border, not a tint, and the cost rows are pinned to
+Dark (see TableCell).
+
+### Icon (23 Oct 2026)
+
+The CAF Figma library places Phosphor icons (MIT) at Regular weight, as
+components named like `CaretDown / Style=Regular, Size=20px`. Code:
+`src/components/icon/`. Each glyph is Phosphor's own path, from
+`@phosphor-icons/core`. Checked against Figma's vectors (bounds of
+caret, x, calendar, file, download, trash, arrows), they match.
+
+- **The set** is the 39 icons the library and the CAF screens place,
+  listed in `scripts/icons.mjs`. `npm run icons` writes
+  `src/components/icon/icons.ts`, and `npm test` fails if that file is out
+  of date. To add an icon, add its Phosphor name there.
+- **Sizes:** 16, 20, 24, 32 and 48, the sizes Figma places.
+- **Colour:** currentColor, so an icon takes the text token around it.
+
+Not Phosphor, so not in the set yet:
+
+- **`Bolt`** (Tag, Status=Active) is Heroicons' micro "bolt": its vector
+  bounds (12×14 at 2,1 on a 16 grid) match Heroicons, not Phosphor. Code
+  uses Phosphor `lightning` instead (see Tag).
+- The older screens also place `heroicons-micro/check` and
+  `heroicons-solid/plus`. Their library equivalents are Phosphor `check`
+  and `plus`.
+
+### IconButton (23 Oct 2026)
+
+Source: page **Buttons** (`217:1679`), set `Button / Icon` (`461:1151`):
+Size (32, 40) × Tone (Ghost, Tonal, Destructive) × State (Default, Hover).
+Code: `src/components/icon-button/`. Every colour binding is copied
+exactly, and the Storybook grids check each tone's fill at rest and on
+hover, its glyph colour and its glyph size, in Light and Dark.
+
+| Tone | Fill at rest | Fill on hover | Glyph |
+|---|---|---|---|
+| Ghost | none | `neutral/tonal/surface/default` | `text/secondary` |
+| Tonal | `surface/base` | `neutral/tonal/surface/default` | `text/primary` |
+| Destructive | none | `accent/critical/tonal/surface/default` | `accent/critical/tonal/content/default` |
+
+Size 32 holds a 16px glyph and size 40 a 20px one.
+
+Contrast: the glyph is a graphic, so it needs 3:1 (WCAG 1.4.11). Every
+pair passes, the lowest being 5.22:
+
+| Tone | Light, at rest (base / canvas) / hover | Dark, at rest (base / canvas) / hover |
+|---|---|---|
+| Ghost | 10.35 / 9.90 / 8.40 | 11.87 / 14.48 / 6.15 |
+| Tonal | 20.17 / — / 16.36 | 14.63 / — / 7.58 |
+| Destructive | 8.36 / 7.99 / 6.85 | 7.62 / 9.30 / 5.22 |
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Radius | Raw 8 | `radius/8` | Bind to `radius/8` |
+| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
+| Disabled, Pressed | No such states | Native `disabled` only removes the hover and shows a not-allowed cursor; no Pressed look | Add them if the screens need them |
+| Name | The glyph is the only content | `label` is required and becomes `aria-label` | None needed |
+
+Older icon buttons in the library that Button / Icon replaces. Code has
+no separate component for them; each is an IconButton:
+
+| Figma component | Differences from Button / Icon | In code |
+|---|---|---|
+| `Menu / Row Actions Button` (`405:551`, 56 on the screens) | Radius 6, 20px glyph in `text/primary`, no hover, **pinned to Dark** | `<IconButton icon="dots-three" label="Row actions" />` |
+| `Navigation / Icon Button` (`4:235`) | 40×40 with a 24px glyph whose colour isn't bound | `<IconButton size={40} …/>` (20px glyph) |
+| `Modal / Close Button` (`348:8264`) | 24×32, 24px X | `<IconButton icon="x" label="Close" />` |
+
+Fix in Figma: swap these for `Button / Icon` instances (Ghost 32 for row
+actions and close, Ghost 40 in the header).
+
+### Tag (23 Oct 2026)
+
+Source: page **Tags** (`89:858`), set `Tag` (`330:3828`): Status
+(Pending, Active, Completed, Error, Warning, Info, Neutral) × Show Icon.
+Code: `src/components/tag/`. Every binding is copied exactly: padding
+`space/4` / `space/12`, gap `space/4`, `radius-full`, Label/sm-medium. The
+Storybook grids check each status's fill, label and icon colour, in Light
+and Dark.
+
+| Status | Fill / label and icon | Icon |
+|---|---|---|
+| Pending | `accent/pending/tonal` surface / content | `clock` |
+| Active | `accent/info/tonal` | `lightning` (see below) |
+| Completed | `accent/success/tonal` | `check-circle` |
+| Error | `accent/critical/tonal` | `x-circle` |
+| Warning | `accent/warning/tonal` | `warning` |
+| Info | `accent/info/tonal` | `info` |
+| Neutral | `neutral/tonal` | `minus-circle` |
+
+Active and Info share the same colours and differ only by icon.
+
+**The label** isn't a Figma property: each variant's text is its status
+name. The screens override it ("Deleted", "Updated", "Failed", "Excel",
+"Zip", version numbers), so in code it's `children`.
+
+Contrast: every label passes AA on its fill. Light Pending and Warning
+are close to the limit.
+
+| Status | Light | Dark |
+|---|---|---|
+| Pending | 4.52 | 5.56 |
+| Active, Info | 5.60 | 5.72 |
+| Completed | 6.49 | 6.46 |
+| Error | 6.85 | 5.22 |
+| Warning | 4.59 | 6.53 |
+| Neutral | 8.40 | 5.10 |
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Active's icon | `Bolt`: Heroicons' micro bolt, not Phosphor | Phosphor `lightning` | Swap to Phosphor `Lightning` |
+| Pending's icon | `Clock` drawn as a 1px stroked outline, coloured through its stroke | Phosphor `clock` (filled path, like every other icon) | Use the Phosphor `Clock` glyph |
+| Height | 25px, on Inter's auto line height | 26px, on GDL's 18px Label/sm line height | Bind the text style's line height to the ramp |
+| Letter spacing | 0 | GDL's 0.2px; widths stay within about 1px of Figma | As above |
+
+Figma gaps the code doesn't copy:
+
+- **Status=Completed pins a remote "Semantics" collection** (another
+  library's, not CAF's) to Light. Its bindings are CAF's own variables, so
+  the pin does nothing. Clear the explicit mode.
 
 ### PaginationItem and Pagination (29 Oct 2026)
 

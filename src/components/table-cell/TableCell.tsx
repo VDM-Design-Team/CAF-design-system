@@ -15,13 +15,15 @@ import { cn } from '../../lib/cn';
  * - Text properties: Value → `children`, Primary / Secondary → `primary` /
  *   `secondary`, Date → `date`.
  * - Nested components are passed in as `children`: Type=Checkbox takes
- *   `<Checkbox>` and Type=Tag takes `<StatusPill>`; Actions and Status + Date
- *   take the row actions button and Tag, which aren't built yet.
+ *   `<Checkbox>`, Type=Tag takes `<StatusPill>` and Status + Date takes
+ *   `<Tag>`; Actions takes the row actions button, which isn't built yet.
  * - Figma sets the width per column; so does the table (`className`).
  *
  * Every colour and type style is the one the Figma layer is bound to. The
- * cell has no fill or border: the row draws those. Where code departs from
- * Figma, the reason is in docs/figma-sync.md ("TableCell").
+ * cell has no fill or border: the row draws those. In a selected TableRow,
+ * secondary text and links switch to darker tokens (docs/figma-sync.md,
+ * "TableRow"). Where code departs from Figma, the reason is in
+ * docs/figma-sync.md ("TableCell").
  */
 const cell = cva('px-4 py-3', {
   variants: {
@@ -56,8 +58,14 @@ const stack = cva('flex flex-col', {
   defaultVariants: { type: 'text' },
 });
 
+/* Secondary text (the second line, the date): text.subtle, or text.secondary in a
+   selected TableRow, where text.subtle is below 4.5:1 on the row's tint in Light. */
+const subtle = 'text-caption-md-regular text-text-subtle group-data-selected/row:text-text-secondary';
+
 const toggle = [
   'cursor-pointer rounded-2 text-caption-md-regular text-text-link-default',
+  // In a selected TableRow, links use text.link.selected to stay above 4.5:1 on its tint.
+  'group-data-selected/row:text-text-link-selected',
   // Figma has no Focus state for the toggle; the ring is stroke.focused, as on Button.
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
 ];
@@ -74,7 +82,7 @@ export type TableCellProps = Td &
         children: React.ReactNode;
       }
     | { type: 'list'; items: React.ReactNode[]; defaultExpanded?: boolean }
-    | { /** Status + Date: the Tag goes in children. */ type: 'status-date'; children: React.ReactNode; date: React.ReactNode }
+    | { /** Status + Date: a `<Tag>` goes in children. */ type: 'status-date'; children: React.ReactNode; date: React.ReactNode }
   );
 
 type AnyCellProps = Td & {
@@ -97,7 +105,7 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
         {type === 'two-line' && (
           <>
             <span className="text-body-sm-medium text-text-primary">{primary}</span>
-            <span className="text-caption-md-regular text-text-subtle">{secondary}</span>
+            <span className={subtle}>{secondary}</span>
           </>
         )}
         {(type === 'tag' || type === 'checkbox' || type === 'actions') && children}
@@ -105,7 +113,7 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
         {type === 'status-date' && (
           <>
             {children}
-            <span className="text-caption-md-regular text-text-subtle">{date}</span>
+            <span className={subtle}>{date}</span>
           </>
         )}
       </div>
