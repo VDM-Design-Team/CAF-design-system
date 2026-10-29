@@ -74,6 +74,26 @@ names. A component that a second brand needs moves up to GDL.
 | `Tag` | Tags → `Tag` | Components/Tag |
 | `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
 | `TableRow` | Table → `Table / Row` | Components/TableRow |
+| `Popover` | None: code only, with Menus → `Menu / Dropdown`'s surface | Components/Popover |
+| `MenuItem` | Menus → `Menu / Item` | Components/MenuItem |
+| `MenuDropdown` | Menus → `Menu / Dropdown` | Components/MenuDropdown |
+| `RowActionsMenu` | Menus → `Menu / Row Actions Button`, with the Dropdown it opens | Components/RowActionsMenu |
+| `TextInput` | Form → `_Text Input` | Components/TextInput |
+| `SelectTrigger` | Form → `_Dropdown Input` | Components/SelectTrigger |
+| `TableExpandButton` | Table → `Table / Expand Button` | Components/TableExpandButton |
+| `TableDetailLabel` | Table → `Table / Detail Label` | Components/TableDetailLabel |
+| `TableAccountDetails` | Table → `Table / Account Details` | Components/TableAccountDetails |
+| `TabItem` | Tabs → `Tabs / Tab Item` | Components/TabItem |
+| `Tabs` | Tabs → `Tabs / Cost Type` (as generic segmented tabs) | Components/Tabs |
+| `FormTabNavigation` | Form → `Form / Tab Navigation` | Components/FormTabNavigation |
+| `DatePickerDay` | Form → `Date Picker / Day` | Components/DatePickerDay |
+| `Calendar` | Form → `Date Picker / Calendar` | Components/Calendar |
+| `RangeCalendar` | Form → `Date Picker / Range` | Components/RangeCalendar |
+| `FilterField` | Filters → `Filter / Field` | Components/FilterField |
+| `MenuTriggerButton` | Buttons → `Button / Menu Trigger` | Components/MenuTriggerButton |
+| `SelectOption` | Form → `Select / Option` | Components/SelectOption |
+| `SelectMenu` | Form → `Select / Menu` | Components/SelectMenu |
+| `Select` | Form → `_Dropdown Input` + `Select / Menu` (composed) | Components/Select |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -106,6 +126,70 @@ names. A component that a second brand needs moves up to GDL.
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
 <Tag status="completed">Completed</Tag>                          // tonal, with its icon
 <Tag status="error" showIcon={false}>Deleted</Tag>
+
+<MenuDropdown trigger={<Button rightIcon={<Icon name="caret-down" />}>Export</Button>}>
+  <MenuItem onClick={downloadCsv}>Download</MenuItem>              // Type=Default; Hover is :hover
+  <MenuItem destructive onClick={confirmDelete}>Delete</MenuItem>  // Type=Destructive, last
+</MenuDropdown>
+
+<TableCell type="actions">
+  <RowActionsMenu label="Actions for cost 123456">                 // ••• → menu below, flush right
+    <MenuItem onClick={approve}>Approve</MenuItem>
+    <MenuItem onClick={viewInvoices}>View invoices</MenuItem>
+    <MenuItem destructive onClick={remove}>Delete</MenuItem>
+  </RowActionsMenu>
+</TableCell>
+
+<Popover trigger={<Button variant="outlined">Details</Button>} align="right">…</Popover>
+
+<TextInput aria-label="Account name" placeholder="Placeholder" />   // State=Default
+<TextInput id="cost-reference" defaultValue="ACME-0042" aria-invalid />  // Error (name it with <label htmlFor>)
+<SelectTrigger aria-label="Frequency" />                            // Default: "Select option"
+<SelectTrigger aria-label="Frequency" value="Monthly" />            // Filled
+<SelectTrigger aria-label="Frequency" open aria-controls="frequency-list" />  // Open
+
+<TableRow>                                                         // an expandable cost row
+  <TableCell type="actions">
+    <TableExpandButton label="Show details for cost 32430" expanded={open} aria-controls="cost-32430" onClick={toggle} />
+  </TableCell>
+  <TableCell type="tag">
+    <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
+      <TableDetailLabel>ID: 32430</TableDetailLabel>                // "Label: Value"
+      <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
+    </TableAccountDetails>
+  </TableCell>
+</TableRow>
+<tr id="cost-32430" hidden={!open}>…</tr>                          // the breakdown the caret opens
+
+<Tabs aria-label="Cost type" selected={type} onSelectedChange={setType}>  // Tabs / Cost Type
+  <TabItem value="all">All</TabItem>
+  <TabItem value="recurring">Recurring</TabItem>
+  <TabItem value="single">Single</TabItem>
+</Tabs>
+<FormTabNavigation aria-label="Cost type" active={kind} onActiveChange={setKind}>  // Form / Tab Navigation
+  <TabItem value="single">Single Cost</TabItem>
+  <TabItem value="recurring">Recurring Cost</TabItem>
+</FormTabNavigation>
+
+<Calendar value={dueDate} onChange={setDueDate} />                // one month, weeks from Monday
+<RangeCalendar value={period} onChange={setPeriod} />             // two months; onChange({ start, end })
+
+<FilterField label="Search costs" placeholder="Search costs..." />   // Type=Search; Filled (with ×) once typed
+<Popover panelRole="listbox" trigger={<FilterField type="dropdown" label="Status" value="All Status" />}>
+  …                                                                // Select's options (List page pattern)
+</Popover>
+<FilterField type="dropdown" label="Period" placeholder="Select Period" icon="calendar-blank" />
+
+<MenuTriggerButton label="Change Status (3)">                      // Button / Menu Trigger
+  <MenuItem>Approve</MenuItem>
+  <MenuItem>Mark as Paid</MenuItem>
+</MenuTriggerButton>
+
+<Select aria-label="Country" options={['Philippines', 'United States', 'United Kingdom']}
+        value={country} onValueChange={setCountry} />               // _Dropdown Input + Select / Menu
+<label htmlFor="frequency">Frequency</label>
+<Select id="frequency" placeholder="Select option"
+        options={[{ value: 'monthly', label: 'Monthly' }, { value: 'yearly', label: 'Yearly' }]} />
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -136,6 +220,88 @@ names. A component that a second brand needs moves up to GDL.
   text and links so they pass AA on its tint.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
   `active`, and the label is `children`. It has no states.
+- `MenuDropdown` is Figma's Menu / Dropdown: `trigger` is the control that
+  opens it (a `Button` or `IconButton`), and the `MenuItem`s are `children`.
+  It is a `role="menu"` named by its trigger. Enter, Space or ↓ opens it on
+  the first item and ↑ on the last; ↓ / ↑ move and wrap; Home / End; Enter
+  or Space chooses; Escape and Tab close. Focus goes back to the trigger.
+- `MenuItem` is Figma's Menu / Item: `destructive` is Type=Destructive and
+  Hover is `:hover`. It has no `disabled`: leave out an action the user
+  can't take.
+- `RowActionsMenu` is the table row's •••: an `IconButton` (`dots-three`)
+  that opens a MenuDropdown below it, flush right. `label` names the button
+  and the menu ("Row actions" by default; name the record when a table has
+  many rows).
+- `Popover` is the floating panel the menus and `Select` are built on (a
+  Date field will reuse it). It has Menu / Dropdown's surface
+  (`popoverSurface`), opens below or above its trigger (`placement`), flush
+  left or right (`align`), and flips when the viewport has no room. A click
+  outside, Escape or focus leaving closes it. It has no portal, so a parent
+  that clips overflow clips it too.
+- `TextInput` is Figma's _Text Input, a native `<input>` that fills its
+  container. Default is empty with a `placeholder`, Filled has a value,
+  Focus is `:focus`, Error is `aria-invalid` and Disabled is `disabled`.
+  Name it with a `<label htmlFor>` or `aria-label`.
+- `SelectTrigger` is Figma's _Dropdown Input, the closed select: `value`
+  is the chosen option's label (empty shows `placeholder`, default
+  "Select option"), and `open` is State=Open (it sets `aria-expanded`;
+  pass `aria-controls` with the list's id too). It is a
+  `<button role="combobox">`, named by its label, not its text. Select
+  opens its list from it.
+- `TableExpandButton` is Figma's Expand Button: `expanded` swaps
+  CaretDown for CaretUp and sets `aria-expanded`. Point `aria-controls` at
+  what it opens. The row owns the state. `label` is required: it's the
+  accessible name.
+- `TableAccountDetails` is Figma's Account Details: its lines are
+  `TableDetailLabel`s (one "Label: Value" line each, the text is
+  `children`), and `categoryTag` is the Category Tag below them: a
+  `StatusPill`, as in Figma, or a `Tag`. Put it in a `TableCell`.
+- `Tabs` is Figma's segmented tabs (Tabs / Cost Type, made generic). Put
+  `TabItem`s in it: each has a `value`, and its label is `children`.
+  `selected` is Figma's Selected, the selected tab's value
+  (`defaultSelected` when uncontrolled). `onSelectedChange` receives the
+  tab the user picks. It is a `role="tablist"`, so give it an
+  `aria-label`. ← / → / Home / End move between tabs and select them, and
+  only the selected tab is in the tab order.
+- `FormTabNavigation` is the New Cost form's full-width switch (Form / Tab
+  Navigation). It takes the same `TabItem`s and keyboard, with `active` /
+  `defaultActive` / `onActiveChange`. The active tab is a raised neutral
+  pill, not the blue.
+- `Calendar` is Figma's Date Picker / Calendar: one month, with weeks from
+  Monday and always six rows. `value` / `onChange` (or `defaultValue`) is
+  the chosen day, `month` / `onMonthChange` (or `defaultMonth`) is the
+  visible month, and `today` is the day with the ring. The days are one tab
+  stop. Arrows, Home / End and Page Up / Page Down (Shift: by year) move
+  the focus, and the view follows it.
+- `RangeCalendar` is Figma's Date Picker / Range: two months that page
+  together. Two picks, in either order, call `onChange({ start, end })`,
+  and Escape drops a half-picked range.
+- Both are panels only: a Date field or a filter will put them in a
+  Popover. Their days are `DatePickerDay`s, Figma's Date Picker / Day:
+  `today`, `selected`, `inRange` and `outsideMonth` (inactive).
+- `FilterField` is Figma's Filter / Field, one control in a list page's
+  filter bar. `type="search"` (the default) is a search box with a clear
+  (×) button once it is filled (State=Filled). The button and Escape both
+  empty it. `type="dropdown"` is a trigger button: a leading icon, the
+  chosen `value` (or a `placeholder`) and a caret. Put it in a Popover with
+  a Select or a RangeCalendar. `icon` swaps the leading icon, and `label`
+  (required) is the accessible name.
+- `MenuTriggerButton` is Figma's Button / Menu Trigger: the primary Button
+  with a trailing caret that opens a MenuDropdown, for Export and the bulk
+  Change Status (n). `label` is the button's text, the MenuItems are
+  `children`, and `disabled` is State=Disabled.
+- `Select` is Figma's `_Dropdown Input` opening a `Select / Menu`.
+  `options` are strings or `{ value, label }`. `value` / `defaultValue`
+  and `onValueChange` hold the choice. `placeholder`, `disabled`,
+  `aria-invalid` and the name (`<label htmlFor>` with `id`, `aria-label`
+  or `aria-labelledby`) go to the trigger.
+- It is the WAI-ARIA select-only combobox. Focus stays on the trigger.
+  The arrow keys, Home / End and Page Up / Down move, typing jumps to a
+  match, Enter, Space or Alt + ↑ choose, Tab chooses and moves on, and
+  Escape closes. Past 256px the list scrolls.
+- `SelectMenu` (Select / Menu, a `role="listbox"`) and `SelectOption`
+  (Select / Option: `selected` is State=Selected, Hover is `:hover`) are
+  its list and rows, for a control that drives its own list.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
