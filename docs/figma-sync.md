@@ -190,13 +190,32 @@ Contrast: the cell has no fill of its own, so its text sits on the row.
 All of them pass. `text/subtle` on Light canvas (4.55) is the closest to
 the 4.5:1 limit.
 
-For later, when Table / Row is built: the generic Row's **Selected** fill
-is `action/primary/surface/default`. Every cell colour fails on it:
-- Light: primary 2.96, subtle 1.43, link 1.36.
-- Dark: 3.85, 1.50, 1.77.
+For Table / Row: the generic Row's **Selected** fill is
+`action/primary/surface/default` at **16% opacity**, a light tint. An
+earlier version of this note measured it at full opacity. Composited over
+`surface/base` / `surface/canvas`, the cell text on it is:
 
-Selected needs a lighter fill (`surface/brand/faint`, say) or inverted
-cell text.
+| Text on a Selected row | Light | Dark |
+|---|---|---|
+| `text/primary` | 15.76 / 15.12 | 11.98 / 14.68 |
+| `text/subtle` (secondary line, date) | **3.72 / 3.57** | 4.67 / 5.72 |
+| `text/link/default` (list toggle) | **3.92 / 3.76** | 5.51 / 6.76 |
+
+No visible tint can fix the Light failures: `text/subtle` is only 4.55 on
+`surface/canvas` without one. The fix (22 Oct 2026) keeps the tint and
+darkens the text in a Selected row only:
+
+| In a Selected row | Light | Dark |
+|---|---|---|
+| Secondary text → `text/secondary` | 8.09 / 7.76 | 9.72 / 11.90 |
+| Links → `text/link/selected` | 5.36 / 5.14 | 5.51 / 6.76 |
+
+`text/link/hover` would look the same in Light, but it fails in Dark
+(3.77), so links use `text/link/selected`. In Figma, `Table / Row`
+State=Selected now overrides the Two Line cell's secondary text to
+`text/secondary`. The component's description records the rule for other
+cell types, because Figma can't bind a cell's text to its row's state.
+Code applies it when Table / Row is built.
 
 Figma gaps the code doesn't copy:
 
