@@ -69,6 +69,8 @@ const comboboxInputClasses = [
   'px-10',
   /* State=Open: Focus's 2px stroke.focused stroke. Error keeps its colour at that width. */
   'aria-expanded:inset-ring-2 aria-expanded:inset-ring-stroke-focused',
+  /* State=Disabled's 50% opacity goes on the box below, so the icons dim with the input. */
+  'disabled:opacity-100',
 ];
 
 /* The box: the input, with Figma's two icons over its padding. They let a
@@ -78,7 +80,8 @@ const ComboboxInput = React.forwardRef<HTMLInputElement, TextInputProps>(functio
   ref,
 ) {
   return (
-    <span className="relative flex w-full min-w-0">
+    /* State=Disabled: the whole box, icons included, at 50% opacity (Figma's layer opacity, raw 0.5). */
+    <span className="relative flex w-full min-w-0 has-disabled:opacity-50">
       <Icon
         name="magnifying-glass"
         size={20}

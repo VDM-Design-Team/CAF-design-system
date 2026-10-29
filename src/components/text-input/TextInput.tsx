@@ -38,8 +38,9 @@ const textInputClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour while
      focused (Focus's 2px width), so the error stays visible as you type. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle. */
-  'disabled:cursor-not-allowed disabled:text-text-subtle',
+  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
+     whole field at 50% opacity (Figma's layer opacity, raw 0.5). */
+  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50',
 ];
 
 export type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;
