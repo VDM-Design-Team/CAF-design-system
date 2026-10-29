@@ -71,6 +71,7 @@ names. A component that a second brand needs moves up to GDL.
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
 | `Tag` | Tags → `Tag` | Components/Tag |
 | `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
+| `TableRow` | Table → `Table / Row` | Components/TableRow |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -91,13 +92,13 @@ names. A component that a second brand needs moves up to GDL.
   <TableHeaderCell sortable sort="ascending" onSort={sortByAmount}>Amount</TableHeaderCell>
 </tr>
 
-<tr>                                                               // TableCell is a <td>
-  <TableCell type="checkbox"><Checkbox aria-label="Select row" /></TableCell>
-  <TableCell>123456</TableCell>                                    // Type=Text
+<TableRow selected>                                                // TableRow is a <tr>; Selected
+  <TableCell type="checkbox"><Checkbox aria-label="Select row" checked onChange={toggle} /></TableCell>
+  <TableCell>123456</TableCell>                                    // TableCell is a <td>; Type=Text
   <TableCell type="two-line" primary="Admin Account" secondary="admin1@geekee.com" />
   <TableCell type="list" items={['Reporting', 'Exports']} />       // +1 more
   <TableCell type="tag"><StatusPill>Pending</StatusPill></TableCell>
-</tr>
+</TableRow>
 
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
 <Tag status="completed">Completed</Tag>                          // tonal, with its icon
@@ -123,6 +124,10 @@ names. A component that a second brand needs moves up to GDL.
 - `Tag` is Figma's tonal Tag: `status` sets the colours and icon
   (`pending`, `active`, `completed`, `error`, `warning`, `info`,
   `neutral`), `showIcon` is Show Icon, and the label is `children`.
+- `TableRow` is Figma's generic Row: Hover is `:hover` and Selected is
+  `selected`. Put a checked `Checkbox` in a selected row too; that's what
+  screen readers announce. On a selected row, cells darken their secondary
+  text and links so they pass AA on its tint.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
   `active`, and the label is `children`. It has no states.
 
