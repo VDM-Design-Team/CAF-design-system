@@ -1,7 +1,7 @@
 {
   "name": "@vdm-design-team/caf",
   "version": "0.3.0",
-  "description": "CAF Design System — CAF’s brand tokens built on GDL (the General Design Library), and CAF’s React components. CAF keeps its brand ramp, its UI font, its semantic colour values and its components; everything else is inherited from @vdm-design-team/gdl.",
+  "description": "CAF Design System \u2014 CAF\u2019s brand tokens built on GDL (the General Design Library), and CAF\u2019s React components. CAF keeps its brand ramp, its UI font, its semantic colour values and its components; everything else is inherited from @vdm-design-team/gdl.",
   "type": "module",
   "license": "UNLICENSED",
   "repository": {
@@ -34,6 +34,7 @@
     "build": "style-dictionary build --config style-dictionary.config.mjs",
     "lint:tokens": "node scripts/lint-tokens.mjs",
     "lint:components": "node scripts/lint-hardcoded-values.mjs",
+    "icons": "node scripts/icons.mjs",
     "check:contract": "gdl-check-contract --light tokens/semantic/color.json --dark tokens/semantic/color.dark.json --core tokens/core/color.json",
     "check:contrast": "node scripts/check-contrast.mjs",
     "lint:changes": "node scripts/lint-changes.mjs",
@@ -43,7 +44,7 @@
     "storybook": "npm run build && storybook dev -p ${PORT:-6006}",
     "storybook:build": "npm run build && storybook build",
     "changelog": "node scripts/changelog.mjs",
-    "test": "npm run lint:tokens && npm run lint:components && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes && npm run typecheck && npm run test:stories",
+    "test": "npm run lint:tokens && npm run lint:components && npm run icons -- --check && npm run build && npm run check:contract && npm run check:contrast -- --strict && npm run lint:changes && npm run typecheck && npm run test:stories",
     "prepack": "npm run build"
   },
   "peerDependencies": {
@@ -64,6 +65,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@phosphor-icons/core": "^2.1.1",
     "@phosphor-icons/react": "^2.1.10",
     "@storybook/addon-a11y": "^10.6.3",
     "@storybook/addon-docs": "^10.6.3",
