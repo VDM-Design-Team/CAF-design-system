@@ -21,7 +21,7 @@ const meta = {
       },
     },
   },
-  args: { label: 'Search costs', placeholder: 'Search costs...', onChange: fn(), onClear: fn() },
+  args: { label: 'Search costs', placeholder: 'Search costs...', onChange: fn() },
   argTypes: {
     type: { control: 'radio', options: FILTER_FIELD_TYPES },
     icon: { control: 'select', options: ICON_NAMES },
@@ -49,6 +49,8 @@ function tokenColour(token: string) {
 
 /** Type to filter: the clear button appears (State=Filled). It, or Escape, empties the box and keeps focus in it. */
 export const Playground: Story = {
+  /* Search only: on Type=Dropdown, onClear would reach the <button> as an unknown DOM prop. */
+  args: { onClear: fn() } as never,
   play: async ({ args, canvasElement }) => {
     const { onChange, onClear } = args as unknown as Record<'onChange' | 'onClear', ReturnType<typeof fn>>;
     const focused = tokenColour('stroke-focused');
