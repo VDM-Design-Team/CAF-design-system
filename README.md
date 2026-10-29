@@ -65,8 +65,11 @@ names. A component that a second brand needs moves up to GDL.
 |---|---|---|
 | `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
+| `Icon` | Phosphor icons (Regular) the library places | Components/Icon |
+| `IconButton` | Buttons → `Button / Icon` | Components/IconButton |
 | `TableCell` | Table → `Table / Cell` (replaces `Table / Cell Text`) | Components/TableCell |
 | `StatusPill` | Tags → `Status Pill` | Components/StatusPill |
+| `Tag` | Tags → `Tag` | Components/Tag |
 | `TableHeaderCell` | Table → `Table / Header Cell` | Components/TableHeaderCell |
 | `TableRow` | Table → `Table / Row` | Components/TableRow |
 
@@ -79,6 +82,10 @@ names. A component that a second brand needs moves up to GDL.
 
 <label><Checkbox defaultChecked /> Restricted user</label>          // Selected, 16px
 <Checkbox aria-label="Select all rows" indeterminate />           // Mixed-State
+
+<Icon name="calendar-blank" size={20} />                          // takes the text colour around it
+<IconButton icon="dots-three" label="Row actions" />              // Size=32, Tone=Ghost
+<IconButton icon="trash" label="Remove" tone="destructive" size={40} />
 
 <tr>                                                               // TableHeaderCell is a <th scope="col">
   <TableHeaderCell>Payment Method</TableHeaderCell>                 // Sortable=false
@@ -94,6 +101,8 @@ names. A component that a second brand needs moves up to GDL.
 </TableRow>
 
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
+<Tag status="completed">Completed</Tag>                          // tonal, with its icon
+<Tag status="error" showIcon={false}>Deleted</Tag>
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -101,6 +110,11 @@ names. A component that a second brand needs moves up to GDL.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
 - Hover, Pressed and Disabled are the element's own states.
+- `Icon` draws a Phosphor glyph by name (`caret-down`) at 16, 20, 24, 32 or
+  48px. To add one, add its name to `scripts/icons.mjs` and run
+  `npm run icons`.
+- `IconButton` is Figma's Button / Icon: `size` 32 or 40, `tone` ghost,
+  tonal or destructive, and a required `label` (its accessible name).
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
   Selected and Mixed-State are `checked` and `indeterminate`. Label it with
   a `<label>` or `aria-label`.
@@ -111,6 +125,9 @@ names. A component that a second brand needs moves up to GDL.
   `selected`. Put a checked `Checkbox` in a selected row too; that's what
   screen readers announce. On a selected row, cells darken their secondary
   text and links so they pass AA on its tint.
+- `Tag` is Figma's tonal Tag: `status` sets the colours and icon
+  (`pending`, `active`, `completed`, `error`, `warning`, `info`,
+  `neutral`), `showIcon` is Show Icon, and the label is `children`.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
   `active`, and the label is `children`. It has no states.
 
