@@ -42,7 +42,8 @@ const BOUND = {
   active: ['action-primary-surface-default', 'action-primary-content-default'],
 } as const;
 
-/* A token's computed colour in the current theme. */
+/* A token's computed colour in the current theme. Measure before waitFor, never inside it:
+   the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
 function tokenColour(token: string) {
   const probe = document.createElement('span');
   probe.style.color = `var(--color-${token})`;
@@ -87,12 +88,15 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
+    const want = Object.fromEntries(
+      Object.entries(BOUND).map(([status, [fill, label]]) => [status, [tokenColour(fill), tokenColour(label)]]),
+    );
     await waitFor(() => {
       for (const pill of canvasElement.querySelectorAll<HTMLElement>('[data-status]')) {
-        const [fill, label] = BOUND[pill.dataset.status as keyof typeof BOUND];
+        const [fill, label] = want[pill.dataset.status!];
         const style = getComputedStyle(pill);
-        expect(style.backgroundColor).toBe(tokenColour(fill));
-        expect(style.color).toBe(tokenColour(label));
+        expect(style.backgroundColor).toBe(fill);
+        expect(style.color).toBe(label);
       }
     });
   },
