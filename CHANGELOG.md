@@ -1,5 +1,139 @@
 # Changelog
 
+## 0.4.0 — 2026-10-29
+
+### Components: Pagination and PaginationItem (October 2026)
+
+**`Pagination`** is the table pagination bar, built straight from the CAF
+Figma library (page **Pagination**): "Page 1 of 25", the ‹ / › arrows, the
+page numbers and a … gap.
+- `page` and `pageCount` set the items. `onPageChange` is called with the
+  page to show.
+- `pageInfo` is Figma's Page Info (default "Page {page} of {pageCount}").
+  `showPageInfo` is Show Page Info (default true).
+- Up to 7 pages show them all. Longer tables show the first and last
+  pages and a window around the current one, as Figma's 1 2 3 4 5 … 25.
+- It is a `<nav>`. The current page has `aria-current="page"`, and ‹ / ›
+  are disabled at the ends.
+
+**`PaginationItem`** is one page number or arrow (Figma's
+`Pagination / Item`): `selected` is State=Selected, and `disabled` is
+State=Disabled.
+
+Changed in the CAF Figma library first (needs publishing):
+- **The selected page's number** now uses `action/primary/content/default`.
+  It was `text/primary`, which failed contrast on the blue in both themes
+  (2.96 / 3.85; now 6.81 / 4.77).
+- **Disabled** now uses `text/disabled`, so ‹ on the first page reads as
+  unavailable.
+
+### Components: Tag (October 2026)
+
+`Tag` is the tonal status tag, built straight from the CAF Figma library
+(page **Tags**, `Tag`): Completed and Failed on Exports, Deleted and
+Updated in Costs' change history, versions on Announcements.
+- `status` is Figma's Status: `pending` (default), `active`, `completed`,
+  `error`, `warning`, `info` or `neutral`. It sets the tonal colours and
+  the icon.
+- `showIcon` is Figma's Show Icon (default true).
+- The label is `children`, because the screens use their own words.
+
+Every colour is the one the Figma layer is bound to, and every label
+passes AA in Light and Dark. TableCell's Status + Date cell now takes a
+`Tag`. The icon set gains `lightning`, for Active.
+
+Where code differs from Figma (details in `docs/figma-sync.md`):
+- **Active's icon** is Phosphor's lightning; Figma's Bolt is a Heroicons
+  glyph. **Pending's clock** is Phosphor's filled glyph, not Figma's 1px
+  outline.
+- **Height:** 26px (Figma 25), on GDL's line height.
+
+### Components: Icon and IconButton (October 2026)
+
+**`Icon`** draws the Phosphor icons (MIT) the CAF Figma library uses, at
+Regular weight: 39 glyphs, by Phosphor's name (`caret-down`,
+`dots-three`, `calendar-blank` …), at 16, 20, 24, 32 or 48px. It takes the
+text colour around it, so it follows Light and Dark. To add a glyph, add
+its name to `scripts/icons.mjs` and run `npm run icons`.
+
+**`IconButton`** is the icon-only button, built straight from the CAF
+Figma library (page **Buttons**, `Button / Icon`), for refresh, close,
+theme, trash and the table row's •••.
+- `size` is Figma's Size: `32` (16px glyph, default) or `40` (20px).
+- `tone` is Figma's Tone: `ghost` (default), `tonal` or `destructive`.
+  Hover is `:hover`.
+- `label` is required: it's the button's accessible name.
+
+Every colour is the one the Figma layer is bound to, and every glyph
+passes contrast in Light and Dark. Code adds a `stroke.focused` focus
+ring, as on Button.
+
+**TableHeaderCell's** sort arrows now come from `Icon`. Nothing looks
+different.
+
+### Components: TableRow, and darker text in selected rows (October 2026)
+
+`TableRow` is the generic table body row, built straight from the CAF
+Figma library (page **Table**, `Table / Row`). It is a `<tr>` of
+TableCells.
+- Figma's State: Default; Hover is `:hover` (a `surface.base` fill);
+  Selected is `selected` (`action.primary.surface.default` at 16%).
+- Put a checked `Checkbox` in a selected row, as in Figma: it's what
+  screen readers announce, because a table row can't carry
+  `aria-selected`.
+
+**TableCell, on a selected row:** secondary text (the second line, the
+date) uses `text.secondary` instead of `text.subtle`, and the list's
+"+N more" link uses `text.link.selected` instead of `text.link.default`.
+On the Selected tint in Light, `text.subtle` was 3.6–3.7 and the link
+3.8–3.9, below AA. They're now 7.8–8.1 and 5.1–5.4. Dark already passed
+and still does. Nothing changes outside selected rows.
+
+### Components: TableHeaderCell (October 2026)
+
+`TableHeaderCell` is the column header of CAF's tables, built straight
+from the CAF Figma library (page **Table**, `Table / Header Cell`). It is
+a `<th scope="col">`, so screen readers announce every body cell with its
+column.
+- The label is `children`.
+- `sortable` is Figma's Sortable. The label and arrows become a button
+  that calls `onSort`; the table decides the order.
+- `sort` is Figma's Sort: `none` (default), `ascending` or `descending`. A
+  sorted column shows ArrowUp or ArrowDown, darkens its label and sets
+  `aria-sort`.
+
+Every colour is the one the Figma layer is bound to, and every label and
+arrow passes contrast in Light and Dark. Where code differs from Figma
+(details in `docs/figma-sync.md`):
+- **Focus ring:** the sort button gets a `stroke.focused` outline, as on
+  Button. Figma has no Hover or Focus state for it.
+- **Height:** 32px with or without arrows (Figma: 29 without), on GDL's
+  line height. Labels are about 2px wider, from GDL's letter spacing.
+- **`sortable` is off by default,** because a sortable header needs an
+  `onSort` handler. Figma's default variant is sortable.
+
+### Components: StatusPill (October 2026)
+
+`StatusPill` is the filled status pill of the Costs and Recurring Costs
+tables, built straight from the CAF Figma library (page **Tags**,
+`Status Pill`).
+- `status` is Figma's Status: `pending` (default, orange) or `active`
+  (CAF blue, as on the Default button).
+- The label is `children`: "Pending", "Recurring", "Active" on the CAF
+  screens.
+
+It goes in a `TableCell` of `type="tag"`, which shows it in TableCell's
+stories instead of the old stand-in. Every colour is the one the Figma
+layer is bound to, and every label passes AA in Light and Dark.
+
+Where code differs from Figma (details in `docs/figma-sync.md`):
+- **Padding and radius** use GDL's `space/12` and `radius/full`, as Tag
+  does, where Figma has raw 10px and 9999. The pill is 24px tall (Figma 23)
+  and a few pixels wider.
+- **Dark:** Figma pins Pending to Light, so it never turns Dark. In code
+  both statuses follow the theme; in Dark, Pending is orange-500 with a
+  near-black label.
+
 ## 0.3.0 — 2026-10-22
 
 ### Components: TableCell (October 2026)
