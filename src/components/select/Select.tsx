@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
+import { useFormFieldControl } from '../form-field';
 import { Popover } from '../popover';
 import { selectMenuLayout } from '../select-menu';
 import { SelectOption } from '../select-option';
@@ -33,8 +34,17 @@ import { SelectTrigger, type SelectTriggerProps } from '../select-trigger';
  *   Escape closes without choosing. A click chooses; a click outside closes.
  *
  * Name it like SelectTrigger: a `<label htmlFor>` (with `id`), `aria-label`
- * or `aria-labelledby`. The list takes the same name. Where code departs from
- * Figma, the reason is in docs/figma-sync.md ("Select").
+ * or `aria-labelledby`. The list takes the same name. Inside a FormField
+ * (SelectField is one) the field names it, and passes its message, error and
+ * required on (`useFormFieldControl`).
+ *
+ * In a form: with a `name`, the chosen option's `value` is submitted under it
+ * (a hidden input; "" while nothing is chosen), so FormData picks it up. A
+ * disabled select submits nothing, like a native one. `required` sets
+ * `aria-required`; the browser doesn't check a custom select, so check it in
+ * the form's submit handler and show the field's `error`.
+ *
+ * Where code departs from Figma, the reason is in docs/figma-sync.md ("Select").
  */
 
 /** One choice. A plain string is shorthand for `{ value: s, label: s }`. */
@@ -58,6 +68,8 @@ export interface SelectProps extends Omit<SelectTriggerProps, 'value' | 'default
   /** Uncontrolled: start with the list showing. */
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** The form field name. The chosen option's `value` is submitted under it ("" for none). */
+  name?: string;
 }
 
 /** How long typed characters add up to one search. */
@@ -84,8 +96,8 @@ function findMatch(items: ReadonlyArray<SelectOptionData>, query: string, from: 
   return scan(query[0], from + 1);
 }
 
-export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function Select(
-  {
+export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function Select(ownProps, ref) {
+  const {
     options,
     value,
     defaultValue = null,
@@ -100,10 +112,11 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
     onKeyDown,
     onKeyUp,
     onPointerDown,
+    name,
+    form,
+    disabled,
     ...props
-  },
-  ref,
-) {
+  } = useFormFieldControl(ownProps);
   const items = React.useMemo(
     () => options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)),
     [options],
@@ -263,7 +276,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
     lastInput.current = 'pointer';
   };
 
-  return (
+  const popover = (
     <Popover
       className={cn('flex w-full', className)}
       trigger={
@@ -271,6 +284,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
           {...props}
           ref={ref}
           id={triggerId}
+          disabled={disabled}
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledby}
           value={items[selectedIndex]?.label}
@@ -311,6 +325,15 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
         </SelectOption>
       ))}
     </Popover>
+  );
+
+  if (name === undefined) return popover;
+  return (
+    <>
+      {popover}
+      {/* What a form submits: the chosen value, under `name`. Disabled, like the trigger, so a disabled select submits nothing. */}
+      <input type="hidden" name={name} form={form} value={current ?? ''} disabled={disabled} />
+    </>
   );
 });
 Select.displayName = 'Select';

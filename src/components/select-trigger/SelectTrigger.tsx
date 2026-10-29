@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
+import { useFormFieldControl } from '../form-field';
 import { Icon } from '../icon';
 
 /**
@@ -23,6 +24,9 @@ import { Icon } from '../icon';
  * select-only combobox, so Select can hand it `aria-controls` and its keys.
  * A combobox isn't named by its text (that is its value), so name it: a
  * `<label htmlFor>` (Form / Field does this), `aria-label` or `aria-labelledby`.
+ * Inside a FormField it takes the field's id, message, error and required
+ * from the field (`useFormFieldControl`). A button can't be `required`, so
+ * `required` becomes `aria-required`.
  *
  * Every colour is the semantic variable the Figma layer is bound to, except
  * the caret, whose fill Figma leaves raw. Where code departs from Figma, the
@@ -61,27 +65,37 @@ export interface SelectTriggerProps extends Omit<React.ButtonHTMLAttributes<HTML
    * names the list it controls.
    */
   open?: boolean;
+  /** A choice must be made: sets `aria-required` (a button has no `required`). FormField's `required` sets it too. */
+  required?: boolean;
 }
 
-export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
-  ({ className, value, placeholder = 'Select option', open = false, type = 'button', ...props }, ref) => {
-    const empty = value === undefined || value === null || value === false || value === '';
-    return (
-      <button
-        ref={ref}
-        type={type}
-        role="combobox"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        data-placeholder={empty ? '' : undefined}
-        className={cn(selectTriggerClasses, className)}
-        {...props}
-      >
-        <span className="min-w-0 truncate">{empty ? placeholder : value}</span>
-        {/* Figma's caret fill is raw #E5E5E5; text.subtle is what _Combobox Input and _Date Input bind. */}
-        <Icon name="caret-down" size={20} className="text-text-subtle" />
-      </button>
-    );
-  },
-);
+export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>((ownProps, ref) => {
+  const {
+    className,
+    value,
+    placeholder = 'Select option',
+    open = false,
+    type = 'button',
+    required,
+    ...props
+  } = useFormFieldControl(ownProps);
+  const empty = value === undefined || value === null || value === false || value === '';
+  return (
+    <button
+      ref={ref}
+      type={type}
+      role="combobox"
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-required={required || undefined}
+      data-placeholder={empty ? '' : undefined}
+      className={cn(selectTriggerClasses, className)}
+      {...props}
+    >
+      <span className="min-w-0 truncate">{empty ? placeholder : value}</span>
+      {/* Figma's caret fill is raw #E5E5E5; text.subtle is what _Combobox Input and _Date Input bind. */}
+      <Icon name="caret-down" size={20} className="text-text-subtle" />
+    </button>
+  );
+});
 SelectTrigger.displayName = 'SelectTrigger';

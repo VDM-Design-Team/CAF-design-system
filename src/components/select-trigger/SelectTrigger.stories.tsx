@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { FormLabel } from '../form-label';
 import { SelectTrigger } from './SelectTrigger';
 
 const meta = {
@@ -103,16 +104,15 @@ export const Playground: Story = {
 };
 
 /**
- * The usual way to name it: a label above it, as Form / Field – Dropdown does.
- * The label is its name; the chosen option is its value.
+ * The usual way to name it: a label above it (FormLabel, Figma's `_Form Label`), as
+ * Form / Field – Dropdown does; SelectField does the wiring for you. The label is its
+ * name; the chosen option is its value.
  */
 export const WithLabel: Story = {
   args: { 'aria-label': undefined, id: 'cost-frequency', value: 'Monthly' },
   render: (args) => (
     <div className="flex flex-col gap-2">
-      <label htmlFor="cost-frequency" className="text-label-sm-medium text-text-primary">
-        Frequency
-      </label>
+      <FormLabel htmlFor="cost-frequency">Frequency</FormLabel>
       <SelectTrigger {...args} />
     </div>
   ),
