@@ -1,6 +1,6 @@
 {
   "name": "@vdm-design-team/caf",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "CAF Design System — CAF’s brand tokens built on GDL (the General Design Library), and CAF’s React components. CAF keeps its brand ramp, its UI font, its semantic colour values and its components; everything else is inherited from @vdm-design-team/gdl.",
   "type": "module",
   "license": "UNLICENSED",
