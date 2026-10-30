@@ -107,6 +107,29 @@ names. A component that a second brand needs moves up to GDL.
 | `SkeletonTableRow` | Feedback → `Skeleton / Table Row` | Components/SkeletonTableRow |
 | `Spinner` | Feedback → `Spinner` | Components/Spinner |
 | `EmptyState` | Feedback → `Empty State` | Components/EmptyState |
+| `FormLabel` | Form → `_Form Label` | Components/FormLabel |
+| `FormField`, `FormHelperText`, `useFormField`, `useFormFieldControl` | Form → the part every `Form / Field – *` shares (code only) | Components/FormField |
+| `FormEditLink` | Form → `_Edit Link` | Components/FormEditLink |
+| `TextField` | Form → `Form / Field – Text` | Components/TextField |
+| `SelectField` | Form → `Form / Field – Dropdown`, `Form / Field – Dropdown with Edit` | Components/SelectField |
+| `FormSectionHeader` | Form → `Form / Section Header`, `Form / Section Header – Action` | Components/FormSectionHeader |
+| `Textarea` | Form → `_Textarea` | Components/Textarea |
+| `TextareaField` | Form → `Form / Field – Textarea` | Components/TextareaField |
+| `DateInput` | Form → `_Date Input`, opening `Date Picker / Calendar` | Components/DateInput |
+| `DateField` | Form → `Form / Field – Date` | Components/DateField |
+| `Combobox` | Form → `_Combobox Input` + `Select / Menu` (composed) | Components/Combobox |
+| `ComboboxField` | Form → `Form / Field – Combobox` | Components/ComboboxField |
+| `Toggle` | Selection Controls → `Toggle` | Components/Toggle |
+| `Radio` | Selection Controls → `Radio` | Components/Radio |
+| `RadioOption` | Selection Controls → `Radio Option` | Components/RadioOption |
+| `RadioGroup` | Selection Controls → `Form / Radio Group` | Components/RadioGroup |
+| `CheckboxField` | Selection Controls → `Form / Checkbox Field` | Components/CheckboxField |
+| `ToggleField` | Selection Controls → `Form / Toggle Field` | Components/ToggleField |
+| `FileUploadZone`, `fileMatchesAccept` | Form → `_File Upload Zone` | Components/FileUploadZone |
+| `FileChip`, `formatFileSize` | Form → `File Chip` | Components/FileChip |
+| `FileUploadField` | Form → `Form / Field – File Upload`, with pattern 10's File Chips | Components/FileUploadField |
+| `RepeatableField` | Form → `Form / Repeatable Field` | Components/RepeatableField |
+| `RepeatableFieldRow` | Form → `Form / Repeatable Field Row` | Components/RepeatableField |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -245,6 +268,70 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   action={<Button leftIcon={<Plus />}>Add New</Button>}          // Show Action
 />
 <td colSpan={4}><EmptyState size="compact" title="No items found" /></td>
+
+<TextField label="Applicant name" name="applicantName" required />   // Form / Field – Text; Required
+<TextField label="Location" name="location" placeholder="e.g. Philippines"
+           error="Location is required." />                          // State=Error, the message in the Helper
+<TextField label="Invoice number" name="invoiceNumber" helper="Optional." />  // Show Helper
+<SelectField label="Payment method" name="paymentMethod" options={['Wiretransfer', 'Card', 'Cash']}
+             value={method} onValueChange={setMethod} />             // Form / Field – Dropdown
+<SelectField label="Currency" name="currency" options={currencies} defaultValue="EUR"
+             action={<FormEditLink onClick={editCurrencies} />} />   // Dropdown with Edit: "[Edit] Currency"
+<FormField label="Amount" required error={amountError}>              // a control that calls useFormFieldControl
+  <AmountInput name="amount" />
+</FormField>
+<FormField label="Release date">{(control) => <input type="date" {...control} />}</FormField>
+<FormSectionHeader title="Beneficiary Information"
+  description="Use a permanent address where you can receive mail" />   // Show Description
+<FormSectionHeader title="Breakdowns"
+  action={<Button size="small" variant="text" leftIcon={<Plus />}>Add new</Button>} />  // – Action
+
+<Textarea aria-label="Notes" placeholder="Add notes…" />            // _Textarea; rows={4} is Figma's 96px
+<TextareaField label="Notes" name="notes" defaultValue="Monthly team salary, split by cost center." />
+<TextareaField label="Reason" name="reason" required error="Add a reason for the rejection." />
+<DateInput aria-label="Starts At" />                                // Default: "Select date"; opens the Calendar
+<DateField label="Starts At" name="startsAt" required defaultValue="2026-09-01" />  // submits "2026-09-01"
+<DateField label="Ends At" name="endsAt" value={endsAt} onValueChange={setEndsAt} />  // yyyy-mm-dd, or null for none
+
+<Combobox aria-label="Location" placeholder="Select or type a location"
+          options={['Philippines', 'United States', 'United Kingdom']}
+          value={location} onValueChange={setLocation} />           // _Combobox Input + Select / Menu
+<ComboboxField label="Location" name="location" required           // Form / Field – Combobox
+               placeholder="Select or type a location"
+               options={[{ value: 'PH', label: 'Philippines' }, { value: 'RO', label: 'Romania' }]} />
+
+<ToggleField label="Active" description="Only active announcements are shown to users."
+             name="active" defaultChecked />                        // Form / Toggle Field, Checked
+<Toggle aria-label="Active" checked={active}
+        onChange={(event) => setActive(event.target.checked)} />  // Toggle on its own
+
+<CheckboxField bordered name="restrictedUser" label="Restricted User"
+               description="Users with this role can only see their own costs." />  // Bordered
+
+<RadioGroup label="Target Audience" name="audience" required
+            options={[{ value: 'all', label: 'All' }, { value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }]}
+            value={audience} onValueChange={setAudience}
+            helper="Who should see this announcement." />           // Form / Radio Group
+<RadioOption name="audience" value="all" label="All" defaultChecked />  // Radio Option, Selected
+
+<FileUploadField                                                // Form / Field – File Upload
+  label="Attach invoice"
+  required
+  name="invoices"                                                // the files submit with the form
+  multiple
+  accept=".doc,.docx,.pdf,.png,.jpg,.jpeg"
+  hint="DOC, DOCX, PDF, PNG, JPG, JPEG accepted (Max 10.0MB)"
+  validate={(file) => (fileMatchesAccept(file, ACCEPT) ? undefined : 'File type not supported. Use DOC, DOCX, PDF, PNG, JPG or JPEG.')}
+/>
+<FileUploadZone title="Click or drag CSV file to upload" hint="Only CSV files are accepted" accept=".csv" onFilesChange={setFiles} />
+<FileChip fileName="invoice-september.pdf" meta="245 KB" onRemove={remove} />               // State=Default, Action=Remove
+<FileChip fileName="contract.zip" meta="File type not supported." state="error" onRemove={dismiss} />
+<FileChip fileName="receipt-0927.png" meta={formatFileSize(file.size)} action="download" onDownload={download} />
+
+<RepeatableField label="Features" required name="features" addLabel="Add Feature"
+  defaultValues={['one', 'two', 'three']} />                     // uncontrolled; submits features=one&features=two&features=three
+<RepeatableField label="Features" addLabel="Add Feature" values={features}
+  onValuesChange={setFeatures} max={5} />                       // controlled, at most 5 rows
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -287,8 +374,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   that opens a MenuDropdown below it, flush right. `label` names the button
   and the menu ("Row actions" by default; name the record when a table has
   many rows).
-- `Popover` is the floating panel the menus and `Select` are built on (a
-  Date field will reuse it). It has Menu / Dropdown's surface
+- `Popover` is the floating panel the menus, `Select`, `Combobox` and
+  `DateInput` are built on. It has Menu / Dropdown's surface
   (`popoverSurface`), opens below or above its trigger (`placement`), flush
   left or right (`align`), and flips when the viewport has no room. A click
   outside, Escape or focus leaving closes it. It has no portal, so a parent
@@ -331,7 +418,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `RangeCalendar` is Figma's Date Picker / Range: two months that page
   together. Two picks, in either order, call `onChange({ start, end })`,
   and Escape drops a half-picked range.
-- Both are panels only: a Date field or a filter will put them in a
+- Both are panels only: `DateInput` and the filter bar put them in a
   Popover. Their days are `DatePickerDay`s, Figma's Date Picker / Day:
   `today`, `selected`, `inRange` and `outsideMonth` (inactive).
 - `FilterField` is Figma's Filter / Field, one control in a list page's
@@ -408,6 +495,104 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   icon tile, `title`, `description` and an optional `action` Button) or
   `compact` (a small icon and the `title`, inside a table body). It
   centres itself in the page or in a `<td colSpan>`.
+- `TextField` and `SelectField` are Figma's Form / Field – Text and
+  – Dropdown: a `_Form Label` (`label`, `required`) over a TextInput or a
+  Select, with the Helper (`helper`) under it. `error` is the control's
+  State=Error, with its message in the helper's place. Every other prop,
+  and the ref, go to the control, and `name` submits with the form. A
+  required TextField is natively `required`; a required SelectField is
+  `aria-required`, so check it on submit. `action` puts Dropdown with
+  Edit's `FormEditLink` ("[Edit]") beside the label.
+- `FormField` is what every field shares, for the fields still to come: the
+  label, the control (`children`) and the message. The control picks up the
+  label's `id`, the message in `aria-describedby`, `aria-invalid` and
+  `required` by calling `useFormFieldControl(props)` (TextInput,
+  SelectTrigger and Select do), or from a function child.
+- `FormLabel` is `_Form Label`: `required` shows the "*" marker (the control
+  announces it). `as="legend"` labels a fieldset.
+- `FormSectionHeader` is Form / Section Header (`title`, `description`) and
+  – Action (`action`, a small Text Button). The title is an `<h2>`;
+  `headingLevel` moves it without changing the look.
+- `Select` takes a `name`: the chosen option's `value` is submitted with
+  the form.
+- `Textarea` is Figma's _Textarea, a native `<textarea>` with TextInput's
+  look and states: Default, Filled, Focus (`:focus`), Error
+  (`aria-invalid`) and Disabled (`disabled`, at Figma's 50% opacity).
+  `rows` sets the height. The default of 4 gives Figma's 96px, and the user
+  can drag it taller.
+- `DateInput` is Figma's _Date Input: a `<button role="combobox">` with a
+  calendar icon. It opens a `Calendar` under it in a Popover. Dates are
+  `yyyy-mm-dd` strings: `value` / `defaultValue` / `onValueChange`, the
+  text it shows, and what `name` submits (through a hidden input). The date
+  is picked, not typed. A click, Enter, Space, ↓ or ↑ open the calendar on
+  the chosen day. Enter or a click chooses a day, Escape closes, and focus
+  comes back to the field. `placeholder` defaults to "Select date".
+  `required` sets `aria-required`; check it on submit.
+- `TextareaField` and `DateField` are Figma's Form / Field – Textarea and
+  Form / Field – Date: FormField around a Textarea or a DateInput, like
+  TextField and SelectField. `label`, `required`, `helper` and `error`
+  belong to the field. Every other prop, and the ref, go to the control.
+- `Combobox` is the searchable select. Typing filters `options` (strings or
+  `{ value, label }`), and Enter or a click chooses. `value` /
+  `defaultValue` / `onValueChange` hold the choice (`null` for none), and
+  the value is always one of the options. With a `name`, the chosen value is
+  submitted with the form. `ComboboxField` puts it under a label, with
+  `helper` or `error` under it.
+- Every form field's Disabled is Figma's: the whole field at 50% opacity,
+  with the value in `text.subtle`.
+- `Toggle` is Figma's Toggle, a native `<input type="checkbox" role="switch">`.
+  Checked is `checked` / `defaultChecked` and Disabled is `disabled`. Space
+  flips it, and while it's on it submits `name` = `value` ("on"). Name it
+  with a `<label>`, `aria-labelledby` or `aria-label`.
+- `Radio` is Figma's Radio, a native radio. Selected is `checked`, Hover is
+  `:hover` and Disabled is `disabled`. Radios that share a `name` form one
+  group. `RadioOption` is Radio Option: a `<label>` that puts `label` beside
+  the radio. Its other props and the ref go to the radio.
+- `RadioGroup` is Form / Radio Group. It takes `label`, `options` (strings or
+  `{ value, label, disabled }`), `value` / `onValueChange` (or
+  `defaultValue`) and `helper`. Code adds `required` (_Form Label's marker
+  plus native `required`), `error` (the message where the Helper goes) and
+  `disabled`. It is a `<fieldset role="radiogroup">` of native radios that
+  share `name`. The group is one tab stop, the arrow keys move and choose,
+  and the chosen `value` is submitted under `name`.
+- `CheckboxField` and `ToggleField` are Form / Checkbox Field and Form /
+  Toggle Field. Each has a `label` and an optional `description`, placed
+  beside a 16px Checkbox (`bordered` adds Figma's card) or before a Toggle
+  at the end of the row. The whole field is a `<label>`. The label names the
+  control and the description describes it. Every other prop and the ref go
+  to the native input, `id` included. `required` also shows _Form Label's
+  marker.
+- `FileUploadField` is Figma's Form / Field – File Upload, with a File
+  Chip for each file under it, as pattern 10 shows. It takes `label`,
+  `required`, `helper`, `error`, and `title` and `hint` (the zone's text).
+  `files` / `defaultFiles` / `onFilesChange` hold the accepted files. With
+  `multiple`, new files are added; without it, a new file replaces the old
+  one. `validate(file)` returns why a file is rejected, and the file shows
+  as an Error chip and isn't added. × removes a file. The native input
+  always holds the files shown, so `name` submits exactly those files.
+- `FileUploadZone` is Figma's `_File Upload Zone` on its own. It is a
+  native `<input type="file">`, visually hidden but real: Tab, then Enter
+  or Space, opens the dialog, and so does a click on the zone. Dropped
+  files go into the input. `onFilesChange` gets the files, and every
+  other prop goes to the input. Dropped files skip `accept`, so check them
+  with `fileMatchesAccept(file, accept)`.
+- `FileChip` is Figma's File Chip: `fileName`, `meta` (the size, or the
+  rejection reason), `state` (`default` or `error`) and `action`. `remove`
+  shows a × named "Remove <file name>" when you pass `onRemove`;
+  `download` shows a Tonal Download button that calls `onDownload`.
+  `formatFileSize(bytes)` writes "245 KB" or "1.2 MB".
+- `RepeatableField` is Figma's Repeatable Field, a `<fieldset>` named by
+  `label`. It holds one row per entry of `values` (with `onValuesChange`)
+  or `defaultValues`, and an outlined "Add …" button labelled `addLabel`.
+  Every row submits `name`, so `formData.getAll(name)` returns the list in
+  order. `required` shows the marker, requires every row and keeps one row.
+  `min` hides the remove buttons and `max` disables the add button. Adding
+  a row focuses it. Removing one focuses the row that takes its place, the
+  one before it, or the add button. The ref is the fieldset; `disabled`
+  disables everything in it.
+- `RepeatableFieldRow` is Figma's Repeatable Field Row: a TextInput (props
+  and ref go to the `<input>`) and a destructive trash IconButton
+  (`showRemove`, `removeLabel`, `onRemove`).
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { FormLabel } from '../form-label';
 import { Select, type SelectProps } from './Select';
 
 /* Figma's Select / Menu example. */
@@ -141,15 +142,13 @@ export const WithLabel: Story = {
   render: (args) => (
     <div className="flex w-96 flex-col gap-6 pb-64">
       <div className="flex flex-col gap-2">
-        <label htmlFor="cost-country" className="text-label-sm-medium text-text-primary">
-          Country of the cost
-        </label>
+        <FormLabel htmlFor="cost-country">Country of the cost</FormLabel>
         <Select {...args} id="cost-country" />
       </div>
       <div className="flex flex-col gap-2">
-        <span id="billing-country" className="text-label-sm-medium text-text-primary">
+        <FormLabel as="span" id="billing-country">
           Billing country
-        </span>
+        </FormLabel>
         <Select {...args} aria-labelledby="billing-country" />
       </div>
     </div>

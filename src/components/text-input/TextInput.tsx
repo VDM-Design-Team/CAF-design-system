@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
+import { useFormFieldControl } from '../form-field';
 
 /**
  * TextInput — built from the CAF Figma library, page "Form": `_Text Input`
@@ -16,7 +17,9 @@ import { cn } from '../../lib/cn';
  * - Value          → `placeholder` while empty, the value once filled.
  *
  * It fills its container's width, as the fields place it. Give it a name: a
- * `<label htmlFor>` (Form / Field does this) or `aria-label`.
+ * `<label htmlFor>` (Form / Field does this) or `aria-label`. Inside a
+ * FormField (TextField is one) it takes the field's id, message, error and
+ * required from the field (`useFormFieldControl`); its own props win.
  *
  * Every colour is the semantic variable the Figma layer is bound to. Where
  * code departs from Figma, the reason is in docs/figma-sync.md ("TextInput").
@@ -35,15 +38,15 @@ const textInputClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour while
      focused (Focus's 2px width), so the error stays visible as you type. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle. */
-  'disabled:cursor-not-allowed disabled:text-text-subtle',
+  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
+     whole field at 50% opacity (Figma's layer opacity, raw 0.5). */
+  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50',
 ];
 
 export type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
-export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
-  ({ className, type = 'text', ...props }, ref) => (
-    <input ref={ref} type={type} className={cn(textInputClasses, className)} {...props} />
-  ),
-);
+export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>((ownProps, ref) => {
+  const { className, type = 'text', ...props } = useFormFieldControl(ownProps);
+  return <input ref={ref} type={type} className={cn(textInputClasses, className)} {...props} />;
+});
 TextInput.displayName = 'TextInput';

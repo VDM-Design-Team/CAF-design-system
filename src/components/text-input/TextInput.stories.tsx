@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { FormLabel } from '../form-label';
 import { TextInput } from './TextInput';
 
 const meta = {
@@ -44,14 +45,12 @@ export const Playground: Story = {
   },
 };
 
-/** The usual way to name it: a label above it, as Form / Field – Text does. Clicking the label focuses the field. */
+/** A label above it (FormLabel, Figma's `_Form Label`), as Form / Field – Text does; TextField does the wiring for you. Clicking the label focuses the field. */
 export const WithLabel: Story = {
   args: { 'aria-label': undefined, id: 'cost-reference' },
   render: (args) => (
     <div className="flex flex-col gap-2">
-      <label htmlFor="cost-reference" className="text-label-sm-medium text-text-primary">
-        Cost reference
-      </label>
+      <FormLabel htmlFor="cost-reference">Cost reference</FormLabel>
       <TextInput {...args} />
     </div>
   ),
