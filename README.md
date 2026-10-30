@@ -130,6 +130,21 @@ names. A component that a second brand needs moves up to GDL.
 | `FileUploadField` | Form → `Form / Field – File Upload`, with pattern 10's File Chips | Components/FileUploadField |
 | `RepeatableField` | Form → `Form / Repeatable Field` | Components/RepeatableField |
 | `RepeatableFieldRow` | Form → `Form / Repeatable Field Row` | Components/RepeatableField |
+| `StatCard` | Cards → `Card / Stat` (with its `_Stat Icon`) | Components/StatCard |
+| `StatRow` | Cards → `Card / Stat Row – Exports`, `– Announcements` (as one generic row) | Components/StatRow |
+| `DescriptionList`, `DescriptionListItem` | Cards → `Description List`, `Description List / Item` | Components/DescriptionList |
+| `FilterSummary` | Filters → `Filter / Summary` (with its `Filter / Summary Line`s) | Components/FilterSummary |
+| `BreakdownItem` | Cards → `Card / Breakdown Item` | Components/BreakdownItem |
+| `ChangeDiff` | Table → `Table / Change Diff` | Components/ChangeDiff |
+| `ChangeDiffRow` | Table → `Table / Change Diff Row` | Components/ChangeDiff |
+| `PaymentRow` | Modals → `Modal / Payment Row` (with its `Modal / Status Icon` and `Modal / Status Badge`) | Components/PaymentRow |
+| `PaymentSchedules` | Modals → `Modal / Payment Schedules` (Modal / Header + Payment Rows, on Overlay) | Components/PaymentSchedules |
+| `VersionBadge` | Modals → `Modal / Version Badge` | Components/VersionBadge |
+| `BulletItem` | Modals → `Modal / Bullet Item` | Components/BulletItem |
+| `ReleaseNotes` | Modals → `Modal / Release Notes` | Components/ReleaseNotes |
+| `ChangelogHeader` | Modals → `Modal / Changelog Header` (with `Modal / Changelog Icon`) | Components/ChangelogHeader |
+| `ChangelogEntry` | Cards → `Card / Changelog Entry` | Components/ChangelogEntry |
+| `ChangelogModal` | Modals → `Modal / Changelog` | Components/ChangelogModal |
 | `Logo` | Navigation → `Navigation / Logo` | Components/Logo |
 | `NavLink` | Navigation → `Navigation / Nav Link`, `Navigation / Nav Link – Vertical` (`orientation="vertical"`) | Components/NavLink |
 | `NavBar` | Navigation → `Navigation / Nav Bar` (and the ten-link bar Header – Admin draws) | Components/NavBar |
@@ -344,6 +359,51 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 <RepeatableField label="Features" addLabel="Add Feature" values={features}
   onValuesChange={setFeatures} max={5} />                       // controlled, at most 5 rows
 
+<StatRow>                                                                  // Card / Stat Row – Exports
+  <StatCard label="Total Exports" value="5981" icon="file-text" />          // tone="info" (default)
+  <StatCard label="Completed" value="5648" icon="check-circle" tone="success" />
+  <StatCard label="Processing" value="0" icon="clock" tone="pending" />
+  <StatCard label="Failed" value="333" icon="x-circle" tone="critical" />
+</StatRow>
+
+<DescriptionList>                                                          // Export Details
+  <DescriptionListItem label="Name" value="invoices-12-2026-10-08-053332.zip" />
+  <DescriptionListItem label="File Size" value="253 B" />
+  <DescriptionListItem label="Status" value={<Tag status="completed">Completed</Tag>} />
+</DescriptionList>
+<FilterSummary filters={[{ key: 'Search', value: 'All' }, { key: 'Status', value: 'Completed' }]} />  // "Current Filters"
+
+<ul>
+  <li>
+    <BreakdownItem title="Breakdown 1" meta="Employee Expenses · Salary · Philippines"
+                   period="2026-09-01 - 2026-09-30" amount="USD 900"
+                   actions={<><MenuItem onClick={edit}>Edit</MenuItem><MenuItem destructive onClick={remove}>Delete</MenuItem></>} />  // Show Actions; ••• named "Actions for Breakdown 1"
+  </li>
+</ul>
+
+<ChangeDiff aria-label="Changes to cost #32430">                   // Table / Change Diff: Field / Before / After
+  <ChangeDiffRow field="Status" before="Unknown" after="Pending" /> // <del> tinted red, <ins> tinted green
+</ChangeDiff>
+
+<PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />  // Status=Upcoming
+<PaymentSchedules open={open} onClose={close}>                      // Modal / Header + rows, in a portal
+  <PaymentRow date="September 1, 2026" subtitle="Processed on Sep 1, 2026" />   // Status=Done
+  <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />
+</PaymentSchedules>
+
+<ChangelogModal open={open} onClose={markSeen} onViewChangeLog={openChangelog}   // Modal / Changelog; Got It, Escape, backdrop → onClose
+  title="WELCOME TO THE NEW UPDATE FOR THIS MONTH" date="August 10, 2026" version="v2.5.6">
+  <BulletItem>new update for CAF</BulletItem>                                    // What's new in this release:
+</ChangelogModal>
+
+<ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026">  // Show New
+  <BulletItem>new update for CAF</BulletItem>
+  <BulletItem>Improved export performance</BulletItem>
+</ChangelogEntry>
+<ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026" showNew={false}>…</ChangelogEntry>
+
+<VersionBadge>v2.5.6</VersionBadge>                                               // Modal / Version Badge
+
 <Logo />                                                          // 123 × 48, role="img" named "CAF"
 <a href="/"><Logo className="h-9" /></a>                          // the Mobile Header's 92 × 36; the link is named "CAF"
 
@@ -511,8 +571,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `Overlay` is the modal layer under all three: the `surface.overlay` scrim,
   the portal, the focus trap, Escape, the inert page, the scroll lock and
   focus return. Use it with `ModalHeader` (icon, title, description, close)
-  for modals Figma composes by hand, like Payment Schedules. Point
-  `aria-labelledby` at the header's `titleId`.
+  for modals Figma composes by hand (`PaymentSchedules` is built this
+  way). Point `aria-labelledby` at the header's `titleId`.
 - `Alert` is Figma's Alert, the inline banner: `type` (`info`, `success`,
   `warning`, `error`) sets the tonal colours and icon, `size` is `default`
   (title over message) or `compact` (one line, the message only), and
@@ -644,6 +704,51 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `RepeatableFieldRow` is Figma's Repeatable Field Row: a TextInput (props
   and ref go to the `<input>`) and a destructive trash IconButton
   (`showRemove`, `removeLabel`, `onRemove`).
+- `StatCard` is Figma's Card / Stat: a `label`, a `value` and the Status
+  Indicator tile, which is `icon` (a Phosphor name) and `tone` (`info`,
+  `success`, `pending` or `critical`). Each of Figma's seven `_Stat Icon`
+  Types is one icon and one tone (Completed is `check-circle`, `success`).
+  The card is an `article` named by its label; the value is not a heading.
+- `StatRow` lays out StatCards the way Figma's stat rows do: they share the
+  row equally, 16px apart, and wrap when a card would be narrower than
+  256px, stacking on a phone. Fragments and components that return several
+  cards work. Pass `role="group"` and an `aria-label` to name the row.
+- `DescriptionList` and `DescriptionListItem` are Figma's Description List:
+  a `dl` in two columns, each item a `label` (`dt`) over a `value` (`dd`,
+  any content). Long values wrap.
+- `FilterSummary` is Figma's Filter / Summary: a `title` (default "Current
+  Filters") over a box of `filters`, one `{ key, value }` line each
+  ("Status: Completed"). Pass the filter's name as `key`; the colon is
+  added. It is read-only, a group named by its title.
+- `BreakdownItem` is one breakdown line of a cost: title, meta, period and
+  amount. Give it `actions` (MenuItems) for the ••• menu.
+- `ChangeDiff` is a real `<table>` (Field / Before / After) of
+  `ChangeDiffRow`s. Old values are `<del>` and new ones `<ins>`, each with
+  hidden "Removed:" / "Added:" text, so colour is never the only cue.
+- `PaymentRow` is one payment: Done or Upcoming, date and subtitle. Its
+  status icon and badge are part of it.
+- `PaymentSchedules` is the View Schedules modal: a ModalHeader over a list
+  of PaymentRows, on Overlay (focus trap, Escape, focus return).
+- `ChangelogModal` is Figma's Modal / Changelog, the what's-new dialog shown
+  once after sign-in. It takes `title`, `date` and `version` for its
+  ChangelogHeader, `sectionTitle` for its ReleaseNotes, and the notes as
+  `BulletItem` children. View Change Log calls `onViewChangeLog`. Got It,
+  Escape and a backdrop click call `onClose`: set `open` to false there and
+  record that the release was seen. It traps and returns focus the same way
+  ModalDialog does. On a phone its two buttons stack.
+- `ChangelogEntry` is Card / Changelog Entry, one release on the Changelog
+  page. It takes `title` (an `<h2>`; `headingLevel` changes the level
+  without changing the look), `meta` ("Version 2.5.6 • August 10, 2026"),
+  `showNew` (the Info Tag "New", default true as in Figma; set it on the
+  latest release only) and `BulletItem` children. It's an `<article>` named
+  by its title.
+- `ChangelogHeader` (rocket, title, date, VersionBadge) and `ReleaseNotes`
+  (a section title naming a `<ul>` of BulletItems) are the dialog's two
+  parts, for building a variant of it on `Overlay`.
+- `BulletItem` is Modal / Bullet Item, an `<li>` with a green dot that stays
+  on the first line when the text wraps. `VersionBadge` is Modal / Version
+  Badge, the `surface.base` pill for "v2.5.6". The tinted version Tag in the
+  Announcements table is a `Tag status="info"`.
 - `Logo` is Figma's Navigation / Logo, an `<svg role="img">` named "CAF".
   The mark is CAF's brand ramp (`caf-blue` 600 / 300 / 400) in both
   themes, and the wordmark is `text/primary`. It is 48 high; set another

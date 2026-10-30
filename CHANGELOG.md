@@ -1,5 +1,362 @@
 # Changelog
 
+## 0.5.0 — 2026-10-30
+
+### Components: form fields and controls (October 2026)
+
+Twenty-three components from the CAF Figma library's **Form** and
+**Selection Controls** pages: every CAF form field, the controls inside
+them, and the layer they are all built on. Every colour is the one the
+Figma layer is bound to. They follow the page's theme, Light or Dark (Figma
+pins some of these library sections to Dark).
+
+**`TextField`** is Figma's `Form / Field – Text`: a label over a
+`TextInput`, with a helper under it. `label` and `required` are the
+label's, `helper` is Show Helper, and `error` shows the message in the
+helper's place and marks the input `aria-invalid`. Every other prop goes to
+the native `<input>`, so `name`, `type`, `value` and `onChange` work as
+usual and the field submits with its form. `required` shows Figma's red "*"
+and makes the input natively `required`.
+
+**`SelectField`** is Figma's `Form / Field – Dropdown`: the same label,
+helper and error around a `Select`. With `name`, the chosen option's value
+is submitted with the form. `required` sets `aria-required`; a form checks
+it in its submit handler. Figma's `Form / Field – Dropdown with Edit`
+(Currency) is `action={<FormEditLink onClick={…} />}`.
+
+**`FormEditLink`** is Figma's `_Edit Link`: the "[Edit]" button beside a
+field's label. Inside a field it reads "[Edit] Currency".
+
+**`FormLabel`** is Figma's `_Form Label`: Body/sm in `text.secondary`, and
+`required` adds the "*" marker.
+
+**`FormField`** is the part every field shares. A control inside it picks
+up the label, the message, the error and `required` with
+`useFormFieldControl`. Every field below is built on it.
+
+**`FormSectionHeader`** is Figma's `Form / Section Header` (title and an
+optional description) and `Form / Section Header – Action` (with an "Add
+new" button at the end). The title is a heading.
+
+**`Textarea`** is `_Textarea`: a native `<textarea>` with TextInput's look
+and states (Default, Filled, Focus, Error, Disabled). `rows` (4 by default)
+gives Figma's 96px height, and the user can drag it taller.
+**`TextareaField`** is `Form / Field – Textarea`: a label, the textarea,
+and the helper or error message under it. With a `name`, it submits with
+the form, line breaks included.
+
+**`DateInput`** is `_Date Input`: a field with a calendar icon that opens
+the Calendar under it. The date shows, is stored and is submitted (with a
+`name`) as `yyyy-mm-dd`, the format the CAF screens use. You pick it from
+the calendar with the mouse or the keyboard: Enter, Space or ↓ open the
+calendar; the arrows and Page Up / Page Down move; Enter chooses; Escape
+closes. Focus comes back to the field. **`DateField`** is
+`Form / Field – Date`: a label, the date input, and the helper or error
+message under it.
+
+**`Combobox`** is the searchable select (`_Combobox Input`): a text input
+with a search icon and a caret that opens Select's list. Typing filters the
+options (any label that contains the text) and puts the keys on the first
+match. ↓ / ↑ move, Enter or a click chooses, and Escape closes the list and
+then clears the input. "No results" shows, and is announced, when nothing
+matches. The value is always one of the `options` (strings or
+`{ value, label }`), held in `value` / `defaultValue` / `onValueChange`
+(`null` for none). With a `name`, the chosen value is submitted with the
+form, and the browser checks `required`. **`ComboboxField`** is
+`Form / Field – Combobox` (Location, in the Cost Breakdown and
+multi-section forms): FormField around a Combobox.
+
+**`ToggleField`** is `Form / Toggle Field` ("Active" in Create
+Announcement): a `label` and an optional `description`, with the switch at
+the end of the row. **`Toggle`** is the switch on its own: a native
+`<input type="checkbox" role="switch">` with `checked` and `disabled`. It
+submits like a checkbox.
+
+**`CheckboxField`** is `Form / Checkbox Field` ("Restricted User" in Add
+New User): a `label` and an optional `description` beside a Checkbox.
+`bordered` wraps it in a card whose stroke turns `stroke.focused` while it
+is checked.
+
+**`RadioGroup`**, **`RadioOption`** and **`Radio`** are `Form / Radio
+Group` ("Target Audience" in Create Announcement), `Radio Option` and
+`Radio`. RadioGroup takes `options`, `value` / `defaultValue` /
+`onValueChange`, `name`, `helper`, `required`, `error` and `disabled`. Its
+radios are native, so the arrow keys move between them and the chosen
+value is submitted with the form.
+
+**`FileUploadField`** is `Form / Field – File Upload`, used for Attach
+invoice and Bulk Upload's Upload CSV File. Choose or drop files and each
+one shows as a chip with its size and a remove button. `validate` returns
+why a file is rejected, and the file then shows as a red chip that says
+why and isn't added. `files` / `defaultFiles` / `onFilesChange` hold the
+files. With `name`, the form submits exactly the files shown.
+
+**`FileUploadZone`** is `_File Upload Zone`, the dashed drop target on its
+own (`title`, `hint`, `onFilesChange`). It is a native file input you can
+reach by click, keyboard or drag. `fileMatchesAccept(file, accept)` checks
+dropped files against `accept`.
+
+**`FileChip`** is `File Chip`: one file's name (cut short with an
+ellipsis), its `meta` (the size, or why it was rejected), `state`
+(`default` or `error`) and `action`. `remove` uses `onRemove`; `download`
+shows a Tonal Download button that calls `onDownload`, as in the Invoices
+dialog. `formatFileSize(bytes)` writes sizes the way Figma does.
+
+**`RepeatableField`** is `Form / Repeatable Field`, built with its row,
+`Form / Repeatable Field Row` (**`RepeatableFieldRow`**). It is the
+"Features" list in the Create Announcement modal: a labelled fieldset of
+text rows, each with a destructive trash button, followed by an outlined
+"Add …" button (`addLabel`). Every row submits `name`, so
+`formData.getAll(name)` returns the list in order. `min` hides the remove
+buttons, `max` disables the add button, and `required` requires every row
+and keeps one.
+
+**Changes to existing components** (no API is removed or renamed):
+`TextInput`, `SelectTrigger` and `Select` pick up a `FormField`'s label,
+message, error and `required`; outside one they behave as before. `Select`
+takes a `name` (before, it landed on the trigger button, which a form never
+submits), and `SelectTrigger` takes `required` (as `aria-required`). A
+disabled `TextInput` or `SelectTrigger` (and so a disabled `Select`) is now
+at 50% opacity, as Figma draws every form field's Disabled; before, it
+looked like Default apart from its text colour.
+
+As Figma binds them today, some of these are open design questions: a
+field's error message is in `text.subtle` (only the border turns red) and
+sits right under the control; the unchecked Toggle's track (1.18:1 on the
+page in Light, 2.36:1 in Dark) and the Radio's resting stroke in Light
+(2.45:1) are below WCAG's 3:1 for control boundaries.
+
+### Components: menus, inputs, select, tabs, date picker and filters (October 2026)
+
+Twenty components, built straight from the CAF Figma library (pages
+**Menus**, **Form**, **Table**, **Tabs**, **Filters** and **Buttons**).
+Every colour is the one the Figma layer is bound to, except where Figma's
+binding fails contrast (listed below). Several of these are pinned to Dark
+in Figma; in code they all follow the page's theme, Light or Dark.
+
+**`Popover`** is the floating panel that the menus and `Select` are built
+on, with Menu / Dropdown's surface. It opens below or above its trigger,
+flush left or right, and flips when the viewport has no room. A click
+outside, Escape or focus leaving closes it. It is code only (Figma has no
+Popover) and has no portal, so a parent that clips overflow clips it too.
+A panel can be named by its own `aria-labelledby` in `panelProps`.
+
+**`MenuDropdown`** is Figma's `Menu / Dropdown`, a menu that any trigger
+opens (Export, the bulk Change Status). `trigger` is the control, and the
+`MenuItem`s are `children`. Enter, Space or ↓ opens it on the first item,
+and ↑ on the last. ↓ / ↑ move and wrap, Home / End go to the ends, Enter or
+Space chooses, and Escape and Tab close it. Focus goes back to the trigger.
+
+**`MenuItem`** is Figma's `Menu / Item`: `destructive` is Type=Destructive
+(the red label), and Hover is `:hover`.
+
+**`RowActionsMenu`** is the ••• at the end of every table row and the menu
+it opens (`Menu / Row Actions Button`). The button is an `IconButton`
+(`dots-three`, Ghost, 32), and the menu opens below it, flush right. `label`
+names both: "Row actions" by default; name the record when a table has
+many rows.
+
+**`MenuTriggerButton`** is the primary button with a trailing caret that
+opens a menu (`Button / Menu Trigger`), for Export and the bulk "Change
+Status (n)". It is `Button` (Default, Normal) with a MenuDropdown. The
+caret takes the label's colour in every state.
+
+**`TextInput`** is the single-line field (`_Text Input`), a native
+`<input>` that fills its container. Default is empty with a `placeholder`,
+Filled has a value, Focus is `:focus` (a 2px `stroke.focused` stroke),
+Error is `aria-invalid` and Disabled is `disabled`. Name it with a
+`<label htmlFor>` or `aria-label`.
+
+**`SelectTrigger`** is the closed select (`_Dropdown Input`): the chosen
+option or a placeholder (default "Select option"), and a caret. `open` is
+State=Open and sets `aria-expanded`. It is a
+`<button role="combobox" aria-haspopup="listbox">`, named by its label.
+Its caret is `text.subtle`, as the library's other inputs bind it.
+
+**`Select`** is the form and filter select: SelectTrigger opening a
+`Select / Menu` of `Select / Option`s under it. `options` are strings or
+`{ value, label }`, and `value` / `defaultValue` and `onValueChange` hold
+the choice. `placeholder`, `disabled`, `aria-invalid` and the name go to
+the trigger, and the list takes the same name. The list is at least as
+wide as the field, flips above near the bottom of the screen and scrolls
+past 256px. It is the WAI-ARIA select-only combobox: focus stays on the
+field, ↓ / ↑, Home / End and Page Up / Down move, typing jumps to a match,
+Enter, Space or Alt + ↑ choose, Tab chooses and moves on, and Escape
+closes.
+
+**`SelectMenu`** and **`SelectOption`** are its list (`Select / Menu`, a
+listbox) and rows (`Select / Option`: `selected` shows the fill and the
+check, Hover is `:hover`), for a control that drives its own list.
+
+**`TextInput`, `SelectTrigger` and `Select`** are 40px high, with the
+field's 1px `stroke.subtle` border. That border is below 3:1 in both
+themes, as Figma has it; it's with the designer.
+
+**`Tabs`** is the segmented tab list (`Tabs / Cost Type`, made generic):
+the Costs list's All / Recurring / Single is one use of it. Its tabs are
+`TabItem`s, each with a `value`. `selected` / `defaultSelected` /
+`onSelectedChange` hold the choice. It is a `role="tablist"`: ← / → move
+between tabs and select them, Home / End go to the ends, and only the
+selected tab is in the tab order.
+
+**`TabItem`** is one tab (`Tabs / Tab Item`), a `<button role="tab">`.
+The selected tab's label is `action/primary/content/default` on the blue.
+
+**`FormTabNavigation`** is the full-width Single Cost / Recurring Cost
+switch at the top of the New Cost form (`Form / Tab Navigation`). It takes
+the same TabItems and keyboard, with `active` / `defaultActive` /
+`onActiveChange`. The active tab is a raised neutral pill, not the blue.
+
+**`Calendar`** is the date picker's panel for one date
+(`Date Picker / Calendar`): one month, weeks from Monday, always six rows.
+`value` / `onChange` (or `defaultValue`) is the chosen day, at local
+midnight, and `month` / `onMonthChange` (or `defaultMonth`) is the visible
+month, paged with ‹ / ›. `today` gets the ring. The days are one tab stop:
+the arrows move by day and week, Home / End to the week's ends, and
+Page Up / Page Down by month (Shift: by year). It's an ARIA grid labelled
+by the month.
+
+**`RangeCalendar`** is the period picker (`Date Picker / Range`), as in
+the Select Period and Creation Date filters. Its two months page together.
+Two picks, in either order, call `onChange({ start, end })`, and Escape
+drops a half-picked range.
+
+**`DatePickerDay`** is one day (`Date Picker / Day`): `today`, `selected`,
+`inRange` and `outsideMonth` (inactive). Calendar and RangeCalendar are
+panels only, for a Date field or a filter to put in a Popover. Dates use
+plain `Date` maths, with no new dependency.
+
+**`FilterField`** is the filter bar's control (`Filter / Field`).
+`type="search"` is a search box: once something is typed, a clear (×)
+button empties it, and so does Escape. `type="dropdown"` is a trigger
+button with a leading icon, the chosen value and a caret, which opens a
+Select or a RangeCalendar in a Popover. `label` (required) is its name.
+The icons use `text/subtle` instead of Figma's raw grey, so they reach
+3:1 in Light.
+
+**`TableExpandButton`** is the 28×28 caret button that opens a cost row
+(`Table / Expand Button`). `expanded` swaps CaretDown for CaretUp and sets
+`aria-expanded`; point `aria-controls` at what it opens. `label` is
+required.
+
+**`TableDetailLabel`** is one "Label: Value" line (`Table / Detail
+Label`), and **`TableAccountDetails`** is the cost row's Account column
+(`Table / Account Details`): TableDetailLabel lines with `categoryTag`
+12px below them, a `StatusPill` as in Figma or a `Tag`. The category pill
+keeps Status Pill's own label colour: Figma's override to `text.primary`
+failed contrast on the orange (3.90 Light, 2.80 Dark).
+
+Every new control has Button's 2px `stroke.focused` focus ring (Figma
+draws no Focus states).
+
+Changed in the CAF Figma library first (needs publishing):
+- **SelectTrigger's caret** (`_Dropdown Input`) was a raw light grey,
+  1.26:1 on the Light field. It's now `text.subtle`, as the other inputs
+  bind it.
+- **The selected tab's label** (`Tabs / Tab Item`) now uses
+  `action/primary/content/default`. It was `text/primary`, which failed
+  contrast on the blue in both themes (2.96 / 3.85; now 6.81 / 4.77).
+- **Menu Trigger's caret** now follows the label
+  (`action/primary/content/*`). It was a primitive from outside CAF's
+  libraries, near-white beside the dark label in Dark.
+- **Filter / Field's icons** were a raw grey, 2.52:1 on a Light field.
+  They're now `text/subtle`, in the component and in the Costs filter bar.
+- **The Category Tag** in Account Details now has Status Pill's own label
+  colour, and **the expanded cost row's caret** is `text/primary` instead
+  of a brand primitive.
+- Raw radius, padding and gap values on Menu / Item, Menu / Dropdown, the
+  inputs, the tabs, the date picker, Select / Option and Select / Menu are
+  bound to GDL's radius and space variables. Nothing looks different.
+
+### Components: modals, side sheet, alerts, toasts, tooltip, loading and empty states (October 2026)
+
+CAF's overlays and feedback states, built straight from the CAF Figma
+library (pages **Modals** and **Feedback**). The modals cover the
+Patterns – Admin flows 04 Confirm destructive actions, 05 Create or edit
+in a modal and 06 Edit in a side sheet.
+
+**`ModalDialog`** is `Modal / Dialog`, used by Add Cost Center, Add
+Partner, Add User, Create Announcement, Cost Breakdown and Audit Logs.
+`size` is `small`, `medium` or `large`. It takes a `title`, an optional
+`description` (`showDescription`), the content as `children`, and the
+footer's buttons as `footer` (`showFooter`).
+
+**`ModalConfirm`** is `Modal / Confirm`, used for Approve, Reject, Stop and
+Delete. `type` is `default` (info icon, Default button) or `destructive`
+(critical icon, Destructive button). It takes a `title`, a `message`,
+`confirmLabel`, `cancelLabel` and `onConfirm`. Focus opens on Cancel, and a
+backdrop click doesn't close it.
+
+**`SideSheet`** is `Panel / Side Sheet`, the 672px right-hand sheet for
+edit flows such as Edit Recurring Cost. It takes a `title`, `children` and
+a `footer`.
+
+**`ModalHeader`** and **`ModalHeaderIcon`** are `Modal / Header` and its
+icon tile, for modals Figma composes by hand (Payment Schedules).
+
+**`Overlay`** is the modal layer under all of them: the `surface.overlay`
+scrim over the page, centred or against the right edge. Every modal
+renders in a portal, moves focus in and traps it, closes on Escape and its
+close button (and on a backdrop click, except ModalConfirm), makes the
+page behind inert and stops it scrolling, and returns focus to whatever
+opened it.
+
+**`Alert`** is the inline banner (`Alert`), for notes that stay on screen,
+like Add New User's temporary password and Audit Logs' "This cost was
+deleted". `type` is `info` (default), `success`, `warning` or `error`;
+`size` is `default` (title over message) or `compact` (one line).
+`showDismiss` adds an X that hides it and calls `onDismiss`. Error and
+Warning are announced as alerts; Info and Success as status.
+
+**`Toast`** is the notification after Save, Upload or Export (`Toast`):
+`type`, `message`, an optional action (`action`, `showAction`, `onAction`)
+and an X. **`ToastProvider`** and **`useToast()`** raise them. They stack
+at the bottom right in a polite live region. Info and Success close after
+5 seconds; Warning, Error and any toast with an action stay until
+dismissed. Hover or focus pauses the timer.
+
+**`Tooltip`** is the short hint with an arrow (`Tooltip`). `text` is the
+hint and `placement` is `top` (default) or `bottom`. In Light it's a
+slate-700 bubble with white text; in Dark a slate-200 bubble with
+near-black text. It opens on hover and on keyboard focus, closes on
+Escape, blur and pointer leave, describes its target
+(`aria-describedby`), and flips or nudges itself to stay on screen.
+
+**`Skeleton`** is the loading placeholder (`Skeleton`): `shape` is `line`,
+`circle` or `block`, sized with `className`. It pulses, except under
+`prefers-reduced-motion`, and is hidden from screen readers.
+
+**`SkeletonTableRow`** is a table row's loading state
+(`Skeleton / Table Row`): one Skeleton line per column (`columns`,
+default 5). It is as tall as a loaded row, so nothing jumps when the data
+arrives.
+
+**`Spinner`** is the loading indicator (`Spinner`): `size` 16, 24 or 32,
+a `neutral/tonal` track and an `action/primary` indicator. It is a
+`role="status"` region with a visually hidden `label`, and stands still
+under reduced motion.
+
+**`EmptyState`** is what a list or page shows when it has nothing to show
+(`Empty State`): `size` `default` (icon tile, `title`, `description` and an
+optional `action` Button) or `compact` (a small icon and the title, inside
+a table body).
+
+Every colour is the one the Figma layer is bound to, in Light and Dark,
+and every text passes AA. There are no new icons, and nothing existing
+changes.
+
+Where code differs from Figma (details in `docs/figma-sync.md`):
+- **Widths:** the dialogs' 400 / 560 / 800 and 420 aren't on a GDL scale.
+  Code caps them at 384 / 576 / 768 and 448. The side sheet is exactly
+  672.
+- **Close buttons** on the modals, the toast and the alert are an
+  `IconButton` (Ghost, 32×32, 16px ×) with a hover fill and focus ring.
+- **The modal header icon's glyph** uses `accent.info.tonal.content.default`.
+  Figma's raw blue failed 3:1 on the tile.
+- **Radii and padding** are on GDL's scales: the toast's raw 10 radius is
+  `radius/8`, the compact alert's raw 10 padding is `space/12`, and the
+  tooltip's raw 10 side padding is `space/8`.
+
 ## 0.4.0 — 2026-10-29
 
 ### Components: Pagination and PaginationItem (October 2026)

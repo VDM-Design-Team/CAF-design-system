@@ -3648,6 +3648,610 @@ Figma gaps the code copies exactly. These are for the designer to decide:
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
+### StatCard (30 Oct 2026)
+
+Source: page **Cards** (`311:2719`), component `Card / Stat` (`387:3593`)
+and its private set `_Stat Icon` (`387:3592`, Type ×7). Card / Stat has
+Label, Value and Status Indicator (an instance swap of `_Stat Icon`). It is
+nested in both stat rows (`Card / Stat Row – Exports` `387:3601`,
+`– Announcements` `389:163`). Patterns – Admin 13 and 14 place those rows
+above the Exports and Announcements lists. Code: `src/components/stat-card/`.
+`label` is Label and names the card. `value` is Value. The Status
+Indicator is `icon` + `tone`. `_Stat Icon` is used only here, so it is part
+of StatCard, not a component of its own. The Storybook grids check each of
+Figma's seven Types in Light and Dark:
+
+- the card's fill, radius, padding and gap
+- the tile's size, radius and fill
+- the glyph's size and colour
+- the label's and value's colour and type style
+- the card's accessible name
+
+| Figma | Code |
+|---|---|
+| Card: horizontal, centred; padding `space/24`, gap `space/12`, radius `radius/12`; `surface/base` | `<article>` `flex items-center gap-3 p-6 rounded-12 bg-surface-base` |
+| Width: fixed 372 | Fills what it is given (`StatRow` shares the row) |
+| `_Stat Icon`: 40×40, radius `radius/8`, `accent/<tone>/tonal/surface/default` | `size-10 rounded-8 bg-accent-<tone>-tonal-surface-default`, `aria-hidden` |
+| Glyph: Phosphor Regular 24px, `accent/<tone>/tonal/content/default` | `<Icon size={24}>` in `text-accent-<tone>-tonal-content-default` |
+| Text Group: vertical, gap `space/4`, Fill | `flex min-w-0 flex-1 flex-col gap-1` |
+| Label: Body/sm-regular, `text/subtle` | `<p>` `text-body-sm-regular text-text-subtle`; names the article (`aria-labelledby`) |
+| Value: Heading/lg-semibold, `text/primary` | `<p>` `text-heading-lg-semibold text-text-primary` |
+
+`_Stat Icon` Type → `icon` + `tone`:
+
+| Type | `icon` | `tone` (accent family) |
+|---|---|---|
+| Total Exports (default) | `file-text` | `info` |
+| Completed | `check-circle` | `success` |
+| Processing | `clock` | `pending` |
+| Failed | `x-circle` | `critical` |
+| Total Announcements | `bell` | `info` |
+| Latest Version | `tag` | `success` |
+| Last Updated | `calendar-blank` | `info` |
+
+Contrast: the text passes AA, and every glyph passes 3:1 on its tile.
+
+| Pair | Light | Dark |
+|---|---|---|
+| Label, `text/subtle` on `surface/base` | 4.76 | 5.71 |
+| Value, `text/primary` on `surface/base` | 20.17 | 14.63 |
+| Glyph on tile: info | 5.60 | 5.72 |
+| Glyph on tile: success | 6.49 | 6.46 |
+| Glyph on tile: pending | 4.52 | 5.56 |
+| Glyph on tile: critical | 6.85 | 5.22 |
+| Tile on card (decorative) | 1.10–1.22 | 1.41–1.62 |
+| Card on `surface/canvas` (decorative) | 1.05 | 1.22 (design question) |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing):
+- **`Card / Stat`** (`387:3593`): its radius 12, padding 24 and gap 12 are
+  bound to `radius/12`, `space/24` and `space/12`, and its Text Group's
+  gap 4 to `space/4`. The seven `_Stat Icon` variants' radius 8 is bound to
+  `radius/8`. They were raw values on GDL's scale, so nothing looks
+  different.
+- **The Status Indicator swap** (`Status Indicator#387:2`) lists the seven
+  `_Stat Icon` variants as its preferred values. It listed none, so the
+  swap picker offered every component in the library.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Status Indicator | An instance swap of `_Stat Icon`, whose Type (seven, named for screen content) sets glyph and colour | `icon` (any Phosphor glyph) and `tone` (`info`, `success`, `pending`, `critical`) | Make `_Stat Icon` Tone × an icon swap (design question) |
+| Element | A frame | An `<article>` named by its label. The value is a `<p>`, not a heading, though its style is Heading/lg-semibold: as headings, bare numbers would fill heading navigation | None needed (design question) |
+| Width | Fixed 372 | Fills its container | None needed |
+| Height | 98 (17px label, 29px value on Inter's auto line height) | 102 (20px and 30px, GDL's ramp) | Bind the text styles' line heights to the ramp |
+
+Figma gaps the code doesn't copy:
+
+- **`Card / Stat` is pinned to Semantics Dark** (`387:3593`), and so is the
+  `_Stat Icon` set (`387:3592`). Every card in the two stat rows inherits
+  the pin. Code follows the page's theme. Clear both explicit modes. Not
+  changed on 30 Oct: clearing them changes what the library and the
+  patterns show, so it's the designer's call.
+- The Announcements Types' glyphs (Bell, Tag, CalendarBlank) are fixed
+  24×24 instances, and the others hug. Nothing looks different.
+
+### StatRow (30 Oct 2026)
+
+Source: page **Cards** (`311:2719`), two components:
+
+- `Card / Stat Row – Exports` (`387:3601`): four `Card / Stat`s at a fixed
+  372px, gap 16, the row hugging them at 1536.
+- `Card / Stat Row – Announcements` (`389:163`): three cards set to Fill in
+  a fixed 1536px row, 501 each, gap 16.
+
+Patterns – Admin 13 (Overview & record details) puts the Exports row
+between the page header and the filter bar. 14 (Announcements & what's
+new) does the same with the Announcements row. The two rows are content;
+StatRow is their layout. Code: `src/components/stat-row/`. The Storybook
+stories render both rows at Figma's 1536px in Light and Dark, and check the
+card widths, the gap, one line and the cards' colours. They also check the
+wrapping at 344px (a phone) and 600px.
+
+| Figma | Code |
+|---|---|
+| Horizontal, gap `space/16`, no fill | `flex flex-wrap gap-4` |
+| Cards: fixed 372 (Exports) / Fill (Announcements) | Each direct child grows to share its line (`*:grow *:basis-64`): 372 and 501 at 1536, as in Figma |
+| The `Card / Stat` instances | `children`: the `<StatCard>`s. Fragments and components that return several cards work, because the row lays out the elements directly inside it |
+
+Contrast: none of its own (no fill); see StatCard.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing): both rows' gap (raw 16) is bound to `space/16`. Nothing looks
+different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Two rows | `– Exports` and `– Announcements`, fixed content | One generic `StatRow`; the content is the cards passed in | None needed (plan decision 4: the rows are app compositions) |
+| Narrow screens | Fixed 1536px rows | A card is at least 256px (`space.256`). Cards wrap, the last line's cards share it, and on a phone there is one per line | Add a narrow frame if the screens need a particular wrap (design question) |
+| Semantics | A frame | A `<div>`; each card is a named article. Pass `role="group"` and `aria-label` to name the row | None needed |
+
+Figma gaps the code doesn't copy: the cards inherit `Card / Stat`'s pin to
+Dark (see StatCard).
+
+### DescriptionList (30 Oct 2026)
+
+Source: page **Cards** (`311:2719`), components `Description List`
+(`464:12371`) and `Description List / Item` (`464:12368`, with Label and
+Value text properties). Patterns – Admin 13 places it in Export Details
+(`_Pattern Content / Export Details` `529:6476`, in a Medium
+`Modal / Dialog`) with eight items: Name, Type, Created By, File Size,
+Created, Completed, Valid until, Downloads. Code:
+`src/components/description-list/`. `DescriptionList` is a `<dl>`.
+`DescriptionListItem` takes `label` (a `<dt>`) and `value` (a `<dd>`),
+wrapped in a `<div>`, as HTML allows. The Storybook grids run in Light and
+Dark, on `surface/canvas` and on a dialog's `surface/base`. They check
+Figma's layout (220px columns at 464, gaps of 24 and 16, 2px between label
+and value), the bindings and the term and definition roles.
+
+| Figma | Code |
+|---|---|
+| List: horizontal wrap; gap `space/24` and row gap `space/16`; fixed 464 | `<dl>` `grid grid-cols-2 gap-x-6 gap-y-4` |
+| Item: vertical, gap `space/2`, fixed 220 | `<div>` `flex min-w-0 flex-col gap-0.5`, as wide as its column (220 at 464) |
+| Label: Caption/md-regular, `text/subtle`, hugs | `<dt>` `text-caption-md-regular text-text-subtle` |
+| Value: Body/sm-medium, `text/primary`, fills, wraps | `<dd>` `text-body-sm-medium text-text-primary break-words` |
+
+Contrast: all text passes AA.
+
+| Pair | Light (canvas / base) | Dark (canvas / base) |
+|---|---|---|
+| Label, `text/subtle` | 4.55 / 4.76 | 6.96 / 5.71 |
+| Value, `text/primary` | 19.28 / 20.17 | 17.85 / 14.63 |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing): `Description List`'s gap 24 and wrap gap 16 are bound to
+`space/24` and `space/16`, and the Item's gap 2 to `space/2`. They were
+raw, so nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Columns | Fixed 220px items wrapping in a 464px frame: one column below 464, and two with 48px to spare in the 512px dialog | Two equal columns at any width: 220 at 464, 244 in the 512px dialog. Pass `className="grid-cols-1"` for one column | None needed, or a narrow variant (design question) |
+| Value | Text | Any content (a `Tag`, a link) | None needed |
+| Long values | Break mid-word ("…05333" / "2.zip") | `break-words`: wrap at spaces, and break a word only when it doesn't fit | None needed |
+| Height | 34 an item (15 + 2 + 17) | 38 (16 + 2 + 20), on GDL's ramp | Bind the text styles' line heights to the ramp |
+
+Figma gaps the code doesn't copy: none (no pinned modes).
+
+### FilterSummary (30 Oct 2026)
+
+Source: page **Filters** (`89:836`), components `Filter / Summary`
+(`463:12201`: a Title property over a "Filters" frame of lines) and
+`Filter / Summary Line` (`463:12204`, with Key and Value properties).
+Patterns – Admin 13 places it under the Description List in Export
+Details, with Search, Status and Type all "All". Figma has no clear or
+edit action: it is a read-only record of the filters an export used.
+Code: `src/components/filter-summary/`. `title` is Title (default "Current
+Filters") and names the summary (`role="group"`, `aria-labelledby`).
+`filters` is the lines, one `{ key, value }` each. The lines are a `<dl>`.
+`Filter / Summary Line` is used only here, so it is part of FilterSummary.
+The grids check every binding, the box's hugging width and the roles, on
+`surface/canvas` and on a dialog's `surface/base`, in Light and Dark.
+
+| Figma | Code |
+|---|---|
+| Summary: vertical, gap `space/8`, fixed 464 | `flex flex-col items-start gap-2`, a `role="group"` named by the title |
+| Title: Body/sm-medium, `text/secondary` | `<p>` `text-body-sm-medium text-text-secondary` |
+| Filters: vertical; padding `space/12` / `space/16`, gap `space/6`, radius `radius/8`; `surface/elevated secondary`; hugs | `<dl>` `flex flex-col gap-1.5 rounded-8 bg-surface-elevated-secondary px-4 py-3` |
+| Summary Line: horizontal, gap `space/4` | `<div>` `flex gap-1` |
+| Key: Body/sm-semibold, `text/primary` ("Search:") | `<dt>` `text-body-sm-semibold text-text-primary`, rendering `{key}:` |
+| Value: Body/sm-regular, `text/secondary` ("All") | `<dd>` `text-body-sm-regular text-text-secondary` |
+
+Contrast: the text passes AA. On one surface in each theme, the box can't
+be told apart from what it sits on (design question).
+
+| Pair | Light | Dark |
+|---|---|---|
+| Title, `text/secondary` on canvas / base | 9.90 / 10.35 | 14.48 / 11.87 |
+| Key, `text/primary` on `surface/elevated secondary` | 20.17 | 17.85 |
+| Value, `text/secondary` on `surface/elevated secondary` | 10.35 | 14.48 |
+| Box on `surface/base` (a dialog) | 1.00 | 1.22 |
+| Box on `surface/canvas` | 1.05 | 1.00 |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing): `Filter / Summary`'s gap 8 is bound to `space/8`. Its Filters
+frame's padding 12 / 16, gap 6 and radius 8 are bound to `space/12`,
+`space/16`, `space/6` and `radius/8`, and `Filter / Summary Line`'s gap 4
+to `space/4`. They were raw, so nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| The Key's colon | Typed into the Key text ("Search:") | `key` is the filter's name ("Search"); code adds the colon | Optional: leave the colon out of the property's text |
+| Lines | Summary Line instances, added or removed by hand | `filters`: an array with one line per entry | None needed |
+| Width | Fixed 464 | Fills its container; the box hugs its lines, as in Figma | None needed |
+| Height | 17px lines | 20px lines, on GDL's ramp | Bind the text styles' line heights to the ramp |
+
+Figma gaps the code doesn't copy: none (no pinned modes).
+
+### BreakdownItem (30 Oct 2026)
+
+Source: page **Cards** (`311:2719`), component `Card / Breakdown Item` (`460:11644`): Title, Meta, Period, Amount and Show Actions. Pattern 06 places two in the Edit Recurring Cost side sheet and pattern 09 two in a new cost's review step, all with Show Actions on. Code: `src/components/breakdown-item/`. The Storybook grids check every binding with Show Actions off and on, and the ••• forced to Hover, in Light and Dark.
+
+How the Figma properties map:
+- Title → `title`, Meta → `meta`, Period → `period`, Amount → `amount`.
+- Show Actions and its nested `Menu / Row Actions Button` → `actions`: the MenuItems of a RowActionsMenu. Leave it out to hide the •••.
+- `actionsLabel` names the ••• button. It defaults to "Actions for <title>", so two items never share a name.
+- The item is a `<div>`, not a heading or a landmark (the title's style is Body). The stories list items in a `<ul>`.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | Horizontal, centred; padding and gap `space/16` | `flex items-center p-4 gap-4` |
+| Fill, edge | `surface/neutral/faint`; 1px `stroke/subtle` inside; `radius/8` | `bg-surface-neutral-faint inset-ring inset-ring-stroke-subtle rounded-8` |
+| Width | Fixed 624 | Fills its container |
+| Details | Vertical, gap `space/4`, Fill | `flex-1 flex-col gap-1` |
+| Title | Body/sm-semibold, `text/primary` | `text-body-sm-semibold text-text-primary` |
+| Meta | Caption/md-regular, `text/secondary` | `text-caption-md-regular text-text-secondary` |
+| Period | Caption/md-regular, `text/subtle` | `text-caption-md-regular text-text-subtle` |
+| Amount | Body/sm-semibold, `text/primary` | `text-body-sm-semibold text-text-primary`, no wrap |
+| Row Actions | `Menu / Row Actions Button`, hidden unless Show Actions | `RowActionsMenu` (IconButton Ghost 32 + MenuDropdown) |
+
+Contrast, Light / Dark, on `surface/neutral/faint`:
+- Title and Amount: 19.28 / 17.85
+- Meta: 9.90 / 14.48
+- Period: 4.55 / 6.96
+- ••• glyph (`text/secondary`, needs 3:1): 9.90 / 14.48; on its hover fill 8.40 / 6.15
+
+The 1px `stroke/subtle` edge (1.18 / 1.72) outlines a card, not a control, so 3:1 doesn't apply.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Height | 89, on Inter's auto line heights | 92, on GDL's 20 / 16px lines | Bind the text styles' line heights to the ramp |
+| Width | Fixed 624 | Fills its container | Set the width to Fill |
+| ••• button | The one-off 32×32: radius 6, 20px DotsThree in `text/primary`, no hover | IconButton Ghost 32 (see "RowActionsMenu") | Swap for a `Button / Icon` instance, Ghost 32 |
+| Its name | None | `actionsLabel`, default "Actions for <title>" | None needed |
+| Meta, Period | Always shown | Render only when given | None needed |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing; nothing looks different, and code already uses these tokens):
+- The frame's radius (raw 8) is bound to `radius/8`.
+- Its padding and gap (raw 16) are bound to `space/16`, and the Details gap (raw 4) to `space/4`.
+
+Figma gaps the code doesn't copy:
+- **The Row Actions instance (`460:11650`) is pinned to Semantics Dark** (mode `1:2`), as every pattern 03 placement is. Code follows the page's theme. Clear the explicit mode.
+
+### ChangeDiff and ChangeDiffRow (30 Oct 2026)
+
+Source: page **Table** (`3:1823`), components `Table / Change Diff` (`464:1169`) and `Table / Change Diff Row` (`464:978`; Field, Before, After). Pattern 08 opens one under an Audit Logs entry ("View Changes": Status, Unknown → Pending). A deleted record shows a compact Alert instead, as the component's description says. Code: `src/components/change-diff/`. The Storybook stories check the table's semantics and every binding, in Light and Dark.
+
+How it maps:
+- ChangeDiff is a real `<table>`. Field, Before and After are `<th scope="col">`. Each row's field is a `<th scope="row">`, so a screen reader reads every value with its column and its field. Name it with `aria-label` ("Changes to cost #32430").
+- The Row instances → `children`: one `<ChangeDiffRow field before after />` per changed field.
+- Before is a `<del>` and After an `<ins>`. Each starts with a visually hidden "Removed:" or "Added:" for screen readers that don't announce deletions and insertions. With the visible column headers, colour is never the only cue.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | Vertical, gap 0; `radius/8`; `surface/neutral/faint`; 1px `stroke/subtle` inside | `<table>`, `rounded-8 bg-surface-neutral-faint inset-ring inset-ring-stroke-subtle`, fills its container |
+| Header | Padding 10 (raw) / `space/16`, gap `space/16`; 1px `stroke/subtle` below | `<th>`s, `py-2 pl-4` (the last also `pr-4`), `border-b border-stroke-subtle` |
+| Header labels | Field, Before, After: Body/sm-regular, `text/subtle` | Same, fixed text as in Figma |
+| Row | Horizontal, centred; padding 10 (raw) / `space/16`, gap `space/16` | `<tr>`; cells `py-2 pl-4 align-middle`, the last also `pr-4` |
+| Field | Fixed 200; Body/sm-semibold, `text/primary` | `w-1/4` of the table; `text-body-sm-semibold text-text-primary` |
+| Before box | `accent/critical/tonal/surface/default`; 1px `accent/critical/outline/border/default` inside; `radius/6`; padding `space/6` / 10 (raw) | `<del>`: `bg-accent-critical-tonal-surface-default inset-ring-accent-critical-outline-border-default rounded-6 py-1.5 px-2` |
+| Before value | Body/sm-regular, `accent/critical/tonal/content/default` | Same; `no-underline` clears the browser's strike-through |
+| After box | `accent/success/tonal/surface/default`; 1px `accent/success/outline/border/default` inside; `radius/6`; padding `space/6` / 10 (raw) | `<ins>`: the success tokens, same shape |
+| After value | Body/sm-regular, `accent/success/tonal/content/default` | Same; `no-underline` clears the browser's underline |
+
+Contrast, Light / Dark:
+- Header labels (`text/subtle` on `surface/neutral/faint`): 4.55 / 6.96
+- Field: 19.28 / 17.85
+- Before value on its box: 6.85 / 5.22
+- After value on its box: 6.49 / 6.46
+
+The boxes' 1px borders are decoration, not control borders. Against the panel they are 3.64 / 3.74 (critical) and 3.08 / 5.55 (success).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Field column | Fixed 200 of 960 | A quarter of the table: 240 at 960, with its 16px gap. GDL has no width scale | None needed, or set Field to a share of the width (the designer's call) |
+| Top and bottom padding | Raw 10 in the header and the rows | 8 (`space/8`), around GDL's 20px line: header 37 tall (Figma 38), row 48 (Figma 51) | Bind to `space/8` (design question) |
+| Value box sides | Raw 10 | 8 (`space/8`), as Button's raw 10 became | Bind to `space/8` (design question) |
+| Width | Fixed 960 | Fills its container | Set the width to Fill |
+| Header labels | Fixed text | Fixed text | None needed |
+| Removed / added in text | Colour and column only | Also `<del>` / `<ins>`, each led by a visually hidden "Removed:" / "Added:" | None needed |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing; nothing looks different, and code already uses these tokens):
+- The frame's radius (raw 8) is bound to `radius/8`, and the value boxes' (raw 6) to `radius/6`.
+- The header's and row's side padding and gap (raw 16) are bound to `space/16`, and the boxes' top and bottom padding (raw 6) to `space/6`.
+- The raw 10s stay: GDL has no 10, so binding them would change the look (design question).
+
+Figma gaps the code doesn't copy:
+- **Frame 1 and Frame 2** (`453:12898`, `453:12902`) wrap each box in a vertical frame with a raw 10 gap and a single child. They are the `<td>`s; the gap does nothing.
+
+### PaymentRow (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), set `Modal / Payment Row` (`348:8298`): Status (Done `348:8278`, Upcoming `348:8288`), Date and Subtitle. It nests `Modal / Status Icon` (`348:8258`) and `Modal / Status Badge` (`348:8263`). Payment Schedules places five. Code: `src/components/payment-row/`. The Storybook grids check both statuses against every binding, in Light and Dark.
+
+How the Figma properties map:
+- Status → `status`: `done` (default) or `upcoming`.
+- Date → `date`. Subtitle → `subtitle`.
+- Status Icon and Status Badge are part of the row, not components of their own. Only Payment Row places them, in the library and on both Patterns pages.
+- Tag has the same tonal pairs, but its look is larger (Label/sm-medium, 4 / 12 padding, an icon), so the badge isn't a Tag (see the design question below).
+- The icon is decorative (`aria-hidden`): the badge says the status in text.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | Horizontal, centred; padding 13 (raw), gap `space/12`; fixed 460×62 | `flex items-center p-3 gap-3`; fills its container, hugs its height (60) |
+| Fill, edge | `surface/canvas`; 1px inside, `accent/success/outline/border/default` (Done) or `accent/warning/outline/border/default` (Upcoming); `radius/8` | `bg-surface-canvas inset-ring` + the status's border colour; `rounded-8` |
+| Status Icon | 36×36 circle (`radius/full`), `accent/<success or warning>/tonal/surface/default` | `size-9 rounded-full`, same fill |
+| Its glyph | 24px CheckCircle (Done) / Clock (Upcoming), `accent/<status>/tonal/content/default` (raw #31C48D / #FBBF24 until 30 Oct) | `check-circle` / `clock`, 24px, `accent/<status>/tonal/content/default` |
+| Text Content | Vertical, gap 0, Fill | `flex-1 flex-col` |
+| Date | Body/sm-regular, `text/primary` | Same |
+| Subtitle | Caption/md-regular; `text/subtle` (Done), `accent/warning/tonal/content/default` (Upcoming) | Same, per status |
+| Status Badge | Padding `space/2` / `space/8`, `radius/full`; `accent/<status>/tonal/surface/default`; "Done" / "Upcoming" in Caption/md-regular, `accent/<status>/tonal/content/default` | `px-2 py-0.5 rounded-full text-caption-md-regular`, same colours and labels |
+
+Contrast, Light / Dark:
+- Date on `surface/canvas`: 19.28 / 17.85
+- Subtitle, Done (`text/subtle`): 4.55 / 6.96
+- Subtitle, Upcoming (warning content on canvas): 4.71 / 13.46
+- Badge, Done: 6.49 / 6.46. Badge, Upcoming: 4.59 / 6.53
+- Icon glyph (needs 3:1), as code draws it: Done 6.49 / 6.46, Upcoming 4.59 / 6.53. Figma's raw glyphs before 30 Oct: Done 2.03 / 4.06, Upcoming **1.55** / 5.19
+- The edge on `surface/canvas`: Done 3.08 / 5.55, Upcoming 4.71 / 6.08
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing; code already uses these bindings):
+- **The Status Icon glyphs** were raw #31C48D (Done) and #FBBF24 (Upcoming): 2.03 and 1.55 on their circles in Light, below the 3:1 an icon needs. They are bound to `accent/success/tonal/content/default` and `accent/warning/tonal/content/default`, the pairing Tag uses on the same fills and the one Modal / Header Icon's glyph got on 29 Oct. The glyphs are darker in Light (6.49 and 4.59), and in Dark they are 6.46 and 6.53.
+- **Payment Schedules' three Done rows** (`348:8325`, `348:8335`, `348:8345`) overrode the Status Icon's fill with raw #31C48D at 15%. The override is reset, so the circle takes the component's `accent/success/tonal/surface/default`, as the Upcoming rows do.
+- The row's radius (raw 8) is bound to `radius/8` and its gap (raw 12) to `space/12`. The circles' and badges' radius (raw 9999) is bound to `radius/full`, and the badge's padding (raw 2 / 8) to `space/2` / `space/8`. Nothing looks different.
+- The raw 13 padding stays: GDL has no 13, so binding it would change the look (design question).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Padding | Raw 13 (off GDL's scale) | 12 (`space/12`), as the gap | Bind to `space/12` (design question) |
+| Height | Fixed 62 | Hugs: 60 (12 + the 36px icon + 12) | Set the height to Hug |
+| Width | Fixed 460 (Fill in the modal) | Fills its container | Set the width to Fill |
+| Badge height | 19, on Inter's auto line height | 20, on GDL's 16px Caption line | Bind the text style's line height to the ramp |
+
+Figma gaps the code doesn't copy:
+- **Both variants are pinned to Semantics Dark** (mode `1:2`), and so is every row Payment Schedules places. Code follows the page's theme. Clear the explicit modes.
+
+### PaymentSchedules (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Payment Schedules` (`348:8311`), with no properties. Pattern 03's "View" action (Patterns – Admin) and pattern U04 (Patterns – User) open it from Recurring Costs. Code: `src/components/payment-schedules/`. It is built on Overlay and ModalHeader, as the Overlay stories had sketched it. The Storybook stories render it open in Light and Dark, and test Close, Escape and focus return, and a list long enough to scroll.
+
+How it maps:
+- The `Modal / Header` instance → ModalHeader. Its Title ("Payment Schedules") → `title`, its Description ("Upcoming and processed payments") → `description`, and its tile's glyph → `icon`. The defaults are Figma's.
+- The Payment Row instances → `children`: one `<PaymentRow>` per payment. Code lists them in a `<ul>`, one `<li>` each.
+- `open`, `onClose`, `dismissible`, `initialFocusRef` and `returnFocusRef` are Overlay's. The dialog is named by the title and described by the description.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Panel | Vertical, gap 0; `surface/base`; `radius/12`; clips content; no stroke, no effect | `flex flex-col overflow-hidden bg-surface-base rounded-12` |
+| Width | Fixed 512 | `w-full max-w-lg` (512), narrower on a small screen |
+| Header | `Modal / Header` (`348:8299`) | `ModalHeader` |
+| Rows Container | Vertical; padding 0 / `space/24` / `space/24` / `space/24`, gap `space/8` | `px-6 pb-6`, a `<ul>` with `gap-2`; scrolls (and is a tab stop) when the rows are taller than the viewport |
+| Rows | `Modal / Payment Row` ×5, Fill | `PaymentRow`s |
+
+Contrast, Light / Dark on `surface/base`: Title 20.17 / 14.63, Description 4.76 / 5.71, Close glyph 10.35 / 11.87 (see ModalHeader). The rows are as PaymentRow.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Behaviour | A static frame | Overlay's portal, focus trap, Escape and backdrop click, inert page, scroll lock, focus return | None needed |
+| Height | Hugs: 446 for five rows | Hugs, never taller than the viewport minus 16 on each side; the rows scroll | None needed |
+| Rows container | A frame | A `<ul>` of `<li>`s | None needed |
+| Edge and shadow | None | None, as Figma. On the scrim, `surface/base` is 1.18 (Light) and 1.06 (Dark) | Add Modal / Dialog's 1px `stroke/subtle` and Elevation 4? (design question) |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing; nothing looks different, and code already uses these tokens):
+- The panel's radius (raw 12) is bound to `radius/12`.
+- The Rows Container's padding (raw 24) is bound to `space/24`, and its gap (raw 8) to `space/8`.
+- The Done rows' Status Icon fill override is reset (see PaymentRow).
+
+Figma gaps the code doesn't copy:
+- **The modal is pinned to Semantics Dark** (mode `1:2`), and so are its rows. Code follows the page's theme. Clear the explicit modes.
+
+### VersionBadge (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Version Badge` (`359:10826`), with Version. Modal / Changelog Header places it next to the date. Code: `src/components/version-badge/`. Version is `children`. The badge is plain text with no states.
+
+**It isn't a Tag.** Tag Status=Info, which the Announcements table uses for its version column, has the `accent/info/tonal` fill and Label/sm-medium. The badge has a `surface/base` fill and Body/sm-semibold. Only the text colour is the same.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Badge | Horizontal, centred; padding `space/4` / `space/12`; `radius/full` | `py-1 px-3 rounded-full` |
+| Fill | `surface/base` | `bg-surface-base` |
+| Version | Body/sm-semibold, `accent/info/tonal/content/default` | `text-body-sm-semibold text-accent-info-tonal-content-default` |
+
+Contrast, Light / Dark: the version text on its fill is 6.83 / 8.07. The pill against the dialog's `surface/canvas` is 1.05 / 1.22. It's decorative: the text carries the meaning.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the radius (raw 9999) is bound to `radius/full` and the padding (raw 4 / 12) to `space/4` and `space/12`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Height | 25, on Inter's auto line height | 28, on GDL's 20px Body/sm line height (with GDL's 0.4px tracking) | Bind the text style's line height and letter spacing to the ramp (library-wide, as on Tag) |
+
+Figma gaps the code doesn't copy: none.
+
+### BulletItem (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Bullet Item` (`359:10832`), with Text. Modal / Release Notes and Card / Changelog Entry both place it, so it's a component of its own. Code: `src/components/bullet-item/`. Text is `children`. It's an `<li>`, so put it in a `<ul>` (ReleaseNotes and ChangelogEntry render one). The dot is the list marker and is `aria-hidden`.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Item | Horizontal, centred, gap `space/8` | `<li>` `flex gap-2` |
+| Bullet Dot | 6×6 ellipse, `accent/success/tonal/content/default` | `size-1.5 rounded-full bg-accent-success-tonal-content-default`, in a 20px box (`h-5`) |
+| Text | Body/sm-regular, `text/primary` | `text-body-sm-regular text-text-primary` |
+
+Contrast, Light / Dark, on `surface/canvas` (the dialog) or `surface/neutral/faint` (the card), which have the same values:
+- Text: 19.28 / 17.85
+- Dot: 6.82 / 12.74. It's decorative, because the list says "bullet".
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the gap (raw 8) is bound to `space/8`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Dot alignment | Centred on the item | Centred on the first line (a 20px box, Body/sm's line height). A one-line note looks the same, and a wrapped note keeps its dot at the top | None needed, or top-align the dot |
+| Width | Hugs its text | Fills the list and wraps | None needed |
+| Element | n/a | `<li>`, with the dot hidden from assistive tech | None needed |
+
+Figma gaps the code doesn't copy: none.
+
+### ReleaseNotes (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Release Notes` (`359:10845`), with Section Title. Modal / Changelog places it. Code: `src/components/release-notes/`. Section Title is `sectionTitle`, which defaults to Figma's "What's new in this release:". The `Modal / Bullet Item` instances are `children` (BulletItems) in a `<ul>`. The section title names the list (`aria-labelledby`). It isn't a heading, because its style is Body and the dialog's title is already the heading.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Group | Vertical, gap `space/12`, one stack of title and items | `flex-col gap-3`, a `<p>` over a `<ul>` that is also `gap-3`, so the spacing is the same |
+| Section Title | Body/sm-semibold, `text/primary` | `<p>` `text-body-sm-semibold text-text-primary` |
+| Items | `Modal / Bullet Item` | `children`: `BulletItem`s |
+
+Contrast, Light / Dark, on `surface/canvas`: section title 19.28 / 17.85. For the items, see BulletItem.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the gap (raw 12) is bound to `space/12`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Hugs | Fills its container | None needed |
+| Semantics | n/a | The title names the `<ul>` | None needed |
+
+Figma gaps the code doesn't copy: none.
+
+### ChangelogHeader (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Changelog Header` (`359:10835`), with Title and Date. It nests `Modal / Changelog Icon` (`359:10822`) and `Modal / Version Badge`. Modal / Changelog places it. Code: `src/components/changelog-header/`.
+
+How the Figma properties map:
+- Title → `title`, an `<h2>`. Pass `titleId` and point the dialog's `aria-labelledby` at it.
+- Date → `date`.
+- The nested Version Badge's Version → `version`. Without it, no badge renders.
+
+**Changelog Icon** appears only here, so it's drawn inline and isn't a component of its own. It's decorative (`aria-hidden`).
+
+| Layer | Figma | Code |
+|---|---|---|
+| Header | Vertical, gap `space/16`, hugs 186 | `flex-col gap-4`, fills its container |
+| Changelog Icon | 48×48 frame, Phosphor RocketLaunch 48px, `accent/red/medium` | `<Icon name="rocket-launch" size={48}>` `text-accent-red-medium`, `aria-hidden` |
+| Title | Title/md-bold, `text/primary`, Fill, wraps | `<h2>` `text-title-md-bold text-text-primary` |
+| Metadata Row | Horizontal, centred, gap `space/12` | `flex items-center gap-3`, wrapping |
+| Date | Body/sm-regular, `text/subtle` | `<p>` `text-body-sm-regular text-text-subtle` |
+| Version | `Modal / Version Badge` | `VersionBadge` |
+
+Contrast, Light / Dark, on `surface/canvas`:
+- Title: 19.28 / 17.85
+- Date: 4.55 / 6.96
+- Version: see VersionBadge
+- Rocket: 2.76 / 4.69. It's below 3:1 in Light, a design question. The rocket is decorative, so axe and WCAG 1.4.11 don't require 3:1.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the header's gap (raw 16) is bound to `space/16` and the Metadata Row's (raw 12) to `space/12`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Hugs (186) | Fills its container, as the dialog's instance does | None needed |
+| Metadata Row | Never wraps | Wraps on a narrow width | None needed |
+| Date and version | Always shown | Each renders only when given | None needed |
+| Title height | Inter's auto line height | GDL's 28px Title/md line height | Bind the text style's line height to the ramp |
+| Element | n/a | A `<div>`, because a `<header>` could become a second banner landmark | None needed |
+
+Figma gaps the code doesn't copy:
+- **Modal / Changelog Icon pins the Semantics collection to Dark.** Code follows the page's theme. Clear the explicit mode. Not changed on 30 Oct: clearing it changes what the library shows, so it's the designer's call.
+
+### ChangelogEntry (30 Oct 2026)
+
+Source: page **Cards** (`311:2719`), component `Card / Changelog Entry` (`464:12396`), with Title, Meta and Show New. It nests `Tag` Status=Info and `Modal / Bullet Item`. Patterns 14 and U07 list one per release on the Changelog page. Code: `src/components/changelog-entry/`.
+
+How the Figma properties map:
+- Title → `title`, an `<h2>`. `headingLevel` moves it without changing the look.
+- Meta → `meta` ("Version 2.5.6 • August 10, 2026").
+- Show New → `showNew`. It defaults to true, as in Figma. The Changelog sets it only on the latest release.
+- The Bullet Items → `children`.
+
+It's an `<article>` named by its title. It has no states.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Card | `surface/neutral/faint`, 1px inside `stroke/subtle` (strokes included in layout), `radius/8`, fixed 640 | `bg-surface-neutral-faint border border-stroke-subtle rounded-8 overflow-hidden`, fills its container |
+| Header | Padding `space/16` / `space/20`, Space Between, top-aligned; 1px `stroke/subtle` below | `py-4 px-5 justify-between items-start gap-4 border-b border-stroke-subtle` |
+| Title Group | Vertical, gap `space/2` | `gap-0.5` |
+| Title | Body/md-semibold, `text/primary` | `<h2>` `text-body-md-semibold text-text-primary` |
+| Meta | Caption/md-regular, `text/subtle` | `<p>` `text-caption-md-regular text-text-subtle` |
+| New Badge | `Tag` Status=Info, Show Icon off, "New" | `<Tag status="info" showIcon={false}>New</Tag>` |
+| Notes | Vertical, padding `space/16` / `space/20`, gap `space/6` | `<ul>` `py-4 px-5 gap-1.5` |
+| Bullet | `Modal / Bullet Item` | `BulletItem` |
+
+Contrast, Light / Dark, on `surface/neutral/faint`:
+- Title and notes: 19.28 / 17.85
+- Meta: 4.55 / 6.96
+- New: 5.60 / 5.72 (as Tag Info)
+- Dots: 6.82 / 12.74
+
+The `stroke/subtle` outline and divider (1.18 / 1.72) are decorative card edges, not control borders. In Light the card's fill equals the canvas.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the card's radius (raw 8) is bound to `radius/8`, the Header's and Notes' padding (raw 16 / 20) to `space/16` and `space/20`, the Title Group's gap (raw 2) to `space/2` and the Notes' gap (raw 6) to `space/6`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 640 | Fills its container | Set the width to Fill |
+| Header gap | 0 (Space Between) | 16 between the title group and the New tag, so a long title never touches it | Set the gap to `space/16` |
+| Height | Inter's auto line heights (header 69) | GDL's line heights (header 75) | Bind the text styles' line heights to the ramp |
+| Semantics | n/a | An `<article>` named by its `<h2>` title; the notes are a `<ul>` | None needed |
+
+Figma gaps the code doesn't copy: none. The component pins no mode. The Cards page shows it in Dark.
+
+### ChangelogModal (30 Oct 2026)
+
+Source: page **Modals** (`299:3301`), component `Modal / Changelog` (`391:174`). It has no properties of its own and nests `Modal / Changelog Header`, `Modal / Release Notes` and two `Button / Normal`s. Patterns 14 and U07 open it once after sign-in. Code: `src/components/changelog-modal/`, built on `Overlay`, like ModalConfirm.
+
+How Figma maps:
+- The header's Title, Date and Version → `title`, `date` and `version`. The title names the dialog.
+- The release notes' Section Title → `sectionTitle`. The bullets → `children`.
+- View Change Log (Default) → `onViewChangeLog`.
+- Got It (Outlined) → `onClose`.
+
+Figma has no close button. Got It, Escape and a backdrop click all call `onClose`. The owner sets `open` and records that the release was seen.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Panel | Vertical, padding `space/32`, gap `space/24`; `radius/16`; `surface/canvas`; Effects/Elevation Dark/2; no stroke; fixed 500 | `p-8 gap-6 rounded-16 bg-surface-canvas shadow-elevation-2`, `max-w-lg` (512), narrower on a small screen; scrolls if taller than the viewport |
+| Header | `Modal / Changelog Header`, Fill; the Date is overridden to `text/secondary` | `ChangelogHeader`; the date is passed in `text-text-secondary` (copies the override) |
+| Release Notes | `Modal / Release Notes`, Fill | `ReleaseNotes` |
+| Modal Actions | Horizontal, gap `space/16`; two Fill buttons | `grid gap-4 @sm:grid-cols-2`: two equal columns, stacked when the panel is under 384 inside |
+| View Change Log | `Button / Normal`, Style=Default | `<Button>`, calls `onViewChangeLog` |
+| Got It | `Button / Normal`, Style=Outlined | `<Button variant="outlined">`, calls `onClose` |
+| Scrim | the "Overlay" frame on the pattern pages | `Overlay`, `surface/overlay` |
+
+Contrast, Light / Dark, on `surface/canvas`:
+- Title and notes: 19.28 / 17.85
+- Date (`text/secondary`): 9.90 / 14.48
+- Version: 6.83 / 8.07
+- View Change Log label on its fill: 6.81 / 4.77
+- Got It label: 6.51 / 14.91
+- Got It border: 6.51 / 4.63
+- Rocket: 2.76 / 4.69 (decorative; design question)
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the panel's padding (raw 32), gap (raw 24) and radius (raw 16) are bound to `space/32`, `space/24` and `radius/16`, and the Modal Actions' gap (raw 16) to `space/16`. Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 500 | Capped at 512 (`max-w-lg`, the nearest container width; GDL has no width scale) | Resize to 512, or bind to a width scale |
+| Elevation | Effects/Elevation Dark/2 | `shadow-elevation-2`. Tailwind compiles it to GDL's Light Elevation 2 in both themes (as on ModalDialog) | None in Figma |
+| Actions on a phone | Always side by side | Stacked under 384 inside the panel (a container query), so "View Change Log" isn't cut | None needed, or add a narrow variant |
+| Button height | 35, on Inter | 36 (GDL's Button) | As Button |
+| Close | No close button | Got It, Escape and a backdrop click call `onClose`; focus moves into the dialog, is trapped there and returns to the opener | None needed |
+| Height | Hugs | Never taller than the viewport minus 16 on each side; the panel scrolls | None needed |
+
+Figma gaps the code doesn't copy:
+- **Modal / Changelog pins the Semantics collection to Dark** (as does its Changelog Icon, and its instances on the pattern pages). Code follows the page's theme. Clear the explicit mode. Not changed on 30 Oct: clearing it changes what the library and the patterns show, so it's the designer's call.
 ### Logo (30 Oct 2026)
 
 Source: page **Navigation** (`3:368`), component `Navigation / Logo`
@@ -4198,3 +4802,4 @@ Code departs from Figma here:
 
 Figma gaps the code doesn't copy:
 - **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** like the mobile screens in pattern 15. The code follows the page's theme.
+
