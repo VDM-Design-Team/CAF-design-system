@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +26,37 @@ jobs:
       # Lint, build, contract, contrast report, changelog entry, typecheck,
       # and the story tests (every story renders, play functions pass, axe).
       - run: npm test
+
+  # Every story again, against the production Storybook build, as Chromatic
+  # runs it: Vitest renders stories differently, so a story can pass npm test
+  # and still fail in Chromatic. Each job builds Storybook (seconds) and runs
+  # one slice of the stories; the slices together cover every story.
+  static:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Install the browser the stories run in
+        run: npx playwright install --with-deps chromium
       - name: Storybook builds
         run: npm run storybook:build
-      # Every story again, against that production build, as Chromatic runs
-      # it: Vitest renders stories differently, so a story can pass npm test
-      # and still fail in Chromatic.
-      - name: Stories pass in the static build
-        run: npm run test:static
+      - name: Stories pass in the static build (shard ${{ matrix.shard }}/8)
+        run: npm run test:static -- --shard=${{ matrix.shard }}/8
+
+  # The check main's ruleset requires: passes only when npm test and every
+  # static shard passed.
+  verify:
+    if: always()
+    needs: [test, static]
+    runs-on: ubuntu-latest
+    steps:
+      - name: npm test and every static shard passed
+        run: |
+          echo "test: ${{ needs.test.result }}, static: ${{ needs.static.result }}"
+          test "${{ needs.test.result }}" = success && test "${{ needs.static.result }}" = success
