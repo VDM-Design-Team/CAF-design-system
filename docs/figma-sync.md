@@ -420,7 +420,7 @@ no separate component for them; each is an IconButton:
 | Figma component | Differences from Button / Icon | In code |
 |---|---|---|
 | `Menu / Row Actions Button` (`405:551`, 56 on the screens) | Radius 6, 20px glyph in `text/primary`, no hover, **pinned to Dark** | `<RowActionsMenu>`: `<IconButton icon="dots-three" label="Row actions" />` plus its menu |
-| `Navigation / Icon Button` (`4:235`) | 40×40 with a 24px glyph whose colour isn't bound | `<IconButton size={40} …/>` (20px glyph) |
+| `Navigation / Icon Button` (`4:235`) | 40×40 with a 24px glyph, bound to `text/primary` since 30 Oct (it was raw) | `<IconButton size={40} …/>` (20px glyph). The header's account icon (AccountMenu's default trigger) draws it in `text/primary` |
 | `Modal / Close Button` (`348:8264`) | 24×32, 24px X | `<IconButton icon="x" label="Close" />` |
 
 Fix in Figma: swap these for `Button / Icon` instances (Ghost 32 for row
@@ -4252,3 +4252,554 @@ Code departs from Figma here:
 
 Figma gaps the code doesn't copy:
 - **Modal / Changelog pins the Semantics collection to Dark** (as does its Changelog Icon, and its instances on the pattern pages). Code follows the page's theme. Clear the explicit mode. Not changed on 30 Oct: clearing it changes what the library and the patterns show, so it's the designer's call.
+### Logo (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), component `Navigation / Logo`
+(`4:238`, under Atoms). Figma gives it no properties and only one version.
+Header – Admin, Header – User and Top Bar place it at 123 × 48. The Mobile
+Header and Mobile Menu scale it to 92 × 36.
+
+Code: `src/components/logo/`, an inline `<svg role="img">` named "CAF".
+Pass another `aria-label` to rename it, or `aria-hidden` to hide it.
+- The four Logo Mark vectors become four `<path>`s, using the vectors'
+  own geometry from Figma's SVG export.
+- The Wordmark ("Caf" set in upper case, Work Sans Medium 40, no text
+  style) becomes one `<path>`, Figma's outline of the text. It needs no
+  Work Sans font, and its fill is a token.
+- Size: `h-12` (48) by default, with the width following the viewBox
+  (123). The Mobile Header's 92 × 36 is `className="h-9"`.
+
+| Part | Figma fill | Code |
+|---|---|---|
+| Logo Mark / Part 1 | raw #302C98 | `caf-blue/600` (#352C96) |
+| Logo Mark / Part 2 | raw #9795CB | `caf-blue/300` (#9B96CF) |
+| Logo Mark / Part 3 | raw #6361B2 | `caf-blue/400` (#6B63C5) |
+| Logo Mark / Part 4 | raw #302C98 | `caf-blue/600` (#352C96) |
+| Wordmark | `text/primary` | `text/primary` |
+
+The mark uses the brand ramp itself, not a semantic token. No semantic
+token matches a raw fill exactly. The ramp, like Figma's raw fills, stays
+the same in Light and Dark, while the wordmark follows the theme. The
+Storybook grids check each part's fill and both sizes, in Light and Dark.
+
+Contrast: a logo is exempt from WCAG 1.4.3 and 1.4.11, but here are the
+figures. The wordmark is 19.28 (Light) / 17.85 (Dark) on the canvas. On
+the canvas the mark is:
+
+| Part | Light | Dark |
+|---|---|---|
+| `caf-blue/600` | 10.28 | 1.66 |
+| `caf-blue/400` | 4.76 | 3.58 |
+| `caf-blue/300` | 2.62 | 6.51 |
+
+In Figma's Dark header, the raw #302C98 is 1.86:1 on `surface/neutral/base`
+(#020617; 1.83 on the raw #04091B the header had until 30 Oct).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Mark colours | Raw #302C98, #9795CB, #6361B2 | The nearest `caf-blue` steps: 600, 300, 400 | Move the artwork onto the ramp, or add logo primitives (design question) |
+| Wordmark | Live text, Work Sans Medium 40 | Figma's outline of the text as a path | Outline the wordmark (flatten it to a vector) so the library doesn't depend on Work Sans |
+| Name | None | `role="img"`, `aria-label="CAF"` | None needed |
+| Clip | The Logo Mark frame clips at 30 × 48 | No clip: nothing reaches outside it | None needed |
+
+Figma gaps the code doesn't copy:
+
+- **No Dark version.** The Dark headers place the Light mark unchanged
+  (see the contrast above). Code does the same and waits on the design
+  question.
+
+### NavLink (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), two sets with the same State
+property:
+- `Navigation / Nav Link` (`446:11508`): State (Default, Active, Hover)
+  with a Label. These are the header Nav Bar's links.
+- `Navigation / Nav Link – Vertical` (`462:807`): State (Default, Hover,
+  Active) with a Label. These are the Mobile Menu's full-width rows.
+
+Code: `src/components/nav-link/`, one component with an `orientation`
+prop (`horizontal`, the default, or `vertical`), not a separate
+NavLinkVertical. Both sets are a label in a padded box with radius 6 and
+the same three states. They differ only in type, padding and colours, so
+they are compound variants of one `<a>`.
+- State=Active is `active`, the current page. It sets
+  `aria-current="page"`.
+- State=Hover is `:hover`. An Active link has no hover look, because
+  Figma has no Active + Hover state.
+- The Label is `children`.
+- It is an `<a href>`. A router link goes in `as`
+  (`<NavLink as={RouterLink} to="/costs">`), which receives the classes,
+  `aria-current` and every other prop.
+
+| Orientation | State | Fill | Label |
+|---|---|---|---|
+| horizontal | Default | none | `text/primary` |
+| horizontal | Hover | `neutral/tonal/surface/default` | `text/primary` |
+| horizontal | Active | `neutral/tonal/surface/default` | `text/primary` |
+| vertical | Default | none | `text/secondary` |
+| vertical | Hover | `surface/neutral/faint` | `text/primary` |
+| vertical | Active | `surface/base` | `text/primary` |
+
+Horizontal links are Body/sm-regular with 8 / 12 padding and radius 6, at
+36 high. Vertical links are Body/md-medium with 8 / 12 padding and radius
+6, at 40 high, and fill their container's width. The Storybook grids force
+Hover and Focus with pseudo-states and check, per state, the fill, label
+colour, `aria-current`, type, height, padding, radius and focus ring, in
+Light and Dark.
+
+Contrast: every label passes AA, as does the focus ring.
+
+| Pair | Light | Dark |
+|---|---|---|
+| Horizontal Default, `text/primary` on the canvas / `surface/base` | 19.28 / 20.17 | 17.85 / 14.63 |
+| Horizontal Hover and Active, `text/primary` on `neutral/tonal/surface/default` | 16.36 | 7.58 |
+| Vertical Default, `text/secondary` on the menu's `surface/neutral/base` | 10.35 | 16.36 |
+| Vertical Hover, `text/primary` on `surface/neutral/faint` | 19.28 | 17.85 |
+| Vertical Active, `text/primary` on `surface/base` | 20.17 | 14.63 |
+| Focus ring, `stroke/focused` on the canvas / the menu | 6.51 / 6.81 | 6.51 / 7.36 |
+
+The Active marker itself, the fill against what surrounds it, is below
+3:1: 1.18 / 2.36 on the horizontal links (on the canvas) and 1.00 / 1.38
+on the vertical ones (on `surface/neutral/base`). `aria-current` tells
+assistive tech which link is current. Both are open design questions.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing):
+- **Nav Link** (`446:11508`, all three variants): the radius is bound to
+  `radius/6`, the top and bottom padding to `space/8` and the side padding
+  to `space/12`. They were raw 6, 8 and 12, so nothing looks different.
+- **Nav Link – Vertical** (`462:807`, all three variants): the radius is
+  bound to `radius/6` and the side padding to `space/12` (raw 6 and 12).
+  The raw 10 top and bottom padding is unchanged: `space/8` would make the
+  row 37 high instead of 39, so that's a design question.
+- **The headers use State=Active.** In all ten Header – Admin and five
+  Header – User variants, the current page's link was a State=Default
+  instance with its fill overridden to `neutral/tonal/surface/default`. It
+  is now State=Active with no fill override, so the header's Page property
+  sets the link's State, as code's `active` does. Labels and layer names
+  are kept, and nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Padding (vertical) | Raw 10 top and bottom (the sides are `space/12`) | `space/8` / `space/12` (10 is off GDL's scale) | Change to `space/8` (design question: the row becomes 37 high) |
+| Height | 33 (horizontal), 39 (vertical): Figma's labels are 17 and 19 high | 36 and 40, from GDL's 20px Body/sm and 24px Body/md line heights | Bind the text styles to the ramp |
+| Letter spacing | 0 | GDL's ramp (0.4px on Body/sm), so "Recurring Costs" is 136px (Figma 130) | Bind the text styles to the ramp |
+| Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button | Add a Focus state |
+| Active + Hover | Not drawn | Active keeps its look on hover | None needed |
+| Name | Two component sets | One NavLink with `orientation` | None needed |
+
+Figma gaps the code doesn't copy:
+
+- **Nav Link – Vertical's section is pinned to Semantics Dark** ("Account,
+  Theme & Mobile"), so the library page shows it only in Dark, and the
+  Light bindings were never seen (see the design question). Clear the
+  explicit mode.
+
+### NavBar (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), component `Navigation / Nav Bar`
+(`4:248`, under Molecules), described as a "Row of Nav Link items for the
+user app". It holds five Nav Links: Costs, Create Cost, Bulk Upload,
+Recurring Costs, Drafts. The placements come from `Navigation / Header –
+User` (`420:1040`, Page ×5), which places a Nav Bar instance, and from
+`Navigation / Header – Admin` (`403:3950`, Page ×10), which draws its ten
+links (Costs, Bulk Upload, Cost Centers, Partners, Contacts, Users,
+Recurring Costs, Announcements, Exports, Drafts) in a "Navigation Bar"
+frame laid out the same way.
+
+Code: `src/components/nav-bar/`.
+- The frame is a `<nav>` landmark with a `<ul>`, and each NavLink child
+  sits in its own `<li>`, fragments included.
+- `aria-label` is required, so that several `<nav>`s on one page have
+  distinct names.
+- The headers' Page property is the one `active` NavLink. Tab moves
+  through the links in document order.
+
+| Part | Binding |
+|---|---|
+| Bar | No fill. Horizontal, `space/8` / 0 padding, gap 0, hugging its links |
+| Links | NavLink, horizontal (see above) |
+
+The Storybook stories run three checks:
+- **Pages grid:** all fifteen Page variants in Light and Dark. Each one
+  checks the 8 / 0 padding, the links sitting side by side with no gap,
+  and that only the Page's link is Active (`aria-current`, the
+  `neutral/tonal/surface/default` fill).
+- **User story:** tabs through the links in order, then follows one with
+  Enter.
+- **Admin story:** moves the current page with a click.
+
+Contrast: as in NavLink. The bar has no fill of its own. In Figma's Dark
+header it sits on the Navigation Area's `surface/base` (#1E293B in Dark;
+raw #212737 until 30 Oct).
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing):
+- **Padding:** the top and bottom padding of `Navigation / Nav Bar` and of
+  the ten "Navigation Bar" frames Header – Admin draws is bound to
+  `space/8`. It was raw 8, so nothing looks different. Header – User's Nav
+  Bar instances follow.
+- **Current page:** every header's current link is now State=Active (see
+  NavLink).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Size | 466 × 49 (User), 909 × 49 (Admin) | 481 × 52 and 938 × 52, from GDL's line height and letter spacing on the links | Bind the text styles to the ramp |
+| Semantics | A frame of instances | `<nav aria-label>` › `<ul>` › `<li>` › `<a>` | None needed |
+| Focus | None | Each link's focus ring (see NavLink) | Add a Focus state to Nav Link |
+
+Figma gaps the code doesn't copy:
+
+- **Header – Admin and Header – User are pinned to Semantics Dark.**
+  NavBar has no fill and takes its theme from the page. Clear the explicit
+  mode (Header's own entry). Their fills are bound since 30 Oct (see
+  AppHeader).
+- **Header – Admin doesn't use Nav Bar.** It draws its own "Navigation
+  Bar" frame, because a Nav Bar instance can't hold ten links. Code uses
+  one NavBar for both.
+
+### UserGreeting (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), `Navigation / User Greeting` (`4:245`): one text layer with a Username text property (default "Hi, QA Test"). Its description is the template: "Hi, {name}" greeting shown in the top bar. Code: `src/components/user-greeting/`. It is a `<p>` that writes "Hi, {username}". `username` is the name alone, and the component adds "Hi, ", so every screen greets the same way. The stories check its colour, type style and single line in Light and Dark, with a short and a long name.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Text | `text/secondary`, Body/sm-regular (size, weight and family bound) | `text-text-secondary text-body-sm-regular` |
+| Layout | Vertical auto layout, Hug × Hug, centred | `shrink-0 whitespace-nowrap`: one line, as wide as its text |
+| Username | Text property holding the whole greeting, "Hi, QA Test" | `username` ("QA Test"); "Hi, " is fixed |
+
+Contrast (4.5:1):
+
+| Pair | Light | Dark |
+|---|---|---|
+| `text/secondary` on `surface/canvas` | 9.90 | 14.48 |
+| `text/secondary` on `surface/base` | 10.35 | 11.87 |
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Line height | Auto (Inter): 17px | Body/sm's 20px | Use the ramp's line height |
+| Letter spacing | 0 | GDL's ramp, 0.4px | Bind the text style to the ramp |
+| Username | The property holds the whole greeting | `username` is the name; "Hi, " comes from the description's template | Optional: a fixed "Hi, " plus a Username property holding the name |
+
+Figma gaps the code doesn't copy: none. No modes are pinned.
+
+### ThemeToggle (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), set `Navigation / Theme Toggle` (`462:792`): Theme (Dark, Light). Its description: "Theme=Dark shows the moon (click → light), Theme=Light shows the sun." Patterns **15 · App shell & navigation** (`530:7799`) and **U08** (`545:26643`) put it between the greeting and the account icon. It "switches between dark and light right away and remembers the choice", and since it's icon-only it gets a tooltip. Code: `src/components/theme-toggle/`.
+- Theme → `theme`, the theme in use. Dark shows the moon and Light the sun. A click asks for the other one.
+- It is controlled. `onThemeChange` gets the theme the user asked for, and the app switches CAF's theme (`.dark` on `<html>`, as the Storybook toolbar does) and stores the choice. The toggle never changes the document itself.
+- It is IconButton size 40 (Button / Icon, whose description names it for the theme button), with Figma's `text/primary` glyph instead of Ghost's `text/secondary`.
+- Its accessible name says what a click does: "Switch to light theme" in Dark, "Switch to dark theme" in Light (`THEME_TOGGLE_LABELS`). Pass `aria-label` to translate it. UserActions adds the tooltip.
+
+The grids check each variant's glyph, glyph colour, fill at rest and on Hover, size, radius and name in Light and Dark. The Controlled story tests pointer, Enter and Space, and checks that the document's theme is untouched. The Focus story checks the ring.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | 40×40, `radius/8`, no fill, no stroke | IconButton size 40: `size-10 rounded-8` |
+| Glyph | Moon (Dark) / Sun (Light), Phosphor Regular 20px, fill `text/primary` | `moon` / `sun`, 20px, `text-text-primary` |
+| Hover | None | Button / Icon Ghost's `neutral/tonal/surface/default` fill |
+| Focus | None | 2px `stroke/focused` outline, 2px offset |
+
+Contrast (the glyph and the ring are graphics, 3:1):
+
+| Pair | Light | Dark |
+|---|---|---|
+| Glyph `text/primary` on `surface/canvas` | 19.28 | 17.85 |
+| Glyph on `surface/base` | 20.17 | 14.63 |
+| Glyph on the hover fill `neutral/tonal/surface/default` | 16.36 | 7.58 |
+| Focus ring `stroke/focused` on `surface/canvas` | 6.51 | 6.51 |
+| Focus ring on `surface/base` | 6.81 | 5.33 |
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing): the radius of both variants is bound to `radius/8`. It was
+raw 8, so nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Hover | No Hover state | Button / Icon Ghost's `neutral/tonal/surface/default` fill | Add a Hover, or confirm Ghost's (design question) |
+| Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on IconButton | Add a Focus state |
+| Glyph colour | `text/primary` | Copied, over Button / Icon Ghost's `text/secondary` | None, unless the header moves to Ghost's colour (design question) |
+| Name | None | "Switch to light theme" / "Switch to dark theme" | None needed |
+| Behaviour | Pattern 15: switches right away and remembers | Controlled: reports the theme asked for; the app switches and stores it | None needed |
+
+Figma gaps the code doesn't copy:
+- **The frame holding the set on the Navigation page ("Account, Theme & Mobile") is pinned to Semantics Dark** (mode `1:2`), so the set previews in Dark, and its white glyphs vanish when the set is viewed alone. The component itself pins nothing. Clear the frame's explicit mode.
+
+### AccountMenu (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), `Navigation / Account Menu` (`462:793`), with no properties. Its rows are Item / Manage Currencies, Item / Settings, a Divider and Item / Logout (Menu / Item, all Type=Default). Pattern **15** (`530:7799`) draws it under the account icon at the top right. Pattern **U06** (`545:23189`) says what each row does: Manage Currencies opens a dialog, Settings is its own page, and Logout signs out. Code: `src/components/account-menu/`.
+- It is a MenuDropdown with Figma's fixed rows. `onSelect` gets `'manage-currencies'`, `'settings'` or `'logout'`.
+- The default trigger is the header's account icon. That is Navigation / Icon Button as IconButton size 40, with the `user` glyph in `text/primary`, named "Account", and that name also names the menu. `trigger` replaces it.
+- The menu opens below the icon, flush with its right edge (`align="right"` by default).
+
+Keyboard: as MenuDropdown, and the arrows skip the divider. The Keyboard story tests open (Enter, Space, ↓, ↑), the arrows, Home / End, Escape and Tab, and focus return. The Open stories check the panel, labels, Settings on Hover, the divider, the icon at rest and on Hover, the auto layout and the placement in Light and Dark.
+
+| | Figma | Code |
+|---|---|---|
+| Surface | `surface/neutral/faint` fill, 1px inside `stroke/subtle`, `radius/8`, Effects/Elevation Dark/3, `space/6` padding | Popover's surface, through MenuDropdown |
+| Layout | Vertical auto layout, `space/2` spacing, rows Fill | `flex flex-col gap-0.5`; rows `w-full` |
+| Width | Fixed 220 | `min-w-64` (256), wider for a longer label |
+| Items | Menu / Item ×3, Type=Default: `text/primary` Body/sm-regular, 8 / 12 padding, radius 6 | MenuItem ×3 (Logout is not `destructive`) |
+| Divider | 1px rectangle filled `stroke/subtle`, Fill width | `<div role="separator">` with `border-t border-stroke-subtle` |
+| Trigger | Navigation / Icon Button: 40×40, User 24px, the glyph `text/primary` (raw #0F172A until 30 Oct) | IconButton size 40, `user` 20px, `text-text-primary`, with Ghost's hover |
+| Placement | Under the icon with no gap; its right edge 8px in from the icon's | `space/4` below, flush right (Popover's, as pattern 03) |
+
+Contrast:
+- Labels: as MenuItem, `text/primary` 19.28 / 17.85 at rest and 20.17 / 14.63 on Hover.
+- Trigger glyph: as ThemeToggle, 19.28 / 17.85 on the canvas and 16.36 / 7.58 on its hover fill.
+- Focus ring: 6.51 / 6.51.
+- Divider: `stroke/subtle` on `surface/neutral/faint` is 1.18 (Light) and 1.72 (Dark). It separates groups; it is not a control boundary, so WCAG 1.4.11 doesn't apply.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing):
+- **Radius, padding and item spacing** of `Navigation / Account Menu` are
+  bound to `radius/8`, `space/6` and `space/2`, as Menu / Dropdown's were
+  on 29 Oct. They were raw 8, 6 and 2, so nothing looks different.
+- **The account glyph** in `Navigation / Icon Button` (`4:235`) is bound
+  to `colors/text/primary`. The icon instance carried that binding on a
+  hidden fill, while the visible User vector was raw #0F172A. In Light it
+  moves to `text/primary`'s #020617, which looks the same; in Dark the
+  glyph turns light, where it had nearly vanished on the Dark headers
+  (1.11:1 on their #04091B). Its 84 placements follow.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 220, raw and off GDL's scale | At least 256 (`space/256`) | Set the width to 256 (design question) |
+| Elevation | Effects/Elevation Dark/3 on a component that isn't pinned to Dark | `shadow-elevation-3`: GDL's Light Elevation 3 in both themes (see Popover) | Use Effects/Elevation Light/3 (not applied: a style change, as on Menu / Dropdown) |
+| Trigger glyph | 24px | 20px (IconButton 40) | Swap in Button / Icon 40 (design question) |
+| Placement | No gap, 8px in from the icon's right edge | `space/4` gap, flush right | None needed |
+| Item height, letter spacing | As Menu / Item: 33px, 0 | As MenuItem: 36px, GDL's 0.4px | As MenuItem |
+| Name | None | The trigger's "Account" names the button and the menu | None needed |
+
+Figma gaps the code doesn't copy:
+- **The frame holding it on the Navigation page ("Account, Theme & Mobile") is pinned to Semantics Dark** (mode `1:2`). The component itself pins nothing. Clear the frame's explicit mode.
+
+### UserActions (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), `Navigation / User Actions` (`4:259`), with no properties: Navigation / User Greeting, then two Navigation / Icon Button instances, both with the User glyph. It is a horizontal auto layout, centred, with a 0 gap. Its description is "Greeting + theme toggle + account icon buttons". Patterns **15** and **U08** say the same: "Hi, {name}", the theme toggle (give it a tooltip) and the account icon (pattern U06). Code: `src/components/user-actions/`.
+- `username` goes to UserGreeting.
+- `theme` and `onThemeChange` go to a ThemeToggle in a Tooltip that shows the toggle's name, below it (the header sits at the top of the page).
+- `onAccountSelect` goes to AccountMenu, whose trigger is the account icon.
+- It is a plain group, not a landmark: the header's `<header>` banner holds it.
+
+The stories cover pointer and keyboard use (Tab order, the tooltip, the menu's arrows, Escape and focus return). States Light / Dark checks colours, Hover, glyphs, the 0 gap, centring and 40px height. Menu open Light / Dark checks the open account menu's surface and placement.
+
+| | Figma | Code |
+|---|---|---|
+| Layout | Horizontal auto layout, centred, 0 gap, Hug | `flex items-center` |
+| Greeting | Navigation / User Greeting | UserGreeting |
+| First icon button | Navigation / Icon Button, User glyph | ThemeToggle, in a Tooltip (`placement="bottom"`) |
+| Second icon button | Navigation / Icon Button, User glyph | AccountMenu's trigger, which opens Navigation / Account Menu |
+
+Contrast: as its parts (UserGreeting, ThemeToggle, AccountMenu). The tooltip is as Tooltip.
+
+**Changed in Figma on 30 Oct 2026** (the library needs publishing): both
+icon buttons' glyphs follow Navigation / Icon Button's new `text/primary`
+binding (see AccountMenu). The first button is still a User icon: swapping
+it for Navigation / Theme Toggle changes what the component shows, so it
+is a design question, not a binding fix.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| First icon button | A second User (account) icon | ThemeToggle, as the description and patterns 15 / U08 say | Swap instance `4:262` for Navigation / Theme Toggle (design question) |
+| Tooltip | None in the component; patterns 15 and U08 ask for one | Tooltip with the toggle's name, below it | None needed (wording is a design question) |
+| Glyphs | 24px, `text/primary` | 20px (IconButton 40), `text/primary` | See AccountMenu |
+| Gap | 0 | 0, copied | None (design question) |
+
+Figma gaps the code doesn't copy: none on the component. No modes are pinned. Pattern 15's Navigation / Header – Admin instance is pinned to Semantics Dark, which is the header's entry, not this one.
+
+### TopBar (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), component `Navigation / Top Bar` (`4:268`): "Logo on the left, user greeting and utility icon buttons on the right." It has no properties. Code: `src/components/top-bar/`.
+
+How Figma maps:
+- Navigation / Logo → Logo (123 × 48).
+- Spacer (a 1px-high frame set to Fill) → `justify-between`.
+- Navigation / User Actions → UserActions, with `username`, `theme`, `onThemeChange` and `onAccountSelect`.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | Horizontal, no gap, centred; fixed 1536 wide (Fill inside the header), hugs 48 high | `flex items-center justify-between`, full width, 48 high |
+| Logo | Navigation / Logo, 123 × 48 | `<Logo />` (`h-12`) |
+| Spacer | Frame, Fill × 1 | `justify-between` |
+| User Actions | Navigation / User Actions (greeting, theme toggle, account icon) | `<UserActions />` |
+
+Contrast, Light / Dark (on `surface/neutral/base`, the Top Bar Area):
+- Wordmark and glyphs (`text/primary`): 20.17 / 20.17
+- Greeting (`text/secondary`): 10.35 / 16.36
+- Glyphs on hover (`neutral/tonal/surface/default`): 16.36 / 7.58
+- Focus ring (`stroke/focused`): 6.81 / 7.36
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 1536 | Fills its container; AppHeader puts it in the same centred container as the Nav Bar | None needed |
+| Spacer | A Fill frame | `justify-between` | None needed |
+
+Figma gaps the code doesn't copy: none of its own. The theme slot is UserActions' (see UserActions).
+
+### AppHeader (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`):
+- `Navigation / Header` (`4:286`): "top bar … plus the global navigation bar".
+- `Navigation / Header – Admin` (`403:3950`): Page ×10, Costs … Drafts.
+- `Navigation / Header – User` (`420:1040`): Page ×5, Costs, Create Cost, Bulk Upload, Recurring Costs, Drafts.
+
+Patterns 15 (`530:7799`) and U08 (`545:26643`) place it, with `Navigation / Mobile Header` and `Navigation / Mobile Menu – Admin` below 768px. Code: `src/components/app-header/`. The link data and render types are in `links.tsx`.
+
+How Figma maps:
+- Header – Admin and Header – User differ only in their links → one component with `links` (label and `href`, in order). `APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` export Figma's Page values, in Figma's order and words.
+- Page → `page`, the current link's label. Its NavLink is State=Active and gets `aria-current="page"`.
+- The links are `<a href>`. `renderLink` swaps in a router's link: `({ href, ...props }) => <NavLink {...props} as={RouterLink} to={href} />`.
+- Below 768px (`md:`), MobileHeader replaces the two rows. Its ☰ opens MobileMenu with the same `links` and `page`. Mobile Header's Menu Open → `menuOpen` / `defaultMenuOpen` / `onMenuOpenChange`. It is uncontrolled by default.
+- The menu closes when a link is chosen, and when the screen widens past 768px.
+- `navLabel` names the `<nav>` (default "Main").
+- `username`, `theme`, `onThemeChange` and `onAccountSelect` go to TopBar and MobileHeader / MobileMenu. The theme is controlled; nothing here changes the document.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Frame | Vertical, no gap, fixed 1920, hugs 124; `surface/neutral/base` | `<header>` (the banner), `bg-surface-neutral-base` |
+| Top Bar Area | Fixed 72 high, padding 0 / 192, centred; `surface/neutral/base` | `px-6 py-3` around the 48px TopBar (72), `bg-surface-neutral-base` |
+| Navigation Area | Fixed 52 high, padding 0 / 192, left, centred; `surface/base` | `px-6 bg-surface-base`; the NavBar's 8 / 0 padding around 36px links makes the 52 |
+| Content width | 1536, from the 192px sides of the 1920 frame | A centred `container` in each row: 1536 at 1920 and wider, as Figma; at each smaller breakpoint, that breakpoint's width, inside 24px gutters |
+| Nav Bar | Header – User: a Navigation / Nav Bar instance. Header – Admin: a "Navigation Bar" frame laid out the same | NavBar with one NavLink per link |
+| Below 768px | Navigation / Mobile Header + Mobile Menu – Admin | `md:hidden` MobileHeader; MobileMenu in a portal |
+
+Contrast, Light / Dark:
+- Top bar: as TopBar.
+- Links (`text/primary` on `surface/base`): 20.17 / 14.63
+- Active link (`text/primary` on `neutral/tonal/surface/default`): 16.36 / 7.58
+- Focus ring on `surface/base`: 6.81 / 5.33
+
+In Light, `surface/neutral/base` and `surface/base` are both white (1.00:1), so the two rows read as one band. In Dark they are two bands (1.38:1). This is listed as a design question.
+
+**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
+publishing):
+- **Fills:** in all ten Header – Admin and five Header – User variants, the
+  variant frame and its Top Bar Area are bound to
+  `colors/surface/neutral/base`, and the Navigation Area to
+  `colors/surface/base`, as on `Navigation / Header` (`4:286`). They were
+  raw #04091B and #212737. The variants are pinned to Dark, so they now
+  show Dark's #020617 and #1E293B, a slight shift; with the pin cleared
+  they will follow Light too.
+- **Page:** each variant's current link is State=Active instead of a fill
+  override on State=Default (see NavLink). Nothing looks different.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 1920, padding 0 / 192 (raw) | Full width; content in a centred `container` (1536 at ≥1536) inside `px-6` gutters | None needed. A page's content should use the same container so it lines up |
+| Row heights | Fixed 72 and 52 (raw) | Padding around the content: `py-3` + 48 = 72, and NavBar's `py-2` + 36 = 52 | None needed |
+| Between 768 and about 960px | Not drawn | The Navigation Area scrolls sideways when the admin's ten links don't fit | Design question: draw a tablet width, or move the switch to 1024 for the admin header |
+| Below 768px | Separate components (Mobile Header, Mobile Menu – Admin) placed by hand on mobile screens | The same component switches at `md` (768px) | None needed |
+| Two headers | Header – Admin and Header – User, each with a Page variant per link | One AppHeader, links as data | None needed |
+| Mobile menu on a wide screen | n/a | Closes when the screen widens past 768px | None needed |
+
+Figma gaps the code doesn't copy:
+- **Header – Admin and Header – User are pinned to Semantics Dark** (`403:3950`, `420:1040`, and their instances on the patterns). The code follows the page's theme.
+
+### MobileHeader (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), set `Navigation / Mobile Header` (`462:850`): Menu Open=false (`462:808`) and Menu Open=true (`462:829`). Its description: "Header below 768px: logo, theme, account and a hamburger. Menu Open=true swaps the hamburger for a close icon." Code: `src/components/mobile-header/`.
+
+How Figma maps:
+- Menu Open → `menuOpen`.
+- The menu button → IconButton size 40, `list` "Open menu" or `x` "Close menu". It is a disclosure: `aria-expanded` is `menuOpen`, and `aria-controls` comes from `menuId`. A click calls `onMenuOpenChange(!menuOpen)`.
+- Theme → ThemeToggle (`theme`, `onThemeChange`) in a Tooltip with its name, as pattern 15 asks for the icon-only toggle.
+- Account → AccountMenu, whose default trigger is the same 40 × 40 User icon (`onAccountSelect`).
+- `menuButtonRef` lets MobileMenu focus ✕.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Variant | Fixed 375 wide, hugs 64; padding 12 / 16 (raw); Space Between, centred; `surface/neutral/base` | `flex items-center justify-between px-4 py-3 bg-surface-neutral-base`, full width, 64 high |
+| Logo | Navigation / Logo at 92 × 36 | `<Logo className="h-9" />` |
+| Actions | Horizontal, gap 8 (raw), centred | `flex items-center gap-2` |
+| Theme | 40 × 40 frame; Moon 20, `text/primary` | ThemeToggle (IconButton 40, `text-text-primary`) in a Tooltip |
+| Account | 40 × 40 frame; User 20, `text/primary` | AccountMenu's trigger (IconButton 40 `user`, `text-text-primary`) |
+| Open Menu / Close Menu | 40 × 40 frame; List 24 / X 24, `text/primary` | IconButton 40 `list` / `x` (20px glyph), `text-text-primary` |
+| Hover | None | IconButton Ghost's: `neutral/tonal/surface/default` fill |
+
+Contrast, Light / Dark (on `surface/neutral/base`):
+- Glyphs (`text/primary`): 20.17 / 20.17
+- Glyphs on hover (on `neutral/tonal/surface/default`): 16.36 / 7.58
+- Focus ring (`stroke/focused`): 6.81 / 7.36
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Theme | A plain 40 × 40 frame with a Moon icon in both variants | ThemeToggle: the glyph follows `theme`, and the button is named for what it does | Swap the Theme frame for a `Navigation / Theme Toggle` instance |
+| Account | A plain 40 × 40 frame with a User icon | AccountMenu (`Navigation / Icon Button` + `Navigation / Account Menu`) | Swap the Account frame for a `Navigation / Icon Button` instance |
+| Menu glyph | List / X at 24 | 20, IconButton 40's glyph | Design question: keep 24 (then Button / Icon needs a 24px option) or swap for `Button / Icon` Size=40 |
+| Width | Fixed 375 | Full width | None needed |
+| Padding and gap | Raw 12 / 16 and 8 | `space/12`, `space/16`, `space/8` | Bind to GDL's `space/*` |
+| Hover, focus | None | IconButton's hover fill and `stroke/focused` ring | Add Hover and Focus to the frames (they come with the instance swaps) |
+| Tooltip | None | The theme toggle's name, below it | None needed (pattern 15 asks for it) |
+| Element | n/a | A `<div>`: AppHeader's `<header>` is the banner | None needed |
+
+Figma gaps the code doesn't copy:
+- **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** and the mobile screens in patterns 15 and U08 are too. The code follows the page's theme.
+
+### MobileMenu (30 Oct 2026)
+
+Source: page **Navigation** (`3:368`), component `Navigation / Mobile Menu – Admin` (`462:851`): "Open mobile navigation for admins: header with close, the 10 admin links (one Active), and the account row. Swap link labels for the user app." Pattern 15 step 3 (`530:7793`) places it at the top of a 375 × 812 screen. U08 asks for a Mobile Menu – User that doesn't exist yet. Code: `src/components/mobile-menu/`.
+
+How Figma maps:
+- Mobile Header (Menu Open=true) → MobileHeader `menuOpen`, with ✕ asking `onClose`.
+- Links → `links` and `page` (the Active link), as on AppHeader, rendered as NavLink `orientation="vertical"` (or by `renderLink`).
+- Account Row → `username`.
+- Its open state → `open`. It asks `onClose` on ✕, Escape, a tap on the scrim, or a chosen link (pattern 15: "Choosing a link or tapping ✕ closes it").
+
+It is a modal dialog on Overlay (as SideSheet is): portal, `aria-modal`, named "Menu" (`aria-label`). Focus opens on ✕, where ☰ was, and Tab / Shift+Tab wrap inside. The page behind is inert and its scroll is locked. Escape closes an open account menu first. Focus returns to ☰.
+
+| Layer | Figma | Code |
+|---|---|---|
+| Menu | Fixed 375, vertical, no gap; `surface/neutral/base`; Effects/Elevation Dark/3 | `w-full bg-surface-neutral-base shadow-elevation-3`, against the top of the screen; `max-h-full overflow-y-auto` |
+| Mobile Header | Navigation / Mobile Header, Menu Open=true | `<MobileHeader menuOpen />` |
+| Links | Vertical, padding 8 / 16, gap 2 (raw) | `<nav aria-label="Main">` > `<ul class="flex flex-col gap-0.5 px-4 py-2">` |
+| Link | Navigation / Nav Link – Vertical, State Default / Active | NavLink `orientation="vertical"`, `active` for `page` |
+| Account Row | Padding 12 / 16, gap 12 (raw); 1px `stroke/subtle` on top, inside | `flex gap-3 px-4 py-3 border-t border-stroke-subtle` |
+| Account icon | User 20, `text/secondary` | `<Icon name="user" size={20} />` in `text-text-secondary` |
+| Name | "Admin Account", Body/sm-medium, `text/secondary` | `username`, `text-body-sm-medium text-text-secondary` |
+
+Contrast, Light / Dark (on `surface/neutral/base`):
+- Links, Default (`text/secondary`): 10.35 / 16.36
+- Link, Hover (`text/primary` on `surface/neutral/faint`): 19.28 / 17.85
+- Link, Active (`text/primary` on `surface/base`): 20.17 / 14.63
+- Account Row (`text/secondary`): 10.35 / 16.36
+- Header: as MobileHeader
+
+The Active link's `surface/base` fill on the menu's `surface/neutral/base` is 1.00:1 in Light (both white) and 1.38:1 in Dark. In Light the current page shows only through its `text/primary` label and `aria-current`. The `stroke/subtle` line (1.23 / 1.95) is a divider. Both are listed as design questions.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| What's behind | Pattern 15 draws the open menu alone, nothing behind it | Overlay's `surface/overlay` scrim over the inert page; a tap on it closes the menu | Design question: draw the Overlay frame behind the menu in pattern 15 step 3 |
+| Width | Fixed 375 | The screen's full width | None needed |
+| Height | Hugs (533) | Hugs, up to the screen's height; scrolls beyond that (a phone held sideways) | None needed |
+| Elevation | Effects/Elevation Dark/3 | `shadow-elevation-3`. Tailwind compiles it to GDL's Light Elevation 3 in both themes, as on Popover | None in Figma |
+| Padding and gap | Raw 8 / 16, 2, 12 / 16, 12 | `space/8`, `space/16`, `space/2`, `space/12` | Bind to GDL's `space/*` |
+| User links | No Mobile Menu – User (U08: "add it next to Mobile Menu – Admin") | One MobileMenu; the links are data | Add Mobile Menu – User, or give Mobile Menu – Admin a links slot |
+| Account Row | A row with no states | Text, as drawn; the account menu is the header's User icon | Design question: should the row open the Account Menu? |
+| Behaviour | Static | Dialog, focus on ✕ and trapped, Escape / ✕ / scrim / a link closes it, focus back to ☰, page inert and still | None needed |
+
+Figma gaps the code doesn't copy:
+- **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** like the mobile screens in pattern 15. The code follows the page's theme.
+
