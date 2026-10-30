@@ -107,7 +107,7 @@ Read `docs/inheritance.md` before changing anything structural.
 | `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
 | `npm run typecheck` | `tsc --noEmit` over `src/` and `.storybook/` |
 | `npm run test:stories` | Every story in Vitest + Playwright: renders, play and afterEach pass, axe clean |
-| `npm run test:static` | Every story against `storybook-static/` (run `storybook:build` first), as Chromatic runs it: fresh page per story, then switched over the channel twice. Fails on any play, afterEach, render or axe error. CI runs it after the build |
+| `npm run test:static` | Every story against `storybook-static/` (run `storybook:build` first), as Chromatic runs it: fresh page per story, then switched over the channel twice. Fails on any play, afterEach, render or axe error. `-- --shard=i/n` runs one slice; CI runs 8 slices in parallel jobs |
 | `npm run storybook` | Build `dist/`, then Storybook on :6006 (Light/Dark toolbar) |
 | `npm test` | What CI runs: the lints, build, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |

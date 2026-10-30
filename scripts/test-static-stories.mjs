@@ -15,14 +15,25 @@
  * A story is clean when nothing threw (play, afterEach, render) and every
  * `storyFinished` it emitted says `success` (a failed axe report is an error).
  *
- * Usage: node scripts/test-static-stories.mjs [storybook-static]
+ * `--shard=i/n` runs only the i-th of n contiguous slices of the stories, so
+ * CI can run the slices in parallel jobs. Each slice is switched through in
+ * its own manager page, so the channel pass no longer crosses a slice edge.
+ *
+ * Usage: node scripts/test-static-stories.mjs [storybook-static] [--shard=i/n]
  */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const root = path.resolve(process.argv[2] ?? 'storybook-static');
+const args = process.argv.slice(2);
+const root = path.resolve(args.find((a) => !a.startsWith('--')) ?? 'storybook-static');
+const shardArg = args.find((a) => a.startsWith('--shard='));
+const [shard, shards] = shardArg ? shardArg.slice('--shard='.length).split('/').map(Number) : [1, 1];
+if (!Number.isInteger(shard) || !Number.isInteger(shards) || shard < 1 || shard > shards) {
+  console.error(`✘ --shard must be i/n with 1 ≤ i ≤ n, got ${shardArg}`);
+  process.exit(1);
+}
 /* A grid story renders twice (once more for its story `globals`), so a story
    counts as done once it has been quiet this long after a finish. */
 const SETTLE_MS = 1500;
@@ -69,7 +80,14 @@ const base = `http://127.0.0.1:${server.address().port}`;
 /* ── The stories ─────────────────────────────────────────────────────────── */
 
 const index = JSON.parse(await readFile(path.join(root, 'index.json'), 'utf8'));
-const ids = Object.values(index.entries).filter((e) => e.type === 'story').map((e) => e.id);
+const all = Object.values(index.entries).filter((e) => e.type === 'story').map((e) => e.id);
+const ids = all.slice(Math.floor(((shard - 1) * all.length) / shards), Math.floor((shard * all.length) / shards));
+const scope = shards > 1 ? ` in shard ${shard}/${shards} (of ${all.length})` : '';
+if (!ids.length) {
+  console.log(`✔ No stories${scope}`);
+  server.close();
+  process.exit(0);
+}
 
 /* Records what a preview channel reports about the story it renders. Runs in
    the page: it is passed to addInitScript and page.evaluate as source. */
@@ -178,4 +196,4 @@ if (failed) {
   console.error(`\n✘ ${failed} story render(s) failed against the static build. Chromatic would see the same.`);
   process.exit(1);
 }
-console.log(`✔ All ${ids.length} stories pass against the static build`);
+console.log(`✔ All ${ids.length} stories${scope} pass against the static build`);

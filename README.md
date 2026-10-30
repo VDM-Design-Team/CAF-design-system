@@ -602,7 +602,8 @@ Their own story reports them in the a11y panel without failing, until the
 Figma fix lands. Vitest renders stories differently from the static build
 Chromatic snapshots, so `npm run test:static` runs every story again against
 `storybook-static/`, as Chromatic does, and fails on the same errors. CI runs
-it after building Storybook; run it before opening a component PR.
+it in 8 parallel jobs, each on one slice (`-- --shard=i/8`); run the whole
+of it before opening a component PR.
 Components use only token utilities:
 `bg-action-primary-surface-default`, `text-label-md-semibold`, `rounded-8`,
 `shadow-elevation-2`, and spacing on GDL's scale. `npm run lint:components`
