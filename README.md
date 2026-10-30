@@ -130,6 +130,17 @@ names. A component that a second brand needs moves up to GDL.
 | `FileUploadField` | Form → `Form / Field – File Upload`, with pattern 10's File Chips | Components/FileUploadField |
 | `RepeatableField` | Form → `Form / Repeatable Field` | Components/RepeatableField |
 | `RepeatableFieldRow` | Form → `Form / Repeatable Field Row` | Components/RepeatableField |
+| `Logo` | Navigation → `Navigation / Logo` | Components/Logo |
+| `NavLink` | Navigation → `Navigation / Nav Link`, `Navigation / Nav Link – Vertical` (`orientation="vertical"`) | Components/NavLink |
+| `NavBar` | Navigation → `Navigation / Nav Bar` (and the ten-link bar Header – Admin draws) | Components/NavBar |
+| `UserGreeting` | Navigation → `Navigation / User Greeting` | Components/UserGreeting |
+| `ThemeToggle` | Navigation → `Navigation / Theme Toggle` | Components/ThemeToggle |
+| `AccountMenu` | Navigation → `Navigation / Account Menu`, with the account icon that opens it | Components/AccountMenu |
+| `UserActions` | Navigation → `Navigation / User Actions` | Components/UserActions |
+| `TopBar` | Navigation → `Navigation / Top Bar` | Components/TopBar |
+| `AppHeader`, `APP_HEADER_ADMIN_PAGES`, `APP_HEADER_USER_PAGES` | Navigation → `Navigation / Header`, `Header – Admin`, `Header – User` (with Mobile Header and Mobile Menu below 768px) | Components/AppHeader |
+| `MobileHeader` | Navigation → `Navigation / Mobile Header` | Components/MobileHeader |
+| `MobileMenu` | Navigation → `Navigation / Mobile Menu – Admin` (and the user app's links) | Components/MobileMenu |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -332,6 +343,46 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   defaultValues={['one', 'two', 'three']} />                     // uncontrolled; submits features=one&features=two&features=three
 <RepeatableField label="Features" addLabel="Add Feature" values={features}
   onValuesChange={setFeatures} max={5} />                       // controlled, at most 5 rows
+
+<Logo />                                                          // 123 × 48, role="img" named "CAF"
+<a href="/"><Logo className="h-9" /></a>                          // the Mobile Header's 92 × 36; the link is named "CAF"
+
+<NavBar aria-label="Main">                                       // Navigation / Nav Bar (Header – User, Page=Costs)
+  <NavLink href="/costs" active>Costs</NavLink>                  // State=Active: aria-current="page"
+  <NavLink href="/costs/new">Create Cost</NavLink>               // State=Default; Hover is :hover
+  <NavLink href="/bulk-upload">Bulk Upload</NavLink>
+  <NavLink href="/recurring-costs">Recurring Costs</NavLink>
+  <NavLink href="/drafts">Drafts</NavLink>
+</NavBar>
+<NavLink as={RouterLink} to="/drafts" active={page === 'drafts'}>Drafts</NavLink>  // a router's link
+<NavLink orientation="vertical" href="/users" active>Users</NavLink>  // Nav Link – Vertical (Mobile Menu)
+
+<UserGreeting username="QA Test" />                               // "Hi, QA Test"
+<ThemeToggle theme={theme} onThemeChange={setTheme} />            // Theme=Dark: moon, "Switch to light theme"
+<AccountMenu onSelect={openAccountItem} />                        // account icon → Manage Currencies, Settings, —, Logout
+
+<UserActions                                                      // greeting, theme toggle (with tooltip), account menu
+  username="QA Test"
+  theme={theme}
+  onThemeChange={(next) => {                                       // the app switches CAF's theme and remembers it
+    setTheme(next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+  }}
+  onAccountSelect={openAccountItem}                                // 'manage-currencies' | 'settings' | 'logout'
+/>
+
+<AppHeader                                                         // Navigation / Header – Admin, Page=Recurring Costs
+  links={APP_HEADER_ADMIN_PAGES.map((label) => ({ label, href: routes[label] }))}
+  page="Recurring Costs"
+  username="Admin Account"
+  theme={theme} onThemeChange={setTheme}                           // controlled: the app switches .dark on <html>
+  onAccountSelect={openAccountItem}                                // 'manage-currencies' | 'settings' | 'logout'
+  renderLink={({ href, ...props }) => <NavLink {...props} as={RouterLink} to={href} />}  // optional
+/>                                                                 // below 768px: Mobile Header, ☰ opens the Mobile Menu
+<TopBar username="QA Test" theme={theme} onThemeChange={setTheme} />   // Navigation / Top Bar
+<MobileHeader theme={theme} menuOpen={open} onMenuOpenChange={setOpen} menuId="menu" />   // Menu Open=false: ☰
+<MobileMenu id="menu" open={open} onClose={() => setOpen(false)} links={links} page="Users"
+            username="Admin Account" theme={theme} onThemeChange={setTheme} />            // Mobile Menu – Admin
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
@@ -593,6 +644,62 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `RepeatableFieldRow` is Figma's Repeatable Field Row: a TextInput (props
   and ref go to the `<input>`) and a destructive trash IconButton
   (`showRemove`, `removeLabel`, `onRemove`).
+- `Logo` is Figma's Navigation / Logo, an `<svg role="img">` named "CAF".
+  The mark is CAF's brand ramp (`caf-blue` 600 / 300 / 400) in both
+  themes, and the wordmark is `text/primary`. It is 48 high; set another
+  height with `className` (`h-9` in the Mobile Header) and the width
+  follows. Pass `aria-hidden` when its container is already named.
+- `NavLink` is Figma's Nav Link (`orientation="horizontal"`, default) and
+  Nav Link – Vertical (`orientation="vertical"`, a full-width Mobile Menu
+  row). `active` is State=Active, the current page
+  (`aria-current="page"`). Hover is `:hover`. It is an `<a href>`; pass a
+  router's link component as `as`.
+- `NavBar` is Figma's Nav Bar, the row of NavLinks under the Top Bar: a
+  `<nav>` with a list, each child in its own `<li>`. `aria-label` is
+  required, so every `<nav>` on a page has its own name. The headers' Page
+  property is the one `active` NavLink.
+- `UserGreeting` is Figma's Navigation / User Greeting: "Hi, {username}"
+  in Body/sm-regular, `text.secondary`, on one line. `username` is the
+  name alone.
+- `ThemeToggle` is Figma's Navigation / Theme Toggle. `theme` is the theme
+  in use: `dark` shows the moon, `light` the sun. It is controlled. A
+  click calls `onThemeChange` with the other theme, and the app switches
+  it (the `.dark` class on `<html>`) and remembers it. The toggle never
+  changes the document. Its name says what a click does ("Switch to light
+  theme"); pass `aria-label` to translate it.
+- `AccountMenu` is Figma's Navigation / Account Menu. Its trigger is the
+  header's account icon, an `IconButton` named "Account", and the menu
+  opens below it, flush right: Manage Currencies, Settings, a divider,
+  Logout. `onSelect` gets `manage-currencies`, `settings` or `logout`.
+  `trigger` replaces the icon. The keyboard works as in `MenuDropdown`.
+- `UserActions` is Figma's Navigation / User Actions, the right end of the
+  top bar: the greeting, the theme toggle (with a tooltip) and the account
+  menu, with no gap. It takes `username`, `theme`, `onThemeChange` and
+  `onAccountSelect`. Put it in the header's `<header>`.
+- `AppHeader` is the header every signed-in page shares: Figma's
+  Navigation / Header, Header – Admin and Header – User. It is a
+  `<header>` banner with TopBar over NavBar, in a centred container (1536
+  at 1920, as Figma). `links` is the navigation (label and `href`, in
+  order). `APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` are Figma's
+  labels. `page` is Figma's Page, the current link. Links are `<a href>`;
+  `renderLink` swaps in a router's link through NavLink's `as`. Below
+  768px (`md:`) the MobileHeader shows instead, and its ☰ opens the
+  MobileMenu with the same links. `menuOpen` / `defaultMenuOpen` /
+  `onMenuOpenChange` hold the menu state. The theme is controlled
+  (`theme`, `onThemeChange`): the app switches `.dark` on `<html>`.
+- `TopBar` is Navigation / Top Bar: the Logo on the left, UserActions
+  (greeting, theme toggle, account menu) on the right.
+- `MobileHeader` is Navigation / Mobile Header: the Logo, the theme
+  toggle, the account menu and the menu button. `menuOpen` is Menu Open
+  (☰ "Open menu" or ✕ "Close menu"). The button has `aria-expanded`, and
+  `aria-controls` from `menuId`, and reports the state it asks for in
+  `onMenuOpenChange`.
+- `MobileMenu` is Navigation / Mobile Menu – Admin: a full-width modal
+  dialog ("Menu") against the top of the screen. It holds the Mobile
+  Header with ✕, the links as vertical NavLinks (`links`, `page`) and the
+  Account Row (`username`). Focus opens on ✕ and is trapped. ✕, Escape, a
+  tap on the scrim or a chosen link call `onClose`; you set `open`, and
+  focus goes back to ☰. The user app passes its five links.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
