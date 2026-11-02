@@ -5,7 +5,6 @@ import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell, type TableSort } from '../../components/table-header-cell';
 import { TableRow } from '../../components/table-row';
-import { Tag } from '../../components/tag';
 import { formatDate, formatFrequency, type FrequencyUnit, type RecurringCost } from '../fixtures';
 
 /**
@@ -85,18 +84,9 @@ export function nextRecurringSort(sort: RecurringSort | null | undefined, column
   return { column, direction: sort?.column === column && sort.direction === 'ascending' ? 'descending' : 'ascending' };
 }
 
-/**
- * The Status column: Figma's Status Pill (Status=Active) for an active
- * schedule. Figma has no Stopped pill (U04 lists "Tag (Active, Stopped)"), so
- * a stopped one stands in with a neutral Tag. A design question in
- * docs/patterns.md.
- */
+/** The Status column: Status Pill Active or Stopped. */
 export function RecurringStatusBadge({ status }: { status: RecurringCost['status'] }) {
-  return status === 'active' ? (
-    <StatusPill status="active">{recurringStatusLabel.active}</StatusPill>
-  ) : (
-    <Tag status="neutral">{recurringStatusLabel.stopped}</Tag>
-  );
+  return <StatusPill status={status}>{recurringStatusLabel[status]}</StatusPill>;
 }
 
 export interface RecurringCostsTableProps extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'children'> {

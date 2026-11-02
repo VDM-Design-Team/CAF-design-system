@@ -34,12 +34,22 @@ const ROWS = [
   { status: 'pending', label: 'Pending' },
   { status: 'pending', label: 'Recurring' },
   { status: 'active', label: 'Active' },
+  { status: 'approved', label: 'Approved' },
+  { status: 'paid', label: 'Paid' },
+  { status: 'rejected', label: 'Rejected' },
+  { status: 'stopped', label: 'Stopped' },
+  { status: 'inactive', label: 'Inactive' },
 ] as const;
 
 /* Figma's bindings: [fill, label]. Pending's label is bound to accent.warning, not accent.pending. */
 const BOUND = {
   pending: ['accent-pending-filled-surface-default', 'accent-warning-filled-content-default'],
   active: ['action-primary-surface-default', 'action-primary-content-default'],
+  approved: ['accent-info-filled-surface-default', 'accent-info-filled-content-default'],
+  paid: ['accent-success-filled-surface-default', 'accent-success-filled-content-default'],
+  rejected: ['accent-critical-filled-surface-default', 'accent-critical-filled-content-default'],
+  stopped: ['neutral-filled-surface-default', 'neutral-filled-content-default'],
+  inactive: ['neutral-filled-surface-default', 'neutral-filled-content-default'],
 } as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -71,7 +81,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
         {ROWS.map(({ status, label }) => (
           <tr key={label}>
             <th scope="row" className="pr-4 text-caption-md-medium text-text-secondary">
-              {status === 'pending' ? 'Pending' : 'Active'}
+              {status[0].toUpperCase() + status.slice(1)}
             </th>
             <td>
               <StatusPill status={status} data-status={status}>
