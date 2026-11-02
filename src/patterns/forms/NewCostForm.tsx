@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Alert } from '../../components/alert';
 import { Button } from '../../components/button';
 import { DateField } from '../../components/date-field';
 import { FileUploadField } from '../../components/file-upload-field';
 import { fileMatchesAccept } from '../../components/file-upload-zone';
 import { FormEditLink } from '../../components/form-edit-link';
+import { FormHint } from '../../components/form-hint';
 import { FormSectionHeader } from '../../components/form-section-header';
 import { FormTabNavigation } from '../../components/form-tab-navigation';
 import { SelectField } from '../../components/select-field';
@@ -298,41 +298,43 @@ export const NewCostForm = React.forwardRef<HTMLFormElement, NewCostFormProps>(f
               error={errors.startsAt}
               onValueChange={() => clear('startsAt')}
             />
-            {/* U02's Frequency row: Value and Unit side by side. */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <TextField
-                ref={setRef<HTMLInputElement>('frequencyValue')}
-                label="Frequency Value"
-                name="frequencyValue"
-                type="number"
-                min={1}
-                step={1}
-                required
-                value={every}
-                error={errors.frequencyValue}
-                onChange={(event) => {
-                  setEvery(event.target.value);
-                  clear('frequencyValue');
-                }}
-              />
-              <SelectField
-                ref={setRef<HTMLButtonElement>('frequencyUnit')}
-                label="Frequency Unit"
-                name="frequencyUnit"
-                required
-                options={frequencyUnits}
-                value={unit}
-                error={errors.frequencyUnit}
-                onValueChange={(next) => {
-                  setUnit(next as FrequencyUnit);
-                  clear('frequencyUnit');
-                }}
-              />
+            {/* U02's Frequency row (Value and Unit side by side), and its Recurrence hint space.8 under it. */}
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <TextField
+                  ref={setRef<HTMLInputElement>('frequencyValue')}
+                  label="Frequency Value"
+                  name="frequencyValue"
+                  type="number"
+                  min={1}
+                  step={1}
+                  required
+                  value={every}
+                  error={errors.frequencyValue}
+                  onChange={(event) => {
+                    setEvery(event.target.value);
+                    clear('frequencyValue');
+                  }}
+                />
+                <SelectField
+                  ref={setRef<HTMLButtonElement>('frequencyUnit')}
+                  label="Frequency Unit"
+                  name="frequencyUnit"
+                  required
+                  options={frequencyUnits}
+                  value={unit}
+                  error={errors.frequencyUnit}
+                  onValueChange={(next) => {
+                    setUnit(next as FrequencyUnit);
+                    clear('frequencyUnit');
+                  }}
+                />
+              </div>
+              {/* U02's Recurrence hint (545:18256): a FormHint; the live summary, as a polite status. */}
+              {Number.isInteger(everyNumber) && everyNumber >= 1 && (
+                <FormHint role="status">{recurrenceSummary(everyNumber, unit)}</FormHint>
+              )}
             </div>
-            {/* U02's Recurrence hint (545:18256): Info icon and the live summary. */}
-            {Number.isInteger(everyNumber) && everyNumber >= 1 && (
-              <Alert type="info" size="compact" message={recurrenceSummary(everyNumber, unit)} />
-            )}
             <FormSectionHeader title="Cost Details" />
           </>
         )}

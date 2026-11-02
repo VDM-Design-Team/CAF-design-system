@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
-import { Alert } from '../../components/alert';
 import { BreakdownItem } from '../../components/breakdown-item';
 import { Button } from '../../components/button';
 import { DateField } from '../../components/date-field';
 import { FileUploadField } from '../../components/file-upload-field';
 import { FormEditLink } from '../../components/form-edit-link';
+import { FormHint } from '../../components/form-hint';
 import { FormSectionHeader } from '../../components/form-section-header';
 import { Icon } from '../../components/icon';
 import { SelectField } from '../../components/select-field';
@@ -29,7 +29,9 @@ import {
  * components in Figma's order:
  *
  * - Recurring Details (Form / Section Header): Starts At, Frequency Value,
- *   Frequency Unit, and the line under them, "This will recur every 3 weeks".
+ *   Frequency Unit, and the line under them, "This will recur every 3 weeks"
+ *   (545:19043): a FormHint, space.8 under the frequency fields, and a polite
+ *   live region.
  * - Cost Details: Applicant name, Email, Currency (Field – Dropdown with
  *   Edit), Select Partner, Payment method.
  * - Beneficiary Information ("Use a permanent address where you can receive
@@ -40,8 +42,6 @@ import {
  * Stand-ins, each a design question in docs/patterns.md:
  * - Starts At is a Form / Field – Text in U04; it is a DateField here, as
  *   Pattern 06 draws it (Form / Field – Date).
- * - The "This will recur every …" line is an Info icon and text, no library
- *   component (545:19043): a compact Info Alert stands in.
  * - Figma's Dividers between sections: there is no Divider component.
  *
  * It validates on submit (and clears an error as soon as the value is valid),
@@ -150,37 +150,38 @@ export const EditRecurringCostForm = React.forwardRef<HTMLFormElement, EditRecur
       <section className="flex flex-col gap-4">
         <FormSectionHeader title="Recurring Details" headingLevel={3} />
         <DateField label="Starts At" name="startsAt" defaultValue={cost.startsAt} required today={today} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextField
-            label="Frequency Value"
-            name="frequencyValue"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            step={1}
-            required
-            value={frequencyValue}
-            error={errors.frequencyValue}
-            onChange={(e) => {
-              setFrequencyValue(e.target.value);
-              recheck('frequencyValue', e.target.value);
-            }}
-          />
-          <SelectField
-            label="Frequency Unit"
-            name="frequencyUnit"
-            options={FREQUENCY_UNITS}
-            value={frequencyUnit}
-            onValueChange={(v) => setFrequencyUnit(v as FrequencyUnit)}
-          />
+        {/* The frequency fields, and the FormHint space.8 under them. */}
+        <div className="flex flex-col gap-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              label="Frequency Value"
+              name="frequencyValue"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              step={1}
+              required
+              value={frequencyValue}
+              error={errors.frequencyValue}
+              onChange={(e) => {
+                setFrequencyValue(e.target.value);
+                recheck('frequencyValue', e.target.value);
+              }}
+            />
+            <SelectField
+              label="Frequency Unit"
+              name="frequencyUnit"
+              options={FREQUENCY_UNITS}
+              value={frequencyUnit}
+              onValueChange={(v) => setFrequencyUnit(v as FrequencyUnit)}
+            />
+          </div>
+          {frequencyValid && (
+            <FormHint role="status">
+              {`This will recur every ${formatFrequency({ value: Number(frequencyValue), unit: frequencyUnit })}`}
+            </FormHint>
+          )}
         </div>
-        {frequencyValid && (
-          <Alert
-            type="info"
-            size="compact"
-            message={`This will recur every ${formatFrequency({ value: Number(frequencyValue), unit: frequencyUnit })}`}
-          />
-        )}
       </section>
 
       <section className="flex flex-col gap-4">

@@ -4,6 +4,7 @@ import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
@@ -11,7 +12,7 @@ import { TableRow } from '../../components/table-row';
 import { ToastProvider } from '../../components/toast';
 import { costs, LIST_TODAY, userRoles, users, type CostStatus, type UserRole } from '../fixtures';
 import { CostsListPage } from '../list-page/CostsListPage';
-import { CostsFilterBar, EMPTY_COST_FILTERS, FILTER_SLOT, FilterBar, FilterMenu, type CostFilters } from './CostsFilterBar';
+import { CostsFilterBar, EMPTY_COST_FILTERS, FILTER_SLOT, FilterBar, type CostFilters } from './CostsFilterBar';
 
 /* ── Steps 1–3 as Figma draws them: the Users list (520:773, 520:950, 520:1074) ── */
 
@@ -66,13 +67,14 @@ function UsersList() {
             }}
           />
         </div>
-        <FilterMenu
+        <FilterSelect
+          className={FILTER_SLOT}
           label="Role"
           allLabel="All Roles"
           options={ROLE_OPTIONS}
           value={role}
-          onChange={(next) => {
-            setRole(next);
+          onValueChange={(next) => {
+            setRole(next as UserRole | null);
             setPage(1);
           }}
         />
@@ -195,7 +197,7 @@ export const Users: Story = {
     // Step 1 · Start from the full list: no filter in use, so no Clear Filters.
     await expect(rowIds(table)).toEqual(['109', '110', '111', '112']);
     await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
-    await expect(canvas.getByRole('button', { name: 'Role: All Roles' })).toBeVisible();
+    await expect(canvas.getByRole('combobox', { name: 'Role' })).toHaveTextContent('All Roles');
     await userEvent.click(pagination(canvasElement).getByRole('button', { name: 'Page 2' }));
     await expect(rowIds(table)).toEqual(['113', '115', '116', '119']);
 
@@ -221,14 +223,16 @@ export const Users: Story = {
     await expect(search).toHaveFocus();
     await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
 
-    // The role dropdown, from the keyboard: Enter opens it on All Roles, ↓ Enter picks Admin.
-    const roleField = canvas.getByRole('button', { name: 'Role: All Roles' });
+    // The role dropdown (FilterSelect), from the keyboard: Enter opens it on the checked All Roles,
+    // ↓ Enter picks Admin. Focus stays on the field throughout.
+    const roleField = canvas.getByRole('combobox', { name: 'Role' });
     roleField.focus();
     await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'All Roles' })).toHaveFocus());
+    const roles = canvas.getByRole('listbox', { name: 'Role' });
+    await expect(roleField).toHaveAttribute('aria-activedescendant', within(roles).getByRole('option', { name: 'All Roles' }).id);
     await userEvent.keyboard('{ArrowDown}{Enter}');
     await expect(roleField).toHaveFocus();
-    await expect(roleField).toHaveAccessibleName('Role: Admin');
+    await expect(roleField).toHaveTextContent('Admin');
     await expect(rowIds(table)).toEqual(['109', '112', '119']);
   },
 };
@@ -246,14 +250,17 @@ export const FilterCosts: Story = {
     await userEvent.click(pagination(canvasElement).getByRole('button', { name: 'Page 3' }));
     await expect(canvas.queryByRole('group', { name: 'Current Filters' })).not.toBeInTheDocument();
 
-    // Status, from the keyboard: Enter opens the menu on All Status; ↓ Enter picks Pending.
-    const status = canvas.getByRole('button', { name: 'Status: All Status' });
+    // Status, from the keyboard: Enter opens the list on the checked All Status; ↓ Enter picks Pending.
+    const status = canvas.getByRole('combobox', { name: 'Status' });
     status.focus();
     await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'All Status' })).toHaveFocus());
+    const statuses = canvas.getByRole('listbox', { name: 'Status' });
+    const allStatus = within(statuses).getByRole('option', { name: 'All Status' });
+    await expect(allStatus).toHaveAttribute('aria-selected', 'true');
+    await expect(status).toHaveAttribute('aria-activedescendant', allStatus.id);
     await userEvent.keyboard('{ArrowDown}{Enter}');
     await expect(status).toHaveFocus();
-    await expect(status).toHaveAccessibleName('Status: Pending');
+    await expect(status).toHaveTextContent('Pending');
     const pending = costs.filter((c) => c.status === PENDING);
     await expect(rowIds(table)).toEqual(pending.slice(0, 8).map((c) => c.id));
     await expect(pagination(canvasElement).getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page');
@@ -261,21 +268,23 @@ export const FilterCosts: Story = {
     await expect(summaryLines(canvasElement)).toEqual(['Status:Pending']);
     await expect(canvas.getByRole('status')).toHaveTextContent(`Showing ${pending.length} of 32 costs`);
 
-    // Creation Date: the range picker opens under the field, on October and November.
-    const created = canvas.getByRole('button', { name: 'Creation date: Creation Date' });
+    // Creation Date (FilterDateRange): the range picker opens under the field, on October and November.
+    const created = canvas.getByRole('combobox', { name: 'Creation date' });
+    await expect(created).toHaveTextContent('Creation Date');
     await userEvent.click(created);
-    const picker = canvas.getByRole('dialog', { name: 'Creation Date' });
+    const picker = canvas.getByRole('dialog', { name: 'Creation date' });
     await expect(within(picker).getByRole('grid', { name: 'October 2026' })).toBeVisible();
     await expect(within(picker).getByRole('grid', { name: 'November 2026' })).toBeVisible();
     // Focus goes to the calendar: today, October 24.
     await waitFor(() => expect(within(picker).getByRole('button', { name: 'Saturday 24 October 2026' })).toHaveFocus());
     // The first click is the start, the second the end; then it closes and focus returns to the field.
     await userEvent.click(within(picker).getByRole('button', { name: 'Monday 12 October 2026' }));
-    await expect(canvas.getByRole('dialog', { name: 'Creation Date' })).toBeVisible();
+    await expect(canvas.getByRole('dialog', { name: 'Creation date' })).toBeVisible();
     await userEvent.click(within(picker).getByRole('button', { name: 'Saturday 24 October 2026' }));
-    await expect(canvas.queryByRole('dialog', { name: 'Creation Date' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('dialog', { name: 'Creation date' })).not.toBeInTheDocument();
     await expect(created).toHaveFocus();
-    await expect(created).toHaveAccessibleName('Creation date: 2026-10-12 – 2026-10-24');
+    // The field shows the range in its short format; Filter / Summary keeps the ISO days.
+    await expect(created).toHaveTextContent('12–24 Oct 2026');
     // Step 4's rows: the pending costs submitted October 12–24.
     await expect(rowIds(table)).toEqual(['32436', '32431', '32430']);
     await expect(summaryLines(canvasElement)).toEqual(['Status:Pending', 'Creation Date:2026-10-12 – 2026-10-24']);
@@ -322,8 +331,8 @@ export const NoResultsAndClear: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Clear Filters' }));
     await expect(search).toHaveValue('');
     await expect(search).toHaveFocus();
-    await expect(canvas.getByRole('button', { name: 'Status: All Status' })).toBeVisible();
-    await expect(canvas.getByRole('button', { name: 'Creation date: Creation Date' })).toBeVisible();
+    await expect(canvas.getByRole('combobox', { name: 'Status' })).toHaveTextContent('All Status');
+    await expect(canvas.getByRole('combobox', { name: 'Creation date' })).toHaveTextContent('Creation Date');
     await expect(rowIds(table)).toEqual(costs.slice(0, 8).map((c) => c.id));
     await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
     await expect(canvas.queryByRole('group', { name: 'Current Filters' })).not.toBeInTheDocument();
@@ -340,18 +349,19 @@ export const SelectPeriod: Story = {
   render: () => <CostsListPage rows={costs} audience="admin" today={LIST_TODAY} showSummary />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const period = canvas.getByRole('button', { name: 'Period: Select Period' });
+    const period = canvas.getByRole('combobox', { name: 'Period' });
+    await expect(period).toHaveTextContent('Select Period');
     period.focus();
     await userEvent.keyboard('{Enter}');
-    const picker = canvas.getByRole('dialog', { name: 'Select Period' });
+    const picker = canvas.getByRole('dialog', { name: 'Period' });
     await waitFor(() => expect(within(picker).getByRole('button', { name: 'Saturday 24 October 2026' })).toHaveFocus());
     await userEvent.keyboard('{ArrowLeft>12/}');
     await expect(within(picker).getByRole('button', { name: 'Monday 12 October 2026' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{ArrowRight>12/}{Enter}');
-    await expect(canvas.queryByRole('dialog', { name: 'Select Period' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('dialog', { name: 'Period' })).not.toBeInTheDocument();
     await expect(period).toHaveFocus();
-    await expect(period).toHaveAccessibleName('Period: 2026-10-12 – 2026-10-24');
+    await expect(period).toHaveTextContent('12–24 Oct 2026');
     await expect(rowIds(costsTable(canvasElement))).toEqual(['32436', '32431']);
     await expect(summaryLines(canvasElement)).toEqual(['Period:2026-10-12 – 2026-10-24']);
   },
@@ -365,8 +375,8 @@ export const SelectPeriodOpen: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const field = canvas.getByRole('button', { name: 'Period: Select Period' });
-    const picker = canvas.getByRole('dialog', { name: 'Select Period' });
+    const field = canvas.getByRole('combobox', { name: 'Period' });
+    const picker = canvas.getByRole('dialog', { name: 'Period' });
     await expect(field).toHaveAttribute('aria-expanded', 'true');
     await expect(within(picker).getAllByRole('grid')).toHaveLength(2);
     await expect(within(picker).getByRole('grid', { name: 'October 2026' })).toBeVisible();
@@ -391,12 +401,18 @@ export const BarPresets: Story = {
     const costsBar = within(canvas.getByRole('search', { name: 'Filter costs' }));
     const recurringBar = within(canvas.getByRole('search', { name: 'Filter recurring costs' }));
     // Status, Payment method, Currency, Period, Creation date.
-    await expect(costsBar.getAllByRole('button')).toHaveLength(5);
+    await expect(costsBar.getAllByRole('combobox').map((c) => c.getAttribute('aria-label'))).toEqual([
+      'Status',
+      'Payment method',
+      'Currency',
+      'Period',
+      'Creation date',
+    ]);
     await expect(costsBar.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
     await expect(recurringBar.getByRole('searchbox', { name: 'Search costs' })).toBeVisible();
-    await expect(recurringBar.getByRole('button', { name: 'Status: Pending' })).toBeVisible();
-    await expect(recurringBar.queryByRole('button', { name: /^Payment method/ })).not.toBeInTheDocument();
-    await expect(recurringBar.queryByRole('button', { name: /^Period/ })).not.toBeInTheDocument();
+    await expect(recurringBar.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Pending');
+    await expect(recurringBar.queryByRole('combobox', { name: 'Payment method' })).not.toBeInTheDocument();
+    await expect(recurringBar.queryByRole('combobox', { name: 'Period' })).not.toBeInTheDocument();
 
     // Clear Filters sits on the far right of its bar.
     const clear = recurringBar.getByRole('button', { name: 'Clear Filters' });
@@ -404,7 +420,7 @@ export const BarPresets: Story = {
     const padding = parseFloat(getComputedStyle(bar).paddingRight);
     await expect(Math.abs(bar.getBoundingClientRect().right - padding - clear.getBoundingClientRect().right)).toBeLessThan(1);
     await userEvent.click(clear);
-    await expect(recurringBar.getByRole('button', { name: 'Status: All Status' })).toBeVisible();
+    await expect(recurringBar.getByRole('combobox', { name: 'Status' })).toHaveTextContent('All Status');
     await expect(recurringBar.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
   },
 };

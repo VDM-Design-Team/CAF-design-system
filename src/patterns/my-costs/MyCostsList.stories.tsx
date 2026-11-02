@@ -97,8 +97,14 @@ export const YourCosts: Story = {
     // The filter bar is the Costs bar, every field (pattern 02).
     const bar = within(canvas.getByRole('search', { name: 'Filter costs' }));
     await expect(bar.getByRole('searchbox', { name: 'Search costs' })).toBeVisible();
-    for (const name of ['Status: All Status', 'Payment method: All Payment Method', 'Currency: All Currency', 'Period: Select Period', 'Creation date: Creation Date']) {
-      await expect(bar.getByRole('button', { name })).toBeVisible();
+    for (const [name, value] of [
+      ['Status', 'All Status'],
+      ['Payment method', 'All Payment Method'],
+      ['Currency', 'All Currency'],
+      ['Period', 'Select Period'],
+      ['Creation date', 'Creation Date'],
+    ]) {
+      await expect(bar.getByRole('combobox', { name })).toHaveTextContent(value);
     }
 
     // 15 costs: two pages; the second holds the older ones.

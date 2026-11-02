@@ -1322,15 +1322,17 @@ the set and the Costs bar.
   with "", calls `onClear` and keeps focus in the box.
 - **Type=Dropdown** (`type="dropdown"`) is a trigger `<button>`: a leading
   icon, the chosen `value` in `text/primary` and a caret. It is a trigger
-  only. The List page pattern puts it in a Popover as the `trigger`, with
-  a Select (status, payment method, currency) or a RangeCalendar (period,
-  creation date) as the panel. Popover adds `aria-expanded`,
-  `aria-haspopup` and `aria-controls`.
+  only: FilterSelect (status, payment method, currency) and
+  FilterDateRange (period, creation date) put it in a Popover, since 2 Nov
+  2026. Popover adds `aria-expanded`, `aria-haspopup` and `aria-controls`.
 - **`icon`** is the leading icon instance swap. Search defaults to
   `magnifying-glass`, Dropdown to `funnel`.
 - **`label`** (required) is the accessible name. On Search it is the
   input's `aria-label`. On Dropdown it is a visually hidden prefix, so the
   button reads "Status: All Status" and its name contains the visible text.
+  A Dropdown given `role="combobox"` (FilterSelect and FilterDateRange,
+  since 2 Nov 2026) takes `label` as its `aria-label` and drops the prefix:
+  a combobox's text is its value.
 
 | Layer | Binding | Code |
 |---|---|---|
@@ -1574,6 +1576,10 @@ What code maps:
 - The list is named like the select. With `aria-label`, it gets the same
   label. With `aria-labelledby`, it points at the same element. With a
   `<label htmlFor>`, it is named through the trigger.
+- Since 2 Nov 2026 the listbox (value, open state, the active option, the
+  keys and typeahead) lives in `useSelectListbox`
+  (`src/components/select/useSelectListbox.ts`, not exported), which
+  FilterSelect shares. Select's behaviour is unchanged.
 
 Bindings: the trigger's are SelectTrigger's, and the list's and options'
 are SelectMenu's and SelectOption's (above). The Open stories check them
@@ -3638,15 +3644,52 @@ publishing):
   (`463:594`) are bound to `space/8`. They were raw 8, so nothing looks
   different.
 
+**Changed in Figma on 2 Nov 2026** (decisions add-repeatable-field-error,
+repeatable-field, field-message-spacing; published by the user):
+`Form / Repeatable Field` is now a set (`768:2247`): **State** Default /
+Error × **Rows** Default / Minimum / Full, with **Show Helper** + **Helper**
+and an **Error** text property. Example: `770:8683`.
+- **Label Row**: `_Form Label` in a row with a raw 20 bottom padding, so the
+  label sits 20px above the first row, as in every Form / Field. Code: the
+  legend's bottom padding is 20 (`pb-5`); it was 8. Placed fields grow 12px
+  (the Create Announcement dialog's Features).
+- **List**: the rows, then Helper Text (Caption/md-regular, `text/subtle`,
+  hidden unless Show Helper) or, in State=Error, Error Text
+  (Caption/md-regular, `accent/critical/tonal/content/default`), then the
+  Add Button, `space/8` apart. Code: `helper` and `error`, a `<p>` between
+  the rows and Add; `error` takes the helper's place.
+- **State=Error** sets the empty row's `_Text Input` to State=Error
+  (`accent/critical/outline/border/default`). Code: with `error`, the empty
+  rows are `aria-invalid` (TextInput draws the critical border), or the rows
+  `invalidRows` names. The message describes every row
+  (`aria-describedby`), so a form that focuses its first invalid field on
+  submit lands on the first offending row.
+- **Rows=Minimum**: one row, its Remove recoloured to `text/disabled`.
+  **Rows=Full**: five rows, Add Button State=Disabled.
+
+| Layer (2 Nov 2026) | Bound to | In code |
+|---|---|---|
+| Label Row padding | raw 20 (bottom) | `pb-5` on the legend (`space/20`) |
+| Helper Text | Caption/md-regular, `text/subtle` | `helper`: `text-caption-md-regular text-text-subtle` |
+| Error Text | Caption/md-regular, `accent/critical/tonal/content/default` | `error`: `text-caption-md-regular text-accent-critical-tonal-content-default` |
+| The offending row | `_Text Input` State=Error, stroke `accent/critical/outline/border/default` | TextInput with `aria-invalid` |
+| List gap | `space/8` | `gap-2` |
+
+Contrast of the messages (Caption, 4.5:1), on `surface/base` / `surface/canvas`:
+Helper `text/subtle` 4.76 / 4.55 (Light), 5.71 / 6.96 (Dark); Error 8.36 /
+7.99 (Light), 7.62 / 9.30 (Dark).
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Label | `_Form Label` is the column's first child, 8 above the first row | A `<legend>` with 8px bottom padding: a fieldset's legend isn't a flex item, so it can't take the column's gap. Same 8px | None needed |
+| Label | `_Form Label` in a Label Row, 20 above the first row (since 2 Nov 2026) | A `<legend>` with 20px bottom padding: a fieldset's legend isn't a flex item. Same 20px | Bind the Label Row's raw 20 to `space/20` |
 | Group semantics | None | `<fieldset>` named by the legend. Each input is "<label> <n>" ("Features 2"), each remove button "Remove <label> <n>" (`rowLabel` / `removeLabel` override them, and must when `label` isn't plain text) | None needed |
 | Row count | Rows are duplicated instances ("add or remove rows per instance") | The user adds and removes rows; `min` and `max` bound the count | None needed |
-| Show Remove | On in every row | Shown while the list holds more than `min` rows (default 0, or 1 when `required`) | Draw the at-minimum row if it should look different |
-| Max | No such state | The add button takes Button's Disabled at `max` | Draw the full list if it should look different |
+| Show Remove | On in every row; Rows=Minimum recolours the glyph to `text/disabled` (Button / Icon has no Disabled) | Hidden at `min` rows (default 0, or 1 when `required`), as before | Open question: add Disabled to Button / Icon, or hide Remove at the minimum as code does |
+| Max | Rows=Full: five rows, Add disabled ("You can add up to 5 features." is a guess) | `max`: the add button takes Button's Disabled. No default maximum | Confirm a maximum, if there is one |
+| Offending rows | State=Error marks the empty row | The empty rows by default; `invalidRows` names others (a duplicate, say) | None needed |
+| Message wording | Error "Enter a feature in every row." (the example: "Enter at least one feature.") | The form's own message; Create Announcement says "Add at least one feature." | Check the wording (open question 4) |
 | Required | The marker | The marker, `required` on every row's input (an empty row stops the submit), and one row always stays | None needed |
 | Heights | `_Text Input` hugs 39px; Add Button hugs 33px | 40px and 32px, as TextInput and Button | As listed under TextInput and Button |
 | Focus | No Focus states | TextInput's 2px `stroke/focused` stroke, and the 2px `stroke.focused` ring of IconButton and Button. Focus moves on add and remove | Add Focus states |
@@ -3654,11 +3697,8 @@ Code departs from Figma here:
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The label sits 8px above the first row,** while every
-  `Form / Field – *` has 20px under its label.
-- **No Helper and no error state,** so a required list can't show a
-  message. An empty row in a required list is caught by the browser's own
-  check.
+- ~~The label sits 8px above the first row~~ and ~~no Helper and no error
+  state~~: fixed in Figma on 2 Nov 2026 (above).
 - **In Dark, Button / Small Outlined's Disabled** (the full list's add
   button) has a `#d6d8eb` border and label, which looks more prominent
   than the enabled `#6875f5` border.
@@ -4877,3 +4917,81 @@ Source: page **Layout**, component `Card / Panel` (`765:15457`): the Settings Ca
 | Width | Fixed 578 (the form cards') | Its container's width; pages set a max width | None needed |
 
 In Light the card's fill is the same white as `surface/base` pages, so its edge is the 1.23:1 stroke only: an open design question (the review notes, "stroke/subtle under 3:1").
+
+### FilterSelect (2 Nov 2026)
+
+Source: page **Filters** (`89:836`), section Drafts – 2 Nov 2026 (`765:15532`), set `Filter / Field – Select` (`765:15595`): State Closed (`765:15533`) / Open (`765:15546`), drafted from the design decisions add-filter-field-select and filter-wording and published by the user. Example: `765:15875` (Closed on All Status; Open with Pending chosen). Code: `src/components/filter-select/`. It replaces the patterns' two `FilterMenu` stand-ins (a FilterField opening a MenuDropdown, with no checked option) and U04's inline one.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | vertical, gap `space/4`, 256 wide | Popover: the list `space/4` under the field (`mt-1`); the wrapper takes `className` (`w-64` in the bar) |
+| Field | Filter / Field Type=Dropdown: fill `colors/surface/elevated secondary`, 1px inside `colors/stroke/field`, radius `radius-4` (8), padding `24`, gap `16`, space-between | FilterField `type="dropdown"`, unchanged |
+| Field / Funnel, CaretDown | `colors/text/subtle` | `text-text-subtle` (FilterField) |
+| Field / Value ("All Status") | Body/sm-regular, `colors/text/primary` (an override) | the chosen option's label; `allLabel` while `value` is null |
+| Menu | Select / Menu, Fill: fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/8`, padding `space/6`, gap `space/2`, Effects/Elevation Dark/3 | Popover's surface with `selectMenuLayout`, `min-w-full` (as wide as the field) |
+| Option 1 ("All Status") | Select / Option State=Selected (`colors/surface/base`, Check `colors/action/primary/surface/default`) | `allLabel`, the first SelectOption; `onValueChange(null)` |
+| Options 2…5 | Select / Option State=Default, Body/sm-regular `colors/text/primary`, padding `space/8` / `space/12`, `radius/6` | one SelectOption per `options` entry |
+
+Behaviour: Select's listbox, shared through `useSelectListbox` rather than written twice. The field is the `<button role="combobox" aria-haspopup="listbox">`, named by `label` ("Status") with the chosen option as its value; focus stays on it, and `aria-activedescendant` names the option the keys are on. Enter, Space, ↓, ↑, Home and End open the list; ↓ / ↑ / Home / End / Page Up / Page Down move; typing jumps; Enter, Space and Alt + ↑ choose; Tab chooses and moves on; Escape closes. The list is a `listbox` with the same name.
+
+Contrast, Light / Dark: the value 20.17 / 17.85 on the field; the icons and an unset value (`text/subtle`) 4.76 / 6.96; the border (`stroke/field`) 4.76 / 6.96 on the field and 4.55 / 6.96 on the bar; options 19.28 / 17.85 on the menu, 20.17 / 14.63 on Selected's fill; the check 6.81 / 3.80 on Selected's fill (a 3:1 glyph).
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Value and option labels | Overrides of nested text: Filter / Field has no Value property, Select / Option's Label is reached through the menu | `allLabel`, `options` and the chosen option | Add Value (text) and Icon (swap) properties to Filter / Field (open point 1) |
+| Open | The menu sits inside the component and pushes content down | The list floats over the page (Popover), and flips above when there's no room | None needed: designers place State=Open over the content (open point 6) |
+| Width | Menu Fill: exactly the field's 256 | At least the field's width; wider only for a label that needs it | None needed |
+| Name | (visual only) | A combobox named by `label`; FilterField drops its "Status: " prefix for it | None needed |
+| Active option | Not drawn | Hover's fill on the option the keys are on, and Button's 2px `stroke/focused` ring when the keyboard put it there (SelectOption) | As SelectOption |
+| No reset item | Every example has one | Without `allLabel`, only `options`, and the field shows `label` in `text/subtle` until one is chosen | None needed |
+
+### FilterDateRange (2 Nov 2026)
+
+Source: page **Filters** (`89:836`), section `765:15532`, set `Filter / Field – Date range` (`765:16277`): State Closed (`765:16020`) / Open (`765:16035`), drafted from the design decisions add-filter-date-range and period-field-width and published by the user. Example: `765:16278`. Code: `src/components/filter-date-range/`. It replaces the pattern-level `FilterDateRange` in `src/patterns/filters/CostsFilterBar.tsx`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | vertical, gap `space/4` | Popover (`panelRole="dialog"`, `surface={false}`): the picker `space/4` under the field, flush left |
+| Field | Filter / Field Type=Dropdown (as FilterSelect), Leading Icon swapped to CalendarBlank (`colors/text/subtle`) | FilterField `type="dropdown"`, `icon` `calendar-blank` (the default) |
+| Field / Value ("12 Oct – 24 Oct 2026") | Body/sm-regular, `colors/text/primary` (an override) | `formatDateRange(value)`; `placeholder` ("Select Period") in `text/subtle` while there is none |
+| Date Picker / Range | fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/12`, padding and gap `space/8`, Effects/Elevation Dark/3; Month / Start and Month / End | RangeCalendar, unchanged |
+
+Behaviour: like DateInput. The field is a `<button role="combobox" aria-haspopup="dialog">` named by `label` ("Period"), with the range (or the placeholder) as its value. A click, Enter, Space, ↓ or ↑ open the picker and move focus to the calendar (the range's start, else today). The first pick is the start and the second the end, in either order; then the picker closes, focus comes back to the field, and `onValueChange` gets `{ start, end }` (only when the range changed). Escape, a click outside or Tab past the calendar close it without a change. The picker is a non-modal dialog with the field's name.
+
+The range's format (decision period-field-width, "shorter range text"): the year once when both ends share it, and the month once when they share that too: "12–24 Oct 2026", "1–31 Oct 2026", "12 Oct – 4 Nov 2026", "28 Dec 2026 – 3 Jan 2027", "12 Oct 2026". Filter / Summary keeps the ISO days ("2026-10-12 – 2026-10-24").
+
+**The 256 width, measured in code.** The field holds 256 − 2 × 24 (padding) − 20 (icon) − 12 − 20 (caret) − the content-to-caret gap: 140px of text with Filter / Field's 16 gap, 144 with 12. Figma sets the value with 0 letter spacing, where "12 Oct – 24 Oct 2026" is 141px (the drafting note's "about 1px too long"). Code uses GDL's Body/sm-regular, with 0.4px letter spacing, where the same text is **147.5px**: 7.5px too long with the 16 gap and 3.5px with 12, so neither fix alone is enough. Code does both:
+- **The gap is `space/12`** on this field (`gap-3` over FilterField's `gap-4`). With space-between it only shows when the text is long.
+- **A range in one month writes the month once**: "12–24 Oct 2026" (110px), "1–31 Oct 2026" (98px). Every one-month range fits.
+
+Across months, "d MMM – d MMM yyyy" fits 144px only for narrow digits and months ("12 Oct – 4 Nov 2026" is 142); about 60% of cross-month ranges are still cut with an ellipsis ("28 Sep – 31 Oct 2026" is 150px), and so are cross-year ranges ("28 Dec 2026 – 3 Jan 2027" is 185px). The field's value keeps the whole text for a screen reader. Fitting every range needs a design decision: leave the year out for a range in the current year (at most 120px), or widen the date fields to 288. The Formats story shows the cut.
+
+Contrast: as FilterSelect's field (value 20.17 / 17.85, placeholder and icons 4.76 / 6.96), and RangeCalendar's.
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Content-to-caret gap | `16` (Filter / Field) | `space/12` | Set the Date range's Field instance gap to `space/12` |
+| Value text | "12 Oct – 24 Oct 2026", 0 letter spacing | "12–24 Oct 2026" in GDL's Body/sm-regular (0.4px letter spacing) | Change the example to "12–24 Oct 2026" and bind the Value to the ramp's letter spacing (FilterField's "Line height, letter spacing") |
+| Long ranges | Not drawn | Cut with an ellipsis | Design question above |
+| Open | The picker sits inside the component and pushes content down | It floats (Popover), and flips above or to the right edge when there's no room | None needed (open point 6) |
+| Name | (visual only) | A combobox named by `label`; the picker takes the same name | None needed |
+| Value property | An override (no Value property) | `value` / `defaultValue` (`{ start, end }`) | As FilterSelect (open point 1) |
+
+### FormHint (2 Nov 2026)
+
+Source: page **Form** (`183:1765`), section Drafts – 2 Nov 2026 (`766:863`), component `_Form Hint` (`766:864`): **Hint** (text, "This will recur every 3 weeks") and **Icon** (instance swap, Info 16), drafted from the design decision add-form-hint and published by the user. Example: `766:3040` (under Form / Field – Dropdown · Frequency, `space/8` apart). Code: `src/components/form-hint/`. It replaces the compact Info Alerts under the frequency fields in U02 (NewCostForm) and U04 (EditRecurringCostForm).
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | horizontal, gap `space/8`, centred, Fill | `<p className="flex w-full items-center gap-2">` |
+| Icon (Info, 16) | vector `colors/text/subtle` | `icon` (default `info`), `<Icon size={16}>`, `aria-hidden`, in the text's colour |
+| Hint | Caption/md-regular, `colors/text/subtle`, Fill, auto height | `children`, `text-caption-md-regular text-text-subtle`, wraps |
+
+Contrast (Caption, 4.5:1): `text/subtle` 4.76 on `surface/base`, 4.55 on `surface/canvas` (Light); 5.71 / 6.96 (Dark).
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Placement | `space/8` under the field (the example's gap) | The form puts the field and the hint in a `gap-2` column | None needed |
+| Live summary | (visual only) | The recurrence summary passes `role="status"`, as the Info Alert had; a static hint has no role. Point the field's `aria-describedby` at it when it describes one control | None needed |
+| Colour | `text/subtle` (the original was `text/tertiary`, lighter in Dark) | `text/subtle`, as drawn | Open point 7: confirm `text/subtle` |
+| Two lines | One line drawn; the text wraps | Wraps; the icon stays centred on the text, as Figma's centred auto layout puts it | Draw a two-line hint if the icon should sit at the top |

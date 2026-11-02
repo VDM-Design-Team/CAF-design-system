@@ -12,10 +12,10 @@ import { Icon, type IconName } from '../icon';
  * - Type=Search   → `type="search"` (the default): a search box. A leading
  *   magnifying glass and the query, in an `<input role="searchbox">`.
  * - Type=Dropdown → `type="dropdown"`: a trigger `<button>`. A leading icon,
- *   the chosen value and a caret. It is a trigger only: put it in a Popover as
- *   the `trigger`, with a Select (a listbox of options) or a RangeCalendar (a
- *   period or a creation date) as the panel. The List page pattern wires that
- *   up. Popover gives the button `aria-expanded`, `aria-haspopup` and
+ *   the chosen value and a caret. It is a trigger only: FilterSelect opens a
+ *   Select / Menu from it, and FilterDateRange a Date Picker / Range (Filter /
+ *   Field – Select and – Date range). Use those; this is the part they share.
+ *   In a Popover, the button gets `aria-expanded`, `aria-haspopup` and
  *   `aria-controls`.
  * - State=Default → Search: empty, the `placeholder` in text/subtle.
  * - State=Filled  → Search: a query, in text/primary, and the clear (×)
@@ -31,7 +31,10 @@ import { Icon, type IconName } from '../icon';
  *
  * `label` names the control: the search box's `aria-label`, and on the
  * dropdown a visually hidden prefix, so the button reads "Status: All Status"
- * and its name still contains the visible text.
+ * and its name still contains the visible text. A dropdown given
+ * `role="combobox"` (FilterSelect and FilterDateRange do this) takes `label` as
+ * its `aria-label` instead, with no prefix: a combobox's text is its value
+ * ("All Status"), not its name ("Status").
  *
  * It fills its container's width, as the bar places it. `className` styles
  * the field's box. On Search every other prop goes to the `<input>`; on
@@ -83,7 +86,7 @@ export interface FilterFieldDropdownProps
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'value' | 'children' | 'className'> {
   /** Figma Type=Dropdown. */
   type: 'dropdown';
-  /** The chosen option's label ("All Status", "2026-10-12 – 2026-10-24"). */
+  /** The chosen option's label ("All Status"), or a range ("12–24 Oct 2026"). */
   value?: React.ReactNode;
   /** Shown in text/subtle while there is no `value` ("Select Period"). Default: `label`. */
   placeholder?: string;
@@ -201,11 +204,15 @@ const FilterDropdown = React.forwardRef<HTMLButtonElement, FilterFieldDropdownPr
   ref,
 ) {
   const empty = value === undefined || value === null || value === false || value === '';
+  /* A combobox (FilterSelect, FilterDateRange) isn't named by its text, which is
+     its value: `label` becomes its aria-label, and the hidden prefix goes. */
+  const combobox = props.role === 'combobox';
   return (
     <button
       {...props}
       ref={ref}
       type="button"
+      aria-label={combobox && !props['aria-labelledby'] ? (props['aria-label'] ?? label) : props['aria-label']}
       className={cn(
         box,
         /* The bar's instances space the content and the caret apart (16px at least, bound to space/16). */
@@ -219,7 +226,7 @@ const FilterDropdown = React.forwardRef<HTMLButtonElement, FilterFieldDropdownPr
       <span className="flex min-w-0 items-center gap-3">
         <Icon name={icon} size={20} className={iconTone} />
         <span className={cn('min-w-0 truncate', empty ? 'text-text-subtle' : 'text-text-primary')}>
-          <span className="sr-only">{label}: </span>
+          {!combobox && <span className="sr-only">{label}: </span>}
           {empty ? (placeholder ?? label) : value}
         </span>
       </span>

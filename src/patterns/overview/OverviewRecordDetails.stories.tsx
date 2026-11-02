@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { MenuItem } from '../../components/menu-item';
 import { ModalConfirm } from '../../components/modal-confirm';
 import { Pagination } from '../../components/pagination';
@@ -20,13 +21,12 @@ import {
 import { PageHeader } from '../../components/page-header';
 import { ExportDetailsDialog } from './ExportDetailsDialog';
 import { ExportsTable } from './ExportsTable';
-import { FilterMenu } from './FilterMenu';
 import { ExportsStatRow, type ExportStats } from './StatRows';
 
 /* Pattern 13 draws four rows a page. */
 const PAGE_SIZE = 4;
-const STATUS_OPTIONS = ['All Status', ...Object.values(exportStatusTag).map((s) => s.label)];
-const TYPE_OPTIONS = ['All Types', ...Object.values(exportTypeLabel)];
+const STATUS_OPTIONS = Object.values(exportStatusTag).map((s) => s.label);
+const TYPE_OPTIONS = Object.values(exportTypeLabel);
 
 interface ExportsPageProps {
   /** Open Export Details for this export on first render (the overlay story). */
@@ -43,8 +43,9 @@ function ExportsPage({ openId, detailsLatency = 600 }: ExportsPageProps) {
   const [stats, setStats] = useState<ExportStats>(exportStats);
   const [downloads, setDownloads] = useState<Record<string, number>>(exportDownloads);
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState(STATUS_OPTIONS[0]);
-  const [type, setType] = useState(TYPE_OPTIONS[0]);
+  /* null: All Status / All Types, each filter's reset item. */
+  const [status, setStatus] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [details, setDetails] = useState<{ id: string; loading: boolean } | null>(
     openId ? { id: openId, loading: false } : null,
@@ -57,8 +58,8 @@ function ExportsPage({ openId, detailsLatency = 600 }: ExportsPageProps) {
   const filtered = records.filter(
     (r) =>
       r.name.toLowerCase().includes(query.trim().toLowerCase()) &&
-      (status === STATUS_OPTIONS[0] || exportStatusTag[r.status].label === status) &&
-      (type === TYPE_OPTIONS[0] || exportTypeLabel[r.type] === type),
+      (status === null || exportStatusTag[r.status].label === status) &&
+      (type === null || exportTypeLabel[r.type] === type),
   );
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pageCount);
@@ -114,8 +115,22 @@ function ExportsPage({ openId, detailsLatency = 600 }: ExportsPageProps) {
           value={query}
           onChange={(e) => filterBy(setQuery)(e.target.value)}
         />
-        <FilterMenu className="w-64" label="Status" value={status} options={STATUS_OPTIONS} onValueChange={filterBy(setStatus)} />
-        <FilterMenu className="w-64" label="Type" value={type} options={TYPE_OPTIONS} onValueChange={filterBy(setType)} />
+        <FilterSelect
+          className="w-64"
+          label="Status"
+          allLabel="All Status"
+          options={STATUS_OPTIONS}
+          value={status}
+          onValueChange={filterBy(setStatus)}
+        />
+        <FilterSelect
+          className="w-64"
+          label="Type"
+          allLabel="All Types"
+          options={TYPE_OPTIONS}
+          value={type}
+          onValueChange={filterBy(setType)}
+        />
       </div>
       <ExportsTable
         ref={tableRef}
@@ -199,19 +214,23 @@ const stat = (canvasElement: HTMLElement, label: string) =>
   within(within(canvasElement).getByRole('article', { name: label })).getByText(/^\d+$/).textContent;
 const nameOf = (id: string) => exportRecords.find((r) => r.id === id)!.name;
 
-/* Choose an option in a FilterMenu from the keyboard: open with Enter, walk down, Enter. */
-async function chooseFilter(canvasElement: HTMLElement, trigger: string, option: string) {
+/* Choose an option in a FilterSelect from the keyboard: Enter opens the list on the checked option, the
+   arrows walk to `option`, Enter picks it. Focus stays on the field. */
+async function chooseFilter(canvasElement: HTMLElement, filter: string, option: string) {
   const canvas = within(canvasElement);
-  const button = canvas.getByRole('button', { name: trigger });
-  button.focus();
+  const field = canvas.getByRole('combobox', { name: filter });
+  field.focus();
   await userEvent.keyboard('{Enter}');
-  const menu = await canvas.findByRole('menu');
-  const items = within(menu).getAllByRole('menuitem');
-  await waitFor(() => expect(items[0]).toHaveFocus());
-  const steps = items.findIndex((i) => i.textContent === option);
-  if (steps > 0) await userEvent.keyboard('{ArrowDown}'.repeat(steps));
+  const list = canvas.getByRole('listbox', { name: filter });
+  const options = within(list).getAllByRole('option');
+  const from = options.findIndex((o) => o.getAttribute('aria-selected') === 'true');
+  await expect(field).toHaveAttribute('aria-activedescendant', options[from].id);
+  const to = options.findIndex((o) => o.textContent === option);
+  const key = to > from ? '{ArrowDown}' : '{ArrowUp}';
+  if (to !== from) await userEvent.keyboard(key.repeat(Math.abs(to - from)));
   await userEvent.keyboard('{Enter}');
-  await waitFor(() => expect(canvas.queryByRole('menu')).toBeNull());
+  await expect(canvas.queryByRole('listbox')).toBeNull();
+  await expect(field).toHaveTextContent(option);
 }
 
 /**
@@ -251,22 +270,22 @@ export const StatsFiltersAndPages: Story = {
     await expect(stat(canvasElement, 'Total Exports')).toBe('6003');
 
     // A filter goes back to page 1, and the stats stay whole.
-    await chooseFilter(canvasElement, 'Type: All Types', 'Excel');
-    await expect(canvas.getByRole('button', { name: 'Type: Excel' })).toHaveFocus();
+    await chooseFilter(canvasElement, 'Type', 'Excel');
+    await expect(canvas.getByRole('combobox', { name: 'Type' })).toHaveFocus();
     await expect(rowIds(table)).toEqual(['6845', '6843', '6841', '6839']);
     await expect(canvas.getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page');
-    await chooseFilter(canvasElement, 'Status: All Status', 'Failed');
+    await chooseFilter(canvasElement, 'Status', 'Failed');
     // No failed Excel export: the compact Empty State, inside the table; the filters stay.
     await expect(rowIds(table)).toEqual([]);
     await expect(within(table).getByText('No items.')).toBeVisible();
-    await expect(canvas.getByRole('button', { name: 'Status: Failed' })).toBeVisible();
+    await expect(canvas.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Failed');
     await expect(stat(canvasElement, 'Failed')).toBe('338');
 
-    await chooseFilter(canvasElement, 'Type: Excel', 'All Types');
+    await chooseFilter(canvasElement, 'Type', 'All Types');
     await expect(rowIds(table)).toEqual(['6840']);
 
     // Search narrows by name.
-    await chooseFilter(canvasElement, 'Status: Failed', 'All Status');
+    await chooseFilter(canvasElement, 'Status', 'All Status');
     await userEvent.type(search, '09-24');
     await expect(rowIds(table)).toEqual(['6846', '6845']);
     await expect(canvas.getByRole('button', { name: 'Next page' })).toBeDisabled();

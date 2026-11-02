@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Alert } from '../../components/alert';
 import { Button } from '../../components/button';
 import { DateField } from '../../components/date-field';
 import { ModalDialog } from '../../components/modal-dialog';
@@ -23,9 +22,9 @@ import type { Announcement, AnnouncementAudience } from '../fixtures';
  * It is a real form: Create submits it, the values are read with FormData,
  * and each field is checked. A field's error shows under it, in the
  * helper's place, and clears as soon as the value is valid (pattern 12);
- * focus goes to the first field in error. RepeatableField has no error
- * slot, so a list with no feature shows a compact error Alert under it
- * (docs/patterns.md asks for one). `onCreate` gets the new announcement.
+ * focus goes to the first field in error. Features uses RepeatableField's
+ * own error state: its empty rows are marked and the message shows under
+ * them, above Add Feature. `onCreate` gets the new announcement.
  */
 export type NewAnnouncement = Omit<Announcement, 'id'>;
 
@@ -134,16 +133,14 @@ function CreateAnnouncementForm({ formId, onCreate, today }: { formId: string; o
         defaultValue="All"
         helper="Who should see this announcement."
       />
-      <div className="flex flex-col gap-2">
-        <RepeatableField
-          label="Features"
-          name="features"
-          required
-          addLabel="Add Feature"
-          onValuesChange={(values) => recheck('features', values)}
-        />
-        {errors.features && <Alert type="error" size="compact" message={errors.features} />}
-      </div>
+      <RepeatableField
+        label="Features"
+        name="features"
+        required
+        addLabel="Add Feature"
+        error={errors.features}
+        onValuesChange={(values) => recheck('features', values)}
+      />
       <ToggleField label="Active" name="active" defaultChecked description="Only active announcements are shown to users." />
     </form>
   );

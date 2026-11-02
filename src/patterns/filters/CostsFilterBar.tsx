@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { Button } from '../../components/button';
 import { dayKey, parseDayKey } from '../../components/calendar/dates';
+import { FilterDateRange } from '../../components/filter-date-range';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { FilterSummary, type FilterSummaryFilter } from '../../components/filter-summary';
-import type { IconName } from '../../components/icon';
-import { MenuDropdown } from '../../components/menu-dropdown';
-import { MenuItem } from '../../components/menu-item';
-import { Popover } from '../../components/popover';
-import { RangeCalendar } from '../../components/range-calendar';
+import type { DateRange } from '../../components/range-calendar';
 import { cn } from '../../lib/cn';
 import {
   costStatuses,
@@ -31,15 +29,10 @@ import {
  *   stroke, radius 12, 16 padding; the fields 12 apart) as a `search`
  *   landmark, with Clear Filters on the far right (pattern 02: it appears once
  *   a filter is active) and an optional row under the fields.
- * - FilterMenu: a Filter / Field Dropdown that opens a Menu / Dropdown of the
- *   values (All Status, Pending, …). It stands in for the Select / Menu the
- *   plan pairs with the field: Select brings its own trigger, and no DS
- *   component lets a Filter / Field open a listbox (docs/patterns.md, design
- *   questions).
- * - FilterDateRange: a Filter / Field Dropdown that opens Date Picker / Range
- *   (RangeCalendar) in a Popover under it, as pattern 02 step 4 draws it. The
- *   first day picked is the start, the second the end; the list filters
- *   straight away and focus returns to the field.
+ * - The dropdowns are the DS's FilterSelect (Filter / Field – Select: All
+ *   Status, Pending, …, with the chosen one checked) and FilterDateRange
+ *   (Filter / Field – Date range: Select Period and Creation Date, as pattern
+ *   02 step 4 draws it). The list filters as soon as one changes.
  *
  * Filtering is the story's: `filterCosts` applies a `CostFilters` to rows, and
  * `costFilterSummary` lists the filters in use for Filter / Summary.
@@ -53,8 +46,13 @@ export interface DayRange {
   to: string;
 }
 
-/** "2026-10-12 – 2026-10-24", as pattern 02 step 4 (520:1213) prints a picked range. */
+/** "2026-10-12 – 2026-10-24", as pattern 02 step 4 (520:1213) prints a picked range: Filter / Summary's line. */
 export const formatDayRange = ({ from, to }: DayRange) => `${from} – ${to}`;
+
+/** A DayRange as FilterDateRange's `{ start, end }`, and back. */
+export const toDateRange = (range: DayRange | null): DateRange | null =>
+  range ? { start: parseDayKey(range.from), end: parseDayKey(range.to) } : null;
+export const toDayRange = ({ start, end }: DateRange): DayRange => ({ from: dayKey(start), to: dayKey(end) });
 
 /** The Costs bar's filters. `null` (or "") is "All". */
 export interface CostFilters {
@@ -152,137 +150,6 @@ FilterBar.displayName = 'FilterBar';
 /** Figma's Filter / Field instances are 240 wide in the bar; 240 isn't on GDL's space scale, so 256 (space.256). */
 export const FILTER_SLOT = 'w-64';
 
-/* ── A dropdown filter: Filter / Field Dropdown + Menu / Dropdown ─────────── */
-
-export interface FilterMenuOption<T extends string = string> {
-  value: T;
-  label: string;
-}
-
-export interface FilterMenuProps<T extends string> {
-  /** The field's accessible name ("Status"). The button reads "Status: All Status". */
-  label: string;
-  /** The "no filter" choice: the menu's first item, and the field's value while nothing is chosen ("All Status"). */
-  allLabel: string;
-  /** Shown instead of `allLabel`, in text.subtle, while nothing is chosen ("Filter by Cost Center"). */
-  placeholder?: string;
-  options: readonly FilterMenuOption<T>[];
-  /** The chosen value, or `null` for all. */
-  value: T | null;
-  onChange: (value: T | null) => void;
-  /** The field's leading icon. Default `funnel`. */
-  icon?: IconName;
-  /** Start with the menu open (a story's snapshot). */
-  defaultOpen?: boolean;
-  className?: string;
-}
-
-export function FilterMenu<T extends string>({
-  label,
-  allLabel,
-  placeholder,
-  options,
-  value,
-  onChange,
-  icon,
-  defaultOpen,
-  className,
-}: FilterMenuProps<T>) {
-  const chosen = options.find((o) => o.value === value);
-  return (
-    <MenuDropdown
-      className={cn(FILTER_SLOT, className)}
-      defaultOpen={defaultOpen}
-      trigger={
-        <FilterField
-          type="dropdown"
-          label={label}
-          icon={icon}
-          value={chosen?.label ?? (placeholder ? undefined : allLabel)}
-          placeholder={placeholder}
-        />
-      }
-    >
-      <MenuItem onClick={() => onChange(null)}>{allLabel}</MenuItem>
-      {options.map((option) => (
-        <MenuItem key={option.value} onClick={() => onChange(option.value)}>
-          {option.label}
-        </MenuItem>
-      ))}
-    </MenuDropdown>
-  );
-}
-
-/* ── A date range filter: Filter / Field Dropdown + Date Picker / Range ───── */
-
-export interface FilterDateRangeProps {
-  /** The field's accessible name ("Creation date"). */
-  label: string;
-  /** Shown while no range is picked, and the picker's name ("Creation Date"). */
-  placeholder: string;
-  value: DayRange | null;
-  onChange: (value: DayRange) => void;
-  /** The day drawn as Today; stories pin it. */
-  today?: Date;
-  /** Start with the picker open (a story's snapshot). Focus stays where it is. */
-  defaultOpen?: boolean;
-  className?: string;
-}
-
-export function FilterDateRange({
-  label,
-  placeholder,
-  value,
-  onChange,
-  today,
-  defaultOpen = false,
-  className,
-}: FilterDateRangeProps) {
-  const [open, setOpen] = React.useState(defaultOpen);
-  const panelRef = React.useRef<HTMLDivElement | null>(null);
-
-  /* Opening moves focus to the calendar's one tab stop (the start, else today), as DateInput does.
-     Not on the first render: a picker that starts open doesn't take focus from the page. */
-  const wasOpen = React.useRef(open);
-  React.useEffect(() => {
-    if (open && !wasOpen.current) panelRef.current?.querySelector<HTMLElement>('[data-date][tabindex="0"]')?.focus();
-    wasOpen.current = open;
-  }, [open]);
-
-  const range = value ? { start: parseDayKey(value.from), end: parseDayKey(value.to) } : null;
-  return (
-    <Popover
-      className={cn(FILTER_SLOT, className)}
-      open={open}
-      onOpenChange={setOpen}
-      panelRole="dialog"
-      label={placeholder}
-      panelRef={panelRef}
-      /* RangeCalendar draws its own surface (Date Picker / Range), as DateInput's Calendar does. */
-      surface={false}
-      trigger={
-        <FilterField
-          type="dropdown"
-          label={label}
-          icon="calendar-blank"
-          placeholder={placeholder}
-          value={value ? formatDayRange(value) : undefined}
-        />
-      }
-    >
-      <RangeCalendar
-        value={range}
-        today={today}
-        onChange={({ start, end }) => {
-          onChange({ from: dayKey(start), to: dayKey(end) });
-          /* Both ends picked: close. Popover puts focus back on the field. */
-          setOpen(false);
-        }}
-      />
-    </Popover>
-  );
-}
-
 /* ── Filter / Bar – Costs ─────────────────────────────────────────────────── */
 
 const STATUS_OPTIONS = costStatuses.map((s) => ({ value: s, label: costStatusLabel[s] }));
@@ -348,47 +215,52 @@ export const CostsFilterBar = React.forwardRef<HTMLDivElement, CostsFilterBarPro
           onChange={(event) => set('search', event.target.value)}
         />
       </div>
-      <FilterMenu
+      <FilterSelect
+        className={FILTER_SLOT}
         label="Status"
         allLabel="All Status"
         options={STATUS_OPTIONS}
         value={value.status}
-        onChange={(next) => set('status', next)}
+        onValueChange={(next) => set('status', next as CostStatus | null)}
         defaultOpen={defaultOpen === 'status'}
       />
       {all && (
         <>
-          <FilterMenu
+          <FilterSelect
+            className={FILTER_SLOT}
             label="Payment method"
             allLabel="All Payment Method"
             icon="credit-card"
             options={PAYMENT_OPTIONS}
             value={value.paymentMethod}
-            onChange={(next) => set('paymentMethod', next)}
+            onValueChange={(next) => set('paymentMethod', next as PaymentMethod | null)}
             defaultOpen={defaultOpen === 'paymentMethod'}
           />
-          <FilterMenu
+          <FilterSelect
+            className={FILTER_SLOT}
             label="Currency"
             allLabel="All Currency"
             icon="currency-circle-dollar"
             options={CURRENCY_OPTIONS}
             value={value.currency}
-            onChange={(next) => set('currency', next)}
+            onValueChange={(next) => set('currency', next as Currency | null)}
             defaultOpen={defaultOpen === 'currency'}
           />
           <FilterDateRange
+            className={FILTER_SLOT}
             label="Period"
             placeholder="Select Period"
-            value={value.period}
-            onChange={(next) => set('period', next)}
+            value={toDateRange(value.period)}
+            onValueChange={(next) => set('period', toDayRange(next))}
             today={today}
             defaultOpen={defaultOpen === 'period'}
           />
           <FilterDateRange
+            className={FILTER_SLOT}
             label="Creation date"
             placeholder="Creation Date"
-            value={value.createdAt}
-            onChange={(next) => set('createdAt', next)}
+            value={toDateRange(value.createdAt)}
+            onValueChange={(next) => set('createdAt', toDayRange(next))}
             today={today}
             defaultOpen={defaultOpen === 'createdAt'}
           />

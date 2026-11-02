@@ -3,7 +3,9 @@ import { BulletItem } from '../components/bullet-item';
 import { Button } from '../components/button';
 import { ChangelogModal } from '../components/changelog-modal';
 import { EmptyState } from '../components/empty-state';
+import { FilterDateRange } from '../components/filter-date-range';
 import { FilterField } from '../components/filter-field';
+import { FilterSelect } from '../components/filter-select';
 import { Icon } from '../components/icon';
 import { MenuItem } from '../components/menu-item';
 import { Pagination } from '../components/pagination';
@@ -14,7 +16,7 @@ import { CreateAnnouncementDialog } from '../patterns/announcements/CreateAnnoun
 import type { ShellApp } from '../patterns/app-shell/AppShell';
 import { DraftsList } from '../patterns/drafts/DraftsList';
 import { AuditLogsDialog } from '../patterns/expand-details/AuditLogs';
-import { FILTER_SLOT, FilterBar, FilterDateRange, FilterMenu, type DayRange } from '../patterns/filters/CostsFilterBar';
+import { FILTER_SLOT, FilterBar, toDateRange, toDayRange, type DayRange } from '../patterns/filters/CostsFilterBar';
 import {
   announcements,
   auditLog,
@@ -194,21 +196,22 @@ export function ExportsScreen({ detailsFor }: ExportsScreenProps) {
             onChange={(event) => filterBy(setQuery)(event.target.value)}
           />
         </div>
-        <FilterMenu
+        {/* The screen's "Filter by status" / "Filter by type" read as values, All Status / All Types (decision filter-wording). */}
+        <FilterSelect
+          className={FILTER_SLOT}
           label="Status"
           allLabel="All Status"
-          placeholder="Filter by status"
           options={EXPORT_STATUS_OPTIONS}
           value={status}
-          onChange={filterBy(setStatus)}
+          onValueChange={(next) => filterBy(setStatus)(next as ExportStatus | null)}
         />
-        <FilterMenu
+        <FilterSelect
+          className={FILTER_SLOT}
           label="Type"
           allLabel="All Types"
-          placeholder="Filter by type"
           options={EXPORT_TYPE_OPTIONS}
           value={type}
-          onChange={filterBy(setType)}
+          onValueChange={(next) => filterBy(setType)(next as ExportType | null)}
         />
       </FilterBar>
       <p role="status" className="sr-only">
@@ -310,7 +313,14 @@ export function AnnouncementsScreen({ creating: startCreating = false, onViewCha
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
-        <FilterDateRange label="Release date" placeholder="Filter Date" value={range} onChange={setRange} today={TEMPLATE_TODAY} />
+        <FilterDateRange
+          className={FILTER_SLOT}
+          label="Release date"
+          placeholder="Filter Date"
+          value={toDateRange(range)}
+          onValueChange={(next) => setRange(toDayRange(next))}
+          today={TEMPLATE_TODAY}
+        />
       </FilterBar>
       <p role="status" className="sr-only">
         {`Showing ${shown.length} of ${rows.length} announcements`}

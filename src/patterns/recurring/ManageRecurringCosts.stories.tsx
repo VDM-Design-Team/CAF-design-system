@@ -5,8 +5,8 @@ import { AppHeader, APP_HEADER_USER_PAGES } from '../../components/app-header';
 import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { Icon } from '../../components/icon';
-import { MenuDropdown } from '../../components/menu-dropdown';
 import { MenuItem } from '../../components/menu-item';
 import { ModalConfirm } from '../../components/modal-confirm';
 import { PaymentRow } from '../../components/payment-row';
@@ -158,13 +158,14 @@ function ManageRecurringCostsPage({ theme: initialTheme = 'light', schedulesFor:
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
-            <MenuDropdown className="w-64" trigger={<FilterField type="dropdown" label="Status" value={STATUS_FILTER_LABEL[status]} />}>
-              {STATUS_FILTERS.map((s) => (
-                <MenuItem key={s} onClick={() => setStatus(s)}>
-                  {STATUS_FILTER_LABEL[s]}
-                </MenuItem>
-              ))}
-            </MenuDropdown>
+            <FilterSelect
+              className="w-64"
+              label="Status"
+              allLabel={STATUS_FILTER_LABEL.all}
+              options={STATUS_FILTERS.filter((s) => s !== 'all').map((s) => ({ value: s, label: STATUS_FILTER_LABEL[s] }))}
+              value={status === 'all' ? null : status}
+              onValueChange={(next) => setStatus((next ?? 'all') as StatusFilter)}
+            />
             {filtered && (
               <Button
                 variant="text"
@@ -314,13 +315,16 @@ export const ViewSchedules: Story = {
     await expect(search).toHaveFocus();
     await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
 
-    // The Status filter: All Status, Active, Stopped.
-    await userEvent.click(canvas.getByRole('button', { name: 'Status: All Status' }));
-    const statusMenu = canvas.getByRole('menu');
-    await expect(menuItems(statusMenu)).toEqual(['All Status', 'Active', 'Stopped']);
-    await userEvent.click(within(statusMenu).getByRole('menuitem', { name: 'Stopped' }));
+    // The Status filter (FilterSelect): All Status (checked), Active, Stopped.
+    const statusField = canvas.getByRole('combobox', { name: 'Status' });
+    await userEvent.click(statusField);
+    const statusList = canvas.getByRole('listbox', { name: 'Status' });
+    await expect(within(statusList).getAllByRole('option').map((o) => o.textContent)).toEqual(['All Status', 'Active', 'Stopped']);
+    await expect(within(statusList).getByRole('option', { name: 'All Status' })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.click(within(statusList).getByRole('option', { name: 'Stopped' }));
     await expect(rowIds(t)).toEqual(['1207']);
-    await expect(canvas.getByRole('button', { name: 'Status: Stopped' })).toHaveFocus();
+    await expect(statusField).toHaveFocus();
+    await expect(statusField).toHaveTextContent('Stopped');
 
     // A stopped schedule's menu has no Stop.
     await userEvent.click(actions(canvasElement, '1207'));

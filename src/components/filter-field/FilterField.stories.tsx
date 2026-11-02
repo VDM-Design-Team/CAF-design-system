@@ -15,9 +15,9 @@ const meta = {
           'Built from the CAF Figma library, page **Filters** (`Filter / Field`): one control in a list page’s filter ' +
           'bar. `type="search"` (the default) is a search box: a magnifying glass, the query, and a clear (×) button once ' +
           'it is filled (Figma’s State=Filled); the clear button and Escape empty it. `type="dropdown"` is a trigger ' +
-          'button: a leading icon, the chosen `value` and a caret. It is a trigger only: put it in a Popover with a ' +
-          'Select (status, payment method, currency) or a RangeCalendar (period, creation date) as the panel; the List ' +
-          'page pattern wires that up. `icon` swaps the leading icon. `label` is required: it is the accessible name.',
+          'button: a leading icon, the chosen `value` and a caret. It is a trigger only: **FilterSelect** (status, ' +
+          'payment method, currency) and **FilterDateRange** (period, creation date) build on it. `icon` swaps the ' +
+          'leading icon. `label` is required: it is the accessible name.',
       },
     },
   },
@@ -134,8 +134,8 @@ export const Dropdown: Story = {
 };
 
 /**
- * The trigger in a Popover, as the List page pattern uses it. The panel here is a stand-in for the
- * RangeCalendar (or, for status, payment method and currency, the Select) the pattern puts in it.
+ * The trigger in a Popover, as FilterSelect and FilterDateRange use it. The panel here is a placeholder for
+ * their Select / Menu and Date Picker / Range.
  */
 export const InPopover: Story = {
   parameters: { controls: { disable: true } },
@@ -147,7 +147,7 @@ export const InPopover: Story = {
         label="Choose a period"
         trigger={<FilterField type="dropdown" label="Period" placeholder="Select Period" icon="calendar-blank" />}
       >
-        <p className="max-w-64 p-2 text-body-sm-regular">The RangeCalendar goes here. The List page pattern wires it up.</p>
+        <p className="max-w-64 p-2 text-body-sm-regular">FilterDateRange puts its RangeCalendar here.</p>
       </Popover>
     </div>
   ),

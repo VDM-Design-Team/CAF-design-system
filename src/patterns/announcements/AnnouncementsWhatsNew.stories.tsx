@@ -339,7 +339,10 @@ export const AdminPublishes: Story = {
     await expect(title).toHaveAccessibleDescription('Enter a title.');
     await expect(within(dialog).getByRole('textbox', { name: 'Version' })).toHaveAccessibleDescription('Enter a version, like 2.5.6.');
     await expect(within(dialog).getByRole('combobox', { name: 'Release Date' })).toHaveAccessibleDescription('Choose a release date.');
-    await expect(within(dialog).getByRole('alert')).toHaveTextContent('Add at least one feature.');
+    // Features: RepeatableField's error state, the empty row marked and the message under it.
+    const feature = within(dialog).getByRole('textbox', { name: 'Features 1' });
+    await expect(feature).toHaveAttribute('aria-invalid', 'true');
+    await expect(feature).toHaveAccessibleDescription('Add at least one feature.');
 
     // Fill it in; each error clears as its value becomes valid.
     await userEvent.type(title, 'Bulk upload for recurring costs');
@@ -353,8 +356,9 @@ export const AdminPublishes: Story = {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Monday 2 November 2026' }));
     await expect(within(dialog).getByRole('combobox', { name: 'Release Date' })).toHaveTextContent('2026-11-02');
     await userEvent.click(within(dialog).getByRole('radio', { name: 'User' }));
-    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Features 1' }), 'Upload a sheet of recurring costs');
-    await expect(within(dialog).queryByRole('alert')).toBeNull();
+    await userEvent.type(feature, 'Upload a sheet of recurring costs');
+    await expect(feature).not.toHaveAttribute('aria-invalid');
+    await expect(within(dialog).queryByText('Add at least one feature.')).toBeNull();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add Feature' }));
     await userEvent.type(within(dialog).getByRole('textbox', { name: 'Features 2' }), 'Faster exports');
     // Active is on by default (Figma's Toggle Field, Checked=true).
