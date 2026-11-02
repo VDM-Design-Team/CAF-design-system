@@ -39,6 +39,8 @@ const meta = {
   component: MobileMenu,
   parameters: {
     layout: 'fullscreen',
+    // Chromatic doesn't read the viewport global: it snapshots at this width instead (and so does test:static).
+    chromatic: { viewports: [320] },
     docs: {
       story: OVERLAY_DOCS_STORY,
       description: {

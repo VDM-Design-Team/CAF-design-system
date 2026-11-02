@@ -130,7 +130,8 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
 
   /* Escape dismisses it, wherever focus is (a hovered tooltip has none near it). When the key
      comes from its own target, Escape belongs to the tooltip: it doesn't also close the dialog
-     or menu behind it. */
+     or menu behind it. On window, capturing, so it runs before Overlay's and the menus'
+     document listeners, which were added earlier and would otherwise see the key first. */
   React.useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -139,8 +140,8 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
       clearTimer();
       setOpen(false);
     };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => document.removeEventListener('keydown', onKeyDown, true);
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [isOpen, setOpen, clearTimer]);
 
   /* Flip and nudge. Measured before paint from the target's box and the tooltip's size, so it
@@ -185,9 +186,20 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
     place();
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
+    /* Also when the target, the tooltip or the page's layout changes size (a font loading,
+       content moving the target): resize and scroll don't fire then. A frame later, so a
+       change that place() makes can't loop the observer. */
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(place);
+    });
+    for (const el of [wrapperRef.current, tipRef.current, document.body]) if (el) observer.observe(el);
     return () => {
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
+      observer.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [isOpen, placement]);
 

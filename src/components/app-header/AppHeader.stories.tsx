@@ -13,6 +13,9 @@ const USER_LINKS: AppHeaderLink[] = APP_HEADER_USER_PAGES.map((label) => ({ labe
 
 /* Storybook's own "Small mobile" viewport (320 × 568), from its default list. */
 const MOBILE = { value: 'mobile1', isRotated: false } as const;
+/* Chromatic doesn't read the viewport global: it snapshots these at this width instead
+   (and so does test:static). */
+const MOBILE_SNAPSHOT = { viewports: [320] };
 
 /* Tailwind's md: at this width and wider the desktop header shows. */
 const isDesktop = () => window.matchMedia('(min-width: 48rem)').matches;
@@ -258,15 +261,16 @@ export const UserPagesDark = pages('User', 'dark');
 
 /* ── Below 768px, in Light and Dark ────────────────────────────────────────
    At a mobile viewport the Mobile Header replaces the two rows. These stories
-   set Storybook's "Small mobile" viewport, which Storybook and Vitest apply.
-   test:static opens each story page at the browser's own 1280 width, where the
-   desktop header is the right one, so each check follows the width it gets. */
+   set Storybook's "Small mobile" viewport, which Storybook and Vitest apply, and
+   chromatic.viewports, which Chromatic and test:static's fresh pages use. The
+   channel-switch pass of test:static stays at 1280, where the desktop header is
+   the right one, so each check follows the width it gets. */
 
 const mobile = (theme: 'light' | 'dark'): Story => ({
   name: `Below 768px — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: (args) => <AppHeader {...args} theme={theme} />,
   globals: { theme, viewport: MOBILE },
-  parameters: { controls: { disable: true } },
+  parameters: { controls: { disable: true }, chromatic: MOBILE_SNAPSHOT },
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
@@ -303,7 +307,7 @@ export const MobileDark = mobile('dark');
  */
 export const MobileMenuOpen: Story = {
   globals: { viewport: MOBILE },
-  parameters: { controls: { disable: true } },
+  parameters: { controls: { disable: true }, chromatic: MOBILE_SNAPSHOT },
   tags: ['!autodocs'],
   play: async ({ args, canvasElement }) => {
     const banner = within(canvasElement).getByRole('banner');
