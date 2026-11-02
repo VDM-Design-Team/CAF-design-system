@@ -81,7 +81,9 @@ Read `docs/inheritance.md` before changing anything structural.
   and only in axe's contrast check. A separate story for them uses
   `a11y: { test: 'todo' }`, so the pairs stay visible in the a11y panel.
   List the ratios in `docs/figma-sync.md`, and remove the exception when
-  Figma passes. Run `npm run storybook:build && npm run test:static`
+  Figma passes. A story that sets a mobile `viewport` global also sets
+  `parameters.chromatic.viewports` (e.g. `[320]`): Chromatic ignores the
+  global and would snapshot it at desktop width. Run `npm run storybook:build && npm run test:static`
   before opening a component PR: Vitest renders stories differently from
   the static build Chromatic snapshots, so a story can pass `npm test` and
   still fail there.
@@ -107,7 +109,7 @@ Read `docs/inheritance.md` before changing anything structural.
 | `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
 | `npm run typecheck` | `tsc --noEmit` over `src/` and `.storybook/` |
 | `npm run test:stories` | Every story in Vitest + Playwright: renders, play and afterEach pass, axe clean |
-| `npm run test:static` | Every story against `storybook-static/` (run `storybook:build` first), as Chromatic runs it: fresh page per story, then switched over the channel twice. Fails on any play, afterEach, render or axe error. `-- --shard=i/n` runs one slice; CI runs 8 slices in parallel jobs |
+| `npm run test:static` | Every story against `storybook-static/` (run `storybook:build` first), as Chromatic runs it: fresh page per story (at the story's `chromatic.viewports` width if it has one), then switched over the channel twice. Fails on any play, afterEach, render or axe error. `-- --shard=i/n` runs one slice; CI runs 8 slices in parallel jobs |
 | `npm run storybook` | Build `dist/`, then Storybook on :6006 (Light/Dark toolbar) |
 | `npm test` | What CI runs: the lints, build, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |

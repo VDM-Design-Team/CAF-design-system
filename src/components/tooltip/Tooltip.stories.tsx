@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import * as React from 'react';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
 import { IconButton } from '../icon-button';
+import { ModalDialog } from '../modal-dialog';
 import { Tooltip, TOOLTIP_PLACEMENTS } from './Tooltip';
 
 const meta = {
@@ -122,19 +124,22 @@ const placements = (theme: 'light' | 'dark'): Story => ({
       // The arrow: 10×6, the body's colour, touching the body on the target's side, centred on the target, 4px from it.
       const arrow = tip.querySelector('svg')!;
       await expect(getComputedStyle(arrow).fill).toBe(want.fill);
-      const a = arrow.getBoundingClientRect();
-      const b = body.getBoundingClientRect();
-      const t = target.getBoundingClientRect();
-      await expect(a.width).toBeCloseTo(10, 1);
-      await expect(a.height).toBeCloseTo(6, 1);
-      await expect(a.left + a.width / 2).toBeCloseTo(t.left + t.width / 2, 0);
-      if (placement === 'top') {
-        await expect(a.top).toBeCloseTo(b.bottom, 1);
-        await expect(t.top - a.bottom).toBeCloseTo(4, 1);
-      } else {
-        await expect(b.top).toBeCloseTo(a.bottom, 1);
-        await expect(a.top - t.bottom).toBeCloseTo(4, 1);
-      }
+      // Once settled: after a layout change (Storybook's padding, a font) it re-places a frame later.
+      await waitFor(() => {
+        const a = arrow.getBoundingClientRect();
+        const b = body.getBoundingClientRect();
+        const t = target.getBoundingClientRect();
+        expect(a.width).toBeCloseTo(10, 1);
+        expect(a.height).toBeCloseTo(6, 1);
+        expect(a.left + a.width / 2).toBeCloseTo(t.left + t.width / 2, 0);
+        if (placement === 'top') {
+          expect(a.top).toBeCloseTo(b.bottom, 1);
+          expect(t.top - a.bottom).toBeCloseTo(4, 1);
+        } else {
+          expect(b.top).toBeCloseTo(a.bottom, 1);
+          expect(a.top - t.bottom).toBeCloseTo(4, 1);
+        }
+      });
     }
   },
 });
@@ -273,15 +278,63 @@ export const Edges: Story = {
     for (const { name, placement } of CORNERS) {
       const target = canvasElement.querySelector<HTMLElement>(`[data-corner="${name}"]`)!;
       const tip = tooltipOf(target);
-      await expect(tip).toHaveAttribute('data-placement', placement);
-      const body = tip.querySelector<HTMLElement>('[data-tooltip-body]')!.getBoundingClientRect();
-      await expect(body.left).toBeGreaterThanOrEqual(3.5);
-      await expect(body.right).toBeLessThanOrEqual(width - 3.5);
-      await expect(body.top).toBeGreaterThanOrEqual(0);
-      await expect(body.bottom).toBeLessThanOrEqual(height);
-      const a = tip.querySelector('svg')!.getBoundingClientRect();
-      const t = target.getBoundingClientRect();
-      await expect(a.left + a.width / 2).toBeCloseTo(t.left + t.width / 2, 0);
+      // Once settled, as in Placements.
+      await waitFor(() => {
+        expect(tip).toHaveAttribute('data-placement', placement);
+        const body = tip.querySelector<HTMLElement>('[data-tooltip-body]')!.getBoundingClientRect();
+        expect(body.left).toBeGreaterThanOrEqual(3.5);
+        expect(body.right).toBeLessThanOrEqual(width - 3.5);
+        expect(body.top).toBeGreaterThanOrEqual(0);
+        expect(body.bottom).toBeLessThanOrEqual(height);
+        const a = tip.querySelector('svg')!.getBoundingClientRect();
+        const t = target.getBoundingClientRect();
+        expect(a.left + a.width / 2).toBeCloseTo(t.left + t.width / 2, 0);
+      });
     }
+  },
+};
+
+/* ── Inside a dialog ───────────────────────────────────────────────────────── */
+
+function DialogWithTooltip() {
+  const [open, setOpen] = React.useState(true);
+  return (
+    <>
+      <Button variant="outlined" onClick={() => setOpen(true)}>
+        Open the dialog
+      </Button>
+      <ModalDialog open={open} onClose={() => setOpen(false)} title="Export costs">
+        <Tooltip text="Downloads the filtered rows as CSV">
+          <Button variant="outlined">Export</Button>
+        </Tooltip>
+      </ModalDialog>
+    </>
+  );
+}
+
+/**
+ * In a dialog, Escape on the tooltip's target closes the tooltip and leaves the dialog open;
+ * the next Escape closes the dialog. The tooltip listens on window, so it runs before the
+ * dialog's document listener.
+ */
+export const InADialog: Story = {
+  render: () => <DialogWithTooltip />,
+  parameters: { controls: { disable: true } },
+  // An open dialog covers the docs page and makes it inert.
+  tags: ['!autodocs'],
+  play: async () => {
+    const dialog = await screen.findByRole('dialog', { name: 'Export costs' });
+    const target = within(dialog).getByRole('button', { name: 'Export' });
+    for (let i = 0; i < 4 && document.activeElement !== target; i++) await userEvent.tab();
+    await expect(target).toHaveFocus();
+    await waitFor(() => expect(isOpen(target)).toBe(true));
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(isOpen(target)).toBe(false));
+    await expect(screen.getByRole('dialog', { name: 'Export costs' })).toBeVisible();
+    await expect(target).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Export costs' })).toBeNull());
   },
 };

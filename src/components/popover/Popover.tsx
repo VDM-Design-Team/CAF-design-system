@@ -215,8 +215,8 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
   }, [isOpen, autoFocus]);
 
   /* Flip. Measured before paint from the trigger's box and the panel's size,
-     so the panel never shows on the wrong side first. Re-measured on resize and
-     on any scroll while open. The gap is read from the panel's own margin. */
+     so the panel never shows on the wrong side first. Re-measured on resize, on
+     any scroll and on a size change (below) while open. The gap is read from the panel's own margin. */
   const [side, setSide] = React.useState({ placement, align });
   React.useLayoutEffect(() => {
     if (!isOpen) return;
@@ -249,9 +249,20 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     place();
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
+    /* Also when the trigger, the panel or the page's layout changes size (content
+       loading into the panel, a font loading): resize and scroll don't fire then.
+       A frame later, so a change that place() makes can't loop the observer. */
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(place);
+    });
+    for (const el of [triggerRef.current, panelRef.current, document.body]) if (el) observer.observe(el);
     return () => {
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
+      observer.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [isOpen, placement, align]);
 

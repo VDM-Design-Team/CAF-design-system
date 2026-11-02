@@ -8,7 +8,9 @@
  * play. A story can pass in Vitest and fail in Chromatic. This check serves
  * `storybook-static/` (build it first: `npm run storybook:build`) and runs:
  *
- * 1. Each story in a fresh `iframe.html?id=…` page, as Chromatic captures it.
+ * 1. Each story in a fresh `iframe.html?id=…` page, as Chromatic captures it:
+ *    at the first width in the story's `chromatic.viewports` if it has one
+ *    (a mobile story), otherwise at the browser's 1280.
  * 2. One manager page that switches through every story over the channel
  *    (`setCurrentStory`), twice, as a person clicking through Storybook does.
  *
@@ -126,11 +128,25 @@ try {
         (${listen})(window.__STORYBOOK_ADDONS_CHANNEL__, window.__events);
       }, 1);
     })()`);
+    const rendered = async () => {
+      await page
+        .waitForFunction(() => window.__events.some((e) => e.startsWith('finished')), null, { timeout: TIMEOUT_MS })
+        .catch(() => {});
+      await page.waitForTimeout(SETTLE_MS);
+    };
     await page.goto(`${base}/iframe.html?id=${id}&viewMode=story`);
-    await page
-      .waitForFunction(() => window.__events.some((e) => e.startsWith('finished')), null, { timeout: TIMEOUT_MS })
-      .catch(() => {});
-    await page.waitForTimeout(SETTLE_MS);
+    await rendered();
+    /* Chromatic snapshots a story with chromatic.viewports at that width, not at
+       the viewport global: render it again there (the 1280 render is the channel
+       pass's job). The init script starts a fresh event list on reload. */
+    const width = await page.evaluate(
+      () => window.__STORYBOOK_PREVIEW__?.currentRender?.story?.parameters?.chromatic?.viewports?.[0],
+    );
+    if (width) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.reload();
+      await rendered();
+    }
     const events = await page.evaluate(() => window.__events);
     fresh.push([id, events.some((e) => e.startsWith('finished')) ? events : [...events, 'TIMEOUT']]);
     await page.close();
