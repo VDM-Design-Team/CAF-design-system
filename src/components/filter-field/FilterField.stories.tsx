@@ -236,7 +236,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       fill: tokenColour('surface-elevated-secondary'),
-      stroke: tokenColour('stroke-strong'),
+      stroke: tokenColour('stroke-field'),
       primary: tokenColour('text-primary'),
       subtle: tokenColour('text-subtle'),
     };

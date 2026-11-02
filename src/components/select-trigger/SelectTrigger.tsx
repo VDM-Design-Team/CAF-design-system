@@ -40,7 +40,7 @@ const selectTriggerClasses = [
   'text-left text-body-sm-regular',
   /* State=Filled: the value in text.primary, a 1px stroke.subtle stroke inside
      the edge. State=Default: the placeholder in text.subtle. */
-  'text-text-primary data-placeholder:text-text-subtle inset-ring inset-ring-stroke-subtle',
+  'text-text-primary data-placeholder:text-text-subtle inset-ring inset-ring-stroke-field',
   /* State=Focus: a 2px stroke.focused stroke inside the edge, for keyboard
      focus. It replaces the browser's outline, which stays transparent so
      forced-colours mode still shows one. */
@@ -52,7 +52,7 @@ const selectTriggerClasses = [
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
   /* State=Disabled: the value, like the placeholder, in text.subtle, and the
      whole field, caret included, at 50% opacity (Figma's layer opacity, raw 0.5). */
-  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50',
+  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
 ];
 
 export interface SelectTriggerProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'value' | 'children'> {

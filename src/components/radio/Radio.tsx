@@ -34,13 +34,15 @@ const circle = [
   /* 20 × 20, a circle (Figma: raw radius 10 → radius/full). */
   'peer size-full cursor-pointer appearance-none rounded-full',
   /* State=Deselected */
-  'bg-surface-elevated-secondary inset-ring inset-ring-stroke-strong',
+  'bg-surface-elevated-secondary inset-ring inset-ring-stroke-field',
   /* State=Hover — defined for an unchecked radio only */
   'not-checked:enabled:hover:inset-ring-stroke-focused',
   /* State=Selected: a 2px stroke; the dot is drawn over it (below) */
   'checked:inset-ring-2 checked:inset-ring-action-primary-surface-default',
   // Figma has no Focus state; the ring uses stroke.focused, as Button's and Checkbox's do.
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
+  /* State=Disabled keeps Figma's stroke/strong (at the wrapper's 50% opacity) */
+  'disabled:not-checked:inset-ring-stroke-strong',
   'disabled:cursor-not-allowed',
 ];
 

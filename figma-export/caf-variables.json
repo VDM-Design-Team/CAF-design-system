@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-10-21",
+  "exportedAt": "2026-11-02",
   "file": "WhVkTrQRI9bDTfOeAJXTrR",
   "collections": [
     { "name": "Brand Primitives", "modes": ["Default"], "variables": [
@@ -338,7 +338,9 @@
       {"n":"colors/accent/orange/subtle","t":"C","v":[{"alias":"colors/orange/200","lib":"Primitives"},{"alias":"colors/orange/700","lib":"Primitives"}],"d":"Accent colour: accent › orange › subtle.","s":["ALL_FILLS","STROKE_COLOR"]},
       {"n":"colors/accent/orange/medium","t":"C","v":[{"alias":"colors/orange/400","lib":"Primitives"},{"alias":"colors/orange/500","lib":"Primitives"}],"d":"Accent colour: accent › orange › medium.","s":["ALL_FILLS","STROKE_COLOR"]},
       {"n":"colors/accent/orange/strong","t":"C","v":[{"alias":"colors/orange/800","lib":"Primitives"},{"alias":"colors/orange/200","lib":"Primitives"}],"d":"Accent colour: accent › orange › strong.","s":["ALL_FILLS","STROKE_COLOR"]},
-      {"n":"colors/accent/orange/stronger","t":"C","v":[{"alias":"colors/orange/900","lib":"Primitives"},{"alias":"colors/orange/100","lib":"Primitives"}],"d":"Accent colour: accent › orange › stronger.","s":["ALL_FILLS","STROKE_COLOR"]}
+      {"n":"colors/accent/orange/stronger","t":"C","v":[{"alias":"colors/orange/900","lib":"Primitives"},{"alias":"colors/orange/100","lib":"Primitives"}],"d":"Accent colour: accent › orange › stronger.","s":["ALL_FILLS","STROKE_COLOR"]},
+      {"n":"colors/stroke/field","t":"C","v":[{"alias":"colors/slate/500","lib":"Primitives"},{"alias":"colors/slate/400","lib":"Primitives"}],"d":"Resting border of fields and controls: inputs, selects, filter fields, checkbox, radio. Reaches 3:1 on surface/base, surface/canvas and surface/neutral/faint in Light and Dark (WCAG 1.4.11). GDL recommended name stroke.field.","s":["STROKE_COLOR","EFFECT_COLOR"]},
+      {"n":"colors/surface/track","t":"C","v":[{"alias":"colors/slate/500","lib":"Primitives"},{"alias":"colors/slate/400","lib":"Primitives"}],"d":"Unfilled track of toggles, sliders and progress bars. Reaches 3:1 on surface/base, surface/canvas and surface/neutral/faint in Light and Dark (WCAG 1.4.11). GDL recommended name surface.track.","s":["FRAME_FILL","SHAPE_FILL"]}
     ] }
   ]
 }

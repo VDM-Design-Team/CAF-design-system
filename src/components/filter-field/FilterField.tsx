@@ -48,7 +48,7 @@ import { Icon, type IconName } from '../icon';
    code is 40px, as TextInput and SelectTrigger. */
 const box = [
   'flex h-10 w-full min-w-0 items-center rounded-8 bg-surface-elevated-secondary px-6',
-  'text-body-sm-regular inset-ring inset-ring-stroke-strong',
+  'text-body-sm-regular inset-ring inset-ring-stroke-field',
 ];
 
 /* Figma has no Focus state; the ring is stroke.focused, as on Button. */

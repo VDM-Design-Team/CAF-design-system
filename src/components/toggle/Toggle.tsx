@@ -34,7 +34,9 @@ const track = [
      input itself, so the click target and the focus ring are the track. */
   'peer size-full cursor-pointer appearance-none rounded-full',
   /* Checked=false and Checked=true */
-  'bg-neutral-tonal-surface-default checked:bg-action-primary-surface-default',
+  'bg-surface-track checked:bg-action-primary-surface-default',
+  /* Checked=false, Disabled=true keeps Figma's neutral.tonal track (at the wrapper's 50% opacity) */
+  'disabled:not-checked:bg-neutral-tonal-surface-default',
   // Figma has no Focus state; the ring uses stroke.focused, as Button's and Checkbox's do.
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
   'disabled:cursor-not-allowed',

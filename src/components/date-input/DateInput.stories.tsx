@@ -408,13 +408,13 @@ const STATES = [
     state: 'Default',
     props: {},
     text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Filled',
     props: { defaultValue: '2026-09-01' },
     text: 'text-primary',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Focus',

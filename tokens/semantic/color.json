@@ -127,6 +127,10 @@
       "stronger": {
         "$value": "{color.caf-blue.700}"
       }
+    },
+    "track": {
+      "$value": "{color.slate.500}",
+      "$description": "Unfilled track of toggles, sliders and progress bars. Reaches 3:1 on surface/base, surface/canvas and surface/neutral/faint in Light and Dark (WCAG 1.4.11). GDL recommended name surface.track."
     }
   },
   "action": {
@@ -503,6 +507,10 @@
       "stronger": {
         "$value": "{color.caf-blue.800}"
       }
+    },
+    "field": {
+      "$value": "{color.slate.500}",
+      "$description": "Resting border of fields and controls: inputs, selects, filter fields, checkbox, radio. Reaches 3:1 on surface/base, surface/canvas and surface/neutral/faint in Light and Dark (WCAG 1.4.11). GDL recommended name stroke.field."
     }
   },
   "accent": {

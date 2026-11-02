@@ -31,7 +31,7 @@ const textInputClasses = [
   'h-10 w-full min-w-0 rounded-8 bg-surface-elevated-secondary px-3 text-body-sm-regular',
   /* State=Default and Filled: the value in text.primary, the placeholder in
      text.subtle, a 1px stroke.subtle stroke inside the edge. */
-  'text-text-primary placeholder:text-text-subtle inset-ring inset-ring-stroke-subtle',
+  'text-text-primary placeholder:text-text-subtle inset-ring inset-ring-stroke-field',
   /* State=Focus: a 2px stroke.focused stroke inside the edge. It replaces the
      browser's outline, which stays transparent so forced-colours mode still shows one. */
   'outline-hidden focus:inset-ring-2 focus:inset-ring-stroke-focused',
@@ -40,7 +40,7 @@ const textInputClasses = [
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
   /* State=Disabled: the value, like the placeholder, in text.subtle, and the
      whole field at 50% opacity (Figma's layer opacity, raw 0.5). */
-  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50',
+  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
 ];
 
 export type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;

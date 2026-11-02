@@ -169,8 +169,8 @@ export const Disabled: Story = {
    binding code corrects; see docs/figma-sync.md). */
 
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { value: 'Monthly' }, text: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { value: 'Monthly' }, text: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { value: 'Monthly' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',
