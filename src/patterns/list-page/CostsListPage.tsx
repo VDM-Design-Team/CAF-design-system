@@ -36,7 +36,9 @@ import { PageHeader } from '../page/PageHeader';
  * Export raises pattern 12's toast. A visually hidden status line says how
  * many costs are shown, because the table changing isn't announced.
  *
- * Put it under a ToastProvider. It renders the page's `<main>`.
+ * Put it under a ToastProvider. It renders the page's `<main>`, or with
+ * `as="div"` a plain column for a frame that has the `<main>` and the page
+ * padding already (AppShell, the templates).
  */
 
 /** Tabs / Cost Type: All | Recurring | Single. */
@@ -66,6 +68,13 @@ export interface CostsListPageProps {
   openFilter?: CostFilterField;
   /** Start with the Export menu open (a story's snapshot). */
   openExport?: boolean;
+  /**
+   * The page's element. `main` (the default) for a page on its own; `div` inside
+   * a frame that has the `<main>` and the page padding already (AppShell).
+   */
+  as?: 'main' | 'div';
+  /** View Audit Logs (admin): open the Audit Logs dialog (pattern 08), which the owner renders. */
+  onViewAuditLogs?: () => void;
 }
 
 export function CostsListPage({
@@ -81,6 +90,8 @@ export function CostsListPage({
   initialSort = null,
   openFilter,
   openExport,
+  as: Page = 'main',
+  onViewAuditLogs,
 }: CostsListPageProps) {
   const { toast } = useToast();
   const [type, setType] = React.useState<CostTypeTab>(initialType);
@@ -106,7 +117,7 @@ export function CostsListPage({
   );
 
   return (
-    <main className="container mx-auto flex flex-col gap-6 px-6 py-10">
+    <Page className={Page === 'main' ? 'container mx-auto flex flex-col gap-6 px-6 py-10' : 'flex flex-col gap-6'}>
       <PageHeader
         title="Costs"
         tabs={
@@ -126,8 +137,10 @@ export function CostsListPage({
         actions={
           audience === 'admin' ? (
             <>
-              {/* Opens the Audit Logs side sheet: pattern 08's flow, not this one's. */}
-              <Button variant="outlined">View Audit Logs</Button>
+              {/* Opens the Audit Logs dialog: pattern 08's flow, which the owner renders. */}
+              <Button variant="outlined" onClick={onViewAuditLogs}>
+                View Audit Logs
+              </Button>
               {exportMenu}
             </>
           ) : (
@@ -163,6 +176,6 @@ export function CostsListPage({
       {pageCount > 0 && (
         <Pagination className="self-end" page={current} pageCount={pageCount} onPageChange={setPage} showPageInfo={false} />
       )}
-    </main>
+    </Page>
   );
 }

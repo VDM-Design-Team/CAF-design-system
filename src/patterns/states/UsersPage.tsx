@@ -43,11 +43,16 @@ export interface UsersPageProps {
   dialogOpen?: boolean;
   /** Date Created for a new user, ISO. Pinned so stories stay stable. */
   today?: string;
+  /**
+   * The page's element. `main` (the default) for a page on its own; `div` inside
+   * a frame that has the `<main>` and the page padding already (AppShell).
+   */
+  as?: 'main' | 'div';
 }
 
 const ROLE_OPTIONS = ['All Roles', ...userRoles];
 
-export function UsersPage({ load, dialogOpen = false, today = '2026-11-02' }: UsersPageProps) {
+export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: Page = 'main' }: UsersPageProps) {
   const { toast } = useToast();
   const [users, setUsers] = React.useState<User[]>(fixtureUsers);
   const [state, setState] = React.useState<'loading' | 'ready' | 'error'>(load ? 'loading' : 'ready');
@@ -85,7 +90,7 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02' }: Us
       : [];
 
   return (
-    <main className="flex flex-col gap-6 p-6 pb-64">
+    <Page className={Page === 'main' ? 'flex flex-col gap-6 p-6 pb-64' : 'flex flex-col gap-6'}>
       <PageHeader
         title="Users"
         actions={
@@ -132,6 +137,6 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02' }: Us
           toast({ type: 'success', message: 'User added.' });
         }}
       />
-    </main>
+    </Page>
   );
 }

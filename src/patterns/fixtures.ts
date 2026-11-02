@@ -971,3 +971,15 @@ export const managedCurrencies: ManagedCurrency[] = [
   { code: 'CHF', name: 'Swiss Franc', enabled: false },
   { code: 'TRY', name: 'Turkish Lira', enabled: false },
 ];
+
+/* ── templates (wf/templates: Templates/App shell, List page, Overview list,
+   Form page, Overlay flows; CAF Design file z7L8r4nq6nL6Yfa8vvxJhO) ──────── */
+
+/** The templates' today (2 November 2026): calendars open on it, so snapshots hold still. */
+export const TEMPLATE_TODAY = new Date(2026, 10, 2);
+
+/** User → Recurring Costs (2102:1229): the signed-in user's six, as the screen lists them. */
+export const userRecurringCosts: RecurringCost[] = recurringCosts.slice(0, 6);
+
+/** The id Save to Drafts gives a new draft on the Create Cost screen: one after the newest. */
+export const NEW_DRAFT_ID = String(Math.max(...drafts.map((d) => Number(d.id))) + 1);

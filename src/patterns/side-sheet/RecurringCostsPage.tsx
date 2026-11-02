@@ -33,6 +33,8 @@ export interface RecurringCostsPageProps {
   onUpdate?: (id: string, update: RecurringCostUpdate, data: FormData) => void;
   /** Start with the side sheet open on a record id. */
   defaultEditing?: string;
+  /** Start with Payment Schedules open on a record id. */
+  defaultSchedules?: string;
   /** The calendars' today. */
   today?: Date;
 }
@@ -60,11 +62,17 @@ const COLUMNS: RecordsTableColumn<EditableRecurringCost>[] = [
 
 type Confirming = { action: 'stop' | 'delete'; id: string } | null;
 
-export function RecurringCostsPage({ defaultRows = recurringCosts, onUpdate, defaultEditing, today }: RecurringCostsPageProps) {
+export function RecurringCostsPage({
+  defaultRows = recurringCosts,
+  onUpdate,
+  defaultEditing,
+  defaultSchedules,
+  today,
+}: RecurringCostsPageProps) {
   const { toast } = useToast();
   const [rows, setRows] = React.useState<EditableRecurringCost[]>([...defaultRows]);
   const [editingId, setEditingId] = React.useState<string | null>(defaultEditing ?? null);
-  const [scheduleId, setScheduleId] = React.useState<string | null>(null);
+  const [scheduleId, setScheduleId] = React.useState<string | null>(defaultSchedules ?? null);
   const [confirming, setConfirming] = React.useState<Confirming>(null);
   const tableRef = React.useRef<HTMLTableElement>(null);
   const focusAfterDelete = React.useRef<number | null>(null);
