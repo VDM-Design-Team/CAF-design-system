@@ -26,8 +26,9 @@ import { cn } from '../../lib/cn';
  *   `aria-modal="true"`. Name it with `aria-labelledby` (the visible title's
  *   id) or, with no visible title, `aria-label`.
  * - Open: it remembers what had focus, moves focus to `initialFocusRef` or the
- *   panel, makes every other child of `<body>` inert and locks the page scroll
- *   (giving the scrollbar's width back as padding, so nothing shifts).
+ *   panel, makes every other child of `<body>` inert (except a live region, such
+ *   as ToastProvider's stack, so a toast is still announced) and locks the page
+ *   scroll (giving the scrollbar's width back as padding, so nothing shifts).
  * - While open: Tab and Shift+Tab wrap inside the panel. Escape asks to close,
  *   unless a popup inside it is open (a MenuDropdown): that closes first. A
  *   click on the backdrop asks to close when `dismissible` (the default). With
@@ -85,12 +86,14 @@ function unlockScroll() {
    inner overlay never un-hides what an outer one hid. */
 const INERT_MARK = 'data-caf-overlay-inert';
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'TEMPLATE', 'NOSCRIPT']);
+/* A live region on <body> (ToastProvider's stack) stays live: inert, it would go silent. */
+const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"], [role="log"]';
 
 function hideBackground(portal: HTMLElement): () => void {
   const changed: { el: HTMLElement; hadInert: boolean }[] = [];
   for (const node of Array.from(document.body.children)) {
     if (!(node instanceof HTMLElement) || node === portal) continue;
-    if (node.hasAttribute(INERT_MARK) || SKIP_TAGS.has(node.tagName)) continue;
+    if (node.hasAttribute(INERT_MARK) || SKIP_TAGS.has(node.tagName) || node.matches(LIVE)) continue;
     changed.push({ el: node, hadInert: node.hasAttribute('inert') });
     node.setAttribute(INERT_MARK, '');
     node.setAttribute('inert', '');

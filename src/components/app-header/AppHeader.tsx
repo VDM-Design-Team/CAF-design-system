@@ -116,6 +116,8 @@ export const AppHeader = React.forwardRef<HTMLElement, AppHeaderProps>(function 
   }, [open]);
 
   const menuId = `${React.useId()}-menu`;
+  /* ☰: focus goes back to it when the menu closes, also when the menu was open from the start (defaultMenuOpen), so nothing had focus to return to. */
+  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
   const shared = { theme, onThemeChange, onAccountSelect };
 
   return (
@@ -148,12 +150,14 @@ export const AppHeader = React.forwardRef<HTMLElement, AppHeaderProps>(function 
         menuOpen={open}
         onMenuOpenChange={setOpen}
         menuId={menuId}
+        menuButtonRef={menuButtonRef}
         {...shared}
       />
       <MobileMenu
         id={menuId}
         open={open}
         onClose={() => setOpen(false)}
+        returnFocusRef={menuButtonRef}
         links={links}
         page={page}
         renderLink={renderLink}

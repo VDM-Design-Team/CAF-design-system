@@ -46,7 +46,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const notifications = (canvasElement: HTMLElement) =>
-  within(within(canvasElement).getByRole('region', { name: 'Notifications' }));
+  within(screen.getByRole('region', { name: 'Notifications' }));
 
 const SHEET = 'Edit Recurring Cost #1882';
 

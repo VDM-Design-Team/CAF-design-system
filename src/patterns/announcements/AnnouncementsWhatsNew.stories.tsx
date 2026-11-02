@@ -376,7 +376,7 @@ export const AdminPublishes: Story = {
     await expect(stat(canvasElement, 'Total Announcements')).toBe('8');
     await expect(stat(canvasElement, 'Latest Version')).toBe('2.6.0');
     await expect(stat(canvasElement, 'Last Updated')).toBe('Nov 2, 2026');
-    const notifications = canvas.getByRole('region', { name: 'Notifications' });
+    const notifications = screen.getByRole('region', { name: 'Notifications' });
     await expect(within(notifications).getByText('Announcement created.')).toBeVisible();
   },
 };
@@ -416,7 +416,7 @@ export const PreviewAndDelete: Story = {
     const table = announcementsTable(canvasElement);
     await expect(Array.from(table.tBodies[0].rows).map((r) => r.dataset.id)).toEqual(['1', '3', '4', '5', '6', '7']);
     await expect(stat(canvasElement, 'Total Announcements')).toBe('6');
-    await expect(within(canvas.getByRole('region', { name: 'Notifications' })).getByText('Announcement deleted.')).toBeVisible();
+    await expect(within(screen.getByRole('region', { name: 'Notifications' })).getByText('Announcement deleted.')).toBeVisible();
     const third = announcements[2];
     await waitFor(() => expect(canvas.getByRole('button', { name: `Actions for ${third.title} v${third.version}` })).toHaveFocus());
   },

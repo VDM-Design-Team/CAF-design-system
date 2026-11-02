@@ -145,7 +145,7 @@ export const AddAUser: Story = {
     await expect(rows[rows.length - 1]).toHaveTextContent('Maria Santosmaria.santos@geekee.comRestricted User');
 
     // A Success toast: the result of the action. It closes on its own.
-    const notifications = canvas.getByRole('region', { name: 'Notifications' });
+    const notifications = screen.getByRole('region', { name: 'Notifications' });
     const toast = within(notifications).getByText('User added.').closest<HTMLElement>('[data-toast-id]')!;
     await expect(toast).toHaveAttribute('data-duration', String(TOAST_DURATION));
   },
@@ -175,7 +175,7 @@ export const AlertThatStays: Story = {
 export const Toasts: Story = {
   render: () => <ToastsScreen />,
   play: async ({ canvasElement }) => {
-    const region = within(canvasElement).getByRole('region', { name: 'Notifications' });
+    const region = screen.getByRole('region', { name: 'Notifications' });
     const toasts = () => Array.from(region.querySelectorAll<HTMLElement>('[data-toast-id]'));
     await waitFor(() => expect(toasts()).toHaveLength(4));
     await expect(toasts().map((t) => t.textContent)).toEqual([

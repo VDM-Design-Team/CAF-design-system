@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import * as React from 'react';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
+import { ModalDialog } from '../modal-dialog';
 import { Toast, TOAST_TYPES } from './Toast';
 import { TOAST_DURATION, ToastProvider, useToast, type ToastOptions } from './ToastProvider';
 
@@ -245,7 +246,7 @@ export const Stack: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const region = canvas.getByRole('region', { name: 'Notifications' });
+    const region = screen.getByRole('region', { name: 'Notifications' });
     await expect(region).toHaveAttribute('aria-live', 'polite');
     await waitFor(() => expect(region.querySelectorAll('[data-toast-id]')).toHaveLength(4));
     const stack = within(region);
@@ -296,7 +297,7 @@ export const Timer: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     // The live region is in the page before any toast, empty.
-    const region = canvas.getByRole('region', { name: 'Notifications' });
+    const region = screen.getByRole('region', { name: 'Notifications' });
     await expect(region).toBeEmptyDOMElement();
     const toasts = () => [...region.querySelectorAll<HTMLElement>('[data-toast-id]')];
 
@@ -352,5 +353,58 @@ export const NeedsProvider: Story = {
   tags: ['!autodocs'],
   play: async ({ canvas }) => {
     await expect(canvas.getByText(/useToast\(\) needs a <ToastProvider>/)).toBeInTheDocument();
+  },
+};
+
+/* ── Over a dialog ─────────────────────────────────────────────────────────── */
+
+function SaveInDialog() {
+  const { toast } = useToast();
+  const [open, setOpen] = React.useState(true);
+  return (
+    <>
+      <Button variant="outlined" onClick={() => setOpen(true)}>
+        Edit cost centre
+      </Button>
+      <ModalDialog open={open} onClose={() => setOpen(false)} title="Edit cost centre">
+        <Button onClick={() => toast({ type: 'success', message: 'Draft saved.', duration: null })}>Save draft</Button>
+      </ModalDialog>
+    </>
+  );
+}
+
+/**
+ * A toast raised while a dialog is open shows above the dialog's scrim and is
+ * still announced: the stack is on `<body>`, in the top layer, and the dialog
+ * leaves the live region out when it makes the page inert.
+ */
+export const OverADialog: Story = {
+  render: () => (
+    <ToastProvider>
+      <SaveInDialog />
+    </ToastProvider>
+  ),
+  parameters: { controls: { disable: true } },
+  // An open dialog covers the docs page and makes it inert.
+  tags: ['!autodocs'],
+  play: async () => {
+    const dialog = await screen.findByRole('dialog', { name: 'Edit cost centre' });
+    const region = screen.getByRole('region', { name: 'Notifications' });
+    await expect(region.parentElement).toBe(document.body);
+    await expect(region.matches(':popover-open')).toBe(true);
+    // Not inert, so a screen reader still hears it.
+    await expect(region.closest('[inert]')).toBeNull();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save draft' }));
+    const message = await within(region).findByText('Draft saved.');
+    const toast = message.closest<HTMLElement>('[data-toast-id]')!;
+    // On top: the point at the toast's centre hits the toast, not the scrim.
+    await waitFor(() => {
+      const box = toast.getBoundingClientRect();
+      expect(toast.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))).toBe(true);
+    });
+    // The dialog stays open, with focus still inside it.
+    await expect(dialog).toBeVisible();
+    await expect(dialog.contains(document.activeElement)).toBe(true);
   },
 };

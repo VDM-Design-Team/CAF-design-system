@@ -243,7 +243,7 @@ const tableOf = (canvasElement: HTMLElement) => within(canvasElement).getByRole(
 const names = (t: HTMLTableElement) => Array.from(t.tBodies[0].rows).map((r) => r.cells[0].textContent);
 const menuItems = (menu: HTMLElement) => within(menu).getAllByRole('menuitem').map((i) => i.textContent);
 async function expectToast(canvasElement: HTMLElement, message: string) {
-  const stack = within(canvasElement).getByRole('region', { name: 'Notifications' });
+  const stack = screen.getByRole('region', { name: 'Notifications' });
   await within(stack).findByText(message);
   // Dismissed, so the snapshot ends without a timed toast in it.
   await userEvent.click(within(stack).getAllByRole('button', { name: 'Dismiss' })[0]);

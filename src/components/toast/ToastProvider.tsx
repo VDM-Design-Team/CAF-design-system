@@ -1,12 +1,12 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../lib/cn';
 import { Toast, type ToastProps } from './Toast';
 
 /**
  * ToastProvider and useToast — the toast host. Code only: Figma draws the
  * Toast, and pattern 12 ("Feedback messages", Patterns – Admin) says how the
- * stack behaves. Hand-built like VCP's (no library, no portal, no new
- * dependency):
+ * stack behaves. Hand-built like VCP's (no library, no new dependency):
  *
  * - Toasts stack at the bottom right, newest last, space.12 apart.
  * - Info and Success close on their own after 5 seconds (`TOAST_DURATION`).
@@ -21,6 +21,11 @@ import { Toast, type ToastProps } from './Toast';
  *   is in the page from the first render, empty. A region that arrives with
  *   its first message is often not announced, so toasts go into this one.
  *   Focus never moves to a toast on its own.
+ * - The stack lives on `<body>` (a portal) and in the browser's top layer
+ *   (`popover="manual"`), so a toast raised while a dialog is open shows above
+ *   its scrim, and Overlay leaves the live region out when it makes the page
+ *   inert, so it is still announced. Its buttons stay outside the dialog's
+ *   focus trap: a pointer reaches them, the keyboard after the dialog closes.
  *
  * Mount one `ToastProvider` near the root of the app; `useToast()` throws
  * outside it, because a toast raised without the region is silent to screen
@@ -120,6 +125,10 @@ function TimedToast({ record, onDismiss }: { record: ToastRecord; onDismiss: (id
 
 let sequence = 0;
 
+const noSubscription = () => () => {};
+const clientBody = () => document.body;
+const serverBody = () => null;
+
 export interface ToastProviderProps {
   children?: React.ReactNode;
   /** The stack's accessible name. Default "Notifications". */
@@ -153,26 +162,41 @@ export function ToastProvider({ children, label = 'Notifications', className }: 
 
   const value = React.useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss]);
 
+  /* The portal's target only exists in the browser. In the first client render, so the empty
+     region is there before any toast; after hydration when the server rendered the page. */
+  const body = React.useSyncExternalStore(noSubscription, clientBody, serverBody);
+  /* Into the top layer, above every z-index, a dialog's scrim included. */
+  React.useLayoutEffect(() => {
+    const stack = stackRef.current;
+    if (stack && typeof stack.showPopover === 'function' && !stack.matches(':popover-open')) stack.showPopover();
+  }, [body]);
+
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <section
-        ref={stackRef}
-        aria-label={label}
-        aria-live="polite"
-        /* Announce each toast as it arrives, not the whole stack again; removals aren't news. */
-        aria-atomic="false"
-        aria-relevant="additions"
-        /* Click-through, so the stack never eats a click meant for the page; each toast turns pointer events back on. */
-        className={cn(
-          'pointer-events-none fixed right-0 bottom-0 z-50 flex max-w-full flex-col items-end gap-3 p-4',
-          className,
+      {body &&
+        createPortal(
+          <section
+            ref={stackRef}
+            popover="manual"
+            aria-label={label}
+            aria-live="polite"
+            /* Announce each toast as it arrives, not the whole stack again; removals aren't news. */
+            aria-atomic="false"
+            aria-relevant="additions"
+            /* Click-through, so the stack never eats a click meant for the page; each toast turns pointer events back on.
+               The resets undo the browser's popover box (centred, bordered, padded, filled). */
+            className={cn(
+              'pointer-events-none fixed top-auto right-0 bottom-0 left-auto z-50 m-0 flex max-w-full flex-col items-end gap-3 overflow-visible border-0 bg-transparent p-4',
+              className,
+            )}
+          >
+            {toasts.map((record) => (
+              <TimedToast key={record.id} record={record} onDismiss={dismiss} />
+            ))}
+          </section>,
+          body,
         )}
-      >
-        {toasts.map((record) => (
-          <TimedToast key={record.id} record={record} onDismiss={dismiss} />
-        ))}
-      </section>
     </ToastContext.Provider>
   );
 }

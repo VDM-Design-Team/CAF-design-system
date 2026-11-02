@@ -215,10 +215,6 @@ export function FilterMenu<T extends string>({
 
 /* ── A date range filter: Filter / Field Dropdown + Date Picker / Range ───── */
 
-/* RangeCalendar draws its own surface (Date Picker / Range: radius 12, Elevation
-   3), so the Popover's panel only positions it — as DateInput does with Calendar. */
-const BARE_PANEL = 'rounded-12 bg-transparent p-0 shadow-none inset-ring-0';
-
 export interface FilterDateRangeProps {
   /** The field's accessible name ("Creation date"). */
   label: string;
@@ -262,7 +258,8 @@ export function FilterDateRange({
       panelRole="dialog"
       label={placeholder}
       panelRef={panelRef}
-      panelClassName={BARE_PANEL}
+      /* RangeCalendar draws its own surface (Date Picker / Range), as DateInput's Calendar does. */
+      surface={false}
       trigger={
         <FilterField
           type="dropdown"

@@ -48,7 +48,7 @@ export const Admin: Story = {
     const { banner, main, heading } = await expectFrame(canvasElement, 'Costs');
     // The page sits in the container: its table is in main; the toasts' region is beside it.
     await expect(main).toContainElement(within(main).getByRole('table', { name: 'Costs' }));
-    await expect(main).not.toContainElement(within(canvasElement).getByRole('region', { name: 'Notifications' }));
+    await expect(main).not.toContainElement(screen.getByRole('region', { name: 'Notifications' }));
     await expect(within(banner).getByText('Hi, Admin Account')).toBeInTheDocument();
 
     if (isDesktop()) {

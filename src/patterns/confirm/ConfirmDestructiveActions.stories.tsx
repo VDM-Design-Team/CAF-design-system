@@ -41,7 +41,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const notifications = (canvasElement: HTMLElement) =>
-  within(within(canvasElement).getByRole('region', { name: 'Notifications' }));
+  within(screen.getByRole('region', { name: 'Notifications' }));
 
 /** Opens a row's menu from the keyboard and chooses its last item, Delete. */
 async function chooseDelete(trigger: HTMLElement) {
