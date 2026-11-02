@@ -1686,6 +1686,9 @@ Code departs from Figma here:
 | Description | Always shown | Renders only when given | Add Show Description, as Modal / Dialog has |
 | Element | n/a | A `<div>`, because a `<header>` could become a second banner landmark | None needed |
 
+
+**Changed in Figma on 2 Nov 2026** (decisions add-modal-header-actions, icon-buttons-to-button-icon): Modal / Header has **Show Actions** and an Actions slot of Button / Icon (Ghost, 32) instances, such as Audit Logs' refresh (ArrowsClockwise), 4px (`space/4`) before the close button. Its close button is now Button / Icon (Ghost, 32), as code already drew it. Code: `actions`, rendered before the Close IconButton in a `gap-1` group.
+
 ### ModalDialog (29 Oct 2026)
 
 Source: page **Modals** (`299:3301`), set `Modal / Dialog` (`458:398`): Size (Small `458:340`, Medium `458:360`, Large `458:379`), Title, Description, Show Description, Show Footer and Content. Code: `src/components/modal-dialog/`. The header, body and footer bands are shared with SideSheet in `src/components/overlay/parts.tsx`, which is private.
@@ -1910,6 +1913,9 @@ Figma gaps the code doesn't copy:
 - **The "Alerts" frame (`510:3008`) pins Semantics to Dark,** so the
   Feedback page shows only Dark. The set itself has no pinned mode. Clear
   the frame's explicit mode.
+
+
+**Changed in Figma on 2 Nov 2026** (decision add-alert-action): Alert has **Show Action** (default off) and an Action button, Button / Small Style=Text ("Retry"), between the text and the dismiss button, as Toast places its action. Code: `showAction`, `action` (the label) and `onAction`; a `Button variant="text" size="small"`. Its label is `action/tertiary/content/default`: 5.58–8.66:1 on every Type's fill. Figma can't expose the label as an Alert text property (it sits inside a nested Button instance), so designers override it. With the action, Compact is 56px tall in code (53 in Figma: its raw 10 top and bottom vs code's `space/12`).
 
 ### Toast (29 Oct 2026)
 
@@ -4598,6 +4604,9 @@ Code departs from Figma here:
 
 Figma gaps the code doesn't copy:
 - **The frame holding it on the Navigation page ("Account, Theme & Mobile") is pinned to Semantics Dark** (mode `1:2`). The component itself pins nothing. Clear the frame's explicit mode.
+
+
+**Changed in Figma on 2 Nov 2026** (decision add-account-menu-changelog, U07): a **Changelog** row (Menu / Item, Type=Default, no icon, like the others) after Settings, before the divider and Logout. Code: `ACCOUNT_MENU_ITEMS` gains `{ item: 'changelog', label: 'Changelog' }`; `onSelect('changelog')` asks the app to open the what's-new dialog (ChangelogModal).
 
 ### UserActions (30 Oct 2026)
 

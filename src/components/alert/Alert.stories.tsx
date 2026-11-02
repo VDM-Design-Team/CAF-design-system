@@ -22,6 +22,7 @@ const meta = {
     title: 'Alert title',
     message: 'Supporting message for this alert.',
     onDismiss: fn(),
+    onAction: fn(),
   },
   argTypes: {
     type: { control: 'select', options: ALERT_TYPES },
@@ -72,6 +73,65 @@ export const Dismiss: Story = {
     await expect(canvas.queryByRole('status')).not.toBeInTheDocument();
   },
 };
+
+/* A token's computed colour in the current theme, measured before any waitFor. */
+function colourOf(token: string) {
+  const probe = document.createElement('span');
+  probe.style.color = `var(--color-${token})`;
+  document.body.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
+
+/**
+ * Show Action + Action: a small Text button after the text ("Retry" on a list
+ * that failed to load), before the dismiss button. `onAction` runs when it is pressed.
+ */
+const withAction = (theme: 'light' | 'dark'): Story => ({
+  name: `With Action — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: (args) => (
+    <div className="flex w-96 flex-col gap-4">
+      {ALERT_TYPES.map((type) => (
+        <Alert
+          key={type}
+          type={type}
+          title="Couldn’t load the costs"
+          message="Check your connection, then try again."
+          action="Retry"
+          showAction
+          showDismiss
+          onAction={args.onAction}
+          data-type={type}
+        />
+      ))}
+      <Alert type="error" size="compact" message="Couldn’t load the costs." action="Retry" showAction data-type="compact" />
+    </div>
+  ),
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ args, canvasElement }) => {
+    const label = colourOf('action-tertiary-content-default');
+    const canvas = within(canvasElement);
+    for (const type of ALERT_TYPES) {
+      const alert = canvasElement.querySelector<HTMLElement>(`[data-type="${type}"]`)!;
+      const [action, dismiss] = within(alert).getAllByRole('button');
+      // Action, then Dismiss, in that order; the label in action.tertiary.content.
+      await expect(action).toHaveAccessibleName('Retry');
+      await expect(dismiss).toHaveAccessibleName('Dismiss');
+      await waitFor(() => expect(getComputedStyle(action).color).toBe(label));
+    }
+    await userEvent.click(within(canvasElement.querySelector<HTMLElement>('[data-type="error"]')!).getByRole('button', { name: 'Retry' }));
+    await expect(args.onAction).toHaveBeenCalledTimes(1);
+    // Without Show Action, no action button.
+    await expect(canvas.getAllByRole('button', { name: 'Retry' })).toHaveLength(ALERT_TYPES.length + 1);
+  },
+});
+
+export const WithActionLight = withAction('light');
+export const WithActionDark = withAction('dark');
 
 /** The dismiss button with the keyboard: Tab reaches it, Enter dismisses. */
 export const DismissWithKeyboard: Story = {

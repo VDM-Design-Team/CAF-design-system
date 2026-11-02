@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../lib/cn';
+import { Button } from '../button';
 import { Icon, type IconName } from '../icon';
 import { IconButton } from '../icon-button';
 
@@ -18,6 +19,9 @@ import { IconButton } from '../icon-button';
  *   compact (one line: the message only; Figma hides the title layer).
  * - Title        → `title` (Body/sm-semibold). Default size only.
  * - Message      → `message` (Caption/md-regular).
+ * - Show Action + Action (since 2 Nov 2026) → `showAction` (default false)
+ *   and `action`, its label ("Retry"): a Button (Small, Style=Text) after the
+ *   text, as Toast places its action. `onAction` runs when it is pressed.
  * - Show Dismiss → `showDismiss` (default false, as in Figma): an IconButton
  *   ("x", Ghost, 32). Pressing it hides the alert and calls `onDismiss`.
  *
@@ -71,6 +75,12 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
   title?: React.ReactNode;
   /** Figma Message, in Caption/md-regular. */
   message?: React.ReactNode;
+  /** Figma Action: the action button's label ("Retry"). */
+  action?: string;
+  /** Figma Show Action. Default false. */
+  showAction?: boolean;
+  /** Called when the action button is pressed. */
+  onAction?: () => void;
   /** Figma Show Dismiss. Default false. */
   showDismiss?: boolean;
   /** Called when the dismiss button is pressed, after the alert hides itself. */
@@ -81,7 +91,20 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
 
 export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
   (
-    { type = 'info', size = 'default', title, message, showDismiss = false, onDismiss, dismissLabel = 'Dismiss', className, ...props },
+    {
+      type = 'info',
+      size = 'default',
+      title,
+      message,
+      action,
+      showAction = false,
+      onAction,
+      showDismiss = false,
+      onDismiss,
+      dismissLabel = 'Dismiss',
+      className,
+      ...props
+    },
     ref,
   ) => {
     const [dismissed, setDismissed] = React.useState(false);
@@ -100,6 +123,12 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           {size === 'default' && title != null && <p className="text-body-sm-semibold">{title}</p>}
           {message != null && <p className="text-caption-md-regular">{message}</p>}
         </div>
+        {showAction && action && (
+          /* Figma's Action: Button / Small, Style=Text, between the text and the dismiss button. */
+          <Button variant="text" size="small" className="shrink-0" onClick={onAction}>
+            {action}
+          </Button>
+        )}
         {showDismiss && (
           <IconButton
             icon="x"

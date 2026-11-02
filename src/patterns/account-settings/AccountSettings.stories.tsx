@@ -214,11 +214,12 @@ export const AccountMenuOpen: Story = {
     await expect(within(menu).getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
       'Manage Currencies',
       'Settings',
+      'Changelog',
       'Logout',
     ]);
-    // Figma's divider sits between Settings and Logout.
+    // Figma's divider sits between Changelog and Logout.
     const separator = within(menu).getByRole('separator');
-    await expect(separator.previousElementSibling).toHaveTextContent('Settings');
+    await expect(separator.previousElementSibling).toHaveTextContent('Changelog');
     await expect(separator.nextElementSibling).toHaveTextContent('Logout');
   },
 };
