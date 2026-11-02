@@ -360,7 +360,7 @@ export const RetryAndDelete: Story = {
     await expect(within(rowOf(table, '6840')).getByText('Processing')).toBeVisible();
     await expect(stat(canvasElement, 'Failed')).toBe('337');
     await expect(stat(canvasElement, 'Processing')).toBe('1');
-    const notifications = within(canvas.getByRole('region', { name: 'Notifications' }));
+    const notifications = within(screen.getByRole('region', { name: 'Notifications' }));
     await expect(notifications.getByText(toastMessages.exportStarted)).toBeVisible();
     await userEvent.click(notifications.getByRole('button', { name: 'Dismiss' }));
 

@@ -196,7 +196,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const notifications = (canvasElement: HTMLElement) =>
-  within(within(canvasElement).getByRole('region', { name: 'Notifications' }));
+  within(screen.getByRole('region', { name: 'Notifications' }));
 
 /** A row's cells' text, by draft id. */
 const rowCells = (canvasElement: HTMLElement, id: string) =>

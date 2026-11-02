@@ -181,7 +181,8 @@ export const SingleCost: Story = {
         amount: 900,
       },
     ]);
-    await expect(await canvas.findByText('Cost submitted for review.')).toBeVisible();
+    // The toast stack is on <body>, outside the canvas.
+    await expect(await screen.findByText('Cost submitted for review.')).toBeVisible();
   },
 };
 

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
@@ -231,7 +231,7 @@ export const PageActions: Story = {
     await userEvent.keyboard('{Enter}');
     await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
     await expect(button).toHaveFocus();
-    const notifications = within(canvas.getByRole('region', { name: 'Notifications' }));
+    const notifications = within(screen.getByRole('region', { name: 'Notifications' }));
     await waitFor(() => expect(notifications.getByText(EXPORT_STARTED)).toBeVisible());
   },
 };

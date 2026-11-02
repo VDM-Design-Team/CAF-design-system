@@ -288,7 +288,7 @@ const actions = (canvasElement: HTMLElement, id: string) =>
 const menuItems = (menu: HTMLElement) => within(menu).getAllByRole('menuitem').map((i) => i.textContent);
 /* The toast stack is the page's live region; a toast's X dismisses it, so the snapshot ends without one. */
 async function expectToast(canvasElement: HTMLElement, message: string) {
-  const stack = within(canvasElement).getByRole('region', { name: 'Notifications' });
+  const stack = screen.getByRole('region', { name: 'Notifications' });
   await within(stack).findByText(message);
   await userEvent.click(within(stack).getAllByRole('button', { name: 'Dismiss' })[0]);
   await waitFor(() => expect(within(stack).queryByText(message)).toBeNull());

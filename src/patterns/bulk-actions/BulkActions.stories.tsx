@@ -171,7 +171,7 @@ const rowIds = (table: HTMLTableElement) =>
 const rowOf = (table: HTMLTableElement, id: string) => table.querySelector<HTMLTableRowElement>(`tr[data-id="${id}"]`)!;
 const changeStatus = (canvasElement: HTMLElement) => within(canvasElement).queryByRole('button', { name: /^Change Status/ });
 async function expectToast(canvasElement: HTMLElement, message: string) {
-  const stack = within(canvasElement).getByRole('region', { name: 'Notifications' });
+  const stack = screen.getByRole('region', { name: 'Notifications' });
   await within(stack).findByText(message);
   // Dismissed, so the snapshot ends without a timed toast in it.
   await userEvent.click(within(stack).getAllByRole('button', { name: 'Dismiss' })[0]);

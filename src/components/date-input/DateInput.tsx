@@ -89,10 +89,6 @@ const dateInputClasses = [
   'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50',
 ];
 
-/* The calendar draws its own surface (Date Picker / Calendar: radius 12,
-   padding 16, Elevation 3), so the Popover's panel only positions it. */
-const panelClasses = 'rounded-12 bg-transparent p-0 shadow-none inset-ring-0';
-
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** The local day a `yyyy-mm-dd` string names, or null when it isn't a real date ("2026-02-30"). */
@@ -235,7 +231,8 @@ export const DateInput = React.forwardRef<HTMLButtonElement, DateInputProps>(fun
       /* The calendar's name is the field's: its aria-label, its aria-labelledby, or the FormField's label. */
       label={ariaLabel}
       panelProps={{ 'aria-labelledby': ariaLabelledby ?? field?.labelId }}
-      panelClassName={panelClasses}
+      /* The calendar draws its own surface (Date Picker / Calendar: radius 12, padding 16, Elevation 3). */
+      surface={false}
     >
       <Calendar value={date} onChange={choose} today={today} />
     </Popover>

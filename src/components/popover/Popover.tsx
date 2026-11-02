@@ -46,7 +46,6 @@ export const popoverSurface =
 const panel = cva(
   [
     'absolute z-50 w-max text-left',
-    popoverSurface,
     /* Focusable only so a click on the panel's padding doesn't drop focus to the body. Never in the tab order. */
     'focus:outline-none',
   ],
@@ -56,8 +55,10 @@ const panel = cva(
       placement: { bottom: 'top-full mt-1', top: 'bottom-full mb-1' },
       /* Which edge of the panel lines up with the same edge of the trigger. */
       align: { left: 'left-0', right: 'right-0' },
+      /* Off when the content draws its own surface (Date Picker / Calendar, / Range): the panel only positions it. */
+      surface: { true: popoverSurface, false: '' },
     },
-    defaultVariants: { placement: 'bottom', align: 'left' },
+    defaultVariants: { placement: 'bottom', align: 'left', surface: true },
   },
 );
 
@@ -109,6 +110,12 @@ export interface PopoverProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   label?: string;
   /** The panel's role, which also sets the trigger's `aria-haspopup`. MenuDropdown passes `"menu"`. */
   panelRole?: PopoverPanelRole;
+  /**
+   * Menu / Dropdown's surface on the panel (fill, stroke, radius, elevation,
+   * padding). Default true. Turn it off when the content draws its own, as
+   * Calendar and RangeCalendar do: the panel then only positions it.
+   */
+  surface?: boolean;
   /** Merged onto the panel with `cn()`. `className` styles the wrapper. */
   panelClassName?: string;
   /** For a component built on Popover: props for the panel, such as its keyboard handler. */
@@ -139,6 +146,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     autoFocus = false,
     label,
     panelRole,
+    surface = true,
     panelClassName,
     panelProps,
     panelRef: panelRefProp,
@@ -295,7 +303,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
           tabIndex={panelProps?.tabIndex ?? -1}
           data-placement={side.placement}
           data-align={side.align}
-          className={cn(panel({ placement: side.placement, align: side.align }), panelClassName, panelProps?.className)}
+          className={cn(panel({ placement: side.placement, align: side.align, surface }), panelClassName, panelProps?.className)}
         >
           {children}
         </div>

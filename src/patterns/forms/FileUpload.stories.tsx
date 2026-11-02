@@ -75,7 +75,7 @@ function chooseFiles(input: HTMLInputElement, files: File[]) {
 }
 
 const notifications = (canvasElement: HTMLElement) =>
-  within(within(canvasElement).getByRole('region', { name: 'Notifications' }));
+  within(screen.getByRole('region', { name: 'Notifications' }));
 
 /* ── Steps 1–3: attach invoices ──────────────────────────────────────────── */
 

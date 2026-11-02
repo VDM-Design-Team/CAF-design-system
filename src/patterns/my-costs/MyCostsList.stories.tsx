@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { AppHeader, APP_HEADER_USER_PAGES, type AppHeaderLink } from '../../components/app-header';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { ToastProvider } from '../../components/toast';
@@ -176,7 +176,7 @@ export const ExportInvoices: Story = {
     await userEvent.keyboard('{ArrowDown}{Enter}');
     await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
     await expect(button).toHaveFocus();
-    const notifications = within(canvas.getByRole('region', { name: 'Notifications' }));
+    const notifications = within(screen.getByRole('region', { name: 'Notifications' }));
     await waitFor(() => expect(notifications.getByText(EXPORT_STARTED)).toBeVisible());
   },
 };

@@ -366,9 +366,8 @@ const open = (theme: 'light' | 'dark'): Story => ({
     // The dialog only places the calendar: no surface of its own.
     const panel = getComputedStyle(dialog);
     await expect(panel.backgroundColor).toBe('rgba(0, 0, 0, 0)');
-    // No elevation and no stroke: Tailwind keeps its shadow layers, each at 0px.
-    const layers = panel.boxShadow.split(/,(?![^(]*\))/);
-    await expect(layers.every((layer) => layer.includes('0px 0px 0px 0px'))).toBe(true);
+    // No elevation and no stroke (Popover's surface={false}).
+    await expect(panel.boxShadow).toBe('none');
     await expect(panel.padding).toBe('0px');
     // Date Picker / Calendar: surface.neutral.faint, 1px stroke.subtle inside, radius 12, padding 16.
     const surface = getComputedStyle(calendar);

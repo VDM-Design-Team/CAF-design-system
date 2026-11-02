@@ -362,3 +362,29 @@ export const MobileMenuOpen: Story = {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   },
 };
+
+/**
+ * `defaultMenuOpen`: the Mobile Menu is open from the first render, so nothing
+ * opened it. Closing it still puts focus on ☰, not on the page's body.
+ */
+export const MobileMenuOpenFromTheStart: Story = {
+  args: { defaultMenuOpen: true },
+  globals: { viewport: MOBILE },
+  parameters: { controls: { disable: true }, chromatic: MOBILE_SNAPSHOT },
+  // An open menu covers the docs page and makes it inert.
+  tags: ['!autodocs'],
+  play: async ({ args, canvasElement }) => {
+    const banner = within(canvasElement).getByRole('banner');
+    if (isDesktop()) {
+      // test:static's 1280 width: the menu closes itself above 768px.
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      return;
+    }
+    const menu = await screen.findByRole('dialog', { name: 'Menu' });
+    await waitFor(() => expect(within(menu).getByRole('button', { name: 'Close menu' })).toHaveFocus());
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(args.onMenuOpenChange).toHaveBeenLastCalledWith(false);
+    await expect(within(banner).getByRole('button', { name: 'Open menu' })).toHaveFocus();
+  },
+};
