@@ -126,7 +126,7 @@ Known overlaps, to settle once design answers the questions below:
 **What Figma draws that it doesn't.** Real-looking email addresses and contact-form messages on the screens. These are replaced with fictional ones on example.com. The library's own sample people (Admin Account, Maria Santos, John Reyes, Ana Cruz) are kept.
 
 **Design questions.**
-- Status Pill has no Paid or Rejected variant.
+- ~~Status Pill has no Paid or Rejected variant.~~ Added on 2 Nov 2026 (Approved, Paid, Rejected, Stopped, Inactive).
 - The library's sample cost 32430 has three different amounts (121:2782, 121:2957, 520:1873).
 - Audit Logs tag "Updated" as Completed on the screen (2102:5857) but as Info in pattern 08 (526:5189).
 
@@ -153,7 +153,7 @@ Known overlaps, to settle once design answers the questions below:
 The confirm dialog and toast after a destructive action belong to patterns 03 and 04.
 
 **Design questions.**
-- Paid and Rejected statuses (no Status Pill variants).
+- ~~Paid and Rejected statuses (no Status Pill variants).~~ Added on 2 Nov 2026.
 - Selected outline vs fill (464:950).
 - Breakdown block (121:2956).
 - Header checkbox cell width (89:1126).
@@ -783,8 +783,7 @@ components (or left out) until the library and code have it.
 - **A table layout for phones**: Figma has no mobile list screens (2102:4, 2102:3). Rows as cards, or a table that scrolls in its own region (which needs a portalled MenuDropdown so the ••• menus aren't clipped).
 
 **Statuses**
-- **Status Pill Approved, Paid and Rejected** (Status Pill on the Tags page). Stand-ins: Active for Approved and Paid, Tag Status=Error for Rejected.
-- **An inactive status for announcements** (and a Stopped status for recurring costs, raised as a design question). Stand-in: Tag status=neutral "Inactive" / "Stopped".
+- ~~**Status Pill Approved, Paid and Rejected**~~ and ~~**Inactive / Stopped**~~: added to Status Pill on 2 Nov 2026; the costs, recurring costs and announcements tables use them.
 
 **Filters**
 - **Filter / Field – Select**: a Filter / Field Dropdown (95:10) that opens Select / Menu (456:631) with the chosen option checked and the listbox keyboard (used by every dropdown filter: 529:6175, 528:5796, U04 545:18882). Stand-ins: `FilterMenu` (in `filters/CostsFilterBar.tsx` and in `overview/`), a FilterField that opens MenuDropdown + MenuItem, which has no selected mark.

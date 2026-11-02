@@ -5,7 +5,6 @@ import { PaymentRow } from '../../components/payment-row';
 import { PaymentSchedules } from '../../components/payment-schedules';
 import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
-import { Tag } from '../../components/tag';
 import { useToast } from '../../components/toast';
 import { formatDate, formatFrequency, formatShortDate, recurringCosts } from '../fixtures';
 import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
@@ -54,7 +53,7 @@ const COLUMNS: RecordsTableColumn<EditableRecurringCost>[] = [
     header: 'Status',
     cell: (row) => (
       <TableCell type="tag">
-        {row.status === 'active' ? <StatusPill status="active">Active</StatusPill> : <Tag status="neutral">Stopped</Tag>}
+        <StatusPill status={row.status}>{row.status === 'active' ? 'Active' : 'Stopped'}</StatusPill>
       </TableCell>
     ),
   },

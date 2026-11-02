@@ -1,3 +1,4 @@
+import type { StatusPillStatus } from '../components/status-pill';
 /**
  * Sample data for the Patterns and Templates stories. Plain, typed data: no
  * randomness, dates as fixed ISO strings, so stories and snapshots are stable.
@@ -149,9 +150,9 @@ export const userRoles: UserRole[] = ['Admin', 'User', 'Restricted User'];
 /* ── Costs (Admin and User → Costs; Table / Row – Cost 121:2782) ──────────── */
 
 /**
- * A cost's status. Figma draws two Status Pills: Pending (Status=Pending) and
- * Approved (Status=Active), and the bulk Change Status menu offers Reject,
- * Approve and Mark as Paid (pattern 07, 524:4713). `costStatusPill` maps them.
+ * A cost's status: Pending, Approved, Rejected or Paid, as the bulk Change
+ * Status menu offers them (pattern 07, 524:4713). Each is a Status Pill
+ * variant (`costStatusPill`).
  */
 export type CostStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 
@@ -166,17 +167,15 @@ export const costStatusLabel: Record<CostStatus, string> = {
 };
 
 /**
- * How the Status column shows each status. Pending and Approved are Figma's
- * (Status Pill Pending / Active). Figma has no pill for Paid or Rejected:
- * Paid takes Active (the Admin Costs screen, 2102:5749, puts it on the
- * Pending pill), and Rejected stands in with a Tag (Status=Error). Both are
- * design questions in docs/patterns.md.
+ * How the Status column shows each status: Status Pill's own variant for each
+ * (Pending orange, Approved blue, Paid green, Rejected red, as U01 asks;
+ * added to the library on 2 Nov 2026).
  */
-export const costStatusPill: Record<CostStatus, { component: 'status-pill'; status: 'pending' | 'active' } | { component: 'tag'; status: 'error' }> = {
-  pending: { component: 'status-pill', status: 'pending' },
-  approved: { component: 'status-pill', status: 'active' },
-  paid: { component: 'status-pill', status: 'active' },
-  rejected: { component: 'tag', status: 'error' },
+export const costStatusPill: Record<CostStatus, StatusPillStatus> = {
+  pending: 'pending',
+  approved: 'approved',
+  paid: 'paid',
+  rejected: 'rejected',
 };
 
 /** "Tabs / Cost Type": All | Recurring | Single. */

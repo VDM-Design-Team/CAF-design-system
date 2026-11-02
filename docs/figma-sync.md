@@ -232,7 +232,8 @@ Figma gaps the code doesn't copy:
 ### StatusPill (22 Oct 2026)
 
 Source: page **Tags** (`89:858`), set `Status Pill` (`446:11344`): Status
-(Pending, Active) and a Label text property. It's the filled pill in the
+(Pending, Active, and since 2 Nov 2026 Approved, Paid, Rejected, Stopped,
+Inactive) and a Label text property. It's the filled pill in the
 Costs and Recurring Costs tables, nested in every cost row (128 instances
 on the CAF screens). Its labels there are "Pending", "Recurring" and
 "Active". Code: `src/components/status-pill/`. Every colour binding is
@@ -258,6 +259,17 @@ Contrast: every label passes AA.
 |---|---|---|
 | Pending | 5.18 | 7.20 |
 | Active | 6.81 | 4.77 |
+| Approved (`accent/info/filled`) | 5.25 | 5.36 |
+| Paid (`accent/success/filled`) | 4.95 | 6.27 |
+| Rejected (`accent/critical/filled`) | 4.77 | 5.30 |
+| Stopped, Inactive (`neutral/filled`) | 4.76 | 7.87 |
+
+Added in Figma on 2 Nov 2026 (decisions add-status-pill-approved-paid-rejected
+and add-inactive-stopped-statuses): Approved, Paid and Rejected in U01's blue,
+green and red (545:13232), Stopped and Inactive neutral. Each binds the
+accent's (or neutral's) filled surface and content pair, as Active binds
+action.primary's. They replace the patterns' stand-ins (Active for Approved and
+Paid, Tag Error for Rejected, a neutral Tag for Stopped and Inactive).
 
 Figma gaps the code copies exactly:
 

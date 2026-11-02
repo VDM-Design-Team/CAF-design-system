@@ -9,7 +9,6 @@ import { TableDetailLabel } from '../../components/table-detail-label';
 import { TableExpandButton } from '../../components/table-expand-button';
 import { TableHeaderCell, type TableSort } from '../../components/table-header-cell';
 import { TableRow } from '../../components/table-row';
-import { Tag } from '../../components/tag';
 import {
   accountLine,
   costStatusLabel,
@@ -86,14 +85,9 @@ export function nextCostSort(sort: CostSort | null | undefined, column: CostSort
   return { column, direction: sort?.column === column && sort.direction === 'ascending' ? 'descending' : 'ascending' };
 }
 
-/** The Status column: Figma's Status Pill (Pending, Active), or a Tag where Figma has no pill (Rejected). */
+/** The Status column: the status's Status Pill (Pending, Approved, Paid, Rejected). */
 export function CostStatusBadge({ status }: { status: CostStatus }) {
-  const look = costStatusPill[status];
-  return look.component === 'tag' ? (
-    <Tag status={look.status}>{costStatusLabel[status]}</Tag>
-  ) : (
-    <StatusPill status={look.status}>{costStatusLabel[status]}</StatusPill>
-  );
+  return <StatusPill status={costStatusPill[status]}>{costStatusLabel[status]}</StatusPill>;
 }
 
 /**

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { RowActionsMenu } from '../../components/row-actions-menu';
+import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
 import { TableRow } from '../../components/table-row';
-import { Tag } from '../../components/tag';
 import { cn } from '../../lib/cn';
 import type { Announcement } from '../fixtures';
 
@@ -15,8 +15,8 @@ import type { Announcement } from '../fixtures';
  * Features); docs/patterns.md asks which set is right.
  *
  * - Version: "v2.5.6", as the screen prints it.
- * - Status: a Tag, Active (Status=Active) or Inactive (Status=Neutral). Only
- *   active announcements are shown to users.
+ * - Status: Status Pill Active or Inactive. Only active announcements are
+ *   shown to users.
  * - Actions: the row's ••• menu (`rowActions`), named "Actions for
  *   <title> v<version>" (titles repeat: "New Update Available").
  *
@@ -68,7 +68,7 @@ export const AnnouncementsTable = React.forwardRef<HTMLTableElement, Announcemen
             <TableCell>v{announcement.version}</TableCell>
             <TableCell>{announcement.audience}</TableCell>
             <TableCell type="tag">
-              {announcement.active ? <Tag status="active">Active</Tag> : <Tag status="neutral">Inactive</Tag>}
+              {announcement.active ? <StatusPill status="active">Active</StatusPill> : <StatusPill status="inactive">Inactive</StatusPill>}
             </TableCell>
             {rowActions && (
               <TableCell type="actions" className="w-1">

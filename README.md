@@ -186,6 +186,7 @@ names. A component that a second brand needs moves up to GDL.
 </TableRow>
 
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
+<StatusPill status="paid">Paid</StatusPill>                     // Status=Paid (also approved, rejected, stopped, inactive)
 <Tag status="completed">Completed</Tag>                          // tonal, with its icon
 <Tag status="error" showIcon={false}>Deleted</Tag>
 
@@ -471,8 +472,9 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `selected`. Put a checked `Checkbox` in a selected row too; that's what
   screen readers announce. On a selected row, cells darken their secondary
   text and links so they pass AA on its tint.
-- `StatusPill` is Figma's Status Pill: `status` is `pending` (default) or
-  `active`, and the label is `children`. It has no states.
+- `StatusPill` is Figma's Status Pill: `status` is `pending` (default),
+  `active`, `approved`, `paid`, `rejected`, `stopped` or `inactive`, and the
+  label is `children`. It has no states.
 - `MenuDropdown` is Figma's Menu / Dropdown: `trigger` is the control that
   opens it (a `Button` or `IconButton`), and the `MenuItem`s are `children`.
   It is a `role="menu"` named by its trigger. Enter, Space or ↓ opens it on
