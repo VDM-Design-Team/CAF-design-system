@@ -31,7 +31,7 @@ const GLYPH = {
 const box = [
   'peer size-full shrink-0 cursor-pointer appearance-none',
   /* State=Deselected */
-  'rounded-2 border border-stroke-default bg-surface-base',
+  'rounded-2 border border-stroke-field bg-surface-base',
   /* State=Hover — defined for an unchecked box only */
   'not-checked:not-indeterminate:enabled:hover:border-stroke-strong',
   /* State=Selected and Mixed-State: action.primary fill, the same border, radius 4 */

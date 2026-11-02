@@ -250,8 +250,8 @@ export const SubmitsWithForm: Story = {
    Helper. Focus is forced with storybook-addon-pseudo-states. */
 
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { defaultValue: 'Card' }, text: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { defaultValue: 'Card' }, text: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { defaultValue: 'Card' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',
@@ -265,13 +265,13 @@ const STATES = [
     text: 'text-subtle',
     stroke: ['stroke-subtle', 1],
   },
-  { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Helper', props: { helper: 'Used for every payment.' }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
+  { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Helper', props: { helper: 'Used for every payment.' }, text: 'text-subtle', stroke: ['stroke-field', 1] },
   {
     state: 'With Edit',
     props: { defaultValue: 'Card', edit: true },
     text: 'text-primary',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
 ] as const;
 

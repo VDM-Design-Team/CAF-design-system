@@ -186,8 +186,8 @@ export const SubmitsWithForm: Story = {
    States, and the Helper. Focus is forced with storybook-addon-pseudo-states. */
 
 const STATES = [
-  { state: 'Default', props: {}, value: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { defaultValue: 'QA Test' }, value: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, value: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { defaultValue: 'QA Test' }, value: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { defaultValue: 'QA Test' }, value: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',
@@ -201,12 +201,12 @@ const STATES = [
     value: 'text-subtle',
     stroke: ['stroke-subtle', 1],
   },
-  { state: 'Required', props: { required: true }, value: 'text-subtle', stroke: ['stroke-subtle', 1] },
+  { state: 'Required', props: { required: true }, value: 'text-subtle', stroke: ['stroke-field', 1] },
   {
     state: 'Helper',
     props: { helper: 'As it appears on the invoice.' },
     value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
 ] as const;
 

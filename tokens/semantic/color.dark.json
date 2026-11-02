@@ -122,6 +122,9 @@
         "stronger": {
           "$value": "{color.caf-blue.200}"
         }
+      },
+      "track": {
+        "$value": "{color.slate.400}"
       }
     },
     "action": {
@@ -497,6 +500,9 @@
         "stronger": {
           "$value": "{color.caf-blue.100}"
         }
+      },
+      "field": {
+        "$value": "{color.slate.400}"
       }
     },
     "accent": {

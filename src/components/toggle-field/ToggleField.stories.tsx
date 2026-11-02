@@ -212,7 +212,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const label = tokenColour('text-primary');
     const description = tokenColour('text-secondary');
     const marker = tokenColour('accent-critical-tonal-content-default');
-    const off = tokenColour('neutral-tonal-surface-default');
+    const off = tokenColour('surface-track');
     const on = tokenColour('action-primary-surface-default');
     await waitFor(
       () => {

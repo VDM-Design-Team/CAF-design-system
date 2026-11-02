@@ -340,7 +340,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       label: tokenColour('text-secondary'),
       marker: tokenColour('accent-critical-tonal-content-default'),
       fill: tokenColour('surface-elevated-secondary'),
-      stroke: insetStroke(tokenColour('stroke-subtle'), 1),
+      stroke: insetStroke(tokenColour('stroke-field'), 1),
       value: tokenColour('text-primary'),
       placeholder: tokenColour('text-subtle'),
       glyph: tokenColour('accent-critical-tonal-content-default'),

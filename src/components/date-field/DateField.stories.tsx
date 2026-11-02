@@ -261,13 +261,13 @@ const STATES = [
     state: 'Default',
     props: {},
     text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Filled',
     props: { defaultValue: '2026-09-01' },
     text: 'text-primary',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Focus',
@@ -291,13 +291,13 @@ const STATES = [
     state: 'Required',
     props: { required: true },
     text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Helper',
     props: { helper: 'The first payment goes out on this date.' },
     text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
 ] as const;
 

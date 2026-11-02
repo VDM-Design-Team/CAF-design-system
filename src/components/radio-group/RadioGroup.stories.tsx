@@ -285,7 +285,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const option = tokenColour('text-primary');
     const helper = tokenColour('text-subtle');
     const selected = insetStroke(tokenColour('action-primary-surface-default'), 2);
-    const resting = insetStroke(tokenColour('stroke-strong'), 1);
+    const resting = insetStroke(tokenColour('stroke-field'), 1);
+    // Disabled keeps Figma's stroke/strong (at 50%).
+    const restingDisabled = insetStroke(tokenColour('stroke-strong'), 1);
     const hover = insetStroke(tokenColour('stroke-focused'), 1);
     await waitFor(
       () => {
@@ -309,8 +311,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(options.map((o) => getComputedStyle(o).color)).toEqual(options.map(() => option));
           // The radios: All is Selected; Admin is Hover in the first group; Disabled is 50%.
           expect(getComputedStyle(radios[0]).boxShadow).toContain(selected);
-          expect(getComputedStyle(radios[1]).boxShadow).toContain(state === 'Default' ? hover : resting);
-          expect(getComputedStyle(radios[2]).boxShadow).toContain(resting);
+          expect(getComputedStyle(radios[1]).boxShadow).toContain(state === 'Default' ? hover : state === 'Disabled' ? restingDisabled : resting);
+          expect(getComputedStyle(radios[2]).boxShadow).toContain(state === 'Disabled' ? restingDisabled : resting);
           for (const radio of radios)
             expect(getComputedStyle(radio.parentElement!).opacity).toBe(state === 'Disabled' ? '0.5' : '1');
           // The Helper (or the error in its place): Caption/md-regular, text.subtle, 8px under the options.

@@ -389,8 +389,8 @@ export const ErrorOpen: Story = {
    edge), the 40px text inset and the height. */
 
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',

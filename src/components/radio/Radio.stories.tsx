@@ -91,7 +91,7 @@ export const Keyboard: Story = {
    Hover is forced with storybook-addon-pseudo-states. */
 
 const STATES = [
-  { state: 'Deselected', props: {}, stroke: ['stroke-strong', 1], dot: false, opacity: '1' },
+  { state: 'Deselected', props: {}, stroke: ['stroke-field', 1], dot: false, opacity: '1' },
   { state: 'Hover', props: {}, stroke: ['stroke-focused', 1], dot: false, opacity: '1' },
   { state: 'Selected', props: { defaultChecked: true }, stroke: ['action-primary-surface-default', 2], dot: true, opacity: '1' },
   { state: 'Disabled', props: { disabled: true }, stroke: ['stroke-strong', 1], dot: false, opacity: '0.5' },

@@ -153,13 +153,13 @@ const STATES = [
     state: 'Default',
     props: {},
     value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Filled',
     props: { defaultValue: 'Monthly team salary, split by cost center.' },
     value: 'text-primary',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Focus',

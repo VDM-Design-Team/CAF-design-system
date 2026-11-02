@@ -117,8 +117,8 @@ export const Disabled: Story = {
    variables Figma binds in that state. */
 
 const STATES = [
-  { state: 'Default', props: {}, value: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { defaultValue: 'Acme Ltd' }, value: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, value: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { defaultValue: 'Acme Ltd' }, value: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { defaultValue: 'Acme Ltd' }, value: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',

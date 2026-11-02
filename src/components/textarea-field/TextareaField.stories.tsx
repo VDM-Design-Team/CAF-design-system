@@ -211,13 +211,13 @@ const STATES = [
     state: 'Default',
     props: {},
     value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Filled',
     props: { defaultValue: NOTE },
     value: 'text-primary',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Focus',
@@ -241,13 +241,13 @@ const STATES = [
     state: 'Required',
     props: { required: true },
     value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
   {
     state: 'Helper',
     props: { helper: 'Only the finance team sees this.' },
     value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    stroke: ['stroke-field', 1],
   },
 ] as const;
 

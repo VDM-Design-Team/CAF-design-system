@@ -45,6 +45,15 @@ connector) and committed as plain JSON. This is the same process GDL uses.
 
 Brand Primitives have `"s": []`, meaning hidden from pickers.
 
+## Tokens added on 2 Nov 2026
+
+`stroke/field` and `surface/track`, GDL's recommended `stroke.field` and
+`surface.track`, are in the Semantics collection. Both alias GDL's slate 500
+(Light) and slate 400 (Dark); GDL's reference `surface.track` (slate 200 /
+800) is below 3:1, so the track uses the same steps as the field border.
+Bound to: the five inputs' Default and Filled border, Filter / Field,
+Radio Deselected, Checkbox's unchecked border, and Toggle's off track.
+
 ## CI guard
 
 CI runs `npm run import:figma` and fails if `tokens/` changes. So `tokens/`
@@ -142,16 +151,11 @@ Code departs from Figma here:
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The unchecked border is below WCAG 1.4.11,** which wants 3:1 for a
-  control's boundary.
-  - Light: `stroke/default` on `surface/base` is 1.48:1; Hover's
-    `stroke/strong` is 2.56:1.
-  - Dark: 1.93:1 and 3.07:1.
-
-  GDL's contract recommends `stroke.field` ("Resting border of a form
-  control. Must reach 3:1"), which CAF doesn't have yet. Binding the
-  Checkbox border to it would fix this. axe doesn't check non-text
-  contrast, so the story tests can't catch it.
+- **The unchecked border reaches 3:1 since 2 Nov 2026.** Changed in Figma
+  on 2 Nov 2026: it was `stroke/default` (1.48:1 Light, 1.93:1 Dark on
+  `surface/base`) and is now the new `stroke/field` (4.76:1 / 5.71:1).
+  Hover is still `stroke/strong` (2.56 / 3.07), now lighter than rest in
+  Light: rebinding Hover to `stroke/stronger` is open for the designer.
 - **The corner radius changes on check.** Deselected and Hover use radius 2
   (the inner rectangle); Selected and Mixed-State use radius 4.
 - **Selected and Mixed-State keep the `stroke/default` border** around the
@@ -738,13 +742,11 @@ Code departs from Figma here:
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11,** which wants 3:1 for a
-  field's edge. `stroke/subtle` is 1.23:1 (Light) and 1.72:1 (Dark) on the
-  fill, and 1.18 / 1.72 on the canvas. In Light the fill is white on a
-  `#F8FAFC` page (1.05), so the stroke is the only edge. GDL's contract
-  recommends `stroke.field` (as for Checkbox). Among the existing strokes,
-  only `stroke/stronger` passes in both themes (7.58 / 12.02). axe doesn't
-  check non-text contrast, so the story tests can't catch it.
+- **The resting stroke reaches 3:1 since 2 Nov 2026.** Changed in Figma on
+  2 Nov 2026: Default and Filled moved from `stroke/subtle` (1.23:1 Light,
+  1.72:1 Dark on the fill) to the new `stroke/field` (4.76:1 / 6.96:1), on
+  _Text Input, _Dropdown Input, _Date Input, _Combobox Input and _Textarea
+  alike. Disabled keeps `stroke/subtle` at 50%.
 - **Disabled is 50% layer opacity** over Default's fill and stroke, with
   the text in `text/subtle`. Pagination / Item's Disabled uses
   `text/disabled` instead, and GDL has no opacity token.
@@ -1338,7 +1340,7 @@ Contrast:
 |---|---|---|
 | `text/primary` (value, query) | 20.17 | 17.85 |
 | `text/subtle` (placeholder, icons, ×) | 4.76 | 6.96 |
-| `stroke/strong` (border), on the field / on the bar's `surface/neutral/faint` | **2.56 / 2.45** | 3.75 / 3.75 |
+| `stroke/field` (border, since 2 Nov 2026; was `stroke/strong`, 2.56 / 2.45 in Light), on the field / on the bar's `surface/neutral/faint` | 4.76 / 4.55 | 6.96 / 6.96 |
 | `stroke/focused` (code's focus ring), on the bar | 6.51 | 6.51 |
 
 Figma's raw icon grey, before the 29 Oct fix, was **2.52** in Light (7.08
@@ -3012,9 +3014,9 @@ Contrast (WCAG 1.4.11 wants 3:1 for a control's parts):
 | Checked=true track on `surface/canvas` | 6.51 | 4.63 |
 | Checked=true track on `surface/base` | 6.81 | 3.80 |
 | Knob on the Checked=true track | 6.81 | 4.77 |
-| Checked=false track on `surface/canvas` | **1.18** | **2.36** |
-| Checked=false track on `surface/base` | **1.23** | **1.93** |
-| Knob on the Checked=false track | **1.23** | **2.42** |
+| Checked=false track (`surface/track`, since 2 Nov 2026) on `surface/canvas` | 4.55 | 6.96 |
+| Checked=false track on `surface/base` | 4.76 | 5.71 |
+| Knob on the Checked=false track | 4.76 | 7.16 |
 | Focus ring (`stroke/focused`) on `surface/canvas` | 6.51 | 6.51 |
 
 Disabled is exempt.
@@ -3036,12 +3038,12 @@ Code departs from Figma here:
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **Checked=false is below WCAG 1.4.11** in both themes (the table
-  above). In Light the white knob on a `#E2E8F0` track on a `#F8FAFC`
-  page is nearly invisible: 1.23:1 and 1.18:1. `surface/neutral/strong`
-  for the off track would give 4.55 / 12.02 on the canvas and 4.76 /
-  12.37 for the knob on it. axe doesn't check non-text contrast, so the
-  story tests can't catch it.
+- **Checked=false reaches 3:1 since 2 Nov 2026.** Changed in Figma on
+  2 Nov 2026: the off track moved from `neutral/tonal/surface/default`
+  (1.18:1 Light, 2.36:1 Dark on the canvas) to the new `surface/track`
+  (the table above). Checked=false, Disabled=true keeps the tonal track at
+  50%. On and off tracks are now 1.43 / 1.5:1 apart; the knob's position
+  still shows the state.
 - **Disabled is 50% layer opacity**, where Pagination / Item, Date Picker /
   Day and Button use their own disabled colours (`text/disabled`,
   `action/primary/surface/disabled`).
@@ -3073,8 +3075,8 @@ Contrast (3:1 for the radio's edge and dot):
 
 | Pair | Light | Dark |
 |---|---|---|
-| Deselected stroke (`stroke/strong`) on the fill | **2.56** | 3.75 |
-| Deselected stroke on `surface/canvas` | **2.45** | 3.75 |
+| Deselected stroke (`stroke/field`, since 2 Nov 2026; was `stroke/strong`, 2.56 / 2.45 in Light) on the fill | 4.76 | 6.96 |
+| Deselected stroke on `surface/canvas` | 4.55 | 6.96 |
 | Hover stroke (`stroke/focused`) on the fill | 6.81 | 6.51 |
 | Selected stroke and dot (`action/primary/surface/default`) on the fill | 6.81 | 4.63 |
 | Focus ring (`stroke/focused`) on `surface/canvas` | 6.51 | 6.51 |
@@ -3097,10 +3099,9 @@ Code departs from Figma here:
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11 in Light**: `stroke/strong`
-  is 2.56:1 on the white fill and 2.45:1 on the canvas (Dark passes,
-  3.75). `stroke/stronger` passes in both themes (7.58 / 12.02). axe
-  doesn't check non-text contrast, so the story tests can't catch it.
+- **The resting stroke reaches 3:1 since 2 Nov 2026.** Changed in Figma
+  on 2 Nov 2026: Deselected moved from `stroke/strong` (2.56:1 Light) to
+  the new `stroke/field`. Disabled keeps `stroke/strong` at 50%.
 - **Disabled is 50% layer opacity**, as on Toggle (see there).
 - **No Error state.** RadioGroup's `error` shows the message and sets
   `aria-invalid`, but the radios look the same.
@@ -3325,7 +3326,7 @@ the row's end and the 16px gap.
 
 Contrast, on `surface/canvas` (and `surface/base`): the label 19.28
 (20.17) Light / 17.85 (14.63) Dark, the description 9.90 (10.35) / 14.48
-(11.87). The switch's are Toggle's (its Checked=false track fails 3:1).
+(11.87). The switch's are Toggle's (its Checked=false track reaches 3:1 since 2 Nov 2026).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):

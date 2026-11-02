@@ -890,7 +890,8 @@ Merge that as the release PR, then create a GitHub release tagged
 - Every semantic pair meets WCAG AA in Light and Dark: text and labels
   4.5:1, the focus ring and component borders 3:1. `npm test` runs
   `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
-- No `stroke.field` or `surface.track` yet. GDL recommends both.
+- Field and control borders use `stroke.field`, and toggle tracks `surface.track`
+  (GDL's recommended names), so both reach 3:1.
 
 ## Figma
 

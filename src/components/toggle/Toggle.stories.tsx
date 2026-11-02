@@ -191,7 +191,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   afterEach: async ({ canvasElement }) => {
-    const off = tokenColour('neutral-tonal-surface-default');
+    const off = tokenColour('surface-track');
+    // Checked=false, Disabled=true keeps Figma's neutral.tonal track.
+    const offDisabled = tokenColour('neutral-tonal-surface-default');
     const on = tokenColour('action-primary-surface-default');
     const knobFill = tokenColour('action-primary-content-default');
     await waitFor(
@@ -202,10 +204,10 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const knob = input.nextElementSibling!;
           const track = input.getBoundingClientRect();
           const dot = knob.getBoundingClientRect();
-          // Track: 36 × 20, a pill, neutral.tonal off and action.primary on.
+          // Track: 36 × 20, a pill: surface.track off (neutral.tonal when disabled), action.primary on.
           expect([track.width, track.height]).toEqual([36, 20]);
           expect(getComputedStyle(input).borderRadius).toBe('1000px');
-          expect(getComputedStyle(input).backgroundColor).toBe(variant.checked ? on : off);
+          expect(getComputedStyle(input).backgroundColor).toBe(variant.checked ? on : variant.disabled ? offDisabled : off);
           // Knob: 16px, action.primary.content, 2px in from the start (off) or the end (on).
           expect([dot.width, dot.height]).toEqual([16, 16]);
           expect(getComputedStyle(knob).backgroundColor).toBe(knobFill);

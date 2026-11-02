@@ -182,8 +182,8 @@ export const SubmitsWithForm: Story = {
    its States, and the Helper. Focus is forced with storybook-addon-pseudo-states. */
 
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Filled', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-subtle', 1] },
+  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Filled', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-field', 1] },
   { state: 'Focus', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
   {
     state: 'Error',
@@ -192,8 +192,8 @@ const STATES = [
     stroke: ['accent-critical-outline-border-default', 1],
   },
   { state: 'Disabled', props: { disabled: true }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Helper', props: { helper: 'Where the cost is incurred.' }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
+  { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-field', 1] },
+  { state: 'Helper', props: { helper: 'Where the cost is incurred.' }, text: 'text-subtle', stroke: ['stroke-field', 1] },
   // Last, so its list opens over nothing.
   { state: 'Open', props: { defaultOpen: true }, text: 'text-subtle', stroke: ['stroke-focused', 2] },
 ] as const;
