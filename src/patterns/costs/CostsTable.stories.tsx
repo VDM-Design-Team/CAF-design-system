@@ -70,7 +70,7 @@ const meta = {
       description: {
         component:
           'The Costs list’s table: a story-level organism (`src/patterns/costs/CostsTable.tsx`), not a DS component. ' +
-          'It composes TableHeaderCell, TableRow, TableCell, Checkbox, TableExpandButton, TableAccountDetails, ' +
+          'It composes TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell, Checkbox, TableExpandButton, TableAccountDetails, ' +
           'StatusPill and RowActionsMenu the way the CAF Figma library draws **Table / Header – Costs** (121:4938, ' +
           'Selected false / true / Mixed) and **Table / Row – Cost** (121:2782, Expanded; Selectable 121:5197). ' +
           'Headers sort (a new column ascending, the same one flips); the header checkbox selects every row shown, ' +
@@ -104,6 +104,13 @@ export const Default: Story = {
     // Before them, the (visually hidden) Details header and the select-all checkbox; after them, Actions.
     await expect(headers).toEqual(['Details', '', 'Account', 'Invoice #', 'Amount', 'Payment Method', 'Status', 'Date Submitted', 'Actions']);
     await expect(within(table).getByRole('checkbox', { name: 'Select all costs' })).toBeVisible();
+    // Table / Header Row: each label sits 16 in, at the x of the cell content under it (Account Details, the amount).
+    const first = rowOf(table, SCREEN_IDS[0]);
+    for (const [name, column] of [['Account', 3], ['Amount', 5]] as const) {
+      const label = within(table).getByRole('button', { name }).getBoundingClientRect().left;
+      const content = first.querySelector(`td:nth-child(${column}) > div > *`)!.getBoundingClientRect().left;
+      await expect(label).toBe(content);
+    }
     // A recurring cost carries the "Recurring" pill under its account lines; a single one doesn't.
     await expect(within(rowOf(table, '37022')).getByText('Recurring')).toBeVisible();
     await expect(within(rowOf(table, '37023')).queryByText('Recurring')).not.toBeInTheDocument();

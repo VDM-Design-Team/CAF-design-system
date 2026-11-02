@@ -49,7 +49,7 @@ const meta = {
       description: {
         component:
           'The Recurring Costs list’s table: a story-level organism (`src/patterns/recurring/RecurringCostsTable.tsx`), ' +
-          'not a DS component. It composes TableHeaderCell, TableRow, TableCell, StatusPill (Tag for Stopped) and ' +
+          'not a DS component. It composes TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell, StatusPill (Tag for Stopped) and ' +
           'RowActionsMenu the way the CAF Figma library draws **Table / Header – Recurring Costs** (260:1021), ' +
           '**Table / Row – Recurring Cost** (260:1000) and **Table / Recurring Costs** (260:1065). Headers sort (a new ' +
           'column ascending, the same one flips; Frequency by its length in days). Rows are the User Recurring Costs ' +

@@ -185,8 +185,8 @@ function CostRow({
             {state}
           </th>
         )}
-        {/* Expand Button and Checkbox: centred both ways, as in Figma. */}
-        <TableCell type="actions">
+        {/* Expand Button in Table / Cell Type=Custom, as Figma's Header Row example places it; the Checkbox centred. */}
+        <TableCell type="custom">
           <TableExpandButton
             label={`Show details for cost ${id}`}
             expanded={expanded}
@@ -197,8 +197,8 @@ function CostRow({
         <TableCell type="checkbox">
           <Checkbox aria-label={`Select cost ${id}`} checked={selected} onChange={onSelect ?? (() => {})} />
         </TableCell>
-        {/* Account Details is a nested component, so it goes in a cell type that takes children. */}
-        <TableCell type="tag" className="w-75">
+        {/* Account Details is a nested component: Table / Cell Type=Custom holds it. */}
+        <TableCell type="custom" className="w-75">
           <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
             <Lines id={id} />
           </TableAccountDetails>

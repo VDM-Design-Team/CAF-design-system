@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { cn } from '../../lib/cn';
 import { RowActionsMenu } from '../../components/row-actions-menu';
 import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell, type TableSort } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { formatDate, formatFrequency, type FrequencyUnit, type RecurringCost } from '../fixtures';
 
@@ -20,9 +21,9 @@ import { formatDate, formatFrequency, type FrequencyUnit, type RecurringCost } f
  * - `Table / Recurring Costs` (260:1065): the header over the rows.
  *
  * Figma → code:
- * - The header row → TableHeaderCells in a row with a stroke.subtle line
- *   under it, as CostsTable draws Header – Costs. Sortable when
- *   `onSortChange` is given (`sortRecurringCosts`, `nextRecurringSort`).
+ * - Table / Recurring Costs → a TableList. The header row → a TableHeaderRow
+ *   (Table / Header Row, with Show Actions) of TableHeaderCells, sortable
+ *   when `onSortChange` is given (`sortRecurringCosts`, `nextRecurringSort`).
  * - The rows → TableRows. Created By → TableCell `two-line`; Status →
  *   `RecurringStatusBadge`; the ••• → RowActionsMenu with `rowActions`.
  * - Figma's fixed column widths (80, 308, 140 …) are left to the table's
@@ -110,14 +111,17 @@ export const RecurringCostsTable = React.forwardRef<HTMLTableElement, RecurringC
 ) {
   const columnCount = RECURRING_COLUMNS.length + (rowActions ? 1 : 0);
   return (
-    <table ref={ref} aria-label={ariaLabel} className={cn('w-full border-collapse', className)} {...table}>
-      <thead>
-        {/* Table / Header – Recurring Costs: no fill, a stroke.subtle line under it. */}
-        <tr className="border-b border-stroke-subtle">
+    <TableList
+      ref={ref}
+      aria-label={ariaLabel}
+      className={className}
+      {...table}
+      header={
+        /* Table / Header Row: no fill, a stroke.subtle line under it. */
+        <TableHeaderRow showActions={!!rowActions}>
           {RECURRING_COLUMNS.map(({ key, label }) => (
             <TableHeaderCell
               key={key}
-              className="px-4"
               sortable={!!onSortChange}
               sort={sort?.column === key ? sort.direction : 'none'}
               onSort={() => onSortChange?.(nextRecurringSort(sort, key))}
@@ -125,43 +129,37 @@ export const RecurringCostsTable = React.forwardRef<HTMLTableElement, RecurringC
               {label}
             </TableHeaderCell>
           ))}
+        </TableHeaderRow>
+      }
+    >
+      {rows.length === 0 && empty && (
+        <TableRow>
+          <TableCell type="custom" colSpan={columnCount}>
+            {empty}
+          </TableCell>
+        </TableRow>
+      )}
+      {rows.map((cost) => (
+        <TableRow key={cost.id} data-id={cost.id}>
+          <TableCell>{cost.id}</TableCell>
+          <TableCell type="two-line" primary={cost.createdBy.name} secondary={cost.createdBy.email} />
+          <TableCell>{formatFrequency(cost.frequency)}</TableCell>
+          <TableCell type="tag">
+            <RecurringStatusBadge status={cost.status} />
+          </TableCell>
+          <TableCell>{cost.applicant.name}</TableCell>
+          <TableCell>{cost.applicant.email}</TableCell>
+          <TableCell>{formatDate(cost.createdAt)}</TableCell>
           {rowActions && (
-            <TableHeaderCell className="w-1 px-4">
-              <span className="sr-only">Actions</span>
-            </TableHeaderCell>
+            <TableCell type="actions" className="w-1">
+              <RowActionsMenu label={`Actions for recurring cost ${cost.id}`} defaultOpen={cost.id === defaultMenuOpenFor}>
+                {rowActions(cost)}
+              </RowActionsMenu>
+            </TableCell>
           )}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 && empty && (
-          <TableRow>
-            <TableCell type="tag" colSpan={columnCount}>
-              {empty}
-            </TableCell>
-          </TableRow>
-        )}
-        {rows.map((cost) => (
-          <TableRow key={cost.id} data-id={cost.id}>
-            <TableCell>{cost.id}</TableCell>
-            <TableCell type="two-line" primary={cost.createdBy.name} secondary={cost.createdBy.email} />
-            <TableCell>{formatFrequency(cost.frequency)}</TableCell>
-            <TableCell type="tag">
-              <RecurringStatusBadge status={cost.status} />
-            </TableCell>
-            <TableCell>{cost.applicant.name}</TableCell>
-            <TableCell>{cost.applicant.email}</TableCell>
-            <TableCell>{formatDate(cost.createdAt)}</TableCell>
-            {rowActions && (
-              <TableCell type="actions" className="w-1">
-                <RowActionsMenu label={`Actions for recurring cost ${cost.id}`} defaultOpen={cost.id === defaultMenuOpenFor}>
-                  {rowActions(cost)}
-                </RowActionsMenu>
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
-      </tbody>
-    </table>
+        </TableRow>
+      ))}
+    </TableList>
   );
 });
 RecurringCostsTable.displayName = 'RecurringCostsTable';

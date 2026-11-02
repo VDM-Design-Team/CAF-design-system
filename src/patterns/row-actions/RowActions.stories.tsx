@@ -12,6 +12,8 @@ import { RowActionsMenu } from '../../components/row-actions-menu';
 import { SelectField } from '../../components/select-field';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { TextField } from '../../components/text-field';
 import { ToastProvider, useToast } from '../../components/toast';
@@ -159,38 +161,34 @@ function CostCentresPage({ menuOpenFor, confirmFor: initialConfirm, onSave }: Pa
       <main className="flex flex-col gap-6 pb-64">
         {/* Add New is pattern 05's (Create or edit in a modal). */}
         <PageHeader title="Cost Centers" actions={<Button leftIcon={<Icon name="plus" />}>Add New</Button>} />
-        <table ref={tableRef} aria-label="Cost centers" className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-stroke-subtle">
+        <TableList
+          ref={tableRef}
+          aria-label="Cost centers"
+          header={
+            <TableHeaderRow showActions>
               {['Cost center', 'Nature of Service', 'Location'].map((label) => (
-                <TableHeaderCell key={label} className="px-4">
-                  {label}
-                </TableHeaderCell>
+                <TableHeaderCell key={label}>{label}</TableHeaderCell>
               ))}
-              <TableHeaderCell className="w-1 px-4">
-                <span className="sr-only">Actions</span>
-              </TableHeaderCell>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((cc) => (
-              <TableRow key={cc.id} data-id={cc.id}>
-                <TableCell>{cc.name}</TableCell>
-                <TableCell>{cc.natureOfService}</TableCell>
-                <TableCell>{cc.location}</TableCell>
-                <TableCell type="actions" className="w-1">
-                  {/* "Most lists": Edit, then Delete, last and red. */}
-                  <RowActionsMenu label={`Actions for ${cc.name}`} defaultOpen={cc.id === menuOpenFor}>
-                    <MenuItem onClick={() => setEditing(cc.id)}>Edit</MenuItem>
-                    <MenuItem destructive onClick={() => setConfirmFor(cc.id)}>
-                      Delete
-                    </MenuItem>
-                  </RowActionsMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+            </TableHeaderRow>
+          }
+        >
+          {rows.map((cc) => (
+            <TableRow key={cc.id} data-id={cc.id}>
+              <TableCell>{cc.name}</TableCell>
+              <TableCell>{cc.natureOfService}</TableCell>
+              <TableCell>{cc.location}</TableCell>
+              <TableCell type="actions" className="w-1">
+                {/* "Most lists": Edit, then Delete, last and red. */}
+                <RowActionsMenu label={`Actions for ${cc.name}`} defaultOpen={cc.id === menuOpenFor}>
+                  <MenuItem onClick={() => setEditing(cc.id)}>Edit</MenuItem>
+                  <MenuItem destructive onClick={() => setConfirmFor(cc.id)}>
+                    Delete
+                  </MenuItem>
+                </RowActionsMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableList>
       </main>
 
       {/* Pattern 04's confirmation: the title asks, the message names the record, the red button repeats the verb. */}

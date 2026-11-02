@@ -3,16 +3,17 @@ import { RowActionsMenu } from '../../components/row-actions-menu';
 import { SkeletonTableRow } from '../../components/skeleton-table-row';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { Tag } from '../../components/tag';
-import { cn } from '../../lib/cn';
 import { emailOf, exportStatusTag, exportTypeLabel, type ExportRecord } from '../fixtures';
 
 /**
  * ExportsTable — a story-level organism, not a DS component: the Exports
  * list as pattern 13 draws it (Screen · Exports overview, 529:6211). Figma
- * draws it as a frame of Table / Header Cells and Table / Rows, not a
- * library component.
+ * draws it as a frame of Table / Header Cells and Table / Rows; here it is
+ * the library's plain list table, a TableList with its TableHeaderRow.
  *
  * - Name: Table / Cell Two Line, the file name over "Zip · 253 B".
  * - Created By: Two Line, the person over their email.
@@ -45,62 +46,53 @@ export const ExportsTable = React.forwardRef<HTMLTableElement, ExportsTableProps
 ) {
   const columnCount = EXPORTS_COLUMNS.length + (rowActions ? 1 : 0);
   return (
-    <table
+    <TableList
       ref={ref}
       aria-label={ariaLabel}
       aria-busy={loading || undefined}
-      className={cn('w-full border-collapse', className)}
+      className={className}
       {...table}
-    >
-      <thead>
-        <tr className="border-b border-stroke-subtle">
+      header={
+        <TableHeaderRow showActions={!!rowActions}>
           {EXPORTS_COLUMNS.map((label) => (
-            <TableHeaderCell key={label} className="px-4">
-              {label}
-            </TableHeaderCell>
+            <TableHeaderCell key={label}>{label}</TableHeaderCell>
           ))}
-          {rowActions && (
-            <TableHeaderCell className="w-1 px-4">
-              <span className="sr-only">Actions</span>
-            </TableHeaderCell>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {loading && Array.from({ length: 4 }, (_, i) => <SkeletonTableRow key={i} columns={columnCount} />)}
-        {!loading && rows.length === 0 && empty && (
-          <TableRow>
-            <TableCell type="tag" colSpan={columnCount}>
-              {empty}
-            </TableCell>
-          </TableRow>
-        )}
-        {!loading &&
-          rows.map((record) => {
-            const status = exportStatusTag[record.status];
-            return (
-              <TableRow key={record.id} data-id={record.id}>
-                <TableCell
-                  type="two-line"
-                  primary={record.name}
-                  secondary={`${exportTypeLabel[record.type]} · ${record.size}`}
-                />
-                <TableCell type="two-line" primary={record.createdBy} secondary={emailOf(record.createdBy)} />
-                <TableCell type="status-date" date={record.createdAt}>
-                  <Tag status={status.status}>{status.label}</Tag>
+        </TableHeaderRow>
+      }
+    >
+      {loading && Array.from({ length: 4 }, (_, i) => <SkeletonTableRow key={i} columns={columnCount} />)}
+      {!loading && rows.length === 0 && empty && (
+        <TableRow>
+          <TableCell type="custom" colSpan={columnCount}>
+            {empty}
+          </TableCell>
+        </TableRow>
+      )}
+      {!loading &&
+        rows.map((record) => {
+          const status = exportStatusTag[record.status];
+          return (
+            <TableRow key={record.id} data-id={record.id}>
+              <TableCell
+                type="two-line"
+                primary={record.name}
+                secondary={`${exportTypeLabel[record.type]} · ${record.size}`}
+              />
+              <TableCell type="two-line" primary={record.createdBy} secondary={emailOf(record.createdBy)} />
+              <TableCell type="status-date" date={record.createdAt}>
+                <Tag status={status.status}>{status.label}</Tag>
+              </TableCell>
+              <TableCell>{downloads[record.id] ?? 0}</TableCell>
+              {rowActions && (
+                <TableCell type="actions" className="w-1">
+                  {/* Named by the file name: the pattern's table shows no ID. */}
+                  <RowActionsMenu label={`Actions for ${record.name}`}>{rowActions(record)}</RowActionsMenu>
                 </TableCell>
-                <TableCell>{downloads[record.id] ?? 0}</TableCell>
-                {rowActions && (
-                  <TableCell type="actions" className="w-1">
-                    {/* Named by the file name: the pattern's table shows no ID. */}
-                    <RowActionsMenu label={`Actions for ${record.name}`}>{rowActions(record)}</RowActionsMenu>
-                  </TableCell>
-                )}
-              </TableRow>
-            );
-          })}
-      </tbody>
-    </table>
+              )}
+            </TableRow>
+          );
+        })}
+    </TableList>
   );
 });
 ExportsTable.displayName = 'ExportsTable';

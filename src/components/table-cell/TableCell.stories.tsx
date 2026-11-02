@@ -1,9 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Checkbox } from '../checkbox';
+import { EmptyState } from '../empty-state';
 import { StatusPill } from '../status-pill';
+import { TableAccountDetails } from '../table-account-details';
+import { TableDetailLabel } from '../table-detail-label';
+import { TableExpandButton } from '../table-expand-button';
 import { Tag } from '../tag';
+import { Toggle } from '../toggle';
 import { TableCell } from './TableCell';
 
 /* A stand-in for a component that isn't built yet (Row Actions). Dashed and
@@ -53,10 +58,12 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Table** (`Table / Cell`, the generic body cell). It is a `<td>`. ' +
-          '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list` and `status-date`. ' +
-          'Value is `children`; Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
+          '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list`, `status-date` and ' +
+          '`custom`. Value is `children`; Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
           'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`, Status + Date ' +
-          'takes `Tag`. The row actions button is not built yet, so the stories show a labelled stand-in.',
+          'takes `Tag`. Custom’s Content slot is `children`: any content or control at its own size (Account Details, a ' +
+          'Toggle, the Expand Button, a Checkbox, an Empty State across the row). The grids show a labelled stand-in for ' +
+          'the row actions button.',
       },
     },
   },
@@ -136,6 +143,10 @@ const TYPES: { label: string; cell: ReactNode }[] = [
     label: 'Status + Date',
     cell: <TableCell className="w-45" type="status-date" date="2026-10-08"><Tag status="completed">Completed</Tag></TableCell>,
   },
+  {
+    label: 'Custom',
+    cell: <TableCell className="w-50" type="custom"><Toggle aria-label="Enable Albanian Lek" defaultChecked /></TableCell>,
+  },
 ];
 
 const types = (theme: 'light' | 'dark'): Story => ({
@@ -185,3 +196,114 @@ export const InARow: Story = {
   ),
   parameters: { controls: { disable: true } },
 };
+
+/* ── Type=Custom, in Light and Dark ────────────────────────────────────────
+   Figma's Content slot holds any content or control at its own size, with
+   the other types' padding: 16 at the sides, 12 above and below, the
+   content vertically centred and at the start. Figma's examples (772:1406):
+   Account Details, a Toggle (Manage Currencies' Enabled), and the Expand
+   Button and Checkbox; plus an Empty State across a row. */
+
+const CUSTOM: { label: string; cell: ReactNode; content: string }[] = [
+  {
+    label: 'Account Details',
+    content: '[data-content="account"]',
+    cell: (
+      <TableCell type="custom">
+        <TableAccountDetails data-content="account" categoryTag={<StatusPill>Recurring</StatusPill>}>
+          <TableDetailLabel>ID: 32430</TableDetailLabel>
+          <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
+          <TableDetailLabel>Beneficiary name: Geekee Ltd</TableDetailLabel>
+        </TableAccountDetails>
+      </TableCell>
+    ),
+  },
+  {
+    label: 'Toggle',
+    content: 'input[role="switch"]',
+    cell: (
+      <TableCell className="w-50" type="custom">
+        <Toggle aria-label="Enable Afghan Afghani" defaultChecked />
+      </TableCell>
+    ),
+  },
+  {
+    label: 'Expand Button',
+    content: 'button',
+    cell: (
+      <TableCell type="custom">
+        <TableExpandButton label="Show details for cost 32430" />
+      </TableCell>
+    ),
+  },
+  {
+    label: 'Checkbox',
+    content: 'input[type="checkbox"]',
+    cell: (
+      <TableCell type="custom">
+        <Checkbox aria-label="Select cost 32430" />
+      </TableCell>
+    ),
+  },
+  {
+    label: 'Empty State',
+    content: '[data-content="empty"]',
+    cell: (
+      <TableCell className="w-100" type="custom">
+        <EmptyState data-content="empty" size="compact" title="No items." />
+      </TableCell>
+    ),
+  },
+];
+
+const custom = (theme: 'light' | 'dark'): Story => ({
+  name: `Custom — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => (
+    <Table head={['Content', 'Cell']}>
+      {CUSTOM.map(({ label, cell }) => (
+        <tr key={label} className="border-b border-stroke-subtle" data-content-row={label}>
+          <th scope="row" className="px-4 text-left text-caption-md-medium text-text-secondary">
+            {label}
+          </th>
+          {cell}
+        </tr>
+      ))}
+    </Table>
+  ),
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark grid would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvasElement }) => {
+    await waitFor(() => {
+      for (const { label, content } of CUSTOM) {
+        const td = canvasElement.querySelector<HTMLElement>(`[data-content-row="${label}"] td`)!;
+        const style = getComputedStyle(td);
+        // The other types' padding: space/16 at the sides, space/12 above and below.
+        expect([style.paddingLeft, style.paddingRight, style.paddingTop, style.paddingBottom]).toEqual(['16px', '16px', '12px', '12px']);
+        expect(style.verticalAlign).toBe('middle');
+        expect(style.textAlign).toBe('left');
+        // No fill of its own; the row draws that.
+        expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+        // The content sits at the start, 16 in, and keeps its own size: it isn't stretched to the cell.
+        const slot = td.firstElementChild as HTMLElement;
+        expect(getComputedStyle(slot).alignItems).toBe('flex-start');
+        const el = (td.querySelector(content) as HTMLElement).closest('td > div > *') as HTMLElement;
+        const box = el.getBoundingClientRect();
+        const cell = td.getBoundingClientRect();
+        expect(box.left - cell.left).toBe(16);
+        expect(box.width).toBeLessThanOrEqual(cell.width - 32);
+        // Vertically centred (the cell hugs its content, 12 above and below it).
+        expect(Math.abs(box.top + box.height / 2 - (cell.top + cell.height / 2))).toBeLessThan(1);
+      }
+      // A Toggle keeps Figma's 36 × 20, and its cell is 44 tall, as Figma's Type=Custom.
+      const toggleCell = canvasElement.querySelector<HTMLElement>('[data-content-row="Toggle"] td')!;
+      const toggle = toggleCell.querySelector('input[role="switch"]')!.getBoundingClientRect();
+      expect([toggle.width, toggle.height]).toEqual([36, 20]);
+      expect(toggleCell.clientHeight).toBe(44);
+    });
+  },
+});
+
+export const CustomLight = custom('light');
+export const CustomDark = custom('dark');

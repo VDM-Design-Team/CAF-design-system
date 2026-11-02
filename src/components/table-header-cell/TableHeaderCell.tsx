@@ -21,9 +21,17 @@ import { Icon, type IconName } from '../icon';
  * Figma. The cell has no fill or
  * border: the header row draws those. Where code departs from Figma, the
  * reason is in docs/figma-sync.md ("TableHeaderCell").
+ *
+ * Padding: the component's own 6px (space.6). Inside a TableHeaderRow it
+ * takes the rows' cell padding instead, space.16 at the sides and space.12
+ * above and below, as Figma's Header Row sets on its Header Cells, so the
+ * labels line up with the TableCells under them.
  */
 
 export type TableSort = 'none' | 'ascending' | 'descending';
+
+/** Provided by TableHeaderRow: its Header Cells take the rows' cell padding. Not exported from the package. */
+export const TableHeaderRowContext = React.createContext(false);
 
 /* Figma's sort glyphs: ArrowsDownUp, ArrowUp, ArrowDown. */
 const ARROW: Record<TableSort, IconName> = { none: 'arrows-down-up', ascending: 'arrow-up', descending: 'arrow-down' };
@@ -46,6 +54,7 @@ export interface TableHeaderCellProps extends React.ThHTMLAttributes<HTMLTableCe
 
 export const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
   ({ className, children, sortable = false, sort = 'none', onSort, scope = 'col', ...th }, ref) => {
+    const inHeaderRow = React.useContext(TableHeaderRowContext);
     const sorted = sortable && sort !== 'none';
     /* Sort=None: text/secondary label, text/tertiary arrows. Sorted: text/primary for both. */
     const label = (
@@ -56,7 +65,12 @@ export const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeade
         ref={ref}
         scope={scope}
         aria-sort={sorted ? sort : undefined}
-        className={cn('p-1.5 text-left align-middle whitespace-nowrap', className)}
+        className={cn(
+          /* Header Cell: 6px (space.6). In a Header Row: space.16 sides, space.12 top and bottom. */
+          inHeaderRow ? 'px-4 py-3' : 'p-1.5',
+          'text-left align-middle whitespace-nowrap',
+          className,
+        )}
         {...th}
       >
         {sortable ? (
