@@ -16,7 +16,7 @@ import { TableRow } from '../../components/table-row';
 import { TextField } from '../../components/text-field';
 import { ToastProvider, useToast } from '../../components/toast';
 import { costCentres, formatDate, formatShortDate, recurringCosts, rowActionLabels, type CostCentre } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { RecurringCostsTable } from '../recurring/RecurringCostsTable';
 
 /* Pattern 03, step 1 (520:1874): the Cost Centers list's four rows. */

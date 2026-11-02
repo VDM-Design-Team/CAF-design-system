@@ -16,7 +16,7 @@ import {
   type CostFilters,
 } from '../filters/CostsFilterBar';
 import { COSTS_PAGE_SIZE, exportMenuItems, type Cost, type CostType } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 
 /**
  * CostsListPage — the Costs list page as patterns 01 and U01 lay it out: a

@@ -4816,3 +4816,55 @@ Code departs from Figma here:
 Figma gaps the code doesn't copy:
 - **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** like the mobile screens in pattern 15. The code follows the page's theme.
 
+
+### PageHeader (2 Nov 2026)
+
+Source: page **Layout** (`765:15143`), component `Page Header` (`765:15400`), drafted from the design decisions (add-page-header, add-form-heading, page-actions-placement-label) and published on 2 Nov 2026. Code: `src/components/page-header/`. It replaces the patterns' story-level page header.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | horizontal, centred, gap `space/24` | `flex flex-wrap items-center gap-6` |
+| Title + Tabs | fills, gap `space/20` | `flex min-w-0 flex-1 flex-wrap items-center gap-5` |
+| Title + Description | vertical, gap `space/4` | `flex flex-col gap-1` |
+| Title (`Title`) | Heading/xl-bold, `text/primary` | `<h1>` (`headingLevel`), `text-heading-xl-bold text-text-primary` |
+| Description (`Show Description`, `Description`) | Body/sm-regular, `text/secondary` | `description`, `text-body-sm-regular text-text-secondary` |
+| Tabs Group (`Show Tabs`, `Tabs`) | a vertical Divider and a Tabs instance, gap `space/20` | `tabs`, after `<Divider orientation="vertical" aria-hidden>` |
+| Actions (`Show Actions`, `Show Secondary Action`, `Secondary Action`, `Primary Action`) | Button / Normal or Menu Trigger instances, gap `space/12` | `actions`, `flex flex-wrap items-center gap-3` |
+
+Contrast: the title 20.17 (Light) / 17.85 (Dark) on `surface/canvas`, the description 9.90 / 14.48.
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Actions | Two instance-swap slots and three booleans | One `actions` slot: the page passes its buttons, primary last | None needed |
+| Narrow screens | Fixed 1200, no wrap | Wraps: actions under the title, tabs under the title | Draw a narrow layout |
+| Heading level | (visual only) | `<h1>` by default, `headingLevel={2}` where a page already has one | None needed |
+
+### Divider (2 Nov 2026)
+
+Source: page **Layout**, set `Divider` (`765:15396`): Orientation Horizontal / Vertical, a 1px `colors/stroke/subtle` stroke inside (top or left). Code: `src/components/divider/`, a `role="separator"` with `aria-orientation`.
+
+| Orientation | Figma | Code |
+|---|---|---|
+| Horizontal | 320 × 1 (set to Fill in use) | `h-0 w-full border-t border-stroke-subtle` |
+| Vertical | 1 × 32 | `h-8 w-0 self-center border-l border-stroke-subtle` |
+
+Contrast: `stroke/subtle` is 1.23:1 on white and 1.18:1 on the canvas in Light (1.41–1.95 in Dark). The rule is decorative: it separates regions that are already apart, so WCAG 1.4.11's 3:1 doesn't apply. In PageHeader it is `aria-hidden`.
+
+### PanelCard (2 Nov 2026)
+
+Source: page **Layout**, component `Card / Panel` (`765:15457`): the Settings Card's surface (545:25208) for form pages and Settings. Code: `src/components/panel-card/`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Fill | `colors/surface/base` | `bg-surface-base` |
+| Stroke | 1px `colors/stroke/subtle`, inside | `inset-ring inset-ring-stroke-subtle` |
+| Radius | `radius/12` | `rounded-12` |
+| Padding | `space/32` | `p-8` |
+| Gap | `space/20` (vertical) | `flex flex-col gap-5` |
+| Content (`Content`, a slot) | `_Slot` placeholder | `children` |
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 578 (the form cards') | Its container's width; pages set a max width | None needed |
+
+In Light the card's fill is the same white as `surface/base` pages, so its edge is the 1.23:1 stroke only: an open design question (the review notes, "stroke/subtle under 3:1").

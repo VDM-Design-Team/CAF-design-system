@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Button } from '../../components/button';
 import { FormSectionHeader } from '../../components/form-section-header';
 import { TextField } from '../../components/text-field';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 
 /**
  * SettingsPage — a story-level composition, not a library component: U06's

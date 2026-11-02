@@ -11,7 +11,7 @@ import { ToastProvider, useToast } from '../../components/toast';
 import { auditLog, bulkStatusActions, costs, exportMenuItems, type Cost, type CostStatus } from '../fixtures';
 import { CostsTable, sortCosts, type CostSort } from '../costs/CostsTable';
 import { AuditLogsDialog } from '../expand-details/AuditLogs';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 
 /* Costs a page, as the Admin Costs screen (2102:5749) shows them. */
 const PAGE_SIZE = 8;

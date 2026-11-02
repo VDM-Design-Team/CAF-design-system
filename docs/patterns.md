@@ -76,7 +76,7 @@ Compositions the patterns share. None is exported from the package.
 | Organism | Figma | File |
 |---|---|---|
 | `CostsTable` (+ `CostBreakdownTable`, `CostStatusBadge`, `sortCosts`) | Table / Header – Costs 121:4938, Table / Row – Cost 121:2782 (+ Selectable 121:5197) | `src/patterns/costs/CostsTable.tsx` |
-| `PageHeader` | Page Header frames 518:232, 518:273, 518:557 | `src/patterns/page/PageHeader.tsx` |
+| `PageHeader` | Layout → Page Header (since 2 Nov 2026) | `src/components/page-header` (a DS component now) |
 | `CostsFilterBar` (+ `FilterBar`, `FilterMenu`, `FilterDateRange`, `filterCosts`) | Filter / Bar – Costs 256:4585, Filter / Bar 256:5338 | `src/patterns/filters/CostsFilterBar.tsx` |
 | `CostsListPage` | 01 B 518:514, U01 545:13511 | `src/patterns/list-page/CostsListPage.tsx` |
 | `AuditLogTable`, `AuditLogsDialog` | 526:4980 | `src/patterns/expand-details/AuditLogs.tsx` |
@@ -174,7 +174,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - **With description** (Announcements): the description sits 4px under the title.
 - **Dark.**
 
-**What Figma draws that the stories don't.** The 1px divider between the Costs title and its tabs, because there is no Divider component.
+**What Figma draws that the stories don't.** Nothing since 2 Nov 2026: PageHeader draws the 1px divider between the Costs title and its tabs.
 
 **Design questions.** On the Announcements screen, the actions sit below the stat row rather than right of the title (2102:6628 vs the rule in 518:247). The Costs screen's buttons differ from pattern 01 B's (icon on View Audit Logs; a Default button vs a Menu Trigger for Export).
 
@@ -210,7 +210,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **What Figma draws that the stories don't.**
 - Example B's row ••• menu and checkbox column: those are patterns 03 (row actions) and 07 (bulk selection), so each story shows one task.
 - What View Audit Logs (pattern 08's side sheet) and Add New (pattern 05's modal) open: the buttons are there, inert.
-- The 1px divider between the title and the tabs: there is no Divider component.
+- ~~The 1px divider between the title and the tabs~~: PageHeader draws it since 2 Nov 2026.
 
 **Design questions.**
 - Short lists are drawn sortable but described as not sortable.
@@ -770,9 +770,9 @@ building the patterns and templates. Each is stood in for with existing
 components (or left out) until the library and code have it.
 
 **Page structure**
-- **Page Header.** The library has no Page Header component; every page draws one as a frame (pattern 01: 518:273, 518:557; screens 2102:5749, 2102:6628; the Patterns page's own header 518:232). Stand-in: `src/patterns/page/PageHeader.tsx`, a story-level scaffold built from type-ramp utilities and slots, not exported.
-- **Divider**, including a labelled one. The 1×32 rule between the Costs title and its type tabs (2102:5749, 545:13518), the Divider instances between form sections (U04 545:18695, 545:19054, 545:19061; Form / New Cost 184:3182, 184:3260; Bulk Upload 191:459; 545:18268), and the labelled section divider "Cost Details" (545:18259). Left out; FormSectionHeader stands in for the labelled one.
-- **Card / Panel**: a surface container for form pages and settings (Form / New Cost 184:3119, Form / Bulk Upload 191:433, screens 2102:1154, 2102:6027; Settings Card 545:25208: surface.base, 1px stroke.subtle, radius 12, 32 padding, 20 gap). The forms render without it.
+- ~~**Page Header.**~~ Added on 2 Nov 2026 (`PageHeader`); every pattern and template uses it.
+- ~~**Divider**~~ Added on 2 Nov 2026 (`Divider`, plain only; the labelled one stays a Form / Section Header). The forms adopt it in a later PR.
+- ~~**Card / Panel**~~ Added on 2 Nov 2026 (`PanelCard`). The form pages and Settings adopt it in a later PR.
 - **Form heading in Title/md-bold** (184:3121, 191:435). Stand-in: PageHeader (Heading/xl-bold).
 
 **Tables**

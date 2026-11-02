@@ -9,7 +9,7 @@ import { AnnouncementsTable } from '../announcements/AnnouncementsTable';
 import { CreateAnnouncementDialog } from '../announcements/CreateAnnouncementDialog';
 import { emptyStateCopy, exportRecords, users, type Announcement } from '../fixtures';
 import { ExportDetailsDialog } from '../overview/ExportDetailsDialog';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { UsersPage } from './UsersPage';
 
 /* ── The steps' screens ─────────────────────────────────────────────────── */

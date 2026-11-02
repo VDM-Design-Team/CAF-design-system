@@ -13,7 +13,7 @@ import { ToastProvider } from '../../components/toast';
 import { sortCosts } from '../costs/CostsTable';
 import { FILTER_SLOT, FilterBar, FilterMenu } from '../filters/CostsFilterBar';
 import { costCentres, costs, exportMenuItems, LIST_TODAY } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { CostsListPage, EXPORT_STARTED } from './CostsListPage';
 
 /* ── 01 A · Basic list (Cost Centers, 518:252) ─────────────────────────────── */

@@ -6,7 +6,7 @@ import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { ToastProvider, useToast } from '../../components/toast';
 import { AppShell, useDocumentTheme } from '../app-shell/AppShell';
 import { managedCurrencies, signedInAccounts } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { ManageCurrenciesDialog } from './ManageCurrenciesDialog';
 import { SettingsPage, type AccountDetails } from './SettingsPage';
 

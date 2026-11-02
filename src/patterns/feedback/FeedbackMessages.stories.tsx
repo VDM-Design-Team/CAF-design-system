@@ -5,7 +5,7 @@ import { THEME_TOGGLE_LABELS, type ThemeToggleTheme } from '../../components/the
 import { TOAST_DURATION, ToastProvider, useToast } from '../../components/toast';
 import { UserActions } from '../../components/user-actions';
 import { toastMessages, users } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { UsersPage } from '../states/UsersPage';
 
 /* Step 1 · Toast: the result of an action (528:6052): Figma's four, newest last. They stay up here

@@ -8,7 +8,7 @@ import { TableCell } from '../../components/table-cell';
 import { useToast } from '../../components/toast';
 import { formatDate, formatFrequency, formatShortDate, recurringCosts } from '../fixtures';
 import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { RecurringCostSheet, type EditableRecurringCost, type RecurringCostUpdate } from './RecurringCostSheet';
 
 /**

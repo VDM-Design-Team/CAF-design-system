@@ -26,7 +26,7 @@ import {
   type Announcement,
 } from '../fixtures';
 import { AnnouncementsStatRow, summariseAnnouncements } from '../overview/StatRows';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { AnnouncementsTable } from './AnnouncementsTable';
 import { CreateAnnouncementDialog } from './CreateAnnouncementDialog';
 

@@ -8,7 +8,7 @@ import { useToast } from '../../components/toast';
 import { emptyStateCopy, userRoles, users as fixtureUsers, type User } from '../fixtures';
 import { AddUserDialog } from '../feedback/AddUserDialog';
 import { FilterMenu } from '../overview/FilterMenu';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { UsersTable } from './UsersTable';
 
 /**

@@ -7,7 +7,7 @@ import { TableCell } from '../../components/table-cell';
 import { useToast } from '../../components/toast';
 import { costCentres, costCentreUsage } from '../fixtures';
 import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { CostCentreDialog, type CostCentreValues } from './CostCentreDialog';
 
 /**

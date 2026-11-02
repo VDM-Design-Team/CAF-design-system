@@ -15,7 +15,7 @@ import { SideSheet } from '../../components/side-sheet';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { ToastProvider, useToast } from '../../components/toast';
 import { formatDate, formatShortDate, recurringCosts, rowActionLabels, type RecurringCost } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { EditRecurringCostForm, type RecurringCostUpdate } from './EditRecurringCostForm';
 import { RecurringCostsTable, sortRecurringCosts, type RecurringSort } from './RecurringCostsTable';
 

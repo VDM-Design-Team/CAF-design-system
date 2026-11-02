@@ -4,7 +4,7 @@ import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../../components/button';
 import { auditLog, costs } from '../fixtures';
 import { CostsTable } from '../costs/CostsTable';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { AuditLogsDialog } from './AuditLogs';
 
 /* Pattern 08's costs: the library's 32430 (its six-line breakdown) and the rows around it. */

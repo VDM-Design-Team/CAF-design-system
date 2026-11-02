@@ -17,7 +17,7 @@ import {
   toastMessages,
   type ExportRecord,
 } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { ExportDetailsDialog } from './ExportDetailsDialog';
 import { ExportsTable } from './ExportsTable';
 import { FilterMenu } from './FilterMenu';
