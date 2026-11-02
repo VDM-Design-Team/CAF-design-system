@@ -32,7 +32,8 @@ const preview: Preview = {
     // that shows it uses `a11y: { test: 'todo' }` and says where it's tracked.
     a11y: { test: 'error' },
     options: {
-      storySort: { order: ['Components', ['Button']] },
+      // The library first, then what it builds: Components (Button first), Patterns, Templates.
+      storySort: { order: ['Components', ['Button'], 'Patterns', 'Templates'] },
     },
   },
 };
