@@ -771,3 +771,44 @@ export const exportMenuItems = ['Export Costs', 'Export Invoices'] as const;
 /* ── Pattern sections ─────────────────────────────────────────────────────
    Builders: add your own data below, in a section headed with your slug
    (e.g. "── list-page ──"), so merges stay clean. */
+
+/* ── app-shell, account-settings (patterns 15 / U08 and U06; branch wf/shell) ──── */
+
+/**
+ * Who is signed in to each app, as the headers greet them: "Hi, Admin
+ * Account" (pattern 15, 530:7296) and "Hi, QA Test" (U08 and U06, 545:24751).
+ */
+export const signedInAccounts: Record<'admin' | 'user', User> = {
+  admin: users.find((u) => u.id === '109')!,
+  user: users.find((u) => u.id === '111')!,
+};
+
+/** A row of Manage Currencies (U06, 545:24755): Currency Name, Code, Enabled. */
+export interface ManagedCurrency {
+  code: string;
+  name: string;
+  enabled: boolean;
+}
+
+/**
+ * Manage Currencies' list. Figma's seven rows come first, in its order (the
+ * enabled ones, then Albanian Lek, off); the rest are more ISO currencies,
+ * off and A–Z, so the dialog's pagination has pages to turn (Figma shows 25).
+ */
+export const managedCurrencies: ManagedCurrency[] = [
+  ...currencies.map(({ code, name, enabled }) => ({ code, name, enabled })),
+  { code: 'AUD', name: 'Australian Dollar', enabled: false },
+  { code: 'BGN', name: 'Bulgarian Lev', enabled: false },
+  { code: 'CAD', name: 'Canadian Dollar', enabled: false },
+  { code: 'CZK', name: 'Czech Koruna', enabled: false },
+  { code: 'DKK', name: 'Danish Krone', enabled: false },
+  { code: 'JPY', name: 'Japanese Yen', enabled: false },
+  { code: 'NOK', name: 'Norwegian Krone', enabled: false },
+  { code: 'PLN', name: 'Polish Złoty', enabled: false },
+  { code: 'RSD', name: 'Serbian Dinar', enabled: false },
+  { code: 'SGD', name: 'Singapore Dollar', enabled: false },
+  { code: 'ZAR', name: 'South African Rand', enabled: false },
+  { code: 'SEK', name: 'Swedish Krona', enabled: false },
+  { code: 'CHF', name: 'Swiss Franc', enabled: false },
+  { code: 'TRY', name: 'Turkish Lira', enabled: false },
+];
