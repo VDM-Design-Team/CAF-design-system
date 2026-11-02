@@ -24,7 +24,7 @@ import { MenuItem } from '../menu-item';
  *   Its glyph is `text.primary`, the colour Figma binds the icon to.
  *
  * Figma's component has no properties, so the items are fixed. `onSelect`
- * gets the one the user chose ('manage-currencies', 'settings' or 'logout');
+ * gets the one the user chose ('manage-currencies', 'settings', 'changelog' or 'logout');
  * the app opens the dialog, goes to the page or signs out (pattern U06).
  *
  * Keyboard and focus are MenuDropdown's (the WAI-ARIA menu button): Enter,
@@ -36,12 +36,14 @@ import { MenuItem } from '../menu-item';
  * Where code departs from Figma, the reason is in docs/figma-sync.md
  * ("AccountMenu").
  */
-export type AccountMenuItem = 'manage-currencies' | 'settings' | 'logout';
+export type AccountMenuItem = 'manage-currencies' | 'settings' | 'changelog' | 'logout';
 
 /** Figma's rows, in order. The divider sits before Logout. */
 export const ACCOUNT_MENU_ITEMS = [
   { item: 'manage-currencies', label: 'Manage Currencies' },
   { item: 'settings', label: 'Settings' },
+  /* Added in Figma on 2 Nov 2026 (U07: the Account Menu opens the changelog). */
+  { item: 'changelog', label: 'Changelog' },
   { item: 'logout', label: 'Logout' },
 ] as const satisfies ReadonlyArray<{ item: AccountMenuItem; label: string }>;
 

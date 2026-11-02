@@ -35,7 +35,7 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Navigation** (`Navigation / Account Menu`): the menu behind the ' +
           'account icon at the right of the header. Its rows are Figma’s, in order: Manage Currencies, Settings, a ' +
-          'divider, Logout. `onSelect` gets the one chosen (`manage-currencies`, `settings` or `logout`); the app opens ' +
+          'divider, Logout. `onSelect` gets the one chosen (`manage-currencies`, `settings`, `changelog` or `logout`); the app opens ' +
           'the dialog, the page or signs out (pattern U06). The default trigger is the header’s account icon (IconButton ' +
           'size 40, User glyph, named “Account”); `trigger` replaces it. It is a MenuDropdown, flush with the trigger’s ' +
           'right edge, with the menu button keyboard pattern: Enter, Space or ↓ opens on the first item and ↑ on the ' +
@@ -102,6 +102,8 @@ export const Keyboard: Story = {
     await userEvent.keyboard('{ArrowDown}');
     await expect(item('Settings')).toHaveFocus();
     await userEvent.keyboard('{ArrowDown}');
+    await expect(item('Changelog')).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
     await expect(item('Logout')).toHaveFocus();
     await userEvent.keyboard('{ArrowDown}');
     await expect(item('Manage Currencies')).toHaveFocus();
@@ -141,7 +143,7 @@ export const Keyboard: Story = {
 };
 
 /* ── The menu open, in Light and Dark ──────────────────────────────────────
-   Figma's Navigation / Account Menu: three rows and a divider before Logout.
+   Figma's Navigation / Account Menu: four rows and a divider before Logout.
    Settings is forced to Hover, and so is the account icon in the second row,
    with storybook-addon-pseudo-states. Checked against Figma's bindings and its
    auto layout. */
@@ -197,7 +199,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     // defaultOpen doesn't move focus: a page with an open menu doesn't steal it on load.
     await expect(menu.contains(document.activeElement)).toBe(false);
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    await expect(items.map((i) => i.textContent)).toEqual(['Manage Currencies', 'Settings', 'Logout']);
+    await expect(items.map((i) => i.textContent)).toEqual(['Manage Currencies', 'Settings', 'Changelog', 'Logout']);
 
     await waitFor(
       () => {
@@ -229,11 +231,11 @@ const open = (theme: 'light' | 'dark'): Story => ({
     // Auto layout: padding 6, 2 between rows (the divider is a row), items fill the width (at least 256).
     const box = menu.getBoundingClientRect();
     await expect(box.width).toBeGreaterThanOrEqual(256);
-    const rows = [items[0], items[1], divider, items[2]].map((row) => row.getBoundingClientRect());
+    const rows = [items[0], items[1], items[2], divider, items[3]].map((row) => row.getBoundingClientRect());
     await expect(rows[0].left - box.left).toBeCloseTo(6, 1);
     await expect(rows[0].top - box.top).toBeCloseTo(6, 1);
     await expect(rows[0].width).toBeCloseTo(box.width - 12, 1);
-    await expect(rows[2].width).toBeCloseTo(box.width - 12, 1);
+    await expect(rows[3].width).toBeCloseTo(box.width - 12, 1);
     for (let r = 1; r < rows.length; r++) await expect(rows[r].top - rows[r - 1].bottom).toBeCloseTo(2, 1);
     // Below the icon, 4px away, flush with its right edge.
     const t = trigger.getBoundingClientRect();

@@ -72,7 +72,7 @@ export const Playground: Story = {
     const account = canvas.getByRole('button', { name: 'Account' });
     await userEvent.click(account);
     const menu = canvas.getByRole('menu', { name: 'Account' });
-    await expect(within(menu).getAllByRole('menuitem')).toHaveLength(3);
+    await expect(within(menu).getAllByRole('menuitem')).toHaveLength(4);
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'Manage Currencies' }));
     await expect(args.onAccountSelect).toHaveBeenCalledTimes(1);
     await expect(args.onAccountSelect).toHaveBeenLastCalledWith('manage-currencies');
@@ -114,6 +114,8 @@ export const Keyboard: Story = {
     await waitFor(() => expect(item('Manage Currencies')).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}');
     await expect(item('Settings')).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    await expect(item('Changelog')).toHaveFocus();
     await userEvent.keyboard('{ArrowDown}');
     await expect(item('Logout')).toHaveFocus();
     // Escape closes it and hands focus back to the icon.

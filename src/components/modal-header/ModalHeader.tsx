@@ -18,8 +18,10 @@ import { ModalHeaderIcon } from '../modal-header-icon';
  * - The `Modal / Header Icon` instance → ModalHeaderIcon; its glyph → `icon`.
  * - Title → `title`: Body/lg-semibold, `text.primary`, an `<h2>`.
  * - Description → `description`: Body/sm-regular, `text.subtle`.
- * - The `Modal / Close Button` instance → IconButton `icon="x"` named
- *   "Close" (Size 32, Tone Ghost), which calls `onClose`.
+ * - Header Actions: Show Actions + Actions → `actions`, IconButtons (Ghost,
+ *   32) such as Audit Logs' refresh, 4px (space.4) before the close button.
+ * - Close (Button / Icon, Ghost, 32, since 2 Nov 2026) → IconButton
+ *   `icon="x"` named "Close", which calls `onClose`.
  *
  * To name the dialog it heads, pass `titleId` (and `descriptionId`) and point
  * the Overlay's `aria-labelledby` (and `aria-describedby`) at them. It is a
@@ -33,6 +35,8 @@ export interface ModalHeaderProps extends Omit<React.HTMLAttributes<HTMLDivEleme
   description?: React.ReactNode;
   /** The icon tile's glyph. Default `calendar-blank`, as in Figma. */
   icon?: IconName;
+  /** Figma Show Actions + Actions: IconButtons beside Close (Audit Logs' refresh). */
+  actions?: React.ReactNode;
   /** The close button calls it. */
   onClose: () => void;
   /** The title's id, for the dialog's `aria-labelledby`. */
@@ -42,7 +46,7 @@ export interface ModalHeaderProps extends Omit<React.HTMLAttributes<HTMLDivEleme
 }
 
 export const ModalHeader = React.forwardRef<HTMLDivElement, ModalHeaderProps>(
-  ({ title, description, icon, onClose, titleId, descriptionId, className, ...props }, ref) => (
+  ({ title, description, icon, actions, onClose, titleId, descriptionId, className, ...props }, ref) => (
     <div ref={ref} className={cn('flex min-h-20 shrink-0 items-center gap-3 px-6 py-4', className)} {...props}>
       <ModalHeaderIcon icon={icon} />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -55,7 +59,11 @@ export const ModalHeader = React.forwardRef<HTMLDivElement, ModalHeaderProps>(
           </p>
         )}
       </div>
-      <IconButton icon="x" label="Close" onClick={onClose} />
+      {/* Header Actions: the optional actions, then Close, space.4 apart. */}
+      <div className="flex shrink-0 items-center gap-1">
+        {actions}
+        <IconButton icon="x" label="Close" onClick={onClose} />
+      </div>
     </div>
   ),
 );

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { ICON_NAMES } from '../icon';
+import { IconButton } from '../icon-button';
 import { ModalHeader } from './ModalHeader';
 
 const meta = {
@@ -42,6 +43,25 @@ export const Playground: Story = {
   play: async ({ args, canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('button', { name: 'Close' }));
     await expect(args.onClose).toHaveBeenCalledTimes(1);
+  },
+};
+
+/**
+ * Show Actions + Actions: icon buttons beside Close, 4px apart, such as Audit
+ * Logs' refresh. Close stays last.
+ */
+export const WithActions: Story = {
+  args: {
+    title: 'Audit Logs',
+    description: 'Changes to cost 32430',
+    actions: <IconButton icon="arrows-clockwise" label="Refresh" />,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [refresh, close] = canvas.getAllByRole('button');
+    await expect(refresh).toHaveAccessibleName('Refresh');
+    await expect(close).toHaveAccessibleName('Close');
+    await expect(close.getBoundingClientRect().left - refresh.getBoundingClientRect().right).toBe(4);
   },
 };
 

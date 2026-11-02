@@ -572,15 +572,18 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   same way ModalDialog does.
 - `Overlay` is the modal layer under all three: the `surface.overlay` scrim,
   the portal, the focus trap, Escape, the inert page, the scroll lock and
-  focus return. Use it with `ModalHeader` (icon, title, description, close)
+  focus return. Use it with `ModalHeader` (icon, title, description, optional
+  `actions` such as a refresh IconButton, close)
   for modals Figma composes by hand (`PaymentSchedules` is built this
   way). Point `aria-labelledby` at the header's `titleId`.
 - `Alert` is Figma's Alert, the inline banner: `type` (`info`, `success`,
   `warning`, `error`) sets the tonal colours and icon, `size` is `default`
   (title over message) or `compact` (one line, the message only), and
   `title`, `message` and `showDismiss` are Title, Message and Show
-  Dismiss. The X hides the alert and calls `onDismiss`. Error and Warning
-  are `role="alert"`; Info and Success are `role="status"`.
+  Dismiss. The X hides the alert and calls `onDismiss`. `showAction` and
+  `action` add a small Text button after the text ("Retry"), which calls
+  `onAction`. Error and Warning are `role="alert"`; Info and Success are
+  `role="status"`.
 - `Toast` is Figma's Toast: `type`, `message`, `action` (default "Undo")
   with `showAction` and `onAction`, and an X that calls `onDismiss`. Raise
   toasts with `useToast().toast({ … })` under one `ToastProvider`. They
@@ -776,8 +779,9 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   theme"); pass `aria-label` to translate it.
 - `AccountMenu` is Figma's Navigation / Account Menu. Its trigger is the
   header's account icon, an `IconButton` named "Account", and the menu
-  opens below it, flush right: Manage Currencies, Settings, a divider,
-  Logout. `onSelect` gets `manage-currencies`, `settings` or `logout`.
+  opens below it, flush right: Manage Currencies, Settings, Changelog, a
+  divider, Logout. `onSelect` gets `manage-currencies`, `settings`,
+  `changelog` (open the what's-new dialog) or `logout`.
   `trigger` replaces the icon. The keyboard works as in `MenuDropdown`.
 - `UserActions` is Figma's Navigation / User Actions, the right end of the
   top bar: the greeting, the theme toggle (with a tooltip) and the account
