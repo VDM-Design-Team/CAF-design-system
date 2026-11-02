@@ -1,0 +1,165 @@
+import * as React from 'react';
+import { MenuItem } from '../../components/menu-item';
+import { ModalConfirm } from '../../components/modal-confirm';
+import { PaymentRow } from '../../components/payment-row';
+import { PaymentSchedules } from '../../components/payment-schedules';
+import { StatusPill } from '../../components/status-pill';
+import { TableCell } from '../../components/table-cell';
+import { Tag } from '../../components/tag';
+import { useToast } from '../../components/toast';
+import { formatDate, formatFrequency, formatShortDate, recurringCosts } from '../fixtures';
+import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
+import { PageHeader } from '../page/PageHeader';
+import { RecurringCostSheet, type EditableRecurringCost, type RecurringCostUpdate } from './RecurringCostSheet';
+
+/**
+ * RecurringCostsPage — a story-level organism, not a DS component: the
+ * Recurring Costs list as pattern 06 draws it (524:2956), with its row menu
+ * wired up. It needs a ToastProvider above it.
+ *
+ * - The table: ID, Created By and Applicant (name over email), Frequency,
+ *   Status, and a ••• menu per row: Edit, View Schedules, Stop, Delete (the
+ *   Recurring Costs menu, in Figma's order; Stop only while the cost runs).
+ * - Edit (pattern 06) → RecurringCostSheet. Update saves the row, closes the
+ *   sheet and confirms with "Recurring cost #1882 updated."; focus goes back to
+ *   the row's •••.
+ * - View Schedules → Payment Schedules (U04's modal): a Payment Row per date.
+ * - Stop and Delete (pattern 04) → a destructive Modal / Confirm, then the row
+ *   changes or goes, and a success Toast.
+ */
+export interface RecurringCostsPageProps {
+  defaultRows?: readonly EditableRecurringCost[];
+  /** Called after an Update passes. */
+  onUpdate?: (id: string, update: RecurringCostUpdate, data: FormData) => void;
+  /** Start with the side sheet open on a record id. */
+  defaultEditing?: string;
+  /** The calendars' today. */
+  today?: Date;
+}
+
+const COLUMNS: RecordsTableColumn<EditableRecurringCost>[] = [
+  { header: 'ID', cell: (row) => <TableCell>#{row.id}</TableCell> },
+  {
+    header: 'Created By',
+    cell: (row) => <TableCell type="two-line" primary={row.createdBy.name} secondary={row.createdBy.email} />,
+  },
+  {
+    header: 'Applicant',
+    cell: (row) => <TableCell type="two-line" primary={row.applicant.name} secondary={row.applicant.email} />,
+  },
+  { header: 'Frequency', cell: (row) => <TableCell>{formatFrequency(row.frequency)}</TableCell> },
+  {
+    header: 'Status',
+    cell: (row) => (
+      <TableCell type="tag">
+        {row.status === 'active' ? <StatusPill status="active">Active</StatusPill> : <Tag status="neutral">Stopped</Tag>}
+      </TableCell>
+    ),
+  },
+];
+
+type Confirming = { action: 'stop' | 'delete'; id: string } | null;
+
+export function RecurringCostsPage({ defaultRows = recurringCosts, onUpdate, defaultEditing, today }: RecurringCostsPageProps) {
+  const { toast } = useToast();
+  const [rows, setRows] = React.useState<EditableRecurringCost[]>([...defaultRows]);
+  const [editingId, setEditingId] = React.useState<string | null>(defaultEditing ?? null);
+  const [scheduleId, setScheduleId] = React.useState<string | null>(null);
+  const [confirming, setConfirming] = React.useState<Confirming>(null);
+  const tableRef = React.useRef<HTMLTableElement>(null);
+  const focusAfterDelete = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    const index = focusAfterDelete.current;
+    if (index === null) return;
+    focusAfterDelete.current = null;
+    const triggers = tableRef.current?.querySelectorAll<HTMLButtonElement>('tbody [aria-haspopup="menu"]') ?? [];
+    triggers[Math.min(index, triggers.length - 1)]?.focus();
+  });
+
+  const editing = rows.find((r) => r.id === editingId);
+  const scheduled = rows.find((r) => r.id === scheduleId);
+  const target = confirming && rows.find((r) => r.id === confirming.id);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Recurring Costs" />
+      <RecordsTable
+        ref={tableRef}
+        aria-label="Recurring costs"
+        columns={COLUMNS}
+        rows={rows}
+        rowId={(row) => row.id}
+        actionsLabel={(row) => `Actions for recurring cost #${row.id}`}
+        rowActions={(row) => (
+          <>
+            <MenuItem onClick={() => setEditingId(row.id)}>Edit</MenuItem>
+            <MenuItem onClick={() => setScheduleId(row.id)}>View Schedules</MenuItem>
+            {row.status === 'active' && (
+              <MenuItem destructive onClick={() => setConfirming({ action: 'stop', id: row.id })}>
+                Stop
+              </MenuItem>
+            )}
+            <MenuItem destructive onClick={() => setConfirming({ action: 'delete', id: row.id })}>
+              Delete
+            </MenuItem>
+          </>
+        )}
+      />
+
+      {editing && (
+        <RecurringCostSheet
+          key={editing.id}
+          open
+          cost={editing}
+          today={today}
+          onClose={() => setEditingId(null)}
+          onUpdate={(update, data) => {
+            setRows((all) => all.map((r) => (r.id === editing.id ? { ...r, ...update } : r)));
+            onUpdate?.(editing.id, update, data);
+            toast({ type: 'success', message: `Recurring cost #${editing.id} updated.` });
+            setEditingId(null);
+          }}
+        />
+      )}
+
+      <PaymentSchedules open={Boolean(scheduled)} onClose={() => setScheduleId(null)}>
+        {scheduled?.schedule.map((payment) => (
+          <PaymentRow
+            key={payment.date}
+            status={payment.status}
+            date={formatDate(payment.date)}
+            subtitle={payment.status === 'done' ? `Processed on ${formatShortDate(payment.date)}` : 'Scheduled'}
+          />
+        ))}
+      </PaymentSchedules>
+
+      <ModalConfirm
+        open={Boolean(target)}
+        type="destructive"
+        title={confirming?.action === 'stop' ? 'Stop recurring cost?' : 'Delete recurring cost?'}
+        message={
+          !target
+            ? ''
+            : confirming?.action === 'stop'
+              ? `Recurring cost #${target.id} will stop, and no more payments will be scheduled.`
+              : `Recurring cost #${target.id} will be permanently deleted. This can’t be undone.`
+        }
+        confirmLabel={confirming?.action === 'stop' ? 'Stop' : 'Delete'}
+        onClose={() => setConfirming(null)}
+        onConfirm={() => {
+          if (!target || !confirming) return;
+          if (confirming.action === 'stop') {
+            setRows((all) => all.map((r) => (r.id === target.id ? { ...r, status: 'stopped' } : r)));
+            toast({ type: 'success', message: `Recurring cost #${target.id} stopped.` });
+          } else {
+            focusAfterDelete.current = rows.indexOf(target);
+            setRows((all) => all.filter((r) => r.id !== target.id));
+            toast({ type: 'success', message: `Recurring cost #${target.id} deleted.` });
+          }
+          setConfirming(null);
+        }}
+      />
+    </div>
+  );
+}

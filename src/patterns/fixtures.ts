@@ -771,3 +771,85 @@ export const exportMenuItems = ['Export Costs', 'Export Invoices'] as const;
 /* ── Pattern sections ─────────────────────────────────────────────────────
    Builders: add your own data below, in a section headed with your slug
    (e.g. "── list-page ──"), so merges stay clean. */
+
+/* ── forms ─────────────────────────────────────────────────────────────────
+   Patterns 04 Confirm destructive actions (523:2612), 05 Create or edit in a
+   modal (523:3452), 06 Edit in a side sheet (524:3609), 09 / U02 Multi-section
+   form (527:5661, 545:17897), 10 / U05 File upload (527:6028, 545:19071) and
+   U03 Save and resume drafts (545:18365). */
+
+/**
+ * The signed-in user on the User screens ("Hi, QA Test"). Form / New Cost
+ * pre-fills Applicant name and Email from the account (U02, step 2). Figma's
+ * address is a personal one; this is the fixture's QA Test.
+ */
+export const currentUser: Person = { name: 'QA Test', email: 'qa.test@example.com' };
+
+/** Cost Center options (Cost Breakdown dialog, Add New Cost Center): the distinct names, in fixture order. */
+export const costCentreNames: string[] = [...new Set(costCentres.map((c) => c.name))];
+
+/** Nature of Service options (Cost Breakdown dialog). */
+export const natureOfServices: string[] = [...new Set(costCentres.map((c) => c.natureOfService))];
+
+/** Frequency Unit options (U02's Recurring Details: Frequency Value and Frequency Unit). */
+export const frequencyUnits: FrequencyUnit[] = ['Day', 'Week', 'Month'];
+
+/** "Day" → "days": the recurrence summary ("This will recur every 1 month"). */
+export const recurrenceSummary = (value: number, unit: FrequencyUnit) =>
+  `This will recur every ${value} ${unit.toLowerCase()}${value === 1 ? '' : 's'}`;
+
+/** Pattern 10's invoice rules: what the zone's Hint lists, and why a file is turned down. */
+export const invoiceRules = {
+  accept: '.doc,.docx,.pdf,.png,.jpg,.jpeg',
+  hint: 'DOC, DOCX, PDF, PNG, JPG, JPEG accepted (Max 10.0MB)',
+  maxBytes: 10 * 1024 * 1024,
+  typeReason: 'File type not supported. Use DOC, DOCX, PDF, PNG, JPG or JPEG.',
+  sizeReason: 'File is larger than 10.0MB.',
+} as const;
+
+/** Form / Bulk Upload (191:433): CSV only. */
+export const csvRules = {
+  accept: '.csv,text/csv',
+  title: 'Click or drag CSV file to upload',
+  hint: 'Only CSV files are accepted',
+  typeReason: 'File type not supported. Upload a CSV file.',
+} as const;
+
+/** A saved attachment: the Invoices dialog (pattern 10 step 4, "Cost #32430 · 2 files"). */
+export interface Attachment {
+  name: string;
+  /** Bytes; the chip shows formatFileSize(). */
+  size: number;
+  type: string;
+}
+
+/** Each cost's saved invoices. Costs not listed have none. */
+export const costInvoices: Record<string, Attachment[]> = {
+  '32430': [
+    { name: 'invoice-september.pdf', size: 250_880, type: 'application/pdf' },
+    { name: 'receipt-0927.png', size: 1_258_291, type: 'image/png' },
+  ],
+  '32436': [{ name: 'INV-2026-0436.pdf', size: 184_320, type: 'application/pdf' }],
+};
+
+/**
+ * Pattern 09 step 4 / pattern 06's side sheet: the two breakdowns Figma lists
+ * ("Breakdown 1 · Employee Expenses · Salary · Philippines · USD 900",
+ * "Breakdown 2 · Travel Expenses · Testing · Philippines · USD 350").
+ */
+export const sampleBreakdowns: CostBreakdown[] = [
+  { title: 'Breakdown 1', amount: 900, natureOfService: 'Salary', costCentre: 'Employee Expenses', location: 'Philippines', periodFrom: '2026-11-01', periodTo: '2026-11-30' },
+  { title: 'Breakdown 2', amount: 350, natureOfService: 'Testing', costCentre: 'Travel Expenses', location: 'Philippines', periodFrom: '2026-11-01', periodTo: '2026-11-30' },
+];
+
+/**
+ * Cost centres that costs still use, so deleting them fails (pattern 04 step
+ * 4: "Couldn’t delete. This cost center is used by 12 costs."). Keyed by id.
+ */
+export const costCentreUsage: Record<string, number> = { 'cc-3': 12 };
+
+/** Pattern U05 step 5: the rows a bulk upload turned down, and why. */
+export const bulkUploadRejections = [
+  { row: 4, reason: 'Amount is missing' },
+  { row: 9, reason: 'Unknown cost center' },
+];
