@@ -8,7 +8,7 @@ import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { formatDate, type Draft } from '../fixtures';
 import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 
 /**
  * DraftsList — a story-level organism, not a DS component: the Drafts page

@@ -10,7 +10,7 @@ import { ModalDialog } from '../../components/modal-dialog';
 import { ToastProvider, useToast } from '../../components/toast';
 import { CostsTable } from '../costs/CostsTable';
 import { bulkUploadRejections, costInvoices, costs, invoiceRules } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { BulkUploadForm } from './BulkUploadForm';
 import { validateInvoice } from './NewCostForm';
 

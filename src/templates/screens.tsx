@@ -47,7 +47,7 @@ import { CostCentresPage } from '../patterns/modal-form/CostCentresPage';
 import { ExportDetailsDialog } from '../patterns/overview/ExportDetailsDialog';
 import { ExportsTable } from '../patterns/overview/ExportsTable';
 import { AnnouncementsStatRow, ExportsStatRow, summariseAnnouncements } from '../patterns/overview/StatRows';
-import { PageHeader } from '../patterns/page/PageHeader';
+import { PageHeader } from '../components/page-header';
 import { RecurringCostsPage } from '../patterns/side-sheet/RecurringCostsPage';
 import { UsersPage } from '../patterns/states/UsersPage';
 

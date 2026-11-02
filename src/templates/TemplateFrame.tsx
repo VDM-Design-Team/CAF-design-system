@@ -4,7 +4,7 @@ import type { ThemeToggleTheme } from '../components/theme-toggle';
 import { ToastProvider } from '../components/toast';
 import { AppShell, useDocumentTheme, type ShellApp } from '../patterns/app-shell/AppShell';
 import { signedInAccounts } from '../patterns/fixtures';
-import { PageHeader } from '../patterns/page/PageHeader';
+import { PageHeader } from '../components/page-header';
 import { APP_SCREENS } from './screens';
 
 /**

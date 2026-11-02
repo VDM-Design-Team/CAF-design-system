@@ -156,6 +156,9 @@ names. A component that a second brand needs moves up to GDL.
 | `AppHeader`, `APP_HEADER_ADMIN_PAGES`, `APP_HEADER_USER_PAGES` | Navigation → `Navigation / Header`, `Header – Admin`, `Header – User` (with Mobile Header and Mobile Menu below 768px) | Components/AppHeader |
 | `MobileHeader` | Navigation → `Navigation / Mobile Header` | Components/MobileHeader |
 | `MobileMenu` | Navigation → `Navigation / Mobile Menu – Admin` (and the user app's links) | Components/MobileMenu |
+| `PageHeader` | Layout → `Page Header` | Components/PageHeader |
+| `Divider` | Layout → `Divider` | Components/Divider |
+| `PanelCard` | Layout → `Card / Panel` | Components/PanelCard |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -472,6 +475,14 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `selected`. Put a checked `Checkbox` in a selected row too; that's what
   screen readers announce. On a selected row, cells darken their secondary
   text and links so they pass AA on its tint.
+- `PageHeader` is Figma's Page Header, the top of every list and form page:
+  `title` (an `<h1>`), `description`, `tabs` (after a vertical Divider) and
+  `actions` (primary last, named for the item: "New Announcement").
+- `Divider` is Figma's Divider: a 1px `stroke.subtle` rule, `orientation`
+  `horizontal` (default) or `vertical` (1 × 32). Give a purely visual one
+  `aria-hidden`.
+- `PanelCard` is Figma's Card / Panel: the surface around a form page's form
+  and the Settings page's content.
 - `StatusPill` is Figma's Status Pill: `status` is `pending` (default),
   `active`, `approved`, `paid`, `rejected`, `stopped` or `inactive`, and the
   label is `children`. It has no states.

@@ -5,7 +5,7 @@ import { ACCOUNT_MENU_ITEMS, type AccountMenuItem } from '../../components/accou
 import { APP_HEADER_ADMIN_PAGES, APP_HEADER_USER_PAGES } from '../../components/app-header';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { signedInAccounts } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { AppShell, useDocumentTheme, type ShellApp } from './AppShell';
 
 /* Storybook's own "Small mobile" viewport (320 × 568). Chromatic ignores the

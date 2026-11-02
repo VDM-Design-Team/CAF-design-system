@@ -6,7 +6,7 @@ import { Icon } from '../../components/icon';
 import { SelectField } from '../../components/select-field';
 import { cn } from '../../lib/cn';
 import { csvRules, paymentMethods } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 
 /**
  * BulkUploadForm — a story-level organism, not a DS component (COMPONENT-PLAN

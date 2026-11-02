@@ -25,7 +25,7 @@ import {
   type FrequencyUnit,
   type Person,
 } from '../fixtures';
-import { PageHeader } from '../page/PageHeader';
+import { PageHeader } from '../../components/page-header';
 import { BreakdownsSection } from './BreakdownsSection';
 
 /**
