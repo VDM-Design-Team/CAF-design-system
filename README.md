@@ -828,6 +828,39 @@ Visual review runs through Chromatic once the CAF project's token is set
 (`CHROMATIC_PROJECT_TOKEN`). Until then the Chromatic check passes without
 snapshotting.
 
+## Patterns and templates
+
+The components put together, as Storybook stories with shared sample data
+(`src/patterns/fixtures.ts`). Every Figma section, what each story shows,
+the design questions and the missing components are in
+[`docs/patterns.md`](docs/patterns.md).
+
+- **Patterns** (`src/patterns/`, Storybook `Patterns/…`): Figma's
+  Patterns – Admin 01–15 and Patterns – User U01–U08, each solving one task
+  and played through with the mouse and the keyboard, with a Dark story.
+  - Lists: List page, My costs list, Search & filter, Row actions menu,
+    Bulk selection & actions, Expand for details & change history.
+  - Overlays and forms: Confirm destructive actions, Create or edit in a
+    modal, Edit in a side sheet, Multi-section form (Form / New Cost), File
+    upload & attachments (Form / Bulk Upload), Save and resume drafts,
+    Manage recurring costs.
+  - Feedback and data: Loading, empty & error states, Feedback messages,
+    Overview & record details, Announcements & what’s new.
+  - The app: App shell & navigation, Account, settings & currencies.
+- **Story-level organisms**: the Costs table, the Costs filter bar, the
+  page header, the Recurring Costs table, Form / New Cost, Form / Bulk
+  Upload, the Stat Rows and the page compositions live under
+  `src/patterns/` (COMPONENT-PLAN decision 4). They are not DS components
+  and not exported from the package.
+- **Templates** (`src/templates/`, Storybook `Templates/…`): the screens'
+  page layouts, built from the patterns, in Light, Dark and at 320 wide.
+  App shell (Admin and User headers over one page container), List page
+  (Admin Costs, My costs, Drafts), Overview list (Export Management,
+  Announcements), Form page (Create Cost, Bulk Upload) and Overlay flows (a
+  page with a dialog, confirm, Payment Schedules or side sheet open).
+
+The Storybook sidebar reads Components, then Patterns, then Templates.
+
 ## Upgrading GDL
 
 A GDL release is CAF's "Library updates available". Bump it in its own PR:

@@ -1,0 +1,805 @@
+# Patterns and templates
+
+The CAF Figma library documents how its components are used together, on
+two pages: **Patterns – Admin** (01–15) and **Patterns – User** (U01–U08).
+The CAF Design file (`z7L8r4nq6nL6Yfa8vvxJhO`) draws the real screens on
+**Admin screens** (2102:4) and **User Screens** (2102:3). Storybook has both:
+
+- **Patterns** (`src/patterns/`, Storybook `Patterns/…`): compositions of DS
+  components that solve one task, such as a list page, a confirm before
+  delete, or a form in a side sheet. Each story plays the task through with
+  the mouse and the keyboard, and each pattern has a Dark story.
+- **Templates** (`src/templates/`, Storybook `Templates/…`): the screens'
+  page layouts, built from the patterns: the app shell, a list page, an
+  overview list, a form page and a page with an overlay open. They are shown
+  in Light, Dark and at 320 wide.
+
+The sidebar reads Components, then Patterns, then Templates.
+
+**Only DS components.** Every pattern and template is built from the
+components in `src/components/` and GDL's tokens. Where the library has no
+component for something Figma draws (a divider, a card, a filter's options
+panel), the pattern stands in with what exists and says so. Those gaps are
+collected under [Missing components](#missing-components).
+
+**The Costs organisms are stories, not components** (COMPONENT-PLAN
+decision 4). The Costs table, the Costs filter bar, Form / New Cost,
+Form / Bulk Upload, the Stat Rows, the Recurring Costs table, the page header
+and the page compositions are app compositions. They live under
+`src/patterns/` as story-level code and are **not exported from
+`src/index.ts`**, so the published package doesn't change. An app copies them
+or builds its own from the components.
+
+**One set of sample data.** Every pattern and template draws from
+`src/patterns/fixtures.ts` (see [Shared building blocks](#shared-building-blocks)),
+so the stories agree with each other and with Figma.
+
+## Contents
+
+| # | Pattern or template | Figma | Story |
+|---|---|---|---|
+| 01 | List page | 518:900 | Patterns/List page |
+| 02 | Search & filter | 520:1873 | Patterns/Search & filter |
+| 03 | Row actions menu | 520:2387 | Patterns/Row actions menu |
+| 04 | Confirm destructive actions | 523:2612 | Patterns/Confirm destructive actions |
+| 05 | Create or edit in a modal | 523:3452 | Patterns/Create or edit in a modal |
+| 06 | Edit in a side sheet | 524:3609 | Patterns/Edit in a side sheet |
+| 07 | Bulk selection & actions | 524:4713 | Patterns/Bulk selection & actions |
+| 08 | Expand for details & change history | 526:5189 | Patterns/Expand for details & change history |
+| 09 / U02 | Multi-section form | 527:5661, U02 545:17897 | Patterns/Multi-section form |
+| 10 / U05 | File upload & attachments | 527:6028, U05 545:19071 | Patterns/File upload & attachments |
+| 11 | Loading, empty & error states | 528:6035 | Patterns/Loading, empty & error states |
+| 12 | Feedback messages | 528:6347 | Patterns/Feedback messages |
+| 13 | Overview & record details | 529:6821 | Patterns/Overview & record details |
+| 14 / U07 | Announcements & what’s new | 529:7639, U07 545:25222 | Patterns/Announcements & what’s new |
+| 15 / U08 | App shell & navigation | 530:7799, U08 545:26643 | Patterns/App shell & navigation |
+| U01 | My costs list | 545:13220 | Patterns/My costs list |
+| U03 | Save and resume drafts | 545:18365 | Patterns/Save and resume drafts |
+| U04 | Manage recurring costs | 545:18695 | Patterns/Manage recurring costs |
+| U06 | Account, settings & currencies | 545:23189 | Patterns/Account, settings & currencies |
+| Organism | Costs table | 121:4938, 121:2782, 121:5197 | Patterns/Costs table |
+| Organism | Page header | 518:232 | Patterns/Page header |
+| Organism | Recurring costs table | 260:1065, 260:1021, 260:1000 | Patterns/Recurring costs table |
+| Template | App shell | Admin screens 2102:4, User Screens 2102:3 | Templates/App shell |
+| Template | List page | 2102:5749, 2102:1069, 2102:1342, 2102:7086 | Templates/List page |
+| Template | Overview list | 2102:6902, 2102:6628 | Templates/Overview list |
+| Template | Form page | 2102:1154, 2102:1159, 2102:6027, 2102:1223 | Templates/Form page |
+| Template | Overlay flows | 2102:6074, 2102:5857, 2102:1201, 2102:1266, 2102:1284; 523:2612 | Templates/Overlay flows |
+
+U02, U05, U07 and U08 are the user side of 09, 10, 14 and 15, so they share
+a section with them.
+
+### Story-level organisms
+
+Compositions the patterns share. None is exported from the package.
+
+| Organism | Figma | File |
+|---|---|---|
+| `CostsTable` (+ `CostBreakdownTable`, `CostStatusBadge`, `sortCosts`) | Table / Header – Costs 121:4938, Table / Row – Cost 121:2782 (+ Selectable 121:5197) | `src/patterns/costs/CostsTable.tsx` |
+| `PageHeader` | Page Header frames 518:232, 518:273, 518:557 | `src/patterns/page/PageHeader.tsx` |
+| `CostsFilterBar` (+ `FilterBar`, `FilterMenu`, `FilterDateRange`, `filterCosts`) | Filter / Bar – Costs 256:4585, Filter / Bar 256:5338 | `src/patterns/filters/CostsFilterBar.tsx` |
+| `CostsListPage` | 01 B 518:514, U01 545:13511 | `src/patterns/list-page/CostsListPage.tsx` |
+| `AuditLogTable`, `AuditLogsDialog` | 526:4980 | `src/patterns/expand-details/AuditLogs.tsx` |
+| `RecurringCostsTable` | Table / Recurring Costs 260:1065, Header 260:1021, Row 260:1000 | `src/patterns/recurring/RecurringCostsTable.tsx` |
+| `EditRecurringCostForm` | U04 545:18695 (step 4) | `src/patterns/recurring/EditRecurringCostForm.tsx` |
+| `NewCostForm` | Form / New Cost 184:3119 | `src/patterns/forms/NewCostForm.tsx` |
+| `BulkUploadForm` | Form / Bulk Upload 191:433 | `src/patterns/forms/BulkUploadForm.tsx` |
+| `CostBreakdownDialog`, `BreakdownsSection` | 527:5473, 545:18317; 184:3263, 524:3295 | `src/patterns/forms/` |
+| `RecordsTable` | 523:1988, 524:2961, 545:18586 | `src/patterns/forms/RecordsTable.tsx` |
+| `CostCentreDialog`, `CostCentresPage` | 523:2985, 523:1968 | `src/patterns/modal-form/` |
+| `RecurringCostSheet`, `RecurringCostsPage` | 524:3295, 524:2956 | `src/patterns/side-sheet/` |
+| `DraftsList` | 545:18578, 545:18649 | `src/patterns/drafts/DraftsList.tsx` |
+| `UsersPage`, `UsersTable` | 528:5768, 528:5814, 528:6194 | `src/patterns/states/` |
+| `AddUserDialog` | 528:6197 | `src/patterns/feedback/AddUserDialog.tsx` |
+| `ExportsStatRow`, `AnnouncementsStatRow` | Card / Stat Row – Exports 387:3601, – Announcements 389:163 | `src/patterns/overview/StatRows.tsx` |
+| `ExportsTable`, `ExportDetailsDialog`, `FilterMenu` | 529:6211, 529:6740, 528:5884; 529:6175 | `src/patterns/overview/` |
+| `AnnouncementsTable`, `CreateAnnouncementDialog` | 528:5948, 529:7050 | `src/patterns/announcements/` |
+| `AppShell`, `useDocumentTheme` | 530:7296, 530:7582, 530:7659; 545:27687 | `src/patterns/app-shell/AppShell.tsx` |
+| `ManageCurrenciesDialog`, `SettingsPage` | 545:24755, 545:25204 | `src/patterns/account-settings/` |
+| `TemplateFrame`, the screens (`APP_SCREENS`) | Admin screens 2102:4, User Screens 2102:3 | `src/templates/TemplateFrame.tsx`, `src/templates/screens.tsx` |
+
+Known overlaps, to settle once design answers the questions below:
+- Two Edit Recurring Cost forms: `EditRecurringCostForm` follows U04,
+  `RecurringCostSheet` follows 06 (the two Figma forms differ).
+- Two filter dropdown stand-ins: `filters/CostsFilterBar`'s `FilterMenu` and
+  `overview/FilterMenu`. The templates use the first.
+- The Cost Centers list is drawn in the List page story and in
+  `CostCentresPage`.
+- `CostsListPage` and `UsersPage` render `<main>` by default (`as="div"`
+  inside a template); `CostCentresPage`, `RecurringCostsPage` and
+  `DraftsList` render a `<div>`.
+
+## Shared building blocks
+
+### Sample data (Figma Patterns – Admin 504:13180, Patterns – User 544:13219; CAF Design screens 2102:4, 2102:3)
+
+**What it solves.** Every pattern and template shows the same believable CAF data, so stories agree with each other and with Figma. `src/patterns/fixtures.ts` is plain typed data: no randomness, fixed ISO dates.
+
+**What it holds.**
+- 32 costs: the Admin and User Costs screens' rows, the library's pattern rows, and more in the same shape so filters and pagination have something to do.
+- Recurring costs with their payment schedules.
+- Cost centres, partners, users, contacts, drafts and exports (with stats).
+- Announcements (with stats), the changelog and the audit log (change history).
+- The menus' copy and the formatters the screens use (`formatDate` "September 24, 2026", `formatAmount` "USD 5130553.37", `formatPeriod`, `formatTimestamp`, `formatFrequency`).
+- A section per pattern group at the end, each headed with the branch that added it: list-page and filters (`LIST_TODAY`, `COSTS_PAGE_SIZE`, `myCosts`), forms (`currentUser`, `costCentreNames`, `natureOfServices`, `recurrenceSummary`, `costInvoices`, …), feedback (`toastMessages`, `emptyStateCopy`, `changelogPage`, …), app-shell and account-settings (`signedInAccounts`, `managedCurrencies`) and templates (`TEMPLATE_TODAY`, `userRecurringCosts`, `NEW_DRAFT_ID`).
+
+**What Figma draws that it doesn't.** Real-looking email addresses and contact-form messages on the screens. These are replaced with fictional ones on example.com. The library's own sample people (Admin Account, Maria Santos, John Reyes, Ana Cruz) are kept.
+
+**Design questions.**
+- Status Pill has no Paid or Rejected variant.
+- The library's sample cost 32430 has three different amounts (121:2782, 121:2957, 520:1873).
+- Audit Logs tag "Updated" as Completed on the screen (2102:5857) but as Info in pattern 08 (526:5189).
+
+### Costs table (Figma 121:4938, 121:2782, 121:5197)
+
+**What it solves.** The Costs list's table, which admins and users scan, select, sort, expand and act on. It is a story-level organism (`src/patterns/costs/CostsTable.tsx`, COMPONENT-PLAN decision 4), not a DS component.
+
+**Components.** TableHeaderCell (sortable), TableRow (selected), TableCell, Checkbox (Mixed), TableExpandButton, TableAccountDetails + TableDetailLabel (with a "Recurring" StatusPill), StatusPill or Tag for the status, RowActionsMenu + MenuItem.
+
+**The flow the stories show** (`Patterns/Costs table`):
+- **Default:** the Admin Costs screen's eight rows.
+- **Select all and mixed:** one row makes the header checkbox Mixed. The header selects all, then none, including with Space.
+- **Sort:** a new column sorts ascending and the same column flips. `aria-sort` follows the sorted column. Enter sorts too.
+- **Expand:** the caret opens the cost's breakdown in the row under it, with `aria-controls` pointing at it. Rows open independently, and Enter closes one with focus kept on the caret.
+- **Row menu:** ••• opens Approve, Reject, View invoices, Request adjustment, Delete. Approve changes the status pill, and focus returns to •••. From the keyboard, ↓ ↓ Enter rejects, and Escape closes the menu without choosing.
+- **Dark:** two rows selected, one expanded, sorted by date.
+
+**What Figma draws that the stories don't.**
+- Row – Cost's selected outline (stroke/focused 2px): code uses TableRow's selected fill.
+- Row – Cost's surface/base fill at rest.
+- The breakdown block's left accent border, radius and type styles, which are not a component.
+- The header's single 68px checkbox cell: code has one column per control.
+
+The confirm dialog and toast after a destructive action belong to patterns 03 and 04.
+
+**Design questions.**
+- Paid and Rejected statuses (no Status Pill variants).
+- Selected outline vs fill (464:950).
+- Breakdown block (121:2956).
+- Header checkbox cell width (89:1126).
+- Amount format (518:672 vs 520:1873).
+- Both components are pinned to Dark.
+
+### Page header (Figma 518:232)
+
+**What it solves.** Every list and form page opens the same way: the page's `<h1>` on the left, page actions on the right, and optionally a description under the title or the type tabs next to it. `src/patterns/page/PageHeader.tsx` is a story-level scaffold. The library has no Page Header component, so Figma draws it as a frame on each page (518:273, 518:557, 2102:5749, 2102:6628).
+
+**Components.**
+- Type ramp: Heading/xl-bold in text.primary for the title, Body/sm-regular in text.secondary for the description.
+- In the stories: Button, Tabs + TabItem, MenuTriggerButton + MenuItem.
+
+**The flow the stories show** (`Patterns/Page header`):
+- **Basic** (Cost Centers + Add New): the title on the left, the action on the right, on one line.
+- **With tabs and actions** (Costs): the type tabs move with the arrow keys. View Audit Logs sits left of Export, and Export opens Export Costs and Export Invoices.
+- **With description** (Announcements): the description sits 4px under the title.
+- **Dark.**
+
+**What Figma draws that the stories don't.** The 1px divider between the Costs title and its tabs, because there is no Divider component.
+
+**Design questions.** On the Announcements screen, the actions sit below the stat row rather than right of the title (2102:6628 vs the rule in 518:247). The Costs screen's buttons differ from pattern 01 B's (icon on View Audit Logs; a Default button vs a Menu Trigger for Export).
+
+## Patterns – Admin (01–15)
+
+### 01 · List page (Figma 518:900)
+
+**What it solves.** The layout of every admin and user list (Costs, Cost Centers, Partners, Contacts, Users, Recurring Costs, Announcements, Exports, Drafts). It has a page header, a filter bar, a data table and pagination, always in that order, 24 apart in a 40-padded page.
+
+**Components.**
+- PageHeader (`src/patterns/page`): Tabs / TabItem (Tabs / Cost Type), Button (View Audit Logs, Add New), MenuTriggerButton + MenuItem (Export).
+- The Costs filter bar (`src/patterns/filters/CostsFilterBar.tsx`).
+- CostsTable (`src/patterns/costs`): TableHeaderCell, TableRow, TableCell, TableExpandButton, TableAccountDetails, StatusPill / Tag.
+- EmptyState (compact), Pagination, Toast / ToastProvider.
+- The Costs page is one composition, `src/patterns/list-page/CostsListPage.tsx`. It is shared with U01 and 02.
+
+**Flow the stories show** (`Patterns/List page`):
+- **Costs** (example B, 518:514):
+  - The order is header, bar, table, pagination, and pagination sits at the bottom right.
+  - View Audit Logs sits left of Export.
+  - Page 1 is the eight newest of 32 costs, on 4 pages. › moves to the next eight.
+  - The Recurring tab (arrow keys) keeps only recurring costs and returns to page 1 (2 pages).
+  - Amount sorts the whole list, not just the page shown.
+  - Clear Filters is hidden while no filter is in use.
+- **Page actions:** Export opens Export Costs / Export Invoices. Enter starts an export, and pattern 12's Info toast says "Export started. It will appear in Exports when it's ready." Focus returns to Export.
+- **Cost Centers** (example A, 518:252):
+  - Add New sits on the right. The headers don't sort (a short reference list).
+  - There are 3 pages of 5 rows. Search ("legal") narrows the rows and returns to page 1.
+  - The cost center dropdown, from the keyboard (↓, ↓↓↓, Enter), leaves "No items." in the table, and pagination goes.
+  - Clear Filters restores everything and puts focus in the search box.
+- **Dark:** page 2 with one breakdown open.
+
+**What Figma draws that the stories don't.**
+- Example B's row ••• menu and checkbox column: those are patterns 03 (row actions) and 07 (bulk selection), so each story shows one task.
+- What View Audit Logs (pattern 08's side sheet) and Add New (pattern 05's modal) open: the buttons are there, inert.
+- The 1px divider between the title and the tabs: there is no Divider component.
+
+**Design questions.**
+- Short lists are drawn sortable but described as not sortable.
+- Clear Filters is on its own row in Filter / Bar – Costs but at the far right in the patterns.
+- How should the bar and the ~977px Costs table behave on narrower screens?
+- Does a new sort return to page 1?
+- 240 vs 256 field width.
+
+### 02 · Search & filter (Figma 520:1873)
+
+**What it solves.** How users narrow a list.
+- Search and filters sit in one bar above the table. They apply as soon as they change; there is no Apply button.
+- Every change returns to page 1.
+- Once a filter is in use, Clear Filters appears and the search box shows its ×.
+- When nothing matches, the compact Empty State ("No items.") shows inside the table, with the bar still in place.
+- Date filters open a two-month range picker under the field: the first day picked is the start, the second the end.
+
+**Components.** The organism `src/patterns/filters/CostsFilterBar.tsx` (Filter / Bar – Costs 256:4585; Filter / Bar 256:5338, Page=Costs / Recurring) is story-level, not exported from `src/index.ts`:
+- **FilterBar:** Figma's Bar as a `search` landmark: surface.neutral.faint, a 1px stroke.subtle inset stroke, radius 12, 16 padding, fields 12 apart. Clear Filters (Button, Outlined) sits on the far right, with an optional row under the fields.
+- **FilterMenu:** FilterField Dropdown → MenuDropdown of MenuItems ("All Status", Pending, …). It stands in for Select / Menu.
+- **FilterDateRange:** FilterField Dropdown → Popover → RangeCalendar. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field.
+- **Filter / Summary:** "Current Filters" with the lines in use, when `showSummary` is set.
+- **Helpers:** `filterCosts` (search over ID, title, invoice #, applicant name and email, beneficiary and account; status, payment method, currency; Period overlaps the cost's period; Creation Date contains the submitted date), `hasActiveCostFilters`, `costFilterSummary`.
+
+**Flow the stories show** (`Patterns/Search & filter`):
+- **Search a list (Users)** (steps 1–3 exactly as drawn, 520:773 / 520:950 / 520:1074):
+  - The full list, with no Clear Filters.
+  - Typing "maria" on page 2 leaves Maria Santos on page 1, and Clear Filters and × appear.
+  - "zzz" shows "No items." in the table, with no pagination.
+  - Clear Filters restores the list and puts focus in the search box.
+  - All Roles → Admin from the keyboard.
+- **Filter costs:**
+  - From page 3, Status → Pending from the keyboard returns to page 1 (19 costs). The summary reads "Status: Pending".
+  - Creation Date opens the picker on October and November with focus on today. Picking the 12th, then the 24th, gives step 4's rows (32436, 32431, 32430). The field reads "2026-10-12 – 2026-10-24".
+  - Typing "maria" leaves 32431, and the summary lists all three filters.
+- **No results, then Clear Filters:** "No items." in the table, with the bar in place and no pagination. Clear Filters resets every field, restores the full list, hides itself and the summary, and puts focus in the search box.
+- **Filter by a date range** (step 4, keyboard): Enter opens Select Period on today. ←×12 Enter starts the range and →×12 Enter ends it. The costs whose period overlaps October 12–24 remain (32436, 32431), and focus returns to the field.
+- **Date range picker open:** step 4 as drawn, the picker open under Select Period. It renders open for Chromatic and is not on the docs page.
+- **Bar presets:** Page=Costs has six fields; Page=Recurring has search and status. Clear Filters shows only while one of a bar's filters is in use, on its far right.
+- **Dark:** step 4's result with the summary.
+
+**What Figma draws that the stories don't.**
+- Users' sortable headers: not wired, per pattern 01's text.
+- Filter / Bar – Costs' second-row Clear Filters field: the patterns' far-right button is used instead.
+- The open state of a status dropdown: Figma doesn't draw it, so code uses a Menu / Dropdown.
+
+**What code adds.**
+- A visually hidden results line ("Showing 3 of 32 costs") so screen readers hear the change.
+- Focus moving to the search box after Clear Filters.
+- Filter / Summary (opt-in).
+
+**Design questions.**
+- Select Period vs Creation Date.
+- The Funnel icon and the truncated range on step 4's period field.
+- Which list a dropdown filter opens (no selected mark on Menu / Item).
+- Filter / Summary or chips on list pages.
+- A visible results count.
+- A per-field ×.
+- The "Filter by Cost Center" vs "All Status" wording.
+- How the bar wraps.
+- 240 vs 256 width.
+
+**Missing components.**
+- Filter / Field – Select.
+- Filter / Field – Date range (Popover has no bare panel, so the pattern strips its surface with DateInput's own classes).
+
+### 03 · Row actions menu (Figma 520:2387)
+
+**What it solves:** every table row ends with a ••• button that opens a short menu of actions for that one record, so rows stay clean and the actions stay consistent across lists.
+
+**Components:** RowActionsMenu (IconButton ••• + MenuDropdown), MenuItem (Default, Destructive), TableHeaderCell, TableRow, TableCell, ModalConfirm (Destructive), ModalDialog (Medium) with TextField and SelectField, PaymentSchedules with PaymentRow, ToastProvider/Toast, PageHeader, and RecurringCostsTable for the View step.
+
+**Flow in the stories** (`src/patterns/row-actions/RowActions.stories.tsx`, on the Cost Centers list):
+- *Delete from the row menu*: ••• opens the menu under the button, right-aligned, with focus on its first item. A click outside closes it. Delete opens “Delete cost center?”, “‘Employee Expenses’ will be permanently deleted. This can’t be undone.”, with focus on Cancel. Escape cancels and focus returns to the •••. From the keyboard, ↑ opens the menu on Delete, then Enter, Tab and Enter delete the row. The next row’s ••• takes focus and the toast says “Cost center deleted.”.
+- *Edit from the row menu*: Edit opens pattern 05’s form, pre-filled, as “Edit Cost Center”, with focus on the first field. An empty Location shows “Location is required.” and keeps the dialog open. Save sends the form’s FormData, closes the dialog, returns focus to the •••, updates the row and shows the toast “Cost center updated.”.
+- *Menus for each page*: the Costs, Recurring Costs, Exports and “most lists” menus open together. Each follows Figma’s order, with Delete last and red.
+- *View opens a modal*: on Recurring Costs, View Schedules opens the read-only Payment Schedules. × or Escape closes it and focus returns to the •••.
+- Snapshots: *Menu open*, *Delete confirmation open*, *Dark*.
+
+**What Figma draws that the stories don’t:** the Cost Centers headers are Sortable in Figma (sorting belongs to the list page pattern, 01/02). The Table / Row Hover state is TableRow’s own `:hover` and isn’t asserted. Add New belongs to pattern 05.
+
+**Design questions:** the edit title and its toast aren’t drawn (“Edit Cost Center”, “Cost center updated.”). Focus after a row is deleted isn’t drawn either: the stories move it to the next row’s •••. The recurring columns in step 3 (520:2172) differ from the library row (see Manage recurring costs).
+
+### 04 · Confirm destructive actions (Figma 523:2612)
+
+**What it solves:** anything that deletes, rejects or stops a record is confirmed first, in a small dialog that names the record and says what will happen.
+
+**Components:** RowActionsMenu, MenuItem (destructive), ModalConfirm (destructive), ToastProvider / Toast (Success, Error), PageHeader, and the list table (TableHeaderCell, TableRow, TableCell). It runs on the Cost Centers list (`src/patterns/modal-form/CostCentresPage.tsx`), which pattern 05 shares.
+
+**Flow the stories show:**
+- *Delete:* the row menu lists Edit, then Delete (red, last). From the keyboard, Delete opens "Delete cost center?" with the message "“Employee Expenses” will be permanently deleted. This can’t be undone.", and focus opens on Cancel. Escape changes nothing and puts focus back on the •••. Confirming removes the row and shows "Cost center deleted.", and focus moves to the next row's •••.
+- *Delete fails:* a cost centre that costs still use stays. The error toast "Couldn’t delete. This cost center is used by 12 costs." stays until dismissed.
+- *Confirm open* and *Dark:* the dialog open, for Chromatic.
+
+**What Figma draws that the stories don't:** the Hover row state (523:2012), which is the row's own `:hover`.
+
+**Design questions:**
+- Figma says a click outside closes the dialog, but ModalConfirm ignores backdrop clicks.
+- Figma doesn't say where focus goes after the row is gone. The stories move it to the next row's •••.
+
+### 05 · Create or edit in a modal (Figma 523:3452)
+
+**What it solves:** short records are created and edited in a dialog over the list, so the user keeps their place.
+
+**Components:** ModalDialog (Medium), SelectField, TextField, Button (Default, Text), ToastProvider, PageHeader, RowActionsMenu, and the list table (`src/patterns/modal-form/CostCentreDialog.tsx`, `CostCentresPage.tsx`).
+
+**Flow the stories show:**
+- *Add new:* Add New opens "Add New Cost Center", with focus on Cost Center and every field marked *. Save with Location empty shows "Location is required." in place, focuses Location and keeps the other values. From the keyboard, Save closes the dialog and puts the new record at the top of the list. "Cost center added." confirms it, focus returns to Add New, and the FormData is checked. Cancel and Escape save nothing, and each opening starts with a fresh form.
+- *Edit from the row menu:* the same dialog, pre-filled and titled "Edit Cost Center". Save updates the row and focus returns to its •••.
+- *Validation errors* and *Dark:* the dialog open, for Chromatic.
+
+**What Figma draws that the stories don't:** the Add New button's Hover state (523:2715), which is the button's own `:hover`.
+
+**Design questions:**
+- The Cost Center is chosen from a dropdown while a cost center is being created.
+- The primary button is "Save", although the guidance asks for a button that names the result.
+
+### 06 · Edit in a side sheet (Figma 524:3609)
+
+**What it solves:** long or multi-section records, such as a recurring cost with its schedule and breakdowns, are edited in a panel from the right, with the list visible behind it.
+
+**Components:** SideSheet, FormSectionHeader (h3 in the sheet), TextField, SelectField, DateField, TextareaField, BreakdownItem with its RowActionsMenu, the Cost Breakdown ModalDialog stacked over the sheet, ModalConfirm, PaymentSchedules and PaymentRow (View Schedules), Tag and StatusPill, and ToastProvider (`src/patterns/side-sheet/`, `src/patterns/forms/BreakdownsSection.tsx`).
+
+**Flow the stories show:**
+- *Edit and update:* Edit is first in the menu (Edit, View Schedules, Stop, Delete). It opens "Edit Recurring Cost #1882" with the record's values. Update catches an emptied Frequency Value in place. The frequency changes to every 1 month. "Add new" opens the Cost Breakdown dialog over the sheet; that dialog is checked on its own and filled from the keyboard for the dates, and the new card appears. Update closes the sheet and the row shows "1 month". "Recurring cost #1882 updated." confirms it, and focus is back on the row's •••. The update and the FormData (the `breakdown` entries) are checked.
+- *Discard changes:* with nothing changed, × closes at once. After a change, Escape and Cancel ask "Discard changes?". "Keep editing" goes back with the text kept; "Discard" closes without saving.
+- *Sheet open* and *Dark:* the sheet open, against the right edge at full height.
+
+**What Figma draws that the stories don't:**
+- The panel's own URL (`/admin/recurring-costs/1882`), which is the app's routing.
+- A single Frequency dropdown. The stories use Frequency Value and Unit (U02), to match the data.
+
+**Design questions:**
+- 06's values don't match U04's #1882.
+- The discard confirmation isn't drawn.
+- There is no Status pill for a stopped cost.
+
+### 07 · Bulk selection & actions (Figma 524:4713)
+
+**What it solves:** admins select several costs and change their status in one go. Selection lives in the table, and the bulk action appears in the page header only while something is selected.
+
+**Components:** CostsTable (Checkbox per row, header Checkbox with Mixed, TableRow Selected), PageHeader with Tabs / TabItem (Cost type), MenuTriggerButton (“Change Status (n)” and Export), MenuItem, Pagination, Button (View Audit Logs, which opens pattern 08’s AuditLogsDialog), ToastProvider/Toast (Success, Info).
+
+**Flow in the stories** (`src/patterns/bulk-actions/BulkActions.stories.tsx`):
+- *Select and change status*: ticking two rows (mouse and Space) highlights them, sets the header to Mixed and shows “Change Status (2)” between View Audit Logs and Export. ↓ opens the menu on Reject. Choosing Approve updates both rows and clears the selection. The button goes, focus moves to “Select all costs”, and the toast says “Status updated for 2 costs.”. With one row, Mark as Paid shows “Status updated for 1 cost.”.
+- *Select all, then change page or tab*: the header selects the 8 rows on the page (“Change Status (8)”). Next page clears the selection, and so does the Recurring tab, which filters the table (a tabpanel labelled by the tab).
+- *Export while selected*: Export → Export Costs shows the Info toast “Export started. It will appear in Exports when it’s ready.” (pattern 12’s copy). View Audit Logs opens and closes with focus returned.
+- Snapshots: *Change status menu open*, *Dark*.
+
+**What Figma draws that the stories don’t:** Filter / Bar – Costs (patterns 01/02 cover it; the Cost type tabs stand in as the filter that clears the selection) and each row’s ••• (pattern 03). Figma’s Change Status is a Tonal Button / Normal with a caret; code uses MenuTriggerButton.
+
+**Design questions:** Tonal Button vs Menu Trigger for Change Status. Where focus goes once the button disappears. Whether a bulk Reject needs pattern 04’s confirmation. Whether the menu should leave out statuses the selection can’t move to. There are no Paid or Rejected pills.
+
+### 08 · Expand for details & change history (Figma 526:5189)
+
+**What it solves:** rows show a summary and open in place to reveal more (a cost’s breakdown, or what changed in an audit log entry), so the user keeps their place in the list.
+
+**Components:** CostsTable (TableExpandButton, TableAccountDetails, the breakdown table under the row), PageHeader, Button (outlined View Audit Logs, small Text View Changes), ModalDialog (Large), TableHeaderCell, TableRow, TableCell (text, two-line), Tag (Created, Updated, Deleted), ChangeDiff and ChangeDiffRow, Alert (Error, Compact) and Pagination. The audit log is a story-level composition, `src/patterns/expand-details/AuditLogs.tsx` (AuditLogTable, AuditLogsDialog).
+
+**Flow in the stories** (`ExpandDetails.stories.tsx`):
+- *Expand for details*: rows start collapsed with the account summary (ID, Applicant, Beneficiary, IBAN, Recurring). The caret opens cost 32430’s six-line breakdown under its row and pushes the next row down. Several rows can be open, and Enter closes one again with focus kept on the caret.
+- *Audit logs: view changes*: View Audit Logs opens “Audit Logs” (Cost ID, User, Timestamp, Activity). View Changes is a disclosure (`aria-expanded`, `aria-controls`) that opens a Field / Before / After table (Status: Unknown → Pending, `<del>` and `<ins>`) and then reads Hide Changes. A deleted record (#32418) shows the Alert “This cost was deleted”. Pagination shows four entries a page and open entries stay open. Escape closes the dialog and focus returns to View Audit Logs.
+- Snapshots: *Audit logs open* (the first two entries open, as Figma), *Dark* (a row expanded), *Audit logs — Dark*.
+
+**What Figma draws that the stories don’t:** the Costs rows’ checkboxes and the page header’s tabs and Export (patterns 07 and 01). The audit table’s Pagination shows 3 pages, not Figma’s 25: the fixtures hold 12 entries.
+
+**Design questions:** “This cost was deleted” vs “This cost was deleted.”. An Error Alert is role=alert, so it interrupts a screen reader on expand. Updated’s Tag is Info here but Completed on the Admin Audit Logs screen.
+
+### 09 / U02 · Multi-section form (Figma 527:5661, U02 545:17897)
+
+**What it solves:** creating a cost, the longest form in the product. It is a full page in titled sections, with repeatable breakdowns and attachments, and it can be saved as a draft at any point.
+
+**Components:** the organism **Form / New Cost** (`src/patterns/forms/NewCostForm.tsx`) is built from PageHeader, FormTabNavigation with TabItems (its tab panel holds the fields), FormSectionHeader, TextField, SelectField (Currency with FormEditLink "[Edit]"), DateField, FileUploadField, Alert (the recurrence summary), BreakdownsSection (BreakdownItem with RowActionsMenu, and CostBreakdownDialog: ModalDialog, TextField, SelectField, ComboboxField, DateField) and Button (Outlined "Save to Drafts", Default "Save").
+
+**Flow the stories show:**
+- *Single cost:* Applicant name and Email are pre-filled from the account, and "[Edit]" calls `onEditCurrency`. Save with the cost half done marks every section that needs something: Currency, Partner, Payment method, the invoice, and "Add at least one breakdown." in an Alert. Focus goes to the first error. Currency is chosen by typeahead, then an invoice is attached and a breakdown added through the dialog. Save sends the FormData (`type`, the fields, `invoices`, one JSON `breakdown` per breakdown), and a toast confirms it.
+- *Recurring cost:* → switches the tab. "Recurring Details" and "Cost Details" are inserted and Invoice number goes; what was typed is kept. The summary follows Value and Unit ("This will recur every 3 weeks"). Save starts its checks at Starts At, and ← goes back.
+- *Edit and remove breakdowns:* Edit opens the dialog pre-filled, with an Update button, and an amount of 0 is rejected. Remove moves focus to the next •••, then to "Add new".
+- *Cost Breakdown dialog* and *Dark:* the dialog open; the Recurring tab in Dark.
+
+**What Figma draws that the stories don't, and why:**
+- The card around the form, and the two Dividers: there is no DS component for either.
+- The Title/md-bold heading: PageHeader sets the heading in Heading/xl-bold.
+- 09's Frequency dropdown and Ends At: the stories follow U02.
+- The tabs' own URLs (`/new-cost/single`, `/new-cost/recurring`): the app routes them.
+- Manage Currencies: that is U06.
+
+**Design questions:**
+- Which fields are required.
+- The Recurring Details layout differs between 09 and U02.
+- The Cost Breakdown dialog differs between 09 and U02 ("Amount" and "Add", or "Total Amount" and "Submit").
+- Notes is a text field or a textarea, and is missing from U02's Recurring frame.
+- Whether a recurring cost needs an invoice up front.
+
+### 10 / U05 · File upload & attachments (Figma 527:6028, U05 545:19071)
+
+**What it solves:** adding files by dragging or browsing, with a chip per file that can be removed before saving or downloaded later. It also covers bulk upload from a CSV.
+
+**Components:** FileUploadField (`_File Upload Zone` and FileChip), FileChip (Download), ModalDialog (Small), EmptyState (Compact), CostsTable (from the foundation) with MenuItem, and the organism **Form / Bulk Upload** (`src/patterns/forms/BulkUploadForm.tsx`: PageHeader, SelectField, FileUploadField, Button Outlined with download-simple, Button Default). Results come from ToastProvider.
+
+**Flow the stories show:**
+- *Attach and remove:* the hint describes the input. Files become chips with their sizes (245 KB, 1.2 MB). contract.zip gets a red chip, "File type not supported…", and isn't in the input. × removes a file and focus moves to the next ×. Save's FormData holds exactly the files shown.
+- *View invoices:* Costs → ••• → View invoices opens "Invoices" with the description "Cost #32430 · 2 files" and a chip with Download per file. Escape returns focus to the •••. A cost without invoices says so.
+- *Bulk upload:* Download asks for a payment method first, then calls `onDownloadTemplate('Wiretransfer')`. Upload with no file marks the field and focuses it. An .xlsx is turned down in a red chip and the .csv is accepted. Upload's FormData is `paymentMethod` and `file`, and the toast says "12 costs uploaded."
+- *Bulk upload, rows fail:* an error toast names rows 4 and 9 and why, and stays until dismissed.
+- *Invoices open* and *Dark:* for Chromatic.
+
+**What Figma draws that the stories don't, and why:** Bulk Upload's card and Divider, for which there is no DS component.
+
+**Design questions:**
+- No Required markers on Bulk Upload.
+- Download before a payment method is chosen.
+- A long failure list in a toast.
+
+### 11 · Loading, empty & error states (Figma 528:6035)
+
+**Solves:** every list and dialog has to handle waiting, having nothing to show, failing, and pages that don't exist. It does this without the layout jumping, and it tells the user what to do next.
+
+**Components:** SkeletonTableRow (Skeleton), Spinner (24), EmptyState (Default and Compact), Alert (Error), Button, TableHeaderCell / TableRow / TableCell, FilterField, MenuDropdown + MenuItem (via `FilterMenu`), ModalDialog (via `ExportDetailsDialog`), PageHeader. Story-level organisms in `src/patterns/states/`: `UsersPage` (the Users screen, shared with pattern 12) and `UsersTable` (Name, Role, Date Created).
+
+**Flow the stories show:**
+- *Loading a list* (Step 1): the Users header, filters and table header are in place at once. The body shows five SkeletonTableRows of three cells, the table is `aria-busy`, and a visually hidden status says "Loading users". This story never answers, so it can be snapshotted.
+- *Loads, then no results*: the skeletons give way to 12 rows in the same columns, at least as tall as the skeletons. Searching for "zzz" shows the Compact Empty State "No items." inside the table, with the filters still visible. Escape clears the search and the rows come back.
+- *Load fails, then retry*: the first request fails. An Error Alert ("Couldn’t load users." / "Check your connection and try again.") appears above the table, which keeps its header, with a Retry Button under the Alert. Retry (from the keyboard) loads again and moves focus to the table, because the button disappears. Then the rows arrive.
+- *Loading a dialog* (Step 2): Export Details opens straight away with a 24px Spinner, centred over "Loading…", and has no footer. The Spinner's status says "Loading export details", so the visible text is hidden from screen readers to avoid reading it twice. Pattern 13's View Details shows the content arriving.
+- *Nothing here yet* (Step 3): Announcements has no rows. The Default Empty State ("No announcements yet" / "Create an announcement to tell users what’s new.") sits in the table with Add New, which opens Create Announcement (pattern 14). Escape closes it and returns focus to that button.
+- *Page not found* (Step 4): "404" (Display/xl-bold, text.brand.medium) sits over the Empty State. "Go back home" shows Costs and moves focus to the new page, as a router would.
+- *Dark*: the list loading.
+
+**What Figma draws that the stories don't:** nothing is left out. The stories add a failed load, which Figma doesn't draw.
+
+**Design questions:** what a failed list load should look like, and its copy. Alert has no action slot for Retry. "Go back home" navigates, but Button has no link form. Should the 404 page sit inside the app shell?
+
+### 12 · Feedback messages (Figma 528:6347)
+
+**Solves:** choosing the lightest way to tell the user something. A **Toast** reports the result of an action. An inline **Alert** gives context that stays on screen. A **field error** marks one value to fix. A **Tooltip** names an icon-only button.
+
+**Components:** Toast (ToastProvider / useToast), Alert (Info), TextField (with error), SelectField, CheckboxField (Bordered), ModalDialog (Medium), Button, UserActions (ThemeToggle in a Tooltip, AccountMenu), plus pattern 11's `UsersPage`. Story-level organism in `src/patterns/feedback/`: `AddUserDialog` (Add New User, 528:6197).
+
+**Flow the stories show:**
+- *Alert, field errors and a toast*: Users → Add New opens Add New User. The Info Alert "Temporary password" sits in the dialog, after the fields and before the footer. Save with nothing filled in puts an error under Name and under Email ("Enter a valid email address, like name@company.com.") and focuses Name. Each error clears as soon as its value is valid: "maria.santos@" is still wrong, and adding "geekee.com" fixes it. The Alert stays the whole time. Restricted User is ticked with Space, and Save is pressed from the keyboard. The form is read with FormData. The dialog closes, focus returns to Add New, the user is added to the table (Restricted User), and a Success toast "User added." appears; it closes on its own after 5 seconds.
+- *Alert that stays* (Step 2): the dialog open and filled in as Figma shows it.
+- *Toasts* (Step 1): Figma's four, newest last, at the bottom right, 16px in: "Cost saved.", "Export started. It will appear in Exports when it’s ready.", "3 rows were skipped because the currency is disabled.", and "Upload failed. Check your connection and try again." with Retry. Warning and Error have no timer. Retry (from the keyboard) removes the error and reports "Costs uploaded.". Success and Info are held open here (`duration: null`) so the snapshot is stable; in the app they close after 5 seconds.
+- *Tooltip* (Step 4): the theme toggle's tooltip names it on hover and on keyboard focus, and Escape hides it without moving focus. When the toggle is pressed, the name and tooltip follow the new theme.
+- *Dark*: Add New User with the email error and the Alert.
+
+**What Figma draws that the stories don't:** Step 3's second reference field (a valid Invoice number) isn't shown, because the Email error covers the state. Step 4 pairs the toggle with a DotsThree icon button; the stories use UserActions, the real header group, whose second button is the account menu. UserActions places the tooltip below the toggle (the header is at the top), not above it as Figma draws.
+
+**Design questions:** Figma's tooltip copy "Switch to light mode" vs the component's "Switch to light theme". Top vs bottom placement for header icons. Role dropdown plus a Restricted User checkbox, vs Restricted User as a third role. The copy for "User added." and "Costs uploaded.", which Figma doesn't draw.
+
+### 13 · Overview & record details (Figma 529:6821)
+
+**Solves:** pages that track jobs (Exports) show totals above the list, and open each record's full details read-only in a dialog.
+
+**Components:** StatRow + StatCard via `ExportsStatRow` (**Card / Stat Row – Exports**, 387:3601), PageHeader, FilterField, `FilterMenu` (MenuDropdown + MenuItem), TableCell (Two Line, Status + Date), Tag, RowActionsMenu + MenuItem, Pagination, ModalDialog (Medium), Spinner, DescriptionList, FilterSummary, ModalConfirm (Destructive), Toast. Story-level organisms in `src/patterns/overview/`: `StatRows.tsx` (`ExportsStatRow`, and `AnnouncementsStatRow`, **Card / Stat Row – Announcements** 389:163, used by pattern 14), `ExportsTable`, `ExportDetailsDialog`, `FilterMenu`.
+
+**Flow the stories show:**
+- *Stats, filters and pages* (Step 1): the group "Export totals" (Total Exports 6003, Completed 5665, Processing 0, Failed 338) sits between the page header and the filter bar. The table shows pattern 13's columns, four rows a page. Page 2 shows the next four. Choosing Type Excel from the keyboard goes back to page 1. Adding Status Failed finds nothing: the Compact "No items." appears in the table and the filters stay. Searching "09-24" narrows by name. The totals never change, because they count the whole collection.
+- *View details* (Step 2): ••• on a completed export offers Download, View Details and Delete. View Details opens Export Details straight away with the Spinner, then shows a DescriptionList (Name, Type, Created By, File Size, Created, Completed, Valid until (created + 7 days), Downloads) and a FilterSummary ("Current Filters"). Download in the footer increases the count in the dialog and in the table. Escape, or the footer's Close, closes it, and focus returns to the •••. The keyboard path is ↓, ↓, Enter.
+- *Retry and delete*: a failed export offers Retry, View Details and Delete. Retry sets it to Processing, moves the totals (Failed 337, Processing 1) and raises the Info toast "Export started. It will appear in Exports when it’s ready.". Delete opens Modal / Confirm ("Delete export?", "“…” will be permanently deleted. This can’t be undone.", with focus on Cancel). Confirming removes the row, updates the totals and raises "Export deleted.", and focus moves to the next row's •••.
+- *Details open*: the dialog, loaded. *Dark*: the overview.
+
+**What Figma draws that the stories don't:** the pattern's own sample rows ("costs-2026-10-07-91822", CSV, 18 KB) and totals (5981 / 5648 / 0 / 333). The stories use the Admin Exports screen's data from the shared fixtures, so every pattern draws from one data set. The pagination "1 … 25" becomes two pages of the eight sample rows. The dropdown filters' open menu isn't drawn in Figma, so FilterMenu stands in.
+
+**Design questions:** the pattern's table vs the Admin screen's (columns, title "Export Management"). The totals that differ. Which filters Current Filters lists. Showing Download and Retry only where they apply. The footer "Close", which has the same name as the header's X. A selected state for filter options.
+
+### 14 / U07 · Announcements & what’s new (Figma 529:7639, U07 545:25222)
+
+**Solves:** admins publish release notes as announcements for an audience. Users see the newest one once, in a "what's new" dialog after sign-in, and can read every release on the Changelog page.
+
+**Components:** PageHeader, `AnnouncementsStatRow` (389:163), AnnouncementsTable (Tag, RowActionsMenu), ModalDialog (Large) with TextField, DateField, RadioGroup, RepeatableField, ToggleField and Alert, **ChangelogModal** (Modal / Changelog 391:174, the DS component) with BulletItem, ChangelogEntry, AppHeader (Header – User) with NavLink, Tabs, CostsTable, ModalConfirm, Toast. Story-level organisms in `src/patterns/announcements/`: `AnnouncementsTable` and `CreateAnnouncementDialog`.
+
+**Flow the stories show:**
+- *Admin publishes* (Step 1): the totals read 7, 2.5.6 and Aug 10, 2026. Add New opens Create Announcement. Create with nothing filled in shows "Enter a title.", "Enter a version, like 2.5.6.", "Choose a release date." and the features error, and focuses Title. Each error clears as its value becomes valid ("2.6" stays wrong; "2.6.0" is fine). The release date is picked from the calendar, the audience is User, and there are two features; Active is on by default. Create submits with FormData. The dialog closes, focus returns to Add New, the announcement is first in the list (v2.6.0, User, Active), the totals become 8, 2.6.0 and Nov 2, 2026, and "Announcement created." appears.
+- *Preview and delete*: ••• → Preview (from the keyboard) shows the release in Modal / Changelog, as users will see it. Got It closes it and focus returns to the •••. ••• → Delete confirms first, removes the row, updates the totals, raises "Announcement deleted." and focuses the next row's •••.
+- *Create announcement, open*: the dialog, filled in as Figma shows it.
+- *User sees it once* (Step 2 / U07 Step 1): QA Test's Costs page, under the user header, with the newest active release for the user's audience open over it. The dialog takes focus and the page behind is inert. Tab reaches View Change Log, then Got It. Got It closes it for good: going to Recurring Costs and back doesn't reopen it.
+- *View the changelog* (Step 3 / U07 Step 2): View Change Log closes the dialog for good and opens the Changelog ("Everything that’s new in the Cost Application Form."), with focus on the page. The ChangelogEntry cards are listed newest first, as h2s under the page's h1, with "Version 2.5.6 • August 10, 2026" meta, and only the latest is marked New. Going back to Costs doesn't reopen the dialog.
+- *What’s new, open*, *Already seen* (no dialog for a version already seen), *Dark*: the dialog over the Costs page.
+
+**What Figma draws that the stories don't:** Step 1 draws no table under the totals (a Spacer); the stories add `AnnouncementsTable` with pattern 11's columns. Step 2's Costs table repeats one row; the stories show QA Test's own costs. Whether the user has seen a release is kept in story state; the app stores it per user. The Changelog isn't in the nav, so on that page no link is active, as U07 says.
+
+**Design questions:** the dialog's title vs the Changelog's for v2.5.6. The Changelog's releases (2.5.0, 2.4.0) that aren't announcements. Latest by date or by version. "Add New" vs "New Announcement", and the column sets. A status for inactive announcements. What View Change Log does in an admin preview. A Changelog item in the account menu (U07 guidance). RepeatableField has no error state.
+
+### 15 / U08 · App shell & navigation (Figma 530:7799, U08 545:26643)
+
+**What it solves.** The frame around every signed-in page (patterns 15 and U08). At the top: the CAF logo, "Hi, {name}", the theme toggle and the account menu. Below them: the app's navigation. Admins get ten links and users get five. Below 768px the links fold into a menu behind ☰.
+
+**Components.** AppHeader (Header – Admin and Header – User; it is built from TopBar, NavBar, NavLink, UserActions, ThemeToggle with its Tooltip, AccountMenu, MobileHeader and MobileMenu) and PageHeader. `src/patterns/app-shell/AppShell.tsx` is a scaffold at story level, not a library component. It puts the AppHeader over a single `<main>`, inside the header's centred `container`, so a page's title lines up with the logo. The padding follows Figma's Content frame: 32 top on desktop, 24 top and 16 at the sides on a phone. `useDocumentTheme` is the app's side of ThemeToggle. It switches `.dark` on `<html>`, where Storybook's Theme toolbar does, and puts the document back as it was on unmount.
+
+**The flow in the stories.**
+- *Admin* (step 1): the admin's ten links, with Recurring Costs current. A click, or Tab then Enter, opens another page: its `<h1>` changes and the Active link moves with it. The page's title lines up under the logo.
+- *User* (U08): the user's five links over Costs, the home page after sign-in. None of the admin-only pages appear. The keyboard reaches Create Cost.
+- *Theme toggle*: a click switches the document to Dark, and the button's name changes to offer the way back. Keyboard focus shows the tooltip; Enter switches back.
+- *Account menu*: Enter opens it on its first item, the arrow keys move, and Escape closes it with focus back on the icon. Enter on Settings chooses it. The story then leaves the menu open, under the icon and flush with its right edge.
+- *Mobile, menu open* (steps 2 and 3, at 320): the menu starts open with focus on ✕, every link listed, Costs Active and the account row last. Choosing a link closes the menu and opens that page, and nothing scrolls sideways. ☰ reopens it from the keyboard, Escape closes it and focus returns to ☰.
+- *Mobile, user menu open* (U08 step 5): the same menu with the user's five links.
+- *Dark*: step 1 in Dark.
+
+**What Figma draws that the stories don't.**
+- The mobile step 2 screen (530:7582) shows the Costs page's Tabs and two filters stacked full width. Those belong to the list page and its search and filter (patterns 01 and 02). Here, each page is only its PageHeader, as Figma's step 1 draws Recurring Costs.
+- "Remembers the choice" (530:7290) is the app's job, for example local storage. A story doesn't persist the theme, so one story never changes the next.
+
+**Design questions.**
+- Figma has no Mobile Menu – User yet (545:26655). Could Mobile Menu take its links as a property instead?
+- AppHeader with `defaultMenuOpen` leaves focus on `<body>` when the menu closes. It could pass ☰ to MobileMenu as `returnFocusRef`.
+
+## Patterns – User (U01–U08)
+
+U02 (Multi-section form), U05 (File upload), U07 (What's new & changelog)
+and U08 (App shell) are covered with 09, 10, 14 and 15 above.
+
+### U01 · My costs list (Figma 545:13220)
+
+**What it solves.** The user's Costs page: every cost they submitted, where it is in review, and its breakdown. Users read and export; they can't change a status.
+
+**Components.**
+- AppHeader (Navigation / Header – User, Page=Costs, "Hi, QA Test").
+- CostsListPage with `audience="user"`:
+  - PageHeader with Tabs and Export (MenuTriggerButton). There is no Add New, Change Status or View Audit Logs.
+  - The Costs filter bar, with every field.
+  - CostsTable with no checkbox column and no ••• column, expandable and sortable.
+  - Pagination, ToastProvider.
+
+**Flow the stories show** (`Patterns/My costs list`):
+- **Your costs, newest first** (step 1, 545:13511):
+  - One banner, one main and uniquely named navs ("Main", "Pagination"). Costs is the current link.
+  - Figma's columns and the screen's eight rows in its order (37022 … 36078). A recurring row carries the Recurring pill.
+  - The full Costs bar.
+  - 15 costs make 2 pages.
+- **Expand for the breakdown** (step 2, 545:13566): the caret opens the breakdown lines (Title, Amount, Nature of Service, Cost Center, Location, Period). A second row opens too. Enter closes the first, and focus stays.
+- **Export menu** (step 3 as drawn, 545:13621): the menu is open under Export, flush right, with Export Costs and Export Invoices. It renders open for Chromatic and is not on the docs page.
+- **Export invoices:** keyboard ↓ opens on Export Costs, then ↓ Enter. The toast appears and focus returns to Export.
+- **Dark:** step 2.
+
+**What Figma draws that the stories don't.**
+- ••• → View invoices and its invoices dialog: pattern 03's flow, and U01's steps don't draw it.
+- The title/tabs divider.
+- Figma's loose Pagination / Items (545:13532): Pagination is used instead.
+
+**Design questions.**
+- Applicants other than the signed-in user in "my" costs.
+- Export is drawn as a plain Button but described as a Menu Trigger.
+- The export toast points users to an Exports page they can't reach.
+- Four status colours vs the two Status Pills.
+
+### U03 · Save and resume drafts (Figma 545:18365)
+
+**What it solves:** parking an unfinished cost and picking it up again later from Drafts.
+
+**Components:** NewCostForm (Save to Drafts), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
+
+**Flow the stories show:**
+- *Save and resume:* a half-done cost is saved to Drafts without checks, and the FormData is checked. The view switches to Drafts with focus on its heading, and "Draft #36742 saved." appears. The new draft is the first row (Single, QA Test, November 2, 2026). Edit reopens New Cost with "Draft #36742" and the values loaded. Saving again updates the row instead of adding one.
+- *Resume a recurring draft:* it opens on the Recurring Cost tab with every 1 month.
+- *Search and delete:* the search narrows the list or says nothing matched, and Clear Filters brings it back. Delete asks "Delete draft?", then "Draft deleted." appears and focus moves to the next •••.
+- *No drafts:* an Empty State with Create Cost, which opens a blank New Cost.
+- *Delete confirm open* and *Dark.*
+
+**What Figma draws that the stories don't, and why:**
+- The User header (Navigation / Header – User): templates add the app shell. The story switches between the two pages itself and moves focus to each page's heading.
+- The `?draft_id=` URL: the app routes it.
+
+**Design questions:**
+- "Clear Filters" is drawn as a search Filter / Field.
+- The toast copy isn't drawn.
+
+### U04 · Manage recurring costs (Figma 545:18695)
+
+**What it solves:** where a user reviews, changes or ends a cost that repeats on a schedule. Each due date creates a cost with a Recurring tag.
+
+**Components:** AppHeader (Header – User, Page=Recurring Costs), PageHeader, FilterField (Search and Dropdown), MenuDropdown + MenuItem (the Status filter), Button, RecurringCostsTable (story-level: `src/patterns/recurring/RecurringCostsTable.tsx`, the library’s Table / Header – Recurring Costs 260:1021, Row – Recurring Cost 260:1000 and Table / Recurring Costs 260:1065), RowActionsMenu, PaymentSchedules + PaymentRow, SideSheet with `EditRecurringCostForm` (story-level: FormSectionHeader, DateField, TextField, SelectField with FormEditLink, Alert, FileUploadField, BreakdownItem), ModalConfirm (Destructive), EmptyState (Compact), ToastProvider/Toast.
+
+**Flow in the stories** (`ManageRecurringCosts.stories.tsx`, full page):
+- *Filter and view schedules* (steps 1–3): search by ID, name or email. Clear Filters resets and focuses the search. The Status filter offers All Status, Active and Stopped. A stopped schedule’s menu leaves out Stop. ••• lists Edit, View Schedules, Stop and Delete, with Delete last and red. View Schedules opens Payment Schedules: Done “Processed on Jul 30, 2026” or Upcoming “Scheduled”. Escape closes it and focus returns to the •••.
+- *Edit in the side sheet* (step 4): Edit opens “Edit Recurring Cost #1882” with Figma’s four sections. The “This will recur every …” line follows the frequency value and unit. Update validates: an empty applicant name and a broken email show their errors, focus goes to the first, and each error clears as soon as its field is valid. Then Update sends the FormData values, closes the sheet, returns focus to the •••, updates the row and shows the toast “Recurring cost #1882 updated.” (pattern 06’s copy). Cancel closes without saving.
+- *Stop and delete* (step 5): both ask first (pattern 04). Stop changes the row to Stopped and keeps only the processed payments. Delete is reachable by keyboard (↑ opens the menu on Delete), and Escape cancels it. Confirming removes the row and moves focus to the next row’s •••. Each ends with a success toast.
+- Snapshots: *Payment schedules open*, *Edit side sheet open*, *Dark*, *Edit side sheet — Dark*.
+- The table also has its own stories, *Patterns/Recurring costs table*: Default, Sort (Frequency sorts by length in days), Empty and Dark.
+
+**What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (no Divider component). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
+
+**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. Starts At is a Text field or a Date field. U04’s form isn’t the same as pattern 06’s. The “recur every” line has no component. Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
+
+### U06 · Account, settings & currencies (Figma 545:23189)
+
+**What it solves.** What sits behind the account icon in the user header (U06): Manage Currencies (which currencies the Currency dropdown offers), Settings (the account's name and email) and Logout.
+
+**Components.** AppShell (pattern 15), AccountMenu, ModalDialog (Medium, no footer), TableHeaderCell, TableRow, TableCell, Toggle, Pagination (no page info), ToastProvider with Toast (Success), PageHeader, FormSectionHeader, TextField and Button. There are two compositions at story level, in `src/patterns/account-settings/`:
+- `ManageCurrenciesDialog`: Figma's `_Pattern Content / Manage Currencies`, a table of Currency Name, Code and an Enabled Toggle, seven rows to a page, with Pagination straight under it. It starts on page 1 each time it opens.
+- `SettingsPage`: My Account Details. Save reads the form's FormData and checks it. An empty or badly formed field shows its error and takes focus; otherwise `onSave` gets the details.
+
+**The flow in the stories.**
+- *Flow*: Enter on the account icon opens the menu, and Enter opens Manage Currencies. Space on Albanian Lek's switch turns it on at once, and a Toast confirms it. Page 2 shows the next seven currencies. Escape closes the dialog and focus goes back to the icon. Reopened, the dialog is back on page 1 and the change has stuck. Settings opens its page, where no nav link is current. Logout calls `onLogout`.
+- *Account menu* (step 1): Manage Currencies, Settings, a divider, then Logout.
+- *Manage Currencies* (step 2, open): Figma's seven rows, with only Albanian Lek off. There is no footer. Paging from the keyboard turns ‹ off on the first page and › off on the last, and Tab wraps inside the dialog.
+- *Settings* (step 3): an empty Name and a badly formed Email both show errors, and focus goes to the first one. Once fixed, Enter saves (`{ email, name }`), a Toast confirms it and the header greets the new name. The form sits in a centred column.
+- *Dark*: Manage Currencies, open, in Dark.
+
+**What Figma draws that the stories don't.**
+- The Settings Card's surface: there is no Card component, so the stories keep its width and centring but not its fill, stroke or radius.
+- The Enabled column's bare frame: TableCell `type="tag"` stands in.
+- The dialog over the New Cost form, opened from the [Edit] link next to Currency: that is the multi-section form pattern (09 / U02). Here the dialog opens over the Costs page.
+- What follows Logout: the sign-in screen isn't in the library.
+
+**Design questions.**
+- Manage Currencies has no footer, but its copy says "Close, × or Esc".
+- The Settings screen's header is Page=Bulk Upload, and its frame is named "User / Bulk Upload".
+- The Settings fields show no required marker. There is also no Figma copy for a badly formed email, or for the two success Toasts.
+- The Name differs from the header greeting ("QA test" vs "QA Test").
+- Component issue: a Toast raised while a dialog is open lands under the scrim, inert, so it is dimmed, can't be dismissed and isn't announced. ToastProvider's stack should go in a portal above overlays.
+- Missing: a Card / Panel component, and a Table / Cell that holds a control.
+
+## Templates
+
+### App shell (Figma: Admin screens 2102:4, User Screens 2102:3)
+
+**What it solves.** Every signed-in screen sits in the same frame: the app's header and one page container under it. The container is each screen's Content frame: 1536 wide at 1920 (192 at the sides), 32 above the page, 24 between its parts. Below 768px the header becomes the Mobile Header, and ☰ opens the Mobile Menu.
+
+**Built from.**
+- AppShell (pattern 15): AppHeader, NavLink, Mobile Header and Mobile Menu, ThemeToggle, AccountMenu.
+- ToastProvider.
+- `TemplateFrame` (`src/templates/TemplateFrame.tsx`): the frame every template renders. It holds the current page and the theme.
+- `APP_SCREENS` (`src/templates/screens.tsx`): routes each navigation label (and Settings, from the account menu) to the other templates' screens.
+
+**Stories.**
+- **Admin:** Header – Admin over the admin's home, Costs. The page title lines up under the logo. Choosing Cost Centers moves the page and the Active link.
+- **User:** Header – User (five links) over the user's Costs. Account → Settings, from the keyboard, opens Settings; no link is Active there.
+- **Admin, mobile** (320): Bulk Upload with 16 at the sides and no sideways scroll. ☰ from the keyboard opens the Mobile Menu with Bulk Upload Active; Escape closes it and returns focus to ☰.
+- **User, mobile** (320): Create Cost, the longest form, fits the phone.
+- **Dark.**
+
+**What Figma draws that the stories don't.**
+- The file has no phone frames, so the mobile layout is AppShell's (patterns 15 and U08).
+- Partners (2102:6128) and Contacts (2102:6234) have no page composition yet, so the frame shows only their title.
+- Routing goes no further than swapping the page in the container.
+
+**Design questions.** The list pages' tables don't fit a phone, which is why the mobile stories open on form pages (see List page).
+
+### List page (Figma: Admin / Costs 2102:5749, User / Costs 2102:1069, Drafts 2102:1342 / 2102:7086)
+
+**What it solves.** The layout of every list, top to bottom, 24 apart:
+- the page title, with Tabs beside it where the list has types, and the actions on the right (primary last);
+- the filter bar;
+- the table;
+- pagination at the bottom right.
+
+Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
+
+**Built from.**
+- CostsListPage (patterns 01, 02, U01): PageHeader, Tabs, CostsFilterBar, CostsTable, Pagination, MenuTriggerButton (Export). It now takes `as="div"` so it can sit in AppShell's `<main>`.
+- DraftsList (U03): FilterField, RecordsTable, Pagination, ModalConfirm.
+- Composed in `AdminCostsScreen`, `UserCostsScreen` and `DraftsScreen` (`src/templates/screens.tsx`).
+
+**Stories.** Each screen has a Light, a Dark and a Mobile (320) story: **Costs** (admin), **My costs** (user) and **Drafts**. Each play checks:
+- one banner, one main and one h1, with headings that don't skip a level;
+- the parts in order;
+- pagination's right edge on the filter bar's;
+- a page of eight costs and no selection column;
+- for the admin: View Audit Logs and Export, right of the title and tabs. The user has Export only.
+- Drafts' columns and the ••• named for the draft.
+
+**What Figma draws that the stories don't.** The rows' menus, bulk selection, expanded details and the audit sheet are patterns 03, 07, 08 and 01's own stories. The template shows the page as it opens.
+
+**Design questions.**
+- Tables are wider than a phone: on mobile the page scrolls sideways under a 320-wide header. A mobile table pattern is needed.
+- Clear Filters has three treatments: the screens' Filter / Field stand-in, always shown; pattern 02's Outlined Button, shown only while a filter is in use; Drafts' disabled Text button.
+
+### Overview list (Figma: Admin / Exports 2102:6902, Admin / Announcements 2102:6628)
+
+**What it solves.** A list with its totals on top. The Card / Stat Row sits between the title and the list and counts the whole collection, not the page.
+
+**Built from.**
+- ExportsStatRow, ExportsTable and ExportDetailsDialog (pattern 13).
+- AnnouncementsStatRow, AnnouncementsTable and CreateAnnouncementDialog (patterns 11 and 14), plus ChangelogModal for Preview.
+- FilterBar, FilterMenu and FilterDateRange (pattern 02), PageHeader, Pagination and EmptyState.
+- Composed in `ExportsScreen` and `AnnouncementsScreen`.
+
+**Stories.**
+- **Exports**, Light, Dark and Mobile: "Export Management", four totals (Total Exports 6003 while the table shows four rows), Search / status / type filters, the table and pagination, in that order. ••• offers Download (a completed export) and View Details.
+- **Announcements**, Light, Dark and Mobile: title and description, three totals, then New Announcement and View Changelog, the filter bar (Search, Filter Date) and the table. New Announcement opens Create Announcement; ••• → Preview shows the release.
+
+**What Figma draws that the stories don't.**
+- Pattern 13's Retry and Delete, and pattern 14's Delete: those flows are the patterns' stories.
+- The screen's Exports columns and 601 pages. The template uses pattern 13's table, 4 rows a page.
+- View Changelog is a story action (the Changelog page is U07's).
+
+**Design questions.**
+- The title: "Export Management" or "Exports"?
+- The Exports columns.
+- Where the Announcements actions go (row under the stats, or the page header) and their label.
+- Whether Filter Date is one date or a range.
+
+### Form page (Figma: User / Create Cost 2102:1154, 2102:1159; Bulk Upload 2102:6027, 2102:1223)
+
+**What it solves.** A page that is one form: centred in the page container (576 wide), its heading at the top, its sections in one column, its actions at the end.
+
+**Built from.**
+- NewCostForm (patterns 09, U02): FormTabNavigation, TextField, SelectField, DateField, FileUploadField, FormSectionHeader, BreakdownsSection.
+- BulkUploadForm (patterns 10, U05).
+- ToastProvider.
+- Composed in `CreateCostScreen` and `BulkUploadScreen`. Save, Save to Drafts and Upload hand over the FormData and confirm with a toast.
+
+**Stories.**
+- **Create cost, single**, **recurring**, **dark** and **mobile**: the heading is in the form; the selected tab, the tab panel and the applicant pre-filled from the account; section headings in order (Recurring adds Recurring Details and Cost Details); Save to Drafts then Save at the end, Save being the submit; the form centred, or filling the container on a phone with no sideways scroll.
+- **Bulk upload** (user), **admin**, **dark** and **mobile**: Payment Method, the CSV upload, Download and Upload, in that order, centred.
+
+**What Figma draws that the stories don't.**
+- The card around each form (fill, stroke, radius 12, 32 padding) and its dividers: no Card component.
+- The Title/md heading: PageHeader sets the page's h1 in Heading/xl.
+
+**Design questions.**
+- The Bulk Upload toast: "Costs uploaded." (pattern 12) or "{n} costs uploaded." (U05)?
+
+### Overlay flows (Figma: 2102:6074, 2102:5857, 2102:1201, 2102:1266, 2102:1284; pattern 04 523:2612)
+
+**What it solves.** A page with its overlay open. The page stays in place, dimmed and inert, under one of:
+- a Modal / Dialog;
+- a Modal / Confirm;
+- Payment Schedules;
+- a Panel / Side Sheet.
+
+**Built from.**
+- CostCentresPage with CostCentreDialog and ModalConfirm (patterns 04, 05).
+- CostsListPage with AuditLogsDialog (pattern 08). CostsListPage's View Audit Logs now calls `onViewAuditLogs`.
+- NewCostForm with CostBreakdownDialog (pattern 09).
+- RecurringCostsPage with PaymentSchedules and RecurringCostSheet (patterns 06, U04). It gained `defaultSchedules`.
+
+**Stories.** Each opens with the overlay shown:
+- **Add New Cost Center**;
+- **Delete cost center** (an alertdialog naming the record);
+- **Audit Logs** (the wide dialog with its pagination);
+- **Cost Breakdown** (over the Create Cost form);
+- **Payment Schedules** (#1882's five payments);
+- **Edit Recurring Cost** (the sheet against the right edge, full height);
+- **Dark** (the sheet);
+- **Mobile** (the dialog keeps 16 from a 320 screen's edges).
+
+Each play checks:
+- the page's frame and h1 behind the overlay;
+- the page's `<body>` child is inert;
+- the overlay is `aria-modal`, named by its title, outside main, within the screen, with focus inside it.
+
+**What Figma draws that the stories don't.**
+- Opening, filling and closing each overlay, the toasts and focus return: these are the patterns' stories. The template snapshots the open state.
+- Add New Partner and Add New User exist as screens (2102:6175, 2102:6466). Users has a pattern (12); Partners has no composition yet.
+
+**Design questions.**
+- Footer verbs: the screens say "Submit" where patterns 05 and 09 say "Save" and "Add".
+- The Audit Logs header's refresh icon (ModalDialog has no header action slot).
+- Recurring Costs has two compositions: pattern 06's plain table, and the screens' and U04's filter bar with pagination.
+
+## Missing components
+
+What Figma draws that the library has no component for, found while
+building the patterns and templates. Each is stood in for with existing
+components (or left out) until the library and code have it.
+
+**Page structure**
+- **Page Header.** The library has no Page Header component; every page draws one as a frame (pattern 01: 518:273, 518:557; screens 2102:5749, 2102:6628; the Patterns page's own header 518:232). Stand-in: `src/patterns/page/PageHeader.tsx`, a story-level scaffold built from type-ramp utilities and slots, not exported.
+- **Divider**, including a labelled one. The 1×32 rule between the Costs title and its type tabs (2102:5749, 545:13518), the Divider instances between form sections (U04 545:18695, 545:19054, 545:19061; Form / New Cost 184:3182, 184:3260; Bulk Upload 191:459; 545:18268), and the labelled section divider "Cost Details" (545:18259). Left out; FormSectionHeader stands in for the labelled one.
+- **Card / Panel**: a surface container for form pages and settings (Form / New Cost 184:3119, Form / Bulk Upload 191:433, screens 2102:1154, 2102:6027; Settings Card 545:25208: surface.base, 1px stroke.subtle, radius 12, 32 padding, 20 gap). The forms render without it.
+- **Form heading in Title/md-bold** (184:3121, 191:435). Stand-in: PageHeader (Heading/xl-bold).
+
+**Tables**
+- **Table header row**: Table / Header – Costs (121:4938) draws the header row's stroke/subtle bottom line. Code has only TableHeaderCell, so the tables draw the header `<tr>` border themselves.
+- **Table / Breakdown**: the expanded Cost row's breakdown block (121:2956 with 121:2957) is a frame. Stand-in: `CostBreakdownTable` from TableHeaderCell, TableRow and TableCell.
+- **Table / Cell for custom content or a control**: Account Details sits directly in Row – Cost (99:272), and the Manage Currencies Enabled column holds a Toggle in a bare frame (545:22175). Stand-in: TableCell `type="tag"`, which renders its children as they are.
+- **A plain list table**: the Cost Centers, Recurring Costs and Drafts tables are frames (523:1988, 524:2961, 545:18586). Stand-in: `src/patterns/forms/RecordsTable.tsx`.
+- **A table layout for phones**: Figma has no mobile list screens (2102:4, 2102:3). Rows as cards, or a table that scrolls in its own region (which needs a portalled MenuDropdown so the ••• menus aren't clipped).
+
+**Statuses**
+- **Status Pill Approved, Paid and Rejected** (Status Pill on the Tags page). Stand-ins: Active for Approved and Paid, Tag Status=Error for Rejected.
+- **An inactive status for announcements** (and a Stopped status for recurring costs, raised as a design question). Stand-in: Tag status=neutral "Inactive" / "Stopped".
+
+**Filters**
+- **Filter / Field – Select**: a Filter / Field Dropdown (95:10) that opens Select / Menu (456:631) with the chosen option checked and the listbox keyboard (used by every dropdown filter: 529:6175, 528:5796, U04 545:18882). Stand-ins: `FilterMenu` (in `filters/CostsFilterBar.tsx` and in `overview/`), a FilterField that opens MenuDropdown + MenuItem, which has no selected mark.
+- **Filter / Field – Date range**: a Filter / Field Dropdown that opens Date Picker / Range (463:11925). Stand-in: `FilterDateRange`, a Popover + RangeCalendar. Popover has no bare panel option, so the pattern strips its surface with DateInput's own classes (the one place a pattern sets non-layout classes on a DS component).
+- **A single-date Filter / Field** (Announcements' Filter Date, 2102:6641). Stand-in: `FilterDateRange`.
+- **A Clear Filters control**: the screens draw it as a Filter / Field Type=Search instance with ArrowsClockwise (2102:6045, 2102:6642, 545:18585). No button variant matches; the templates use an Outlined Button.
+- **A removable active-filter chip**, only if design answers the Filter / Summary question that way. Nothing in the library today.
+
+**Forms and feedback**
+- **Form hint / inline note**: an Info 16 glyph and a line of text under fields (U04 545:19043, U02 545:18256, "This will recur every 3 weeks"). Stand-in: a compact Info Alert.
+- **Alert action**: Alert has no action slot for Retry on a failed load (pattern 11). Stand-in: a small outlined Button under the Alert.
+- **RepeatableField error / helper**: a required list can't show an error under itself (Form / Repeatable Field 463:780, used in 529:7050). Stand-in: a compact Error Alert under the field.
+- **Button as a link** (`href` or `asChild`) for navigation actions such as "Go back home" (528:6013). Stand-in: a Button with `onClick`.
+- **Modal Header actions**: Audit Logs' refresh icon beside Close (2102:5857). ModalDialog takes only a title and Close.
+
+**Navigation**
+- **Account Menu "Changelog" item** (U07 guidance, 545:25234): AccountMenu has only Manage Currencies, Settings and Logout.
+- **Figma only: Navigation / Mobile Menu – User** (U08 545:26655 says to add it). Code's MobileMenu already takes the user's links, so code needs nothing new.
