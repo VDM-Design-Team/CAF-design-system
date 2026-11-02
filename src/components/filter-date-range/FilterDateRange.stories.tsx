@@ -19,7 +19,8 @@ const meta = {
           'Built from the CAF Figma library, page **Filters** (`Filter / Field – Date range`, State Closed / Open): a ' +
           '`Filter / Field` Type=Dropdown with the calendar icon that opens `Date Picker / Range` (RangeCalendar) under ' +
           'it. The field shows `placeholder` (“Select Period”) until a range is picked, then the range in the short ' +
-          'format: “12–24 Oct 2026”, “12 Oct – 4 Nov 2026”. Opening moves focus into the calendar; two picks (either ' +
+          'format, without the year when both ends are in `today`’s year: “12–24 Oct”, “28 Sep – 31 Oct”, ' +
+          '“28 Dec 2025 – 3 Jan 2026”; a screen reader hears the full dates. Opening moves focus into the calendar; two picks (either ' +
           'order) close it, focus comes back to the field and `onValueChange` gets `{ start, end }`. ↓ / ↑ open it from ' +
           'the field. It is a combobox named by `label`, like DateInput; `className` sets the wrapper’s width (256).',
       },
@@ -44,6 +45,12 @@ const day = (canvas: Canvas, name: string) => {
   return within(canvas.getByRole('grid', { name: `${monthName} ${year}` })).getByRole('button', { name });
 };
 
+/* The field's value as shown (the short range) and as a screen reader gets it (the full dates). */
+const valueSpan = (field: HTMLElement) => field.querySelector<HTMLElement>('span > span')!;
+const shown = (field: HTMLElement) =>
+  (valueSpan(field).querySelector('[aria-hidden="true"]') ?? valueSpan(field)).textContent;
+const spoken = (field: HTMLElement) => (valueSpan(field).querySelector('.sr-only') ?? valueSpan(field)).textContent;
+
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
 function tokenColour(token: string) {
@@ -57,8 +64,8 @@ function tokenColour(token: string) {
 
 /**
  * Step 4 of pattern 02 with the pointer: the field opens the picker on October and November with focus on today;
- * the first day is the start, the second the end; then it closes, focus is back on the field, and the field reads
- * “12–24 Oct 2026”.
+ * the first day is the start, the second the end; then it closes, focus is back on the field, and the field shows
+ * “12–24 Oct” (today is in 2026) while a screen reader hears “12–24 Oct 2026”.
  */
 export const Playground: Story = {
   play: async ({ args, canvas }) => {
@@ -81,7 +88,9 @@ export const Playground: Story = {
     await expect(args.onValueChange).toHaveBeenLastCalledWith({ start: OCT_12, end: OCT_24 });
     await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
     await expect(field).toHaveFocus();
-    await expect(field).toHaveTextContent('12–24 Oct 2026');
+    await expect(shown(field)).toBe('12–24 Oct');
+    await expect(spoken(field)).toBe('12–24 Oct 2026');
+    await expect(valueSpan(field).querySelector('[aria-hidden="true"]')).not.toBeNull();
 
     // Opening again shows the range, with focus on its start. The same range again calls nothing.
     await userEvent.click(field);
@@ -115,7 +124,7 @@ export const Keyboard: Story = {
     await userEvent.keyboard('{ArrowRight}{Enter}{Escape}');
     await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
     await expect(field).toHaveFocus();
-    await expect(field).toHaveTextContent('12–24 Oct 2026');
+    await expect(shown(field)).toBe('12–24 Oct');
     await expect(args.onValueChange).toHaveBeenCalledTimes(1);
   },
 };
@@ -133,47 +142,62 @@ export const Disabled: Story = {
 };
 
 /* ── The short format, in the 256 field ───────────────────────────────────
-   The decision (period-field-width) keeps the field at 256 and shortens the range.
-   GDL's Body/sm-regular has 0.4px letter spacing, so code's text is wider than
-   Figma's (147px for "12 Oct – 24 Oct 2026", where the field holds 144 with the
-   12 gap): one month is written once, and the content-to-caret gap is space.12. */
+   The decisions (period-field-width, and "drop the current year" on 2 Nov 2026) keep
+   the field at 256 and shorten the range. GDL's Body/sm-regular has 0.4px letter
+   spacing, so code's text is wider than Figma's ("12 Oct – 24 Oct 2026" is 147.5px,
+   where the field holds 144 with the 12 gap). A current-year range leaves the year
+   out and writes one month once; the widest, "30 May – 30 Nov", is 118.4px. Today
+   is pinned to 24 October 2026. */
 
+/* `fit`: checked only where the margin is wide, so a platform's text rendering (Linux draws Inter a little wider)
+   can't flip it. `true`: 18% or more to spare in the 144px the field holds; `false`: 25% or more too long. */
 const RANGES = [
-  { start: OCT_12, end: OCT_24, text: '12–24 Oct 2026', fits: true },
-  { start: new Date(2026, 9, 1), end: new Date(2026, 9, 31), text: '1–31 Oct 2026', fits: true },
-  { start: OCT_12, end: new Date(2026, 10, 4), text: '12 Oct – 4 Nov 2026', fits: true },
-  { start: OCT_12, end: OCT_12, text: '12 Oct 2026', fits: true },
-  { start: new Date(2026, 8, 28), end: new Date(2026, 9, 31), text: '28 Sep – 31 Oct 2026', fits: false },
-  { start: new Date(2026, 11, 28), end: new Date(2027, 0, 3), text: '28 Dec 2026 – 3 Jan 2027', fits: false },
+  { start: OCT_12, end: OCT_24, text: '12–24 Oct', full: '12–24 Oct 2026', fit: true },
+  { start: new Date(2026, 9, 1), end: new Date(2026, 9, 31), text: '1–31 Oct', full: '1–31 Oct 2026', fit: true },
+  { start: OCT_12, end: OCT_12, text: '12 Oct', full: '12 Oct 2026', fit: true },
+  { start: new Date(2026, 8, 28), end: new Date(2026, 9, 31), text: '28 Sep – 31 Oct', full: '28 Sep – 31 Oct 2026', fit: true },
+  // The widest current-year range: 118.4px.
+  { start: new Date(2026, 4, 30), end: new Date(2026, 10, 30), text: '30 May – 30 Nov', full: '30 May – 30 Nov 2026', fit: true },
+  // Another year keeps its year; one that crosses a year keeps both.
+  { start: new Date(2025, 9, 12), end: new Date(2025, 9, 24), text: '12–24 Oct 2025', full: '12–24 Oct 2025', fit: true },
+  // 150px: just over, so not measured here.
+  { start: new Date(2025, 8, 28), end: new Date(2025, 9, 31), text: '28 Sep – 31 Oct 2025', full: '28 Sep – 31 Oct 2025' },
+  { start: new Date(2025, 11, 28), end: new Date(2026, 0, 3), text: '28 Dec 2025 – 3 Jan 2026', full: '28 Dec 2025 – 3 Jan 2026', fit: false },
 ];
 
 /**
- * `formatDateRange` and the field: a range in one month (Figma’s 12–24 October, the decision’s 1–31 October) or a
- * short one across two fits the 256 field. A long cross-month or cross-year range is cut with an ellipsis; the
- * field’s value still holds all of it.
+ * `formatDateRange` and the field. Every range in the current year fits the 256 field, without its year (a screen
+ * reader still hears it). A range in another year keeps the year, and a long one, or one across years, is cut with
+ * an ellipsis; the field’s value still holds all of it.
  */
 export const Formats: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="flex flex-col gap-3">
-      {RANGES.map(({ start, end, text }) => (
+      {RANGES.map(({ start, end, text }, i) => (
         <div key={text} className="w-64">
-          <FilterDateRange label={`Period ${text}`} defaultValue={{ start, end }} today={TODAY} />
+          <FilterDateRange label={`Range ${i + 1}`} defaultValue={{ start, end }} today={TODAY} />
         </div>
       ))}
     </div>
   ),
   play: async ({ canvas }) => {
-    // The widths are Inter's: measure once it has loaded (without it, a fallback face, skip the fit check).
+    for (const [i, { start, end, text, full }] of RANGES.entries()) {
+      await expect(formatDateRange({ start, end }, TODAY)).toBe(text);
+      await expect(formatDateRange({ start, end }, null)).toBe(full);
+      const field = canvas.getByRole('combobox', { name: `Range ${i + 1}` });
+      await expect(shown(field)).toBe(text);
+      await expect(spoken(field)).toBe(full);
+    }
+    // The widths are Inter's: measure once it has loaded. Without it (a fallback face) the fit isn't checked.
+    const inter = await document.fonts.load('400 14px Inter', RANGES.map((r) => r.full).join(' '));
     await document.fonts.ready;
-    const inter = [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Inter' && f.status === 'loaded');
-    for (const { start, end, text, fits } of RANGES) {
-      await expect(formatDateRange({ start, end })).toBe(text);
-      const field = canvas.getByRole('combobox', { name: `Period ${text}` });
-      await expect(field).toHaveTextContent(text);
-      const value = field.querySelector<HTMLElement>('span > span')!;
+    if (inter.length === 0) return;
+    for (const [i, { fit }] of RANGES.entries()) {
+      if (fit === undefined) continue;
+      const value = valueSpan(canvas.getByRole('combobox', { name: `Range ${i + 1}` }));
       // Cut (an ellipsis) when the text is wider than its box.
-      if (inter) await expect(value.scrollWidth > value.clientWidth).toBe(!fits);
+      await expect(value.scrollWidth > value.clientWidth).toBe(!fit);
     }
   },
 };
@@ -217,8 +241,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
 
     for (const [state, text] of [
       ['placeholder', 'Select Period'],
-      ['closed', '12–24 Oct 2026'],
-      ['open', '12–24 Oct 2026'],
+      ['closed', '12–24 Oct'],
+      ['open', '12–24 Oct'],
     ]) {
       const cell = canvasElement.querySelector<HTMLElement>(`[data-state="${state}"]`)!;
       const field = within(cell).getByRole('combobox');
@@ -232,8 +256,9 @@ const states = (theme: 'light' | 'dark'): Story => ({
       // CalendarBlank 24 from the left, the value 12 after it, the caret 24 from the right; icons in text.subtle.
       // The value is text.subtle until a range is picked, then text.primary.
       const [calendar, caret] = field.querySelectorAll('svg');
-      const value = field.querySelector<HTMLElement>('span > span')!;
-      await expect(value).toHaveTextContent(text);
+      const value = valueSpan(field);
+      await expect(shown(field)).toBe(text);
+      if (state !== 'placeholder') await expect(spoken(field)).toBe('12–24 Oct 2026');
       near(calendar.getBoundingClientRect().left - f.left, 24);
       near(value.getBoundingClientRect().left - calendar.getBoundingClientRect().right, 12);
       near(f.right - caret.getBoundingClientRect().right, 24);

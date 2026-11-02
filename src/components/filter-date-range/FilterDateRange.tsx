@@ -17,10 +17,15 @@ import { RangeCalendar, type DateRange } from '../range-calendar';
  * - Field (Filter / Field, Type=Dropdown, CalendarBlank) → FilterField
  *   `type="dropdown"` with `icon` `calendar-blank` (the default). While no
  *   range is picked it shows `placeholder` ("Select Period") in text/subtle.
- * - Value ("12 Oct – 24 Oct 2026") → the range in the short format
- *   (decision period-field-width), from `formatDateRange`: "12–24 Oct 2026"
- *   in one month, "12 Oct – 24 Nov 2026" across months, "28 Dec 2026 – 3 Jan
- *   2027" across years, "12 Oct 2026" for one day.
+ * - Value ("12–24 Oct") → the range in the short format (decisions
+ *   period-field-width and, on 2 Nov 2026, "drop the current year"), from
+ *   `formatDateRange`: the year is left out when both ends are in `today`'s
+ *   year, and the month is written once within one month: "12–24 Oct",
+ *   "28 Sep – 31 Oct", "12 Oct". A range that touches another year keeps its
+ *   years: "12–24 Oct 2025", "28 Dec 2025 – 3 Jan 2026". Every current-year
+ *   range fits the 256 field. A screen reader gets the full dates, with the
+ *   year: the short text is `aria-hidden` and a visually hidden copy says
+ *   "12–24 Oct 2026".
  * - State=Closed / Open → `open` (or `defaultOpen`): the range picker showing.
  * - Date Picker / Range → RangeCalendar, space.4 under the field, flush left,
  *   on its own surface (a Popover with `surface={false}`). It flips above, or
@@ -70,18 +75,37 @@ export interface FilterDateRangeProps
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
- * A range in the filter field's short format (decision period-field-width): the
- * year once when both ends share it, the month once when they share that too.
- * "12–24 Oct 2026", "12 Oct – 24 Nov 2026", "28 Dec 2026 – 3 Jan 2027",
- * "12 Oct 2026".
+ * A range in the filter field's short format (decisions period-field-width and
+ * "drop the current year"): the month once when both ends share it, and no year
+ * when both ends are in `today`'s year (default: the real today). Otherwise
+ * the year once when the ends share it, or both years.
+ * - In the current year: "12–24 Oct", "28 Sep – 31 Oct", "12 Oct".
+ * - Another year: "12–24 Oct 2025", "28 Sep – 31 Oct 2025", "12 Oct 2025".
+ * - Across years: "28 Dec 2025 – 3 Jan 2026".
+ * Pass `today` as `null` for the full form, with the year always ("12–24 Oct 2026"):
+ * what FilterDateRange gives a screen reader.
  */
-export function formatDateRange({ start, end }: DateRange) {
+export function formatDateRange({ start, end }: DateRange, today: Date | null = new Date()) {
   const day = (d: Date) => `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
   const year = end.getFullYear();
   if (start.getFullYear() !== year) return `${day(start)} ${start.getFullYear()} – ${day(end)} ${year}`;
-  if (start.getMonth() !== end.getMonth()) return `${day(start)} – ${day(end)} ${year}`;
-  if (start.getDate() !== end.getDate()) return `${start.getDate()}–${day(end)} ${year}`;
-  return `${day(end)} ${year}`;
+  const suffix = today && today.getFullYear() === year ? '' : ` ${year}`;
+  if (start.getMonth() !== end.getMonth()) return `${day(start)} – ${day(end)}${suffix}`;
+  if (start.getDate() !== end.getDate()) return `${start.getDate()}–${day(end)}${suffix}`;
+  return `${day(end)}${suffix}`;
+}
+
+/** The field's value: the short range, and for a screen reader the full one when they differ. */
+function rangeValue(range: DateRange, today: Date) {
+  const shown = formatDateRange(range, today);
+  const full = formatDateRange(range, null);
+  if (shown === full) return shown;
+  return (
+    <>
+      <span aria-hidden="true">{shown}</span>
+      <span className="sr-only">{full}</span>
+    </>
+  );
 }
 
 export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRangeProps>(function FilterDateRange(
@@ -166,7 +190,7 @@ export const FilterDateRange = React.forwardRef<HTMLButtonElement, FilterDateRan
           icon={icon}
           placeholder={placeholder}
           disabled={disabled}
-          value={range ? formatDateRange(range) : undefined}
+          value={range ? rangeValue(range, today ?? new Date()) : undefined}
           onKeyDown={handleKeyDown}
           /* The content-to-caret gap is space.12, not Filter / Field's 16, so a range fits the 256 field (docs/figma-sync.md). */
           className="gap-3"

@@ -86,7 +86,7 @@ export interface FilterFieldDropdownProps
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'value' | 'children' | 'className'> {
   /** Figma Type=Dropdown. */
   type: 'dropdown';
-  /** The chosen option's label ("All Status"), or a range ("12–24 Oct 2026"). */
+  /** The chosen option's label ("All Status"), or a range ("12–24 Oct"). */
   value?: React.ReactNode;
   /** Shown in text/subtle while there is no `value` ("Select Period"). Default: `label`. */
   placeholder?: string;

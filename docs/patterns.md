@@ -231,7 +231,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **Components.** The organism `src/patterns/filters/CostsFilterBar.tsx` (Filter / Bar – Costs 256:4585; Filter / Bar 256:5338, Page=Costs / Recurring) is story-level, not exported from `src/index.ts`:
 - **FilterBar:** Figma's Bar as a `search` landmark: surface.neutral.faint, a 1px stroke.subtle inset stroke, radius 12, 16 padding, fields 12 apart. Clear Filters (Button, Outlined) sits on the far right, with an optional row under the fields.
 - **FilterSelect** (DS, Filter / Field – Select, since 2 Nov 2026): the Status, Payment Method and Currency dropdowns. A Select / Menu under the field with the chosen option checked; "All Status" is the reset item. Select's keys.
-- **FilterDateRange** (DS, Filter / Field – Date range, since 2 Nov 2026): Select Period and Creation Date. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field, which shows the range as "12–24 Oct 2026". Filter / Summary keeps the ISO days.
+- **FilterDateRange** (DS, Filter / Field – Date range, since 2 Nov 2026): Select Period and Creation Date. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field, which shows the range as "12–24 Oct" (no year in the current year; a screen reader hears it). Filter / Summary keeps the ISO days.
 - **Filter / Summary:** "Current Filters" with the lines in use, when `showSummary` is set.
 - **Helpers:** `filterCosts` (search over ID, title, invoice #, applicant name and email, beneficiary and account; status, payment method, currency; Period overlaps the cost's period; Creation Date contains the submitted date), `hasActiveCostFilters`, `costFilterSummary`.
 
@@ -264,7 +264,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Design questions.**
 - Select Period vs Creation Date.
-- ~~The Funnel icon and the truncated range on step 4's period field~~: the calendar icon and the short format (2 Nov 2026). A long cross-month range ("28 Sep – 31 Oct 2026") is still cut in the 256 field (docs/figma-sync.md, "FilterDateRange").
+- ~~The Funnel icon and the truncated range on step 4's period field~~: the calendar icon and the short format without the current year (2 Nov 2026): every current-year range fits the 256 field (the widest, "30 May – 30 Nov", is 118px). Only a long range in another year is still cut (docs/figma-sync.md, "FilterDateRange").
 - ~~Which list a dropdown filter opens~~: Select / Menu with the chosen option checked (FilterSelect, 2 Nov 2026).
 - Filter / Summary or chips on list pages.
 - A visible results count.

@@ -15,8 +15,11 @@ decisions:
 - **`FilterDateRange`** (Filter / Field – Date range): a period filter with
   the calendar icon that opens Date Picker / Range under it. The field shows
   `placeholder` ("Select Period") until two picks, then the range in a short
-  format, "12–24 Oct 2026" or "12 Oct – 4 Nov 2026" (`formatDateRange`), so
-  it fits the 256 field. Its content-to-caret gap is 12, not 16.
+  format (`formatDateRange`): no year when both ends are in the current year
+  ("12–24 Oct", "28 Sep – 31 Oct"), the year otherwise ("12–24 Oct 2025",
+  "28 Dec 2025 – 3 Jan 2026"). Every current-year range fits the 256 field.
+  A screen reader hears the full dates, with the year. Its content-to-caret
+  gap is 12, not 16.
 - **`FormHint`** (_Form Hint): an inline note under a field, "This will
   recur every 3 weeks": an Info glyph (`icon`) and a Caption line in
   `text.subtle`.

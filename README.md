@@ -248,7 +248,7 @@ names. A component that a second brand needs moves up to GDL.
   options={[{ value: 'pending', label: 'Pending' }, { value: 'paid', label: 'Paid' }]}
   value={status} onValueChange={setStatus} />                       // Filter / Field – Select; null is All Status
 <FilterDateRange className="w-64" label="Period" placeholder="Select Period"
-  value={period} onValueChange={setPeriod} />                       // Filter / Field – Date range; "12–24 Oct 2026"
+  value={period} onValueChange={setPeriod} />                       // Filter / Field – Date range; "12–24 Oct" this year
 
 <MenuTriggerButton label="Change Status (3)">                      // Button / Menu Trigger
   <MenuItem>Approve</MenuItem>
@@ -568,8 +568,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `FilterDateRange` is Figma's Filter / Field – Date range: a Dropdown
   filter field with the calendar icon that opens Date Picker / Range under
   it. `placeholder` shows until a range is picked; then the field shows it
-  in the short format (`formatDateRange`: "12–24 Oct 2026", "12 Oct – 4 Nov
-  2026"). Two picks close it, and `onValueChange` gets `{ start, end }`.
+  in the short format (`formatDateRange`): no year when both ends are in
+  `today`'s year ("12–24 Oct", "28 Sep – 31 Oct"), the year otherwise
+  ("28 Dec 2025 – 3 Jan 2026"). A screen reader hears the full dates. Two
+  picks close it, and `onValueChange` gets `{ start, end }`.
 - `MenuTriggerButton` is Figma's Button / Menu Trigger: the primary Button
   with a trailing caret that opens a MenuDropdown, for Export and the bulk
   Change Status (n). `label` is the button's text, the MenuItems are

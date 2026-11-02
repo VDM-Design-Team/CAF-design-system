@@ -283,8 +283,10 @@ export const FilterCosts: Story = {
     await userEvent.click(within(picker).getByRole('button', { name: 'Saturday 24 October 2026' }));
     await expect(canvas.queryByRole('dialog', { name: 'Creation date' })).not.toBeInTheDocument();
     await expect(created).toHaveFocus();
-    // The field shows the range in its short format; Filter / Summary keeps the ISO days.
-    await expect(created).toHaveTextContent('12–24 Oct 2026');
+    // The field shows the range in its short format, without this year (a screen reader hears it);
+    // Filter / Summary keeps the ISO days.
+    await expect(created.querySelector('span[aria-hidden="true"]')!.textContent).toBe('12–24 Oct');
+    await expect(created.querySelector('.sr-only')!.textContent).toBe('12–24 Oct 2026');
     // Step 4's rows: the pending costs submitted October 12–24.
     await expect(rowIds(table)).toEqual(['32436', '32431', '32430']);
     await expect(summaryLines(canvasElement)).toEqual(['Status:Pending', 'Creation Date:2026-10-12 – 2026-10-24']);
@@ -361,7 +363,8 @@ export const SelectPeriod: Story = {
     await userEvent.keyboard('{ArrowRight>12/}{Enter}');
     await expect(canvas.queryByRole('dialog', { name: 'Period' })).not.toBeInTheDocument();
     await expect(period).toHaveFocus();
-    await expect(period).toHaveTextContent('12–24 Oct 2026');
+    await expect(period.querySelector('span[aria-hidden="true"]')!.textContent).toBe('12–24 Oct');
+    await expect(period.querySelector('.sr-only')!.textContent).toBe('12–24 Oct 2026');
     await expect(rowIds(costsTable(canvasElement))).toEqual(['32436', '32431']);
     await expect(summaryLines(canvasElement)).toEqual(['Period:2026-10-12 – 2026-10-24']);
   },

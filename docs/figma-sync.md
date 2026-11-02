@@ -4953,26 +4953,30 @@ Source: page **Filters** (`89:836`), section `765:15532`, set `Filter / Field �
 |---|---|---|
 | Root | vertical, gap `space/4` | Popover (`panelRole="dialog"`, `surface={false}`): the picker `space/4` under the field, flush left |
 | Field | Filter / Field Type=Dropdown (as FilterSelect), Leading Icon swapped to CalendarBlank (`colors/text/subtle`) | FilterField `type="dropdown"`, `icon` `calendar-blank` (the default) |
-| Field / Value ("12 Oct – 24 Oct 2026") | Body/sm-regular, `colors/text/primary` (an override) | `formatDateRange(value)`; `placeholder` ("Select Period") in `text/subtle` while there is none |
+| Field / Value ("12 Oct – 24 Oct 2026") | Body/sm-regular, `colors/text/primary` (an override) | `formatDateRange(value, today)` ("12–24 Oct"); `placeholder` ("Select Period") in `text/subtle` while there is none |
 | Date Picker / Range | fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/12`, padding and gap `space/8`, Effects/Elevation Dark/3; Month / Start and Month / End | RangeCalendar, unchanged |
 
 Behaviour: like DateInput. The field is a `<button role="combobox" aria-haspopup="dialog">` named by `label` ("Period"), with the range (or the placeholder) as its value. A click, Enter, Space, ↓ or ↑ open the picker and move focus to the calendar (the range's start, else today). The first pick is the start and the second the end, in either order; then the picker closes, focus comes back to the field, and `onValueChange` gets `{ start, end }` (only when the range changed). Escape, a click outside or Tab past the calendar close it without a change. The picker is a non-modal dialog with the field's name.
 
-The range's format (decision period-field-width, "shorter range text"): the year once when both ends share it, and the month once when they share that too: "12–24 Oct 2026", "1–31 Oct 2026", "12 Oct – 4 Nov 2026", "28 Dec 2026 – 3 Jan 2027", "12 Oct 2026". Filter / Summary keeps the ISO days ("2026-10-12 – 2026-10-24").
+The range's format (decision period-field-width, "shorter range text", and the user's decision on 2 Nov 2026, "drop the current year"), from `formatDateRange(range, today)`:
+- **Both ends in `today`'s year** (the component's `today`, default the real today): no year, and the month once within one month: "12–24 Oct", "1–31 Oct", "28 Sep – 31 Oct", "12 Oct".
+- **Both ends in another year**: the year once: "12–24 Oct 2025", "28 Sep – 31 Oct 2025".
+- **Across years**: both years: "28 Dec 2025 – 3 Jan 2026".
+- **A screen reader always gets the full dates**: when the year is left out, the shown text is `aria-hidden` and a visually hidden copy carries the year ("12–24 Oct 2026"), so the combobox's value has it. `formatDateRange(range, null)` gives that full form. Filter / Summary keeps the ISO days ("2026-10-12 – 2026-10-24").
 
-**The 256 width, measured in code.** The field holds 256 − 2 × 24 (padding) − 20 (icon) − 12 − 20 (caret) − the content-to-caret gap: 140px of text with Filter / Field's 16 gap, 144 with 12. Figma sets the value with 0 letter spacing, where "12 Oct – 24 Oct 2026" is 141px (the drafting note's "about 1px too long"). Code uses GDL's Body/sm-regular, with 0.4px letter spacing, where the same text is **147.5px**: 7.5px too long with the 16 gap and 3.5px with 12, so neither fix alone is enough. Code does both:
-- **The gap is `space/12`** on this field (`gap-3` over FilterField's `gap-4`). With space-between it only shows when the text is long.
-- **A range in one month writes the month once**: "12–24 Oct 2026" (110px), "1–31 Oct 2026" (98px). Every one-month range fits.
+**The 256 width, measured in code.** The field holds 256 − 2 × 24 (padding) − 20 (icon) − 12 − 20 (caret) − the content-to-caret gap: 140px of text with Filter / Field's 16 gap, 144 with 12. Figma sets the value with 0 letter spacing, where "12 Oct – 24 Oct 2026" is 141px (the drafting note's "about 1px too long"). Code uses GDL's Body/sm-regular, with 0.4px letter spacing, where the same text is **147.5px**: 7.5px too long with the 16 gap and 3.5px with 12. So code:
+- **Keeps the year out of a current-year range** and writes one month once. Measured in Inter with the ramp's letter spacing over every range in a year (66,795 of them), the widest is **"30 May – 30 Nov", 118.4px**; the widest one-month range is "20–30 May" (77.6px). Every current-year range fits: the widest leaves **25.6px** of the field's 144px spare (about 18%; 21.6px with the 16 gap), enough for a platform that draws Inter a little wider (CI's Linux runner did, by a pixel or two).
+- **Sets the gap to `space/12`** on this field (`gap-3` over FilterField's `gap-4`). With space-between it only shows when the text is long; it lets a short range from another year fit ("12 Oct – 4 Nov 2025", 142px).
 
-Across months, "d MMM – d MMM yyyy" fits 144px only for narrow digits and months ("12 Oct – 4 Nov 2026" is 142); about 60% of cross-month ranges are still cut with an ellipsis ("28 Sep – 31 Oct 2026" is 150px), and so are cross-year ranges ("28 Dec 2026 – 3 Jan 2027" is 185px). The field's value keeps the whole text for a screen reader. Fitting every range needs a design decision: leave the year out for a range in the current year (at most 120px), or widen the date fields to 288. The Formats story shows the cut.
+A range in another year can still be cut with an ellipsis ("28 Sep – 31 Oct 2025" is 150px; "28 Dec 2025 – 3 Jan 2026" is 185px). Its value keeps the whole text for a screen reader. The Formats story checks each case's text with `today` pinned to 24 October 2026, and measures the fit only where the margin is wide (18% or more spare, or 25% or more over), once Inter has loaded, so text rendering can't flip it.
 
 Contrast: as FilterSelect's field (value 20.17 / 17.85, placeholder and icons 4.76 / 6.96), and RangeCalendar's.
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Content-to-caret gap | `16` (Filter / Field) | `space/12` | Set the Date range's Field instance gap to `space/12` |
-| Value text | "12 Oct – 24 Oct 2026", 0 letter spacing | "12–24 Oct 2026" in GDL's Body/sm-regular (0.4px letter spacing) | Change the example to "12–24 Oct 2026" and bind the Value to the ramp's letter spacing (FilterField's "Line height, letter spacing") |
-| Long ranges | Not drawn | Cut with an ellipsis | Design question above |
+| Value text | "12 Oct – 24 Oct 2026", 0 letter spacing | "12–24 Oct" (the year is today's, so it's left out; a screen reader hears "12–24 Oct 2026") in GDL's Body/sm-regular (0.4px letter spacing) | Change the example Value to "12–24 Oct", note the rule in the description (no year for a current-year range; the year once otherwise; both across years), and bind the Value to the ramp's letter spacing (FilterField's "Line height, letter spacing") |
+| Another year's long ranges | Not drawn | Cut with an ellipsis; the full text stays in the value | None needed (rare in a costs filter) |
 | Open | The picker sits inside the component and pushes content down | It floats (Popover), and flips above or to the right edge when there's no room | None needed (open point 6) |
 | Name | (visual only) | A combobox named by `label`; the picker takes the same name | None needed |
 | Value property | An override (no Value property) | `value` / `defaultValue` (`{ start, end }`) | As FilterSelect (open point 1) |
