@@ -771,3 +771,29 @@ export const exportMenuItems = ['Export Costs', 'Export Invoices'] as const;
 /* ── Pattern sections ─────────────────────────────────────────────────────
    Builders: add your own data below, in a section headed with your slug
    (e.g. "── list-page ──"), so merges stay clean. */
+
+/* ── list-page, my-costs, filters (wf/list: patterns 01, U01, 02) ──────────── */
+
+/**
+ * The day the list patterns' date pickers treat as today: the last day of the
+ * range Figma picks in pattern 02's step 4 (520:1867), so the picker opens on
+ * October 2026 as Figma draws it. A local date, at midnight.
+ */
+export const LIST_TODAY = new Date(2026, 9, 24);
+
+/** Rows per page on the Costs lists: the eight rows the Admin and User Costs screens show. */
+export const COSTS_PAGE_SIZE = 8;
+
+/* U01 · My costs list, step 1 (545:13511): the User Costs screen's eight rows, in its order. */
+const MY_COSTS_SCREEN = ['37022', '37021', '37003', '36723', '36664', '36663', '36612', '36078'];
+
+/**
+ * The signed-in user's costs (U01, 545:13220), newest first: the User Costs
+ * screen's eight rows, then the older costs, so pagination has a second page.
+ * Figma's screen mixes applicants under "Hi, QA Test"; the rows are kept as
+ * Figma draws them (a design question in docs/patterns.md).
+ */
+export const myCosts: Cost[] = [
+  ...MY_COSTS_SCREEN.map((id) => costs.find((c) => c.id === id)!),
+  ...costs.filter((c) => c.submittedAt < '2026-09-10'),
+];
