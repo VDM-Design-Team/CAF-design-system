@@ -771,3 +771,54 @@ export const exportMenuItems = ['Export Costs', 'Export Invoices'] as const;
 /* ── Pattern sections ─────────────────────────────────────────────────────
    Builders: add your own data below, in a section headed with your slug
    (e.g. "── list-page ──"), so merges stay clean. */
+
+/* ── feedback (patterns 11–14 and U07: states, feedback messages, overview,
+   announcements) ─────────────────────────────────────────────────────────── */
+
+/** "2026-10-08" + 7 → "2026-10-15": Export Details' Valid until is a week after the export (529:6740). */
+export const addDays = (iso: string, days: number) => {
+  const date = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+/** A person's email, from `users`, for the two-line Created By cell (pattern 13 shows name over email). */
+export const emailOf = (name: string) => users.find((u) => u.name === name)?.email ?? '';
+
+/** The Exports table's Downloads column and Export Details' Downloads (pattern 13, 529:6242). */
+export const exportDownloads: Record<string, number> = {
+  '6846': 0,
+  '6845': 3,
+  '6844': 1,
+  '6843': 0,
+  '6842': 2,
+  '6841': 0,
+  '6840': 0,
+  '6839': 1,
+};
+
+/** How long an export's file stays downloadable: Export Details' Valid until (529:6740). */
+export const EXPORT_VALID_DAYS = 7;
+
+/** Pattern 12's toasts (528:6052): short, past tense, specific; an error says what to do next. */
+export const toastMessages = {
+  costSaved: 'Cost saved.',
+  exportStarted: 'Export started. It will appear in Exports when it’s ready.',
+  rowsSkipped: '3 rows were skipped because the currency is disabled.',
+  uploadFailed: 'Upload failed. Check your connection and try again.',
+} as const;
+
+/** Pattern 11's empty and not-found copy (528:5978, 528:6013). */
+export const emptyStateCopy = {
+  announcements: { title: 'No announcements yet', description: 'Create an announcement to tell users what’s new.' },
+  noResults: { title: 'No items.' },
+  notFound: {
+    code: '404',
+    title: 'The page you were looking for cannot be found.',
+    description: 'It’s likely an incorrect or outdated link.',
+    action: 'Go back home',
+  },
+} as const;
+
+/** The Changelog page's heading and description (U07, 545:26637). */
+export const changelogPage = { title: 'Changelog', description: 'Everything that’s new in the Cost Application Form.' };
