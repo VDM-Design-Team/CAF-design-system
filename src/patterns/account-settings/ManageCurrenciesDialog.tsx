@@ -3,6 +3,8 @@ import { ModalDialog } from '../../components/modal-dialog';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { Toggle } from '../../components/toggle';
 import type { ManagedCurrency } from '../fixtures';
@@ -19,11 +21,15 @@ import type { ManagedCurrency } from '../fixtures';
  * - Content `_Pattern Content / Manage Currencies` (545:22175): a header row of
  *   three Table / Header Cells (Currency Name, Code, Enabled), rows of two
  *   Table / Cells and a Toggle, then Pagination without its page info →
- *   a `<table>` of TableHeaderCells and TableRows, a Toggle per row, and
- *   Pagination `showPageInfo={false}` right under it, at the start.
- * - The Enabled column is a plain frame round the Toggle (16 at the start):
- *   no Table / Cell type holds a control, so TableCell `type="tag"` (left,
- *   the same padding) stands in.
+ *   rebuilt from the generic table parts (decision add-table-cell-custom):
+ *   a TableList with a TableHeaderRow (Currency Name, Code, Enabled), a
+ *   TableRow per currency (two Text cells and a TableCell `type="custom"`
+ *   holding the Toggle), and Pagination `showPageInfo={false}` right under
+ *   it, at the start.
+ * - Figma's pattern still draws the header as bare Header Cells (no line,
+ *   6px padding) and the Enabled column as a plain frame round the Toggle;
+ *   code follows Table / Header Row and Table / Cell Type=Custom (Figma's
+ *   example 772:1406 shows the rebuilt row).
  *
  * There is no Save: a Toggle applies as soon as it changes, and calls
  * `onEnabledChange` (the owner confirms it with a Toast, U06 "How it works" 3).
@@ -57,30 +63,30 @@ export function ManageCurrenciesDialog({ open, onClose, currencies, onEnabledCha
   return (
     <ModalDialog open={open} onClose={onClose} title="Manage Currencies" size="medium" showFooter={false}>
       <div className="flex flex-col">
-        <table aria-label="Currencies" className="w-full border-collapse">
-          <thead>
-            <tr>
-              <TableHeaderCell className="px-4">Currency Name</TableHeaderCell>
-              <TableHeaderCell className="px-4">Code</TableHeaderCell>
-              <TableHeaderCell className="px-4">Enabled</TableHeaderCell>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((currency) => (
-              <TableRow key={currency.code} data-code={currency.code}>
-                <TableCell>{currency.name}</TableCell>
-                <TableCell>{currency.code}</TableCell>
-                <TableCell type="tag">
-                  <Toggle
-                    aria-label={`Enable ${currency.name}`}
-                    checked={currency.enabled}
-                    onChange={(event) => onEnabledChange(currency, event.currentTarget.checked)}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+        <TableList
+          aria-label="Currencies"
+          header={
+            <TableHeaderRow>
+              <TableHeaderCell>Currency Name</TableHeaderCell>
+              <TableHeaderCell>Code</TableHeaderCell>
+              <TableHeaderCell>Enabled</TableHeaderCell>
+            </TableHeaderRow>
+          }
+        >
+          {rows.map((currency) => (
+            <TableRow key={currency.code} data-code={currency.code}>
+              <TableCell>{currency.name}</TableCell>
+              <TableCell>{currency.code}</TableCell>
+              <TableCell type="custom">
+                <Toggle
+                  aria-label={`Enable ${currency.name}`}
+                  checked={currency.enabled}
+                  onChange={(event) => onEnabledChange(currency, event.currentTarget.checked)}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableList>
         <Pagination page={current} pageCount={pageCount} onPageChange={setPage} showPageInfo={false} />
       </div>
     </ModalDialog>

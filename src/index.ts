@@ -79,6 +79,8 @@ export * from './components/table-cell';
 export * from './components/table-detail-label';
 export * from './components/table-expand-button';
 export * from './components/table-header-cell';
+export * from './components/table-header-row';
+export * from './components/table-list';
 export * from './components/table-row';
 export * from './components/tabs';
 export * from './components/tag';

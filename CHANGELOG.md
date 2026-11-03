@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.8.0 — 2026-11-02
+
+### Alert action, ModalHeader actions and a Changelog item in the Account Menu (November 2026)
+
+Three additions from the CAF design decisions, made in the CAF Figma library
+first:
+
+- **`Alert`** takes `showAction`, `action` (the label, e.g. "Retry") and
+  `onAction`: a small Text button after the text and before the dismiss
+  button, as Toast places its action. For a list that failed to load.
+- **`ModalHeader`** takes `actions`: icon buttons beside the close button,
+  4px apart, such as Audit Logs' refresh.
+- **`AccountMenu`** has a **Changelog** row after Settings
+  (`onSelect('changelog')`), so people can reopen what's new. It shows in
+  the header's account menu and in the mobile menu's account rows.
+
+### PageHeader, Divider and PanelCard (November 2026)
+
+Three components from the CAF Figma library's new **Layout** page, added
+there first from the CAF design decisions:
+
+- **`PageHeader`** (Page Header): the top of every list and form page.
+  `title` is an `<h1>` in Heading/xl-bold, `description` a line under it,
+  `tabs` sit after the title and a vertical divider, and `actions` are the
+  page's buttons, primary last, named for their item ("New Announcement").
+  Form pages use it too. It wraps on a narrow screen. The patterns and
+  templates in Storybook now use it instead of their own page header.
+- **`Divider`** (Divider): a 1px `stroke.subtle` rule, `orientation`
+  horizontal (default) or vertical (1 × 32). A `role="separator"`.
+- **`PanelCard`** (Card / Panel): the surface around a form page's form and
+  the Settings page: `surface.base`, a 1px `stroke.subtle` border, radius 12,
+  32px padding, content 20px apart.
+
+In Storybook's Costs pages, a 1px rule now separates the title from the Cost
+Type tabs, as Figma draws it.
+
+### StatusPill: Approved, Paid, Rejected, Stopped and Inactive (November 2026)
+
+`StatusPill` has five new `status` values, added to the CAF Figma library's
+Status Pill first:
+
+- **`approved`** (blue, accent.info filled), **`paid`** (green, accent.success
+  filled) and **`rejected`** (red, accent.critical filled): the cost statuses,
+  beside Pending's orange, as U01 asks.
+- **`stopped`** (a recurring cost) and **`inactive`** (an announcement):
+  neutral filled.
+
+Every label passes AA in Light and Dark (the closest: Rejected 4.77,
+Stopped / Inactive 4.76, in Light). The costs, recurring costs and
+announcements tables in Storybook's patterns now use them instead of the
+stand-ins (Active for Approved and Paid, an Error Tag for Rejected, neutral
+Tags for Stopped and Inactive).
+
+### Field borders and switch tracks reach 3:1 (November 2026)
+
+Two new semantic tokens from the CAF Figma library, GDL's recommended names:
+
+- **`stroke.field`**: the resting border of fields and controls. Slate 500 in
+  Light, slate 400 in Dark (GDL's reference values): 4.55:1 or more on every
+  surface a field sits on, in both themes.
+- **`surface.track`**: the unfilled track of a toggle (and later sliders and
+  progress bars). The same steps, so it reaches 3:1 too.
+
+The library now binds them, and so does code:
+
+- **TextInput, SelectTrigger, Select, Combobox, DateInput, Textarea** and their
+  fields: the Default and Filled border moves from `stroke.subtle` (1.23:1 in
+  Light, 1.72:1 in Dark) to `stroke.field`.
+- **FilterField** and **Radio** (Deselected): from `stroke.strong` (2.45–2.56:1
+  in Light) to `stroke.field`.
+- **Checkbox** (unchecked): from `stroke.default` (1.48:1 / 1.93:1) to
+  `stroke.field`.
+- **Toggle** (off): the track moves from `neutral.tonal.surface.default`
+  (1.18:1 / 2.36:1) to `surface.track`.
+
+Every field and control border is visibly darker in Light and lighter in Dark.
+Disabled states keep their look (the inputs' `stroke.subtle`, Radio's
+`stroke.strong`, Toggle's tonal track, all at 50%), as Figma still draws them.
+
 ## 0.7.0 — 2026-11-02
 
 ### Toasts above dialogs, the mobile menu's focus, and Popover's `surface` (November 2026)

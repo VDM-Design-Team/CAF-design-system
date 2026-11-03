@@ -162,6 +162,8 @@ names. A component that a second brand needs moves up to GDL.
 | `PageHeader` | Layout → `Page Header` | Components/PageHeader |
 | `Divider` | Layout → `Divider` | Components/Divider |
 | `PanelCard` | Layout → `Card / Panel` | Components/PanelCard |
+| `TableHeaderRow` | Table → `Table / Header Row` | Components/TableHeaderRow |
+| `TableList` | Table → `Table / List` | Components/TableList |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -191,6 +193,21 @@ names. A component that a second brand needs moves up to GDL.
   <TableCell type="tag"><StatusPill>Pending</StatusPill></TableCell>
 </TableRow>
 
+<TableList aria-label="Cost centers" header={                      // Table / List: a header row over rows
+  <TableHeaderRow showActions>                                     // Table / Header Row; also showExpand, showCheckbox
+    <TableHeaderCell>Cost center</TableHeaderCell>                 // one per column (Figma's Columns)
+    <TableHeaderCell>Location</TableHeaderCell>
+  </TableHeaderRow>
+}>
+  <TableRow>
+    <TableCell>Employee Expenses</TableCell>
+    <TableCell>Philippines</TableCell>
+    <TableCell type="actions"><RowActionsMenu label="Actions for Employee Expenses">…</RowActionsMenu></TableCell>
+  </TableRow>
+</TableList>
+<TableHeaderRow showCheckbox checkboxProps={{ 'aria-label': 'Select all costs', checked: all, indeterminate: some, onChange: toggleAll }}>…</TableHeaderRow>
+<TableCell type="custom"><Toggle aria-label="Enable Euro" checked={on} onChange={toggle} /></TableCell>
+
 <StatusPill status="active">Active</StatusPill>                 // Status=Active
 <StatusPill status="paid">Paid</StatusPill>                     // Status=Paid (also approved, rejected, stopped, inactive)
 <Tag status="completed">Completed</Tag>                          // tonal, with its icon
@@ -218,10 +235,10 @@ names. A component that a second brand needs moves up to GDL.
 <SelectTrigger aria-label="Frequency" open aria-controls="frequency-list" />  // Open
 
 <TableRow>                                                         // an expandable cost row
-  <TableCell type="actions">
+  <TableCell type="custom">                                        // Type=Custom: any content or control
     <TableExpandButton label="Show details for cost 32430" expanded={open} aria-controls="cost-32430" onClick={toggle} />
   </TableCell>
-  <TableCell type="tag">
+  <TableCell type="custom">
     <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
       <TableDetailLabel>ID: 32430</TableDetailLabel>                // "Label: Value"
       <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
@@ -482,6 +499,18 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `selected`. Put a checked `Checkbox` in a selected row too; that's what
   screen readers announce. On a selected row, cells darken their secondary
   text and links so they pass AA on its tint.
+- `TableHeaderRow` is Figma's Header Row, the header over a table of
+  TableRows: its TableHeaderCells are `children` (Figma's Columns), and
+  `showExpand`, `showCheckbox` (a select-all box; `checkboxProps` go to it)
+  and `showActions` add a column per control. Its labels sit 16 in, over the
+  cells' text, with a 1px `stroke.subtle` line under the row.
+- `TableList` is Figma's Table / List, the plain list table: a
+  `TableHeaderRow` (`header`) over `TableRow`s (`children`), with no fill or
+  outer border, at its container's width. Name it with `aria-label`.
+- `TableCell` `type="custom"` is Figma's Table / Cell Type=Custom: any
+  content or control (Account Details, a Toggle, the expand button, an
+  Empty State across the row) at its own size, with the other types'
+  padding.
 - `PageHeader` is Figma's Page Header, the top of every list and form page:
   `title` (an `<h1>`), `description`, `tabs` (after a vertical Divider) and
   `actions` (primary last, named for the item: "New Announcement").

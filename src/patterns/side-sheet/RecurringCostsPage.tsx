@@ -3,11 +3,15 @@ import { MenuItem } from '../../components/menu-item';
 import { ModalConfirm } from '../../components/modal-confirm';
 import { PaymentRow } from '../../components/payment-row';
 import { PaymentSchedules } from '../../components/payment-schedules';
+import { RowActionsMenu } from '../../components/row-actions-menu';
 import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
+import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
+import { TableRow } from '../../components/table-row';
 import { useToast } from '../../components/toast';
 import { formatDate, formatFrequency, formatShortDate, recurringCosts } from '../fixtures';
-import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
 import { PageHeader } from '../../components/page-header';
 import { RecurringCostSheet, type EditableRecurringCost, type RecurringCostUpdate } from './RecurringCostSheet';
 
@@ -16,9 +20,10 @@ import { RecurringCostSheet, type EditableRecurringCost, type RecurringCostUpdat
  * Recurring Costs list as pattern 06 draws it (524:2956), with its row menu
  * wired up. It needs a ToastProvider above it.
  *
- * - The table: ID, Created By and Applicant (name over email), Frequency,
- *   Status, and a ••• menu per row: Edit, View Schedules, Stop, Delete (the
- *   Recurring Costs menu, in Figma's order; Stop only while the cost runs).
+ * - The table, a TableList (Table / List): ID, Created By and Applicant (name
+ *   over email), Frequency, Status, and a ••• menu per row: Edit, View
+ *   Schedules, Stop, Delete (the Recurring Costs menu, in Figma's order; Stop
+ *   only while the cost runs). Rows carry `data-id`.
  * - Edit (pattern 06) → RecurringCostSheet. Update saves the row, closes the
  *   sheet and confirms with "Recurring cost #1882 updated."; focus goes back to
  *   the row's •••.
@@ -38,26 +43,7 @@ export interface RecurringCostsPageProps {
   today?: Date;
 }
 
-const COLUMNS: RecordsTableColumn<EditableRecurringCost>[] = [
-  { header: 'ID', cell: (row) => <TableCell>#{row.id}</TableCell> },
-  {
-    header: 'Created By',
-    cell: (row) => <TableCell type="two-line" primary={row.createdBy.name} secondary={row.createdBy.email} />,
-  },
-  {
-    header: 'Applicant',
-    cell: (row) => <TableCell type="two-line" primary={row.applicant.name} secondary={row.applicant.email} />,
-  },
-  { header: 'Frequency', cell: (row) => <TableCell>{formatFrequency(row.frequency)}</TableCell> },
-  {
-    header: 'Status',
-    cell: (row) => (
-      <TableCell type="tag">
-        <StatusPill status={row.status}>{row.status === 'active' ? 'Active' : 'Stopped'}</StatusPill>
-      </TableCell>
-    ),
-  },
-];
+const COLUMNS = ['ID', 'Created By', 'Applicant', 'Frequency', 'Status'];
 
 type Confirming = { action: 'stop' | 'delete'; id: string } | null;
 
@@ -91,28 +77,43 @@ export function RecurringCostsPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Recurring Costs" />
-      <RecordsTable
+      <TableList
         ref={tableRef}
         aria-label="Recurring costs"
-        columns={COLUMNS}
-        rows={rows}
-        rowId={(row) => row.id}
-        actionsLabel={(row) => `Actions for recurring cost #${row.id}`}
-        rowActions={(row) => (
-          <>
-            <MenuItem onClick={() => setEditingId(row.id)}>Edit</MenuItem>
-            <MenuItem onClick={() => setScheduleId(row.id)}>View Schedules</MenuItem>
-            {row.status === 'active' && (
-              <MenuItem destructive onClick={() => setConfirming({ action: 'stop', id: row.id })}>
-                Stop
-              </MenuItem>
-            )}
-            <MenuItem destructive onClick={() => setConfirming({ action: 'delete', id: row.id })}>
-              Delete
-            </MenuItem>
-          </>
-        )}
-      />
+        header={
+          <TableHeaderRow showActions>
+            {COLUMNS.map((label) => (
+              <TableHeaderCell key={label}>{label}</TableHeaderCell>
+            ))}
+          </TableHeaderRow>
+        }
+      >
+        {rows.map((row) => (
+          <TableRow key={row.id} data-id={row.id}>
+            <TableCell>#{row.id}</TableCell>
+            <TableCell type="two-line" primary={row.createdBy.name} secondary={row.createdBy.email} />
+            <TableCell type="two-line" primary={row.applicant.name} secondary={row.applicant.email} />
+            <TableCell>{formatFrequency(row.frequency)}</TableCell>
+            <TableCell type="tag">
+              <StatusPill status={row.status}>{row.status === 'active' ? 'Active' : 'Stopped'}</StatusPill>
+            </TableCell>
+            <TableCell type="actions" className="w-1">
+              <RowActionsMenu label={`Actions for recurring cost #${row.id}`}>
+                <MenuItem onClick={() => setEditingId(row.id)}>Edit</MenuItem>
+                <MenuItem onClick={() => setScheduleId(row.id)}>View Schedules</MenuItem>
+                {row.status === 'active' && (
+                  <MenuItem destructive onClick={() => setConfirming({ action: 'stop', id: row.id })}>
+                    Stop
+                  </MenuItem>
+                )}
+                <MenuItem destructive onClick={() => setConfirming({ action: 'delete', id: row.id })}>
+                  Delete
+                </MenuItem>
+              </RowActionsMenu>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableList>
 
       {editing && (
         <RecurringCostSheet

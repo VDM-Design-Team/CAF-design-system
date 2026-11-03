@@ -85,7 +85,7 @@ Compositions the patterns share. None is exported from the package.
 | `NewCostForm` | Form / New Cost 184:3119 | `src/patterns/forms/NewCostForm.tsx` |
 | `BulkUploadForm` | Form / Bulk Upload 191:433 | `src/patterns/forms/BulkUploadForm.tsx` |
 | `CostBreakdownDialog`, `BreakdownsSection` | 527:5473, 545:18317; 184:3263, 524:3295 | `src/patterns/forms/` |
-| `RecordsTable` | 523:1988, 524:2961, 545:18586 | `src/patterns/forms/RecordsTable.tsx` |
+| `TableList` (was `RecordsTable`) | Table → Table / List (since 2 Nov 2026); 523:1988, 524:2961, 545:18586 | `src/components/table-list` (a DS component now) |
 | `CostCentreDialog`, `CostCentresPage` | 523:2985, 523:1968 | `src/patterns/modal-form/` |
 | `RecurringCostSheet`, `RecurringCostsPage` | 524:3295, 524:2956 | `src/patterns/side-sheet/` |
 | `DraftsList` | 545:18578, 545:18649 | `src/patterns/drafts/DraftsList.tsx` |
@@ -134,7 +134,7 @@ Known overlaps, to settle once design answers the questions below:
 
 **What it solves.** The Costs list's table, which admins and users scan, select, sort, expand and act on. It is a story-level organism (`src/patterns/costs/CostsTable.tsx`, COMPONENT-PLAN decision 4), not a DS component.
 
-**Components.** TableHeaderCell (sortable), TableRow (selected), TableCell, Checkbox (Mixed), TableExpandButton, TableAccountDetails + TableDetailLabel (with a "Recurring" StatusPill), StatusPill or Tag for the status, RowActionsMenu + MenuItem.
+**Components.** TableList, TableHeaderRow (Show Expand, Show Checkbox with Mixed, Show Actions), TableHeaderCell (sortable), TableRow (selected), TableCell (Custom for the expand button and Account Details), Checkbox (Mixed), TableExpandButton, TableAccountDetails + TableDetailLabel (with a "Recurring" StatusPill), StatusPill or Tag for the status, RowActionsMenu + MenuItem.
 
 **The flow the stories show** (`Patterns/Costs table`):
 - **Default:** the Admin Costs screen's eight rows.
@@ -148,15 +148,15 @@ Known overlaps, to settle once design answers the questions below:
 - Row – Cost's selected outline (stroke/focused 2px): code uses TableRow's selected fill.
 - Row – Cost's surface/base fill at rest.
 - The breakdown block's left accent border, radius and type styles, which are not a component.
-- The header's single 68px checkbox cell: code has one column per control.
+- ~~The header's single 68px checkbox cell~~: Table / Header Row (2 Nov 2026) has one column per control, as code does.
 
 The confirm dialog and toast after a destructive action belong to patterns 03 and 04.
 
 **Design questions.**
 - ~~Paid and Rejected statuses (no Status Pill variants).~~ Added on 2 Nov 2026.
 - Selected outline vs fill (464:950).
-- Breakdown block (121:2956).
-- Header checkbox cell width (89:1126).
+- ~~Breakdown block (121:2956).~~ Decided (add-table-breakdown): built from the generic table parts; `CostBreakdownTable` is a TableList.
+- ~~Header checkbox cell width (89:1126).~~ Decided (add-table-header-row): a column per control, with the rows' padding.
 - Amount format (518:672 vs 520:1873).
 - Both components are pinned to Dark.
 
@@ -187,7 +187,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **Components.**
 - PageHeader (`src/patterns/page`): Tabs / TabItem (Tabs / Cost Type), Button (View Audit Logs, Add New), MenuTriggerButton + MenuItem (Export).
 - The Costs filter bar (`src/patterns/filters/CostsFilterBar.tsx`).
-- CostsTable (`src/patterns/costs`): TableHeaderCell, TableRow, TableCell, TableExpandButton, TableAccountDetails, StatusPill / Tag.
+- CostsTable (`src/patterns/costs`): TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell, TableExpandButton, TableAccountDetails, StatusPill / Tag.
 - EmptyState (compact), Pagination, Toast / ToastProvider.
 - The Costs page is one composition, `src/patterns/list-page/CostsListPage.tsx`. It is shared with U01 and 02.
 
@@ -280,7 +280,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** every table row ends with a ••• button that opens a short menu of actions for that one record, so rows stay clean and the actions stay consistent across lists.
 
-**Components:** RowActionsMenu (IconButton ••• + MenuDropdown), MenuItem (Default, Destructive), TableHeaderCell, TableRow, TableCell, ModalConfirm (Destructive), ModalDialog (Medium) with TextField and SelectField, PaymentSchedules with PaymentRow, ToastProvider/Toast, PageHeader, and RecurringCostsTable for the View step.
+**Components:** RowActionsMenu (IconButton ••• + MenuDropdown), MenuItem (Default, Destructive), TableList, TableHeaderRow (Show Actions), TableHeaderCell, TableRow, TableCell, ModalConfirm (Destructive), ModalDialog (Medium) with TextField and SelectField, PaymentSchedules with PaymentRow, ToastProvider/Toast, PageHeader, and RecurringCostsTable for the View step.
 
 **Flow in the stories** (`src/patterns/row-actions/RowActions.stories.tsx`, on the Cost Centers list):
 - *Delete from the row menu*: ••• opens the menu under the button, right-aligned, with focus on its first item. A click outside closes it. Delete opens “Delete cost center?”, “‘Employee Expenses’ will be permanently deleted. This can’t be undone.”, with focus on Cancel. Escape cancels and focus returns to the •••. From the keyboard, ↑ opens the menu on Delete, then Enter, Tab and Enter delete the row. The next row’s ••• takes focus and the toast says “Cost center deleted.”.
@@ -297,7 +297,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** anything that deletes, rejects or stops a record is confirmed first, in a small dialog that names the record and says what will happen.
 
-**Components:** RowActionsMenu, MenuItem (destructive), ModalConfirm (destructive), ToastProvider / Toast (Success, Error), PageHeader, and the list table (TableHeaderCell, TableRow, TableCell). It runs on the Cost Centers list (`src/patterns/modal-form/CostCentresPage.tsx`), which pattern 05 shares.
+**Components:** RowActionsMenu, MenuItem (destructive), ModalConfirm (destructive), ToastProvider / Toast (Success, Error), PageHeader, and the list table (TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell). It runs on the Cost Centers list (`src/patterns/modal-form/CostCentresPage.tsx`), which pattern 05 shares.
 
 **Flow the stories show:**
 - *Delete:* the row menu lists Edit, then Delete (red, last). From the keyboard, Delete opens "Delete cost center?" with the message "“Employee Expenses” will be permanently deleted. This can’t be undone.", and focus opens on Cancel. Escape changes nothing and puts focus back on the •••. Confirming removes the row and shows "Cost center deleted.", and focus moves to the next row's •••.
@@ -314,7 +314,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** short records are created and edited in a dialog over the list, so the user keeps their place.
 
-**Components:** ModalDialog (Medium), SelectField, TextField, Button (Default, Text), ToastProvider, PageHeader, RowActionsMenu, and the list table (`src/patterns/modal-form/CostCentreDialog.tsx`, `CostCentresPage.tsx`).
+**Components:** ModalDialog (Medium), SelectField, TextField, Button (Default, Text), ToastProvider, PageHeader, RowActionsMenu, and the list table, a TableList (`src/patterns/modal-form/CostCentreDialog.tsx`, `CostCentresPage.tsx`).
 
 **Flow the stories show:**
 - *Add new:* Add New opens "Add New Cost Center", with focus on Cost Center and every field marked *. Save with Location empty shows "Location is required." in place, focuses Location and keeps the other values. From the keyboard, Save closes the dialog and puts the new record at the top of the list. "Cost center added." confirms it, focus returns to Add New, and the FormData is checked. Cancel and Escape save nothing, and each opening starts with a fresh form.
@@ -367,7 +367,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** rows show a summary and open in place to reveal more (a cost’s breakdown, or what changed in an audit log entry), so the user keeps their place in the list.
 
-**Components:** CostsTable (TableExpandButton, TableAccountDetails, the breakdown table under the row), PageHeader, Button (outlined View Audit Logs, small Text View Changes), ModalDialog (Large), TableHeaderCell, TableRow, TableCell (text, two-line), Tag (Created, Updated, Deleted), ChangeDiff and ChangeDiffRow, Alert (Error, Compact) and Pagination. The audit log is a story-level composition, `src/patterns/expand-details/AuditLogs.tsx` (AuditLogTable, AuditLogsDialog).
+**Components:** CostsTable (TableExpandButton, TableAccountDetails, the breakdown table under the row), PageHeader, Button (outlined View Audit Logs, small Text View Changes), ModalDialog (Large), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (text, two-line; Custom for the detail row), Tag (Created, Updated, Deleted), ChangeDiff and ChangeDiffRow, Alert (Error, Compact) and Pagination. The audit log is a story-level composition, `src/patterns/expand-details/AuditLogs.tsx` (AuditLogTable, AuditLogsDialog).
 
 **Flow in the stories** (`ExpandDetails.stories.tsx`):
 - *Expand for details*: rows start collapsed with the account summary (ID, Applicant, Beneficiary, IBAN, Recurring). The caret opens cost 32430’s six-line breakdown under its row and pushes the next row down. Several rows can be open, and Enter closes one again with focus kept on the caret.
@@ -428,7 +428,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Solves:** every list and dialog has to handle waiting, having nothing to show, failing, and pages that don't exist. It does this without the layout jumping, and it tells the user what to do next.
 
-**Components:** SkeletonTableRow (Skeleton), Spinner (24), EmptyState (Default and Compact), Alert (Error), Button, TableHeaderCell / TableRow / TableCell, FilterField, FilterSelect (Role), ModalDialog (via `ExportDetailsDialog`), PageHeader. Story-level organisms in `src/patterns/states/`: `UsersPage` (the Users screen, shared with pattern 12) and `UsersTable` (Name, Role, Date Created).
+**Components:** SkeletonTableRow (Skeleton), Spinner (24), EmptyState (Default and Compact), Alert (Error), Button, TableList / TableHeaderRow / TableHeaderCell / TableRow / TableCell, FilterField, FilterSelect (Role), ModalDialog (via `ExportDetailsDialog`), PageHeader. Story-level organisms in `src/patterns/states/`: `UsersPage` (the Users screen, shared with pattern 12) and `UsersTable` (Name, Role, Date Created).
 
 **Flow the stories show:**
 - *Loading a list* (Step 1): the Users header, filters and table header are in place at once. The body shows five SkeletonTableRows of three cells, the table is `aria-busy`, and a visually hidden status says "Loading users". This story never answers, so it can be snapshotted.
@@ -560,7 +560,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What it solves:** parking an unfinished cost and picking it up again later from Drafts.
 
-**Components:** NewCostForm (Save to Drafts), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
+**Components:** NewCostForm (Save to Drafts), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (TableList, two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
 
 **Flow the stories show:**
 - *Save and resume:* a half-done cost is saved to Drafts without checks, and the FormData is checked. The view switches to Drafts with focus on its heading, and "Draft #36742 saved." appears. The new draft is the first row (Single, QA Test, November 2, 2026). Edit reopens New Cost with "Draft #36742" and the values loaded. Saving again updates the row instead of adding one.
@@ -598,7 +598,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What it solves.** What sits behind the account icon in the user header (U06): Manage Currencies (which currencies the Currency dropdown offers), Settings (the account's name and email) and Logout.
 
-**Components.** AppShell (pattern 15), AccountMenu, ModalDialog (Medium, no footer), TableHeaderCell, TableRow, TableCell, Toggle, Pagination (no page info), ToastProvider with Toast (Success), PageHeader, FormSectionHeader, TextField and Button. There are two compositions at story level, in `src/patterns/account-settings/`:
+**Components.** AppShell (pattern 15), AccountMenu, ModalDialog (Medium, no footer), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (Custom for the Toggle), Toggle, Pagination (no page info), ToastProvider with Toast (Success), PageHeader, FormSectionHeader, TextField and Button. There are two compositions at story level, in `src/patterns/account-settings/`:
 - `ManageCurrenciesDialog`: Figma's `_Pattern Content / Manage Currencies`, a table of Currency Name, Code and an Enabled Toggle, seven rows to a page, with Pagination straight under it. It starts on page 1 each time it opens.
 - `SettingsPage`: My Account Details. Save reads the form's FormData and checks it. An empty or badly formed field shows its error and takes focus; otherwise `onSave` gets the details.
 
@@ -611,7 +611,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What Figma draws that the stories don't.**
 - The Settings Card's surface: there is no Card component, so the stories keep its width and centring but not its fill, stroke or radius.
-- The Enabled column's bare frame: TableCell `type="tag"` stands in.
+- ~~The Enabled column's bare frame: TableCell `type="tag"` stands in.~~ Rebuilt from the generic parts (decision add-table-cell-custom): a TableHeaderRow, TableRows, and the Toggle in a TableCell `type="custom"`. Figma's pattern (545:22175) still draws bare Header Cells (no line, 6px padding) and a frame round the Toggle; the library's example 772:1406 shows the rebuilt row.
 - The dialog over the New Cost form, opened from the [Edit] link next to Currency: that is the multi-section form pattern (09 / U02). Here the dialog opens over the Costs page.
 - What follows Logout: the sign-in screen isn't in the library.
 
@@ -621,7 +621,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - The Settings fields show no required marker. There is also no Figma copy for a badly formed email, or for the two success Toasts.
 - The Name differs from the header greeting ("QA test" vs "QA Test").
 - Component issue: a Toast raised while a dialog is open lands under the scrim, inert, so it is dimmed, can't be dismissed and isn't announced. ToastProvider's stack should go in a portal above overlays.
-- Missing: a Card / Panel component, and a Table / Cell that holds a control.
+- Missing: a Card / Panel component (added as PanelCard on 2 Nov 2026), ~~and a Table / Cell that holds a control~~ (TableCell `type="custom"`, 2 Nov 2026).
 
 ## Templates
 
@@ -661,7 +661,7 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 
 **Built from.**
 - CostsListPage (patterns 01, 02, U01): PageHeader, Tabs, CostsFilterBar, CostsTable, Pagination, MenuTriggerButton (Export). It now takes `as="div"` so it can sit in AppShell's `<main>`.
-- DraftsList (U03): FilterField, RecordsTable, Pagination, ModalConfirm.
+- DraftsList (U03): FilterField, TableList, Pagination, ModalConfirm.
 - Composed in `AdminCostsScreen`, `UserCostsScreen` and `DraftsScreen` (`src/templates/screens.tsx`).
 
 **Stories.** Each screen has a Light, a Dark and a Mobile (320) story: **Costs** (admin), **My costs** (user) and **Drafts**. Each play checks:
@@ -760,7 +760,7 @@ Each play checks:
 **Design questions.**
 - Footer verbs: the screens say "Submit" where patterns 05 and 09 say "Save" and "Add".
 - The Audit Logs header's refresh icon (ModalDialog has no header action slot).
-- Recurring Costs has two compositions: pattern 06's plain table, and the screens' and U04's filter bar with pagination.
+- ~~Recurring Costs has two compositions: pattern 06's plain table, and the screens' and U04's filter bar with pagination.~~ Decided (add-plain-list-table): the screens' and U04's layout is canonical. The stories still show both.
 
 ## Missing components
 
@@ -775,11 +775,11 @@ components (or left out) until the library and code have it.
 - **Form heading in Title/md-bold** (184:3121, 191:435). Stand-in: PageHeader (Heading/xl-bold).
 
 **Tables**
-- **Table header row**: Table / Header – Costs (121:4938) draws the header row's stroke/subtle bottom line. Code has only TableHeaderCell, so the tables draw the header `<tr>` border themselves.
-- **Table / Breakdown**: the expanded Cost row's breakdown block (121:2956 with 121:2957) is a frame. Stand-in: `CostBreakdownTable` from TableHeaderCell, TableRow and TableCell.
-- **Table / Cell for custom content or a control**: Account Details sits directly in Row – Cost (99:272), and the Manage Currencies Enabled column holds a Toggle in a bare frame (545:22175). Stand-in: TableCell `type="tag"`, which renders its children as they are.
-- **A plain list table**: the Cost Centers, Recurring Costs and Drafts tables are frames (523:1988, 524:2961, 545:18586). Stand-in: `src/patterns/forms/RecordsTable.tsx`.
-- **A table layout for phones**: Figma has no mobile list screens (2102:4, 2102:3). Rows as cards, or a table that scrolls in its own region (which needs a portalled MenuDropdown so the ••• menus aren't clipped).
+- ~~**Table header row**~~ Added on 2 Nov 2026 (`TableHeaderRow`, Table / Header Row): every table's header uses it.
+- ~~**Table / Breakdown**~~ Not added (decision add-table-breakdown): the expanded Cost row's breakdown (121:2956 with 121:2957) is built from the generic parts; `CostBreakdownTable` is a TableList.
+- ~~**Table / Cell for custom content or a control**~~ Added on 2 Nov 2026 (TableCell `type="custom"`, Table / Cell Type=Custom): Account Details, the expand button, Manage Currencies' Toggle and the lists' Empty State rows use it.
+- ~~**A plain list table**~~ Added on 2 Nov 2026 (`TableList`, Table / List); it replaces `RecordsTable`, and every plain list (Cost Centers, Recurring Costs, Drafts, Users, Exports, Announcements, Audit Logs) uses it.
+- **A table layout for phones**: decided (add-phone-table-layout): a table that scrolls in its own region, with row menus that open outside it. Not built yet; Figma has no mobile list screens (2102:4, 2102:3).
 
 **Statuses**
 - ~~**Status Pill Approved, Paid and Rejected**~~ and ~~**Inactive / Stopped**~~: added to Status Pill on 2 Nov 2026; the costs, recurring costs and announcements tables use them.

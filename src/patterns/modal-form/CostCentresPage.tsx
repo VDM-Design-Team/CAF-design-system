@@ -3,10 +3,14 @@ import { Button } from '../../components/button';
 import { Icon } from '../../components/icon';
 import { MenuItem } from '../../components/menu-item';
 import { ModalConfirm } from '../../components/modal-confirm';
+import { RowActionsMenu } from '../../components/row-actions-menu';
 import { TableCell } from '../../components/table-cell';
+import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
+import { TableRow } from '../../components/table-row';
 import { useToast } from '../../components/toast';
 import { costCentres, costCentreUsage } from '../fixtures';
-import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
 import { PageHeader } from '../../components/page-header';
 import { CostCentreDialog, type CostCentreValues } from './CostCentreDialog';
 
@@ -16,8 +20,9 @@ import { CostCentreDialog, type CostCentreValues } from './CostCentreDialog';
  * create, edit and delete flows wired up. It needs a ToastProvider above it.
  *
  * - Page Header: "Cost Centers" and the Default "Add New" button (plus icon).
- * - The table: Cost center, Nature of Service, Location, and a ••• menu per
- *   row with Edit and Delete (red, last).
+ * - The table: a TableList (Table / List, as Figma's Cost Centers example
+ *   773:1468): Cost center, Nature of Service, Location, and a ••• menu per
+ *   row with Edit and Delete (red, last). Rows carry `data-id`.
  * - Add New / Edit (pattern 05) → CostCentreDialog; Save adds the record at
  *   the top of the list (or updates the row), closes the dialog and confirms
  *   with a success Toast ("Cost center added." / "Cost center updated.").
@@ -50,11 +55,7 @@ export interface CostCentresPageProps {
 
 const actionsLabel = (row: CostCentreValues) => `Actions for ${row.name}, ${row.location}`;
 
-const COLUMNS: RecordsTableColumn<CostCentreRecord>[] = [
-  { header: 'Cost center', cell: (row) => <TableCell>{row.name}</TableCell> },
-  { header: 'Nature of Service', cell: (row) => <TableCell>{row.natureOfService}</TableCell> },
-  { header: 'Location', cell: (row) => <TableCell>{row.location}</TableCell> },
-];
+const COLUMNS = ['Cost center', 'Nature of Service', 'Location'];
 
 let added = 0;
 
@@ -97,22 +98,33 @@ export function CostCentresPage({
           </Button>
         }
       />
-      <RecordsTable
+      <TableList
         ref={tableRef}
         aria-label="Cost centers"
-        columns={COLUMNS}
-        rows={rows}
-        rowId={(row) => row.id}
-        actionsLabel={actionsLabel}
-        rowActions={(row) => (
-          <>
-            <MenuItem onClick={() => setDialog({ edit: row.id })}>Edit</MenuItem>
-            <MenuItem destructive onClick={() => setConfirmId(row.id)}>
-              Delete
-            </MenuItem>
-          </>
-        )}
-      />
+        header={
+          <TableHeaderRow showActions>
+            {COLUMNS.map((label) => (
+              <TableHeaderCell key={label}>{label}</TableHeaderCell>
+            ))}
+          </TableHeaderRow>
+        }
+      >
+        {rows.map((row) => (
+          <TableRow key={row.id} data-id={row.id}>
+            <TableCell>{row.name}</TableCell>
+            <TableCell>{row.natureOfService}</TableCell>
+            <TableCell>{row.location}</TableCell>
+            <TableCell type="actions" className="w-1">
+              <RowActionsMenu label={actionsLabel(row)}>
+                <MenuItem onClick={() => setDialog({ edit: row.id })}>Edit</MenuItem>
+                <MenuItem destructive onClick={() => setConfirmId(row.id)}>
+                  Delete
+                </MenuItem>
+              </RowActionsMenu>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableList>
 
       <CostCentreDialog
         open={dialog !== null}

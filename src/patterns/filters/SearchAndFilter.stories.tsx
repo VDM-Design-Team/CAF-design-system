@@ -8,6 +8,8 @@ import { FilterSelect } from '../../components/filter-select';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { ToastProvider } from '../../components/toast';
 import { costs, LIST_TODAY, userRoles, users, type CostStatus, type UserRole } from '../fixtures';
@@ -79,34 +81,32 @@ function UsersList() {
           }}
         />
       </FilterBar>
-      <table aria-label="Users" className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-stroke-subtle">
+      <TableList
+        aria-label="Users"
+        header={
+          <TableHeaderRow>
             {['Name', 'Role', 'Date Created'].map((h) => (
-              <TableHeaderCell key={h} className="px-4">
-                {h}
-              </TableHeaderCell>
+              <TableHeaderCell key={h}>{h}</TableHeaderCell>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {shown.length === 0 && (
-            <TableRow>
-              {/* Step 3: the compact Empty State inside the table. */}
-              <TableCell type="tag" colSpan={3}>
-                <EmptyState size="compact" title="No items." />
-              </TableCell>
-            </TableRow>
-          )}
-          {shown.map((u) => (
-            <TableRow key={u.id} data-id={u.id}>
-              <TableCell type="two-line" primary={u.name} secondary={u.email} />
-              <TableCell>{u.role}</TableCell>
-              <TableCell>{u.createdAt}</TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </table>
+          </TableHeaderRow>
+        }
+      >
+        {shown.length === 0 && (
+          <TableRow>
+            {/* Step 3: the compact Empty State inside the table. */}
+            <TableCell type="custom" colSpan={3}>
+              <EmptyState size="compact" title="No items." />
+            </TableCell>
+          </TableRow>
+        )}
+        {shown.map((u) => (
+          <TableRow key={u.id} data-id={u.id}>
+            <TableCell type="two-line" primary={u.name} secondary={u.email} />
+            <TableCell>{u.role}</TableCell>
+            <TableCell>{u.createdAt}</TableCell>
+          </TableRow>
+        ))}
+      </TableList>
       {pageCount > 0 && (
         <Pagination className="self-end" page={page} pageCount={pageCount} onPageChange={setPage} showPageInfo={false} />
       )}

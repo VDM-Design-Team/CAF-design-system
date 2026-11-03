@@ -5,9 +5,13 @@ import { FilterField } from '../../components/filter-field';
 import { MenuItem } from '../../components/menu-item';
 import { ModalConfirm } from '../../components/modal-confirm';
 import { Pagination } from '../../components/pagination';
+import { RowActionsMenu } from '../../components/row-actions-menu';
 import { TableCell } from '../../components/table-cell';
+import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
+import { TableRow } from '../../components/table-row';
 import { formatDate, type Draft } from '../fixtures';
-import { RecordsTable, type RecordsTableColumn } from '../forms/RecordsTable';
 import { PageHeader } from '../../components/page-header';
 
 /**
@@ -17,7 +21,8 @@ import { PageHeader } from '../../components/page-header';
  * - Page Header "Drafts"; a filter bar with Search (Filter / Field) and
  *   "Clear Filters"; the table: ID, Created By (name over email), Frequency
  *   ("Single" or the interval), Applicant Name, Email, Date Created, newest
- *   first; Pagination under it.
+ *   first, in a TableList (Table / List); Pagination under it. Rows carry
+ *   `data-id`.
  * - ••• → Edit calls `onEdit` (the page reopens New Cost with the draft).
  *   ••• → Delete asks first (pattern 04): a destructive Modal / Confirm; Delete
  *   calls `onDelete`, and focus moves to the next row's •••.
@@ -38,14 +43,7 @@ export interface DraftsListProps<T extends Draft> {
   defaultConfirm?: string;
 }
 
-const COLUMNS: RecordsTableColumn<Draft>[] = [
-  { header: 'ID', cell: (d) => <TableCell>{d.id}</TableCell> },
-  { header: 'Created By', cell: (d) => <TableCell type="two-line" primary={d.createdBy.name} secondary={d.createdBy.email} /> },
-  { header: 'Frequency', cell: (d) => <TableCell>{d.frequency}</TableCell> },
-  { header: 'Applicant Name', cell: (d) => <TableCell>{d.applicant.name}</TableCell> },
-  { header: 'Email', cell: (d) => <TableCell>{d.applicant.email}</TableCell> },
-  { header: 'Date Created', cell: (d) => <TableCell>{formatDate(d.createdAt)}</TableCell> },
-];
+const COLUMNS = ['ID', 'Created By', 'Frequency', 'Applicant Name', 'Email', 'Date Created'];
 
 const matches = (draft: Draft, query: string) => {
   const q = query.trim().toLowerCase();
@@ -121,23 +119,43 @@ export function DraftsList<T extends Draft>({
               Clear Filters
             </Button>
           </div>
-          <RecordsTable
+          <TableList
             ref={tableRef}
             aria-label="Drafts"
-            columns={COLUMNS}
-            rows={shown}
-            rowId={(d) => d.id}
-            actionsLabel={(d) => `Actions for draft ${d.id}`}
-            empty={<EmptyState size="compact" title="No drafts match your search." />}
-            rowActions={(d) => (
-              <>
-                <MenuItem onClick={() => onEdit(d)}>Edit</MenuItem>
-                <MenuItem destructive onClick={() => setConfirmId(d.id)}>
-                  Delete
-                </MenuItem>
-              </>
+            header={
+              <TableHeaderRow showActions>
+                {COLUMNS.map((label) => (
+                  <TableHeaderCell key={label}>{label}</TableHeaderCell>
+                ))}
+              </TableHeaderRow>
+            }
+          >
+            {shown.length === 0 && (
+              <TableRow>
+                <TableCell type="custom" colSpan={COLUMNS.length + 1}>
+                  <EmptyState size="compact" title="No drafts match your search." />
+                </TableCell>
+              </TableRow>
             )}
-          />
+            {shown.map((d) => (
+              <TableRow key={d.id} data-id={d.id}>
+                <TableCell>{d.id}</TableCell>
+                <TableCell type="two-line" primary={d.createdBy.name} secondary={d.createdBy.email} />
+                <TableCell>{d.frequency}</TableCell>
+                <TableCell>{d.applicant.name}</TableCell>
+                <TableCell>{d.applicant.email}</TableCell>
+                <TableCell>{formatDate(d.createdAt)}</TableCell>
+                <TableCell type="actions" className="w-1">
+                  <RowActionsMenu label={`Actions for draft ${d.id}`}>
+                    <MenuItem onClick={() => onEdit(d)}>Edit</MenuItem>
+                    <MenuItem destructive onClick={() => setConfirmId(d.id)}>
+                      Delete
+                    </MenuItem>
+                  </RowActionsMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableList>
           <Pagination className="self-end" page={current} pageCount={pageCount} onPageChange={setPage} />
         </>
       )}

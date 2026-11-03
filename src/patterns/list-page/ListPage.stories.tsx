@@ -9,6 +9,8 @@ import { Icon } from '../../components/icon';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { ToastProvider } from '../../components/toast';
 import { sortCosts } from '../costs/CostsTable';
@@ -87,33 +89,31 @@ function CostCentersPage() {
           }}
         />
       </FilterBar>
-      <table aria-label="Cost centers" className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-stroke-subtle">
+      <TableList
+        aria-label="Cost centers"
+        header={
+          <TableHeaderRow>
             {['Cost center', 'Nature of Service', 'Location'].map((h) => (
-              <TableHeaderCell key={h} className="px-4">
-                {h}
-              </TableHeaderCell>
+              <TableHeaderCell key={h}>{h}</TableHeaderCell>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {shown.length === 0 && (
-            <TableRow>
-              <TableCell type="tag" colSpan={3}>
-                <EmptyState size="compact" title="No items." />
-              </TableCell>
-            </TableRow>
-          )}
-          {shown.map((c) => (
-            <TableRow key={c.id} data-id={c.id}>
-              <TableCell>{c.name}</TableCell>
-              <TableCell>{c.natureOfService}</TableCell>
-              <TableCell>{c.location}</TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </table>
+          </TableHeaderRow>
+        }
+      >
+        {shown.length === 0 && (
+          <TableRow>
+            <TableCell type="custom" colSpan={3}>
+              <EmptyState size="compact" title="No items." />
+            </TableCell>
+          </TableRow>
+        )}
+        {shown.map((c) => (
+          <TableRow key={c.id} data-id={c.id}>
+            <TableCell>{c.name}</TableCell>
+            <TableCell>{c.natureOfService}</TableCell>
+            <TableCell>{c.location}</TableCell>
+          </TableRow>
+        ))}
+      </TableList>
       {pageCount > 0 && (
         <Pagination className="self-end" page={page} pageCount={pageCount} onPageChange={setPage} showPageInfo={false} />
       )}

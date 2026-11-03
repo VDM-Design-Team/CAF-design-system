@@ -242,6 +242,19 @@ export const ManageCurrencies: Story = {
     await expect(rowNames(table)).toEqual(managedCurrencies.slice(0, 7).map((c) => c.name));
     const switches = within(table).getAllByRole('switch');
     await expect(switches.map((s) => (s as HTMLInputElement).checked)).toEqual([true, true, true, true, true, true, false]);
+    // Rebuilt from the table parts: a Table / Header Row (its 1px line under it, labels 16 in) over Table / Rows,
+    // each Toggle in a Table / Cell Type=Custom, 16 in, at the Enabled label's x.
+    const head = table.querySelector('thead tr')!;
+    await expect(getComputedStyle(head).borderBottomWidth).toBe('1px');
+    const enabled = within(table).getByRole('columnheader', { name: 'Enabled' });
+    const label = enabled.querySelector('span')!.getBoundingClientRect().left;
+    await expect(label - enabled.getBoundingClientRect().left).toBe(16);
+    for (const toggle of switches) {
+      const cell = toggle.closest('td')!;
+      const box = toggle.parentElement!.getBoundingClientRect();
+      await expect(box.left - cell.getBoundingClientRect().left).toBe(16);
+      await expect(box.left).toBe(label);
+    }
     // Figma's dialog has no footer: × is its only button outside the table and the pages.
     await expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBeNull();
     await expect(within(dialog).getByRole('button', { name: 'Close' })).toBeVisible();

@@ -3,8 +3,9 @@ import { RowActionsMenu } from '../../components/row-actions-menu';
 import { StatusPill } from '../../components/status-pill';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
-import { cn } from '../../lib/cn';
 import type { Announcement } from '../fixtures';
 
 /**
@@ -39,48 +40,44 @@ export const AnnouncementsTable = React.forwardRef<HTMLTableElement, Announcemen
 ) {
   const columnCount = ANNOUNCEMENTS_COLUMNS.length + (rowActions ? 1 : 0);
   return (
-    <table ref={ref} aria-label={ariaLabel} className={cn('w-full border-collapse', className)} {...table}>
-      <thead>
-        <tr className="border-b border-stroke-subtle">
+    <TableList
+      ref={ref}
+      aria-label={ariaLabel}
+      className={className}
+      {...table}
+      header={
+        <TableHeaderRow showActions={!!rowActions}>
           {ANNOUNCEMENTS_COLUMNS.map((label) => (
-            <TableHeaderCell key={label} className="px-4">
-              {label}
-            </TableHeaderCell>
+            <TableHeaderCell key={label}>{label}</TableHeaderCell>
           ))}
+        </TableHeaderRow>
+      }
+    >
+      {rows.length === 0 && empty && (
+        <TableRow>
+          <TableCell type="custom" colSpan={columnCount}>
+            {empty}
+          </TableCell>
+        </TableRow>
+      )}
+      {rows.map((announcement) => (
+        <TableRow key={announcement.id} data-id={announcement.id}>
+          <TableCell>{announcement.title}</TableCell>
+          <TableCell>v{announcement.version}</TableCell>
+          <TableCell>{announcement.audience}</TableCell>
+          <TableCell type="tag">
+            {announcement.active ? <StatusPill status="active">Active</StatusPill> : <StatusPill status="inactive">Inactive</StatusPill>}
+          </TableCell>
           {rowActions && (
-            <TableHeaderCell className="w-1 px-4">
-              <span className="sr-only">Actions</span>
-            </TableHeaderCell>
+            <TableCell type="actions" className="w-1">
+              <RowActionsMenu label={`Actions for ${announcement.title} v${announcement.version}`}>
+                {rowActions(announcement)}
+              </RowActionsMenu>
+            </TableCell>
           )}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 && empty && (
-          <TableRow>
-            <TableCell type="tag" colSpan={columnCount}>
-              {empty}
-            </TableCell>
-          </TableRow>
-        )}
-        {rows.map((announcement) => (
-          <TableRow key={announcement.id} data-id={announcement.id}>
-            <TableCell>{announcement.title}</TableCell>
-            <TableCell>v{announcement.version}</TableCell>
-            <TableCell>{announcement.audience}</TableCell>
-            <TableCell type="tag">
-              {announcement.active ? <StatusPill status="active">Active</StatusPill> : <StatusPill status="inactive">Inactive</StatusPill>}
-            </TableCell>
-            {rowActions && (
-              <TableCell type="actions" className="w-1">
-                <RowActionsMenu label={`Actions for ${announcement.title} v${announcement.version}`}>
-                  {rowActions(announcement)}
-                </RowActionsMenu>
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
-      </tbody>
-    </table>
+        </TableRow>
+      ))}
+    </TableList>
   );
 });
 AnnouncementsTable.displayName = 'AnnouncementsTable';

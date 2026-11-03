@@ -45,8 +45,8 @@ export const SkeletonTableRow = React.forwardRef<HTMLTableRowElement, SkeletonTa
       {...props}
     >
       {Array.from({ length: columns }, (_, i) => (
-        /* type="tag": the cell holds a component, as Figma's Type=Tag cell does (centred vertically, left-aligned). */
-        <TableCell key={i} type="tag" className="py-4">
+        /* type="custom": the cell holds a component (Table / Cell Type=Custom: centred vertically, at the start). */
+        <TableCell key={i} type="custom" className="py-4">
           <Skeleton className={WIDTHS[i % WIDTHS.length]} />
         </TableCell>
       ))}
