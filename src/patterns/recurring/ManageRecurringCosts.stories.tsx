@@ -328,7 +328,7 @@ export const ViewSchedules: Story = {
 
     // A stopped schedule's menu has no Stop.
     await userEvent.click(actions(canvasElement, '1207'));
-    await expect(menuItems(canvas.getByRole('menu', { name: 'Actions for recurring cost 1207' }))).toEqual(['Edit', 'View Schedules', 'Delete']);
+    await expect(menuItems(screen.getByRole('menu', { name: 'Actions for recurring cost 1207' }))).toEqual(['Edit', 'View Schedules', 'Delete']);
     await userEvent.keyboard('{Escape}');
     await userEvent.click(canvas.getByRole('button', { name: 'Clear Filters' }));
     await expect(rowIds(t)).toHaveLength(6);
@@ -337,7 +337,7 @@ export const ViewSchedules: Story = {
     const button = actions(canvasElement, '1882');
     button.focus();
     await userEvent.keyboard('{ArrowDown}');
-    const menu = canvas.getByRole('menu', { name: 'Actions for recurring cost 1882' });
+    const menu = screen.getByRole('menu', { name: 'Actions for recurring cost 1882' });
     await expect(menuItems(menu)).toEqual([...rowActionLabels.recurringCosts]);
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
 
@@ -366,7 +366,7 @@ export const EditInSideSheet: Story = {
     const t = tableOf(canvasElement);
     const button = actions(canvasElement, '1882');
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Edit' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const sheet = await screen.findByRole('dialog', { name: `Edit Recurring Cost ${ref('1882')}` });
     const form = within(sheet);
 
@@ -430,7 +430,7 @@ export const EditInSideSheet: Story = {
 
     // Cancel closes without saving.
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Edit' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const again = await screen.findByRole('dialog', { name: `Edit Recurring Cost ${ref('1882')}` });
     await userEvent.click(within(again).getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -449,7 +449,7 @@ export const StopAndDelete: Story = {
 
     // Stop: the dialog names the record; focus opens on Cancel; Stop stops it.
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Stop' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Stop' }));
     const stop = await screen.findByRole('alertdialog', { name: 'Stop recurring cost?' });
     await expect(stop).toHaveAccessibleDescription(`Recurring cost ${ref('1240')} will stop. Upcoming payments are cancelled; processed ones stay.`);
     await waitFor(() => expect(within(stop).getByRole('button', { name: 'Cancel' })).toHaveFocus());
@@ -461,8 +461,8 @@ export const StopAndDelete: Story = {
 
     // Its schedule keeps the processed payments only, and its menu no longer offers Stop.
     await userEvent.click(button);
-    await expect(menuItems(canvas.getByRole('menu', { name: 'Actions for recurring cost 1240' }))).toEqual(['Edit', 'View Schedules', 'Delete']);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'View Schedules' }));
+    await expect(menuItems(screen.getByRole('menu', { name: 'Actions for recurring cost 1240' }))).toEqual(['Edit', 'View Schedules', 'Delete']);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'View Schedules' }));
     const schedules = await screen.findByRole('dialog', { name: 'Payment Schedules' });
     await expect(within(schedules).getAllByText('Done')).toHaveLength(3);
     await expect(within(schedules).queryByText('Upcoming')).toBeNull();
@@ -472,7 +472,7 @@ export const StopAndDelete: Story = {
 
     // Delete from the keyboard: ↑ opens the menu on its last item. Escape cancels, and nothing changes.
     await userEvent.keyboard('{ArrowUp}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
     await userEvent.keyboard('{Enter}');
     const del = await screen.findByRole('alertdialog', { name: 'Delete recurring cost?' });
     await expect(del).toHaveAccessibleDescription(`Recurring cost ${ref('1240')} and its schedule will be permanently deleted. This can’t be undone.`);
@@ -483,7 +483,7 @@ export const StopAndDelete: Story = {
 
     // Again, and confirm: the row goes, focus moves to the next row's •••, a toast confirms it.
     await userEvent.keyboard('{ArrowUp}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
     await userEvent.keyboard('{Enter}');
     const confirm = await screen.findByRole('alertdialog', { name: 'Delete recurring cost?' });
     await waitFor(() => expect(within(confirm).getByRole('button', { name: 'Cancel' })).toHaveFocus());

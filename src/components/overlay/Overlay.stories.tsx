@@ -220,7 +220,7 @@ export const NotDismissible: Story = {
 };
 
 /** A row menu inside the dialog: Escape closes the open menu first, then the dialog. */
-function WithRowMenu() {
+function WithRowMenu({ portal = false }: { portal?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const id = React.useId();
   const close = () => setOpen(false);
@@ -238,7 +238,7 @@ function WithRowMenu() {
         <ModalHeader title="Payment Schedules" titleId={`${id}-title`} onClose={close} />
         <div className="flex items-center justify-between gap-4 px-6 pb-6 text-body-sm-regular text-text-secondary">
           <p>Payment 2 · 1 Oct 2026 · USD 900 · Upcoming</p>
-          <MenuDropdown align="right" trigger={<IconButton icon="dots-three" label="Payment 2 actions" />}>
+          <MenuDropdown align="right" portal={portal} trigger={<IconButton icon="dots-three" label="Payment 2 actions" />}>
             <MenuItem>Mark as paid</MenuItem>
             <MenuItem destructive>Skip payment</MenuItem>
           </MenuDropdown>
@@ -266,6 +266,49 @@ export const EscapeClosesAMenuFirst: Story = {
     await expect(menuButton).toHaveFocus();
 
     // The second closes the dialog.
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(trigger).toHaveFocus();
+  },
+};
+
+/**
+ * The same menu with `portal`, as RowActionsMenu opens it: on <body>, over the
+ * dialog. It isn't made inert, and the dialog's focus trap leaves it alone, so
+ * Tab and Escape close the menu first and hand focus back to its button.
+ */
+export const PortalledMenuInADialog: Story = {
+  render: () => <WithRowMenu portal />,
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole('button', { name: 'Payment schedules' });
+    await userEvent.click(trigger);
+    const dialog = await screen.findByRole('dialog', { name: 'Payment Schedules' });
+    const menuButton = within(dialog).getByRole('button', { name: 'Payment 2 actions' });
+    await userEvent.click(menuButton);
+    const menu = screen.getByRole('menu', { name: 'Payment 2 actions' });
+    await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Mark as paid' })).toHaveFocus());
+
+    // Outside the dialog in the DOM, over it on screen, and live.
+    await expect(dialog.contains(menu)).toBe(false);
+    await expect(menu.parentElement).toBe(document.body);
+    await expect(menu.closest('[inert]')).toBeNull();
+    const item = within(menu).getByRole('menuitem', { name: 'Skip payment' }).getBoundingClientRect();
+    await expect(menu.contains(document.elementFromPoint(item.left + 8, item.top + item.height / 2))).toBe(true);
+
+    // Tab closes the menu and hands focus back to its button, inside the dialog.
+    await userEvent.tab();
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(menuButton).toHaveFocus();
+    await expect(screen.getByRole('dialog', { name: 'Payment Schedules' })).toBeInTheDocument();
+
+    // The first Escape closes the menu; the second, the dialog.
+    await userEvent.keyboard('{ArrowDown}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Mark as paid' })).toHaveFocus());
+    await userEvent.keyboard('{Escape}');
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(screen.getByRole('dialog', { name: 'Payment Schedules' })).toBeInTheDocument();
+    await expect(menuButton).toHaveFocus();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await expect(trigger).toHaveFocus();

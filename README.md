@@ -163,7 +163,7 @@ names. A component that a second brand needs moves up to GDL.
 | `Divider` | Layout → `Divider` | Components/Divider |
 | `PanelCard` | Layout → `Card / Panel` | Components/PanelCard |
 | `TableHeaderRow` | Table → `Table / Header Row` | Components/TableHeaderRow |
-| `TableList` | Table → `Table / List` | Components/TableList |
+| `TableList` | Table → `Table / List` (its phone scroll region is code only: Figma has no phone layout) | Components/TableList |
 
 ```tsx
 // src/components — not in the published package yet (see below)
@@ -204,7 +204,7 @@ names. A component that a second brand needs moves up to GDL.
     <TableCell>Philippines</TableCell>
     <TableCell type="actions"><RowActionsMenu label="Actions for Employee Expenses">…</RowActionsMenu></TableCell>
   </TableRow>
-</TableList>
+</TableList>                                                       // scrolls in its own region on a phone; menus open outside it
 <TableHeaderRow showCheckbox checkboxProps={{ 'aria-label': 'Select all costs', checked: all, indeterminate: some, onChange: toggleAll }}>…</TableHeaderRow>
 <TableCell type="custom"><Toggle aria-label="Enable Euro" checked={on} onChange={toggle} /></TableCell>
 
@@ -227,6 +227,7 @@ names. A component that a second brand needs moves up to GDL.
 </TableCell>
 
 <Popover trigger={<Button variant="outlined">Details</Button>} align="right">…</Popover>
+<MenuDropdown portal trigger={…}>…</MenuDropdown>                  // in a table: the menu opens on <body>, not clipped
 
 <TextInput aria-label="Account name" placeholder="Placeholder" />   // State=Default
 <TextInput id="cost-reference" defaultValue="ACME-0042" aria-invalid />  // Error (name it with <label htmlFor>)
@@ -506,7 +507,12 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   cells' text, with a 1px `stroke.subtle` line under the row.
 - `TableList` is Figma's Table / List, the plain list table: a
   `TableHeaderRow` (`header`) over `TableRow`s (`children`), with no fill or
-  outer border, at its container's width. Name it with `aria-label`.
+  outer border, at its container's width. Name it with `aria-label`. On a
+  narrow screen it scrolls sideways in its own region, so the page doesn't:
+  while it can scroll, the region is a tab stop (the arrow keys scroll it)
+  and a `role="region"` named like the table, with the focus ring; while it
+  fits, it is a plain `<div>`. `regionClassName` styles the region;
+  `className` and `ref` stay on the `<table>`.
 - `TableCell` `type="custom"` is Figma's Table / Cell Type=Custom: any
   content or control (Account Details, a Toggle, the expand button, an
   Empty State across the row) at its own size, with the other types'
@@ -533,13 +539,18 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `RowActionsMenu` is the table row's •••: an `IconButton` (`dots-three`)
   that opens a MenuDropdown below it, flush right. `label` names the button
   and the menu ("Row actions" by default; name the record when a table has
-  many rows).
+  many rows). The menu opens outside the table (`portal`, on `<body>`), so a
+  TableList's scroll region never cuts it off; tests find it with `screen`.
 - `Popover` is the floating panel the menus, `Select`, `Combobox` and
   `DateInput` are built on. It has Menu / Dropdown's surface
   (`popoverSurface`), opens below or above its trigger (`placement`), flush
   left or right (`align`), and flips when the viewport has no room. A click
-  outside, Escape or focus leaving closes it. It has no portal, so a parent
-  that clips overflow clips it too.
+  outside, Escape or focus leaving closes it. By default it has no portal,
+  so a parent that clips overflow clips it too. `portal` renders the panel
+  on `<body>` instead, fixed at the trigger and following it on scroll, with
+  the same ARIA wiring, Escape, outside click and Tab order: use it for a
+  trigger in a table or another container that scrolls (pass it to a
+  `MenuDropdown` there).
 - `TextInput` is Figma's _Text Input, a native `<input>` that fills its
   container. Default is empty with a `placeholder`, Filled has a value,
   Focus is `:focus`, Error is `aria-invalid` and Disabled is `disabled`.

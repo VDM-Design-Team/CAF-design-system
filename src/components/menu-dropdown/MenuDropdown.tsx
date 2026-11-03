@@ -23,8 +23,11 @@ import { Popover, type PopoverProps } from '../popover';
  *   go to the first / last; Enter or Space chooses the item, which closes the
  *   menu; Escape and Tab close it. Focus then goes back to the trigger.
  *
- * Positioning, outside click and focus return are Popover's. Where code
- * departs from Figma, the reason is in docs/figma-sync.md ("MenuDropdown").
+ * Positioning, outside click and focus return are Popover's. In a table, or
+ * anything else that scrolls or clips, pass `portal`: the menu then opens on
+ * `document.body`, over the table's scroll region instead of cut off inside it
+ * (RowActionsMenu does this). Where code departs from Figma, the reason is in
+ * docs/figma-sync.md ("MenuDropdown").
  */
 const ITEM = '[role="menuitem"]';
 

@@ -305,7 +305,7 @@ export const ViewDetails: Story = {
     const trigger = canvas.getByRole('button', { name: `Actions for ${nameOf('6846')}` });
 
     await userEvent.click(trigger);
-    const menu = canvas.getByRole('menu', { name: `Actions for ${nameOf('6846')}` });
+    const menu = screen.getByRole('menu', { name: `Actions for ${nameOf('6846')}` });
     // A completed export: Download, View Details, Delete (no Retry).
     await expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['Download', 'View Details', 'Delete']);
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'View Details' }));
@@ -345,7 +345,7 @@ export const ViewDetails: Story = {
     // From the keyboard: ↓ opens the menu, ↓ to View Details, Enter; Close in the footer closes it.
     trigger.focus();
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Download' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Download' })).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}{Enter}');
     const again = await screen.findByRole('dialog', { name: 'Export Details' });
     // Figma's footer Close joins the header's X once the details are in; the footer's is the last.
@@ -372,7 +372,7 @@ export const RetryAndDelete: Story = {
     // A failed export: Retry, View Details, Delete (no Download).
     failed.focus();
     await userEvent.keyboard('{Enter}');
-    const menu = canvas.getByRole('menu', { name: `Actions for ${nameOf('6840')}` });
+    const menu = screen.getByRole('menu', { name: `Actions for ${nameOf('6840')}` });
     await expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['Retry', 'View Details', 'Delete']);
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Retry' })).toHaveFocus());
     await userEvent.keyboard('{Enter}');
@@ -385,7 +385,7 @@ export const RetryAndDelete: Story = {
 
     // Delete 6841: confirm, the row goes, a toast, focus on the next row's •••.
     await userEvent.click(canvas.getByRole('button', { name: `Actions for ${nameOf('6841')}` }));
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     const confirm = await screen.findByRole('alertdialog', { name: 'Delete export?' });
     await expect(confirm).toHaveAccessibleDescription(`“${nameOf('6841')}” will be permanently deleted. This can’t be undone.`);
     // Cancel is the safe default: it has focus.

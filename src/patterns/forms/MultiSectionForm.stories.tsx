@@ -277,7 +277,7 @@ export const EditAndRemoveBreakdowns: Story = {
     // Edit Breakdown 2.
     const second = canvas.getByRole('button', { name: 'Actions for Breakdown 2' });
     await userEvent.click(second);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Edit' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const dialog = await screen.findByRole('dialog', { name: 'Cost Breakdown' });
     await expect(within(dialog).getByRole('textbox', { name: /^Title/ })).toHaveValue('Breakdown 2');
     await expect(within(dialog).getByRole('combobox', { name: /^Cost Center/ })).toHaveTextContent('Travel Expenses');
@@ -296,13 +296,13 @@ export const EditAndRemoveBreakdowns: Story = {
 
     // Remove Breakdown 1: focus moves to Breakdown 2's •••.
     await userEvent.click(canvas.getByRole('button', { name: 'Actions for Breakdown 1' }));
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Remove' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Remove' }));
     await expect(canvas.queryByText('Breakdown 1')).toBeNull();
     await waitFor(() => expect(canvas.getByRole('button', { name: 'Actions for Breakdown 2' })).toHaveFocus());
 
     // Remove the last: focus moves to Add new.
     await userEvent.keyboard('{Enter}');
-    const menu = await canvas.findByRole('menu', { name: 'Actions for Breakdown 2' });
+    const menu = await screen.findByRole('menu', { name: 'Actions for Breakdown 2' });
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
     await userEvent.keyboard('{End}{Enter}');
     await expect(canvas.queryByRole('list', { name: 'Breakdowns' })).toBeNull();

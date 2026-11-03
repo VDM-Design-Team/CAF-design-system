@@ -47,7 +47,8 @@ const notifications = (canvasElement: HTMLElement) =>
 async function chooseDelete(trigger: HTMLElement) {
   trigger.focus();
   await userEvent.keyboard('{Enter}');
-  const menu = await within(trigger.closest('td')!).findByRole('menu');
+  // The row's menu opens on <body>, outside the table's scroll region (RowActionsMenu's portal).
+  const menu = await screen.findByRole('menu', { name: trigger.getAttribute('aria-label')! });
   const items = within(menu).getAllByRole('menuitem');
   await waitFor(() => expect(items[0]).toHaveFocus());
   await userEvent.keyboard('{End}');
@@ -73,7 +74,7 @@ export const Delete: Story = {
 
     // Step 1: Delete is the last item.
     await userEvent.click(trigger);
-    const menu = canvas.getByRole('menu', { name: 'Actions for Employee Expenses, Philippines' });
+    const menu = screen.getByRole('menu', { name: 'Actions for Employee Expenses, Philippines' });
     await expect(within(menu).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Edit', 'Delete']);
     await userEvent.keyboard('{Escape}');
     await expect(trigger).toHaveFocus();

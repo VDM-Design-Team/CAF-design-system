@@ -214,7 +214,7 @@ export const ViewInvoices: Story = {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole('button', { name: 'Actions for cost 32430' });
     await userEvent.click(trigger);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'View invoices' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'View invoices' }));
     const dialog = await screen.findByRole('dialog', { name: 'Invoices' });
     await expect(dialog).toHaveAccessibleDescription('Cost #32430 · 2 files');
     await expect(within(dialog).getAllByRole('listitem')).toHaveLength(2);
@@ -226,7 +226,7 @@ export const ViewInvoices: Story = {
 
     // No invoices: the dialog says so.
     await userEvent.click(canvas.getByRole('button', { name: 'Actions for cost 32431' }));
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'View invoices' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'View invoices' }));
     const empty = await screen.findByRole('dialog', { name: 'Invoices' });
     await expect(empty).toHaveAccessibleDescription('Cost #32431 · 0 files');
     await expect(within(empty).getByText('No invoices attached to this cost.')).toBeVisible();

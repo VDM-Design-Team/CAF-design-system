@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../lib/cn';
 
@@ -6,7 +7,7 @@ import { cn } from '../../lib/cn';
  * Popover — a floating panel anchored to a trigger. Code only: the CAF Figma
  * library has no Popover. It is the overlay Menu / Dropdown, Select and the
  * Date picker are built on, hand-built like VCP's Popover (no positioning
- * library, no portal, no new dependency).
+ * library, no new dependency).
  *
  * Its surface is `Menu / Dropdown`'s (page "Menus"), so every CAF overlay
  * looks the same:
@@ -32,8 +33,18 @@ import { cn } from '../../lib/cn';
  *   its focus where the user put it.
  * - It doesn't trap focus: it is non-modal. Content the user must finish
  *   first belongs in a Modal.
- * - No portal: the panel is absolutely positioned in a relative wrapper, so a
- *   parent with `overflow: hidden` or `auto` clips it.
+ * - By default no portal: the panel is absolutely positioned in a relative
+ *   wrapper, so a parent with `overflow: hidden` or `auto` clips it.
+ * - `portal` (opt-in) renders the panel outside instead: in a portal on
+ *   `document.body`, `position: fixed` at the trigger's box, re-placed on
+ *   every scroll, resize and size change and every frame while open (so a
+ *   layout shift that moves the trigger moves it too), above the page (`z-50`,
+ *   after it in the DOM). For a trigger in a container that scrolls or clips, such as a
+ *   table's scroll region: RowActionsMenu turns it on. Everything above still
+ *   holds: the ARIA wiring, outside click, Escape, focus return. Tab keeps the
+ *   inline order: from the open trigger into the panel, out of its last
+ *   control to whatever follows the trigger, and Shift+Tab from its first
+ *   control back to the trigger.
  *
  * Every class is a token utility. Where code departs from Figma, the reason is
  * in docs/figma-sync.md ("Popover").
@@ -45,20 +56,28 @@ export const popoverSurface =
 
 const panel = cva(
   [
-    'absolute z-50 w-max text-left',
+    'z-50 w-max text-left',
     /* Focusable only so a click on the panel's padding doesn't drop focus to the body. Never in the tab order. */
     'focus:outline-none',
   ],
   {
     variants: {
+      /* In the trigger's wrapper (default), or on <body>, fixed at the trigger's box (the inline style sets the edges). */
+      portal: { false: 'absolute', true: 'fixed' },
       /* space.4 between trigger and panel, as Figma's row actions pattern places it. */
-      placement: { bottom: 'top-full mt-1', top: 'bottom-full mb-1' },
+      placement: { bottom: 'mt-1', top: 'mb-1' },
       /* Which edge of the panel lines up with the same edge of the trigger. */
-      align: { left: 'left-0', right: 'right-0' },
+      align: { left: '', right: '' },
       /* Off when the content draws its own surface (Date Picker / Calendar, / Range): the panel only positions it. */
       surface: { true: popoverSurface, false: '' },
     },
-    defaultVariants: { placement: 'bottom', align: 'left', surface: true },
+    compoundVariants: [
+      { portal: false, placement: 'bottom', class: 'top-full' },
+      { portal: false, placement: 'top', class: 'bottom-full' },
+      { portal: false, align: 'left', class: 'left-0' },
+      { portal: false, align: 'right', class: 'right-0' },
+    ],
+    defaultVariants: { portal: false, placement: 'bottom', align: 'left', surface: true },
   },
 );
 
@@ -78,6 +97,25 @@ const FOCUSABLE = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+
+/* What Tab can reach under `root`, in document order: not inert, not hidden, with a box. */
+function tabbable(root: ParentNode): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    (el) => el.tabIndex >= 0 && !el.closest('[inert]') && el.getClientRects().length > 0,
+  );
+}
+
+/* Portals need `document`. True in the browser from the first render; false on a server and while hydrating. */
+const noSubscribe = () => () => {};
+const useCanPortal = () =>
+  React.useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
+
+/** The edges of a portalled panel, in viewport px (React adds the unit). */
+type PanelEdges = Pick<React.CSSProperties, 'top' | 'bottom' | 'left' | 'right'>;
 
 export interface PopoverProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'role' | 'content'> {
   /**
@@ -116,6 +154,15 @@ export interface PopoverProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
    * Calendar and RangeCalendar do: the panel then only positions it.
    */
   surface?: boolean;
+  /**
+   * Render the panel outside the trigger's wrapper: in a portal on
+   * `document.body`, fixed at the trigger's box. Default false. Turn it on when
+   * the trigger sits in a container that scrolls or clips (a TableList's scroll
+   * region, a modal's scrolling body), where the default panel is cut off at
+   * the container's edge. RowActionsMenu turns it on. In tests, find the panel
+   * with `screen`, not `within(canvasElement)`.
+   */
+  portal?: boolean;
   /** Merged onto the panel with `cn()`. `className` styles the wrapper. */
   panelClassName?: string;
   /** For a component built on Popover: props for the panel, such as its keyboard handler. */
@@ -147,6 +194,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     label,
     panelRole,
     surface = true,
+    portal = false,
     panelClassName,
     panelProps,
     panelRef: panelRefProp,
@@ -181,7 +229,9 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
 
   React.useEffect(() => {
     if (!isOpen) return;
-    const inside = (node: EventTarget | null) => node instanceof Node && !!wrapperRef.current?.contains(node);
+    /* The wrapper holds the trigger, and the panel unless it is portalled. */
+    const inside = (node: EventTarget | null) =>
+      node instanceof Node && (!!wrapperRef.current?.contains(node) || !!panelRef.current?.contains(node));
 
     const onPointerDown = (event: PointerEvent) => {
       if (inside(event.target)) return;
@@ -226,6 +276,8 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
      so the panel never shows on the wrong side first. Re-measured on resize, on
      any scroll and on a size change (below) while open. The gap is read from the panel's own margin. */
   const [side, setSide] = React.useState({ placement, align });
+  /* With `portal`: the panel's fixed edges, from the trigger's box. */
+  const [edges, setEdges] = React.useState<PanelEdges | null>(null);
   React.useLayoutEffect(() => {
     if (!isOpen) return;
     const place = () => {
@@ -253,6 +305,26 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
       if (align === 'right' && width > roomLeft && roomRight > roomLeft) a = 'left';
 
       setSide((prev) => (prev.placement === p && prev.align === a ? prev : { placement: p, align: a }));
+
+      /* Portalled: pin the panel's near edges to the trigger's. The panel's own
+         margin still gives the space.4 gap, as it does inline. */
+      if (portal) {
+        const next: PanelEdges = {
+          top: p === 'bottom' ? box.bottom : undefined,
+          bottom: p === 'top' ? viewHeight - box.top : undefined,
+          left: a === 'left' ? box.left : undefined,
+          right: a === 'right' ? viewWidth - box.right : undefined,
+        };
+        setEdges((prev) =>
+          prev &&
+          prev.top === next.top &&
+          prev.bottom === next.bottom &&
+          prev.left === next.left &&
+          prev.right === next.right
+            ? prev
+            : next,
+        );
+      }
     };
     place();
     window.addEventListener('resize', place);
@@ -266,13 +338,59 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
       frame = requestAnimationFrame(place);
     });
     for (const el of [triggerRef.current, panelRef.current, document.body]) if (el) observer.observe(el);
+    /* Portalled, the panel is fixed to where the trigger was: a layout shift that
+       moves the trigger without a scroll or a size change (content above it
+       appearing, a transform) would leave it behind. So it also follows the
+       trigger every frame while open. place() only sets state when an edge moved. */
+    let follow = 0;
+    const track = () => {
+      place();
+      follow = requestAnimationFrame(track);
+    };
+    if (portal) follow = requestAnimationFrame(track);
     return () => {
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
       observer.disconnect();
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(follow);
     };
-  }, [isOpen, placement, align]);
+  }, [isOpen, placement, align, portal]);
+
+  /* Portalled, the panel isn't next to the trigger in the DOM, so Tab would skip
+     it. These keep the inline order: the open trigger's Tab goes into the panel;
+     Tab past its last control goes on to whatever follows the trigger (which
+     closes it); Shift+Tab before its first control goes back to the trigger. A
+     handler that already moved focus (MenuDropdown's Tab) calls preventDefault. */
+  const onTriggerTab = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (!portal || !isOpen || event.key !== 'Tab' || event.shiftKey || event.defaultPrevented) return;
+    const first = panelRef.current ? tabbable(panelRef.current)[0] : undefined;
+    if (!first) return;
+    event.preventDefault();
+    first.focus();
+  };
+  const onPanelTab = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const floating = panelRef.current;
+    const anchor = triggerRef.current;
+    if (!portal || event.key !== 'Tab' || event.defaultPrevented || !floating || !anchor) return;
+    const items = tabbable(floating);
+    const active = document.activeElement;
+    if (event.shiftKey) {
+      if (items.length > 0 && active !== items[0] && active !== floating) return;
+      event.preventDefault();
+      anchor.focus();
+      return;
+    }
+    if (items.length > 0 && active !== items[items.length - 1]) return;
+    event.preventDefault();
+    const after = tabbable(document).find(
+      (el) =>
+        !floating.contains(el) &&
+        !anchor.contains(el) &&
+        !!(anchor.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING),
+    );
+    (after ?? anchor).focus();
+  };
 
   const triggerNode = React.cloneElement(trigger, {
     id: triggerId,
@@ -285,29 +403,50 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
       trigger.props?.onClick?.(event);
       if (!event.defaultPrevented) setOpen(!isOpen);
     },
+    onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
+      trigger.props?.onKeyDown?.(event);
+      onTriggerTab(event);
+    },
   });
+
+  /* A portalled panel waits for the browser: nothing touches `document` on a server. */
+  const canPortal = useCanPortal();
+
+  const panelNode = (
+    <div
+      {...panelProps}
+      ref={mergeRefs<HTMLDivElement>(panelRef, panelRefProp)}
+      id={panelId}
+      role={panelRole}
+      /* A panel with a role needs a name: its own (`label`, or an `aria-labelledby`
+         in panelProps, which Select passes on from its own), or the trigger's. */
+      aria-label={panelRole && label ? label : undefined}
+      aria-labelledby={panelRole && !label ? (panelProps?.['aria-labelledby'] ?? triggerId) : undefined}
+      tabIndex={panelProps?.tabIndex ?? -1}
+      data-placement={side.placement}
+      data-align={side.align}
+      /* Overlay leaves Tab in a portalled popup to the popup (its trigger is in the dialog). */
+      data-popover-portal={portal ? '' : undefined}
+      style={portal ? { ...panelProps?.style, ...edges } : panelProps?.style}
+      onKeyDown={(event) => {
+        panelProps?.onKeyDown?.(event);
+        onPanelTab(event);
+      }}
+      className={cn(
+        panel({ portal, placement: side.placement, align: side.align, surface }),
+        panelClassName,
+        panelProps?.className,
+      )}
+    >
+      {children}
+    </div>
+  );
 
   return (
     <div ref={mergeRefs<HTMLDivElement>(wrapperRef, ref)} className={cn('relative inline-flex', className)} {...props}>
       {triggerNode}
-      {isOpen && (
-        <div
-          {...panelProps}
-          ref={mergeRefs<HTMLDivElement>(panelRef, panelRefProp)}
-          id={panelId}
-          role={panelRole}
-          /* A panel with a role needs a name: its own (`label`, or an `aria-labelledby`
-             in panelProps, which Select passes on from its own), or the trigger's. */
-          aria-label={panelRole && label ? label : undefined}
-          aria-labelledby={panelRole && !label ? (panelProps?.['aria-labelledby'] ?? triggerId) : undefined}
-          tabIndex={panelProps?.tabIndex ?? -1}
-          data-placement={side.placement}
-          data-align={side.align}
-          className={cn(panel({ placement: side.placement, align: side.align, surface }), panelClassName, panelProps?.className)}
-        >
-          {children}
-        </div>
-      )}
+      {isOpen && !portal && panelNode}
+      {isOpen && portal && canPortal && createPortal(panelNode, document.body)}
     </div>
   );
 });

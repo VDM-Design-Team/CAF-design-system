@@ -14,6 +14,13 @@ import { MenuDropdown, type MenuDropdownProps } from '../menu-dropdown';
  *   glyph, no hover); docs/figma-sync.md ("IconButton") has the list.
  * - The menu → MenuDropdown, below the button and flush with its right edge,
  *   as Figma's row actions pattern places it. It flips at the viewport's edges.
+ * - It opens outside the table: Popover's `portal`, on `document.body`, fixed
+ *   at the button. A TableList scrolls sideways in its own region on a narrow
+ *   screen (decision add-phone-table-layout), and a region that scrolls clips
+ *   what is inside it, so an inline menu would be cut off at its edge. The
+ *   menu sits over the region and the page instead, and follows the button
+ *   when either scrolls. `portal={false}` keeps it inline. Tests find the menu
+ *   with `screen`.
  *
  * `label` is the button's accessible name, and names the menu too. It is
  * "Row actions" by default; in a table with many rows, name the record
@@ -25,8 +32,14 @@ export interface RowActionsMenuProps extends Omit<MenuDropdownProps, 'trigger' |
 }
 
 export const RowActionsMenu = React.forwardRef<HTMLDivElement, RowActionsMenuProps>(
-  ({ label = 'Row actions', align = 'right', ...props }, ref) => (
-    <MenuDropdown ref={ref} trigger={<IconButton icon="dots-three" label={label} />} align={align} {...props} />
+  ({ label = 'Row actions', align = 'right', portal = true, ...props }, ref) => (
+    <MenuDropdown
+      ref={ref}
+      trigger={<IconButton icon="dots-three" label={label} />}
+      align={align}
+      portal={portal}
+      {...props}
+    />
   ),
 );
 RowActionsMenu.displayName = 'RowActionsMenu';

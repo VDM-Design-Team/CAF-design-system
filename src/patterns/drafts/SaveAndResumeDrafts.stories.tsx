@@ -215,7 +215,7 @@ async function choose(scope: HTMLElement, label: RegExp, option: string) {
 async function editDraft(canvasElement: HTMLElement, id: string) {
   const canvas = within(canvasElement);
   await userEvent.click(canvas.getByRole('button', { name: `Actions for draft ${id}` }));
-  await userEvent.click(canvas.getByRole('menuitem', { name: 'Edit' }));
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
   const heading = await canvas.findByRole('heading', { level: 1, name: 'New Cost' });
   await waitFor(() => expect(heading).toHaveFocus());
 }
@@ -326,7 +326,7 @@ export const SearchAndDelete: Story = {
 
     // Delete asks first.
     await userEvent.click(canvas.getByRole('button', { name: 'Actions for draft 36701' }));
-    const menu = canvas.getByRole('menu', { name: 'Actions for draft 36701' });
+    const menu = screen.getByRole('menu', { name: 'Actions for draft 36701' });
     await expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['Edit', 'Delete']);
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'Delete' }));
     const dialog = await screen.findByRole('alertdialog', { name: 'Delete draft?' });

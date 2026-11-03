@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
 import { IconButton } from '../icon-button';
-import { useScrollableTabStop } from './Overlay';
+import { useScrollableTabStop } from '../../lib/useScrollableTabStop';
 
 /*
  * The three bands Modal / Dialog and Panel / Side Sheet share in Figma: a

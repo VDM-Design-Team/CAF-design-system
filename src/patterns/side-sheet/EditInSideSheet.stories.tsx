@@ -55,7 +55,7 @@ async function openEdit(canvasElement: HTMLElement) {
   const canvas = within(canvasElement);
   const trigger = canvas.getByRole('button', { name: 'Actions for recurring cost #1882' });
   await userEvent.click(trigger);
-  const menu = canvas.getByRole('menu', { name: 'Actions for recurring cost #1882' });
+  const menu = screen.getByRole('menu', { name: 'Actions for recurring cost #1882' });
   await userEvent.click(within(menu).getByRole('menuitem', { name: 'Edit' }));
   const sheet = await screen.findByRole('dialog', { name: SHEET });
   await waitFor(() => expect(sheet.contains(document.activeElement)).toBe(true));
@@ -85,7 +85,7 @@ export const EditAndUpdate: Story = {
 
     // Step 1: the menu, in Figma's order.
     await userEvent.click(within(row).getByRole('button', { name: 'Actions for recurring cost #1882' }));
-    const menu = canvas.getByRole('menu', { name: 'Actions for recurring cost #1882' });
+    const menu = screen.getByRole('menu', { name: 'Actions for recurring cost #1882' });
     await expect(within(menu).getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
       'Edit',
       'View Schedules',

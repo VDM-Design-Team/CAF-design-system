@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { MenuItem } from '../../components/menu-item';
 import { costs, type Cost, type CostStatus } from '../fixtures';
 import { CostsTable, sortCosts, type CostSort } from './CostsTable';
@@ -75,6 +75,7 @@ const meta = {
           'Selected false / true / Mixed) and **Table / Row – Cost** (121:2782, Expanded; Selectable 121:5197). ' +
           'Headers sort (a new column ascending, the same one flips); the header checkbox selects every row shown, ' +
           'and shows Mixed when some are; the caret opens the cost’s breakdown under its row; ••• opens the row’s menu. ' +
+          'On a narrow screen the table scrolls sideways in its own region (TableList), and the row menus open outside it. ' +
           'Rows are the Admin Costs screen’s (2102:5749).',
       },
     },
@@ -234,13 +235,13 @@ export const RowMenu: Story = {
     const button = canvas.getByRole('button', { name: 'Actions for cost 37022' });
 
     await userEvent.click(button);
-    const menu = canvas.getByRole('menu', { name: 'Actions for cost 37022' });
+    const menu = screen.getByRole('menu', { name: 'Actions for cost 37022' });
     const items = within(menu).getAllByRole('menuitem').map((i) => i.textContent);
     await expect(items).toEqual(['Approve', 'Reject', 'View invoices', 'Request adjustment', 'Delete']);
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
 
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'Approve' }));
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(button).toHaveFocus();
     await expect(within(rowOf(table, '37022')).getByText('Approved')).toBeVisible();
     await expect(canvas.getByRole('status')).toHaveTextContent('Approved: cost 37022');
@@ -249,17 +250,17 @@ export const RowMenu: Story = {
     const next = canvas.getByRole('button', { name: 'Actions for cost 37021' });
     next.focus();
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}{Enter}');
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(next).toHaveFocus();
     await expect(within(rowOf(table, '37021')).getByText('Rejected')).toBeVisible();
 
     // Escape closes the menu without choosing.
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menu')).toBeVisible());
+    await waitFor(() => expect(screen.getByRole('menu')).toBeVisible());
     await userEvent.keyboard('{Escape}');
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(next).toHaveFocus();
   },
 };
@@ -275,5 +276,69 @@ export const Dark: Story = {
     await waitFor(() => expect(canvas.getByRole('checkbox', { name: 'Select all costs' })).toBePartiallyChecked());
     await expect(canvas.getByRole('table', { name: 'Breakdown of cost 37021' })).toBeVisible();
     await expect(canvas.getByRole('columnheader', { name: 'Date Submitted' })).toHaveAttribute('aria-sort', 'descending');
+  },
+};
+
+/* ── At a phone's width ─────────────────────────────────────────────────────
+   Storybook's "Small mobile" viewport (320 × 568); Chromatic ignores the global,
+   so the story also sets chromatic.viewports. The frame is a phone's 320 with
+   AppShell's 16px gutters at any viewport, as Vitest and test:static's channel
+   pass render wider. */
+const MOBILE = { value: 'mobile1', isRotated: false } as const;
+
+/**
+ * At 320 the Costs table (about 980 wide) scrolls sideways in its own region,
+ * named Costs, and the page doesn't (decision add-phone-table-layout). The last
+ * row's ••• menu opens outside the region: over its bottom edge, all on screen.
+ */
+export const Phone: Story = {
+  name: 'At a phone’s width',
+  args: {},
+  render: () => (
+    <div className="max-w-80 px-4 py-6">
+      <CostsTableDemo />
+    </div>
+  ),
+  globals: { viewport: MOBILE },
+  parameters: { layout: 'fullscreen', chromatic: { viewports: [320] } },
+  // The menu stays open for the snapshot.
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const table = costsTable(canvasElement);
+    const region = await within(canvasElement).findByRole('region', { name: 'Costs' });
+    await expect(region).toBe(table.parentElement);
+    await expect(region).toHaveAttribute('tabindex', '0');
+    await expect(region.clientWidth).toBe(288);
+    await expect(region.scrollWidth).toBeGreaterThan(900);
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth);
+
+    // The last row's •••, brought into view: the region scrolls to its last column (again if a
+    // late font widens the table: a scroll is no DOM mutation, so it is safe in waitFor), and the
+    // page scrolls the row near the top, so the menu has room under it even in a short viewport.
+    const id = SCREEN_IDS[SCREEN_IDS.length - 1];
+    const button = within(table).getByRole('button', { name: `Actions for cost ${id}` });
+    await waitFor(() => {
+      region.scrollLeft = region.scrollWidth;
+      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(region.getBoundingClientRect().right + 0.5);
+    });
+    window.scrollTo(0, window.scrollY + button.getBoundingClientRect().top - 16);
+    const r = region.getBoundingClientRect();
+
+    await userEvent.click(button);
+    const menu = screen.getByRole('menu', { name: `Actions for cost ${id}` });
+    await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
+    await expect(region.contains(menu)).toBe(false);
+    const m = menu.getBoundingClientRect();
+    // Below the •••, over the region's bottom edge, where an inline menu would be cut off (above it
+    // where the viewport is too short, as test:static's channel pass is)…
+    if (menu.getAttribute('data-placement') === 'bottom') await expect(m.bottom).toBeGreaterThan(r.bottom);
+    // …and all of it in the viewport, its last item the menu's own pixels.
+    await expect(m.left).toBeGreaterThanOrEqual(0);
+    await expect(m.top).toBeGreaterThanOrEqual(0);
+    await expect(m.right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+    await expect(m.bottom).toBeLessThanOrEqual(document.documentElement.clientHeight);
+    const last = within(menu).getByRole('menuitem', { name: 'Delete' }).getBoundingClientRect();
+    await expect(menu.contains(document.elementFromPoint(last.left + 8, last.top + last.height / 2))).toBe(true);
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth);
   },
 };

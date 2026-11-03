@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, within } from 'storybook/test';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { COSTS_PAGE_SIZE, drafts, myCosts, type Draft } from '../../patterns/fixtures';
-import { expectFrame, expectInOrder, isDesktop, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
+import { expectFrame, expectInOrder, expectTableInItsRegion, isDesktop, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
 import { AdminCostsScreen, DraftsScreen, UserCostsScreen } from '../screens';
 import { TemplateFrame } from '../TemplateFrame';
 
@@ -92,6 +92,8 @@ async function expectCostsList(canvasElement: HTMLElement, audience: 'admin' | '
   const pagination = page.getByRole('navigation', { name: 'Pagination' });
   await expectInOrder([heading, bar, table, pagination]);
   await expectPaginationRight(pagination, bar);
+  // On a phone (and for Admin Costs at 1024) the table scrolls in its own region; the page never does.
+  await expectTableInItsRegion(table);
 
   // A page of eight; no selection column (bulk selection is pattern 07's).
   await expect(rowIds(table)).toHaveLength(COSTS_PAGE_SIZE);
@@ -111,6 +113,7 @@ async function expectDraftsList(canvasElement: HTMLElement) {
   const table = page.getByRole('table', { name: 'Drafts' }) as HTMLTableElement;
   const pagination = page.getByRole('navigation', { name: 'Pagination' });
   await expectInOrder([heading, search, table, pagination]);
+  await expectTableInItsRegion(table);
   await expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
     'ID',
     'Created By',
@@ -139,12 +142,42 @@ export const CostsDark: Story = {
   play: ({ canvasElement }) => expectCostsList(canvasElement, 'admin'),
 };
 
-/** Below 768px the title row wraps; the table is wider than a phone and scrolls the page (docs/patterns.md). */
+/**
+ * Below 768px the title row wraps; the table is wider than a phone, so it
+ * scrolls sideways in its own region (a tab stop, named Costs) and the page
+ * doesn't. Row menus open outside the region.
+ */
 export const CostsMobile: Story = {
   name: 'Costs, mobile',
   globals: { viewport: MOBILE_VIEWPORT },
   parameters: { chromatic: MOBILE_SNAPSHOT },
   play: ({ canvasElement }) => expectCostsList(canvasElement, 'admin'),
+};
+
+/* A 1024 × 768 screen: AppShell's content box is 976 (24 at each side). Not one of Storybook's presets. */
+const LAPTOP_VIEWPORTS = { laptop1024: { name: 'Laptop (1024)', styles: { width: '1024px', height: '768px' }, type: 'desktop' } };
+
+/**
+ * At 1024 the Costs table needs a few pixels more than the 976 it gets (about
+ * 977–982, depending on the font's metrics): it scrolls by those pixels inside
+ * its region, and the page doesn't scroll sideways. Where it fits, the region
+ * is a plain box.
+ */
+export const CostsAt1024: Story = {
+  name: 'Costs, 1024',
+  globals: { viewport: { value: 'laptop1024', isRotated: false } },
+  parameters: { viewport: { options: LAPTOP_VIEWPORTS }, chromatic: { viewports: [1024] } },
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    await expectCostsList(canvasElement, 'admin');
+    const table = within(canvasElement).getByRole('table', { name: 'Costs' }) as HTMLTableElement;
+    const region = table.parentElement!;
+    // The region takes the page's content box (976 at 1024): the table never pushes it wider.
+    const main = within(canvasElement).getByRole('main');
+    const container = region.parentElement!;
+    await expect(region.getBoundingClientRect().width).toBeCloseTo(container.getBoundingClientRect().width, 0);
+    await expect(main.getBoundingClientRect().right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+  },
 };
 
 /* ── User / Costs ───────────────────────────────────────────────────────── */
