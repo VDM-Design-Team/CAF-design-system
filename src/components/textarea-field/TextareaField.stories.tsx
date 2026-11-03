@@ -234,8 +234,8 @@ const STATES = [
   {
     state: 'Disabled',
     props: { disabled: true, defaultValue: NOTE },
-    value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    value: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
   },
   {
     state: 'Required',
@@ -282,17 +282,20 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const marker = tokenColour('accent-critical-tonal-content-default');
     const helper = tokenColour('text-subtle');
     const fill = tokenColour('surface-elevated-secondary');
+    const disabledFill = tokenColour('neutral-tonal-surface-disabled');
+    const critical = tokenColour('accent-critical-tonal-content-default');
     const want = STATES.map(({ state, props, value, stroke: [token, width] }) => ({
       state,
       filled: 'defaultValue' in props,
       required: 'required' in props,
       message: 'error' in props || 'helper' in props,
+      error: 'error' in props,
       value: tokenColour(value),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, filled, required, message, value, stroke } of want) {
+        for (const { state, filled, required, message, error, value, stroke } of want) {
           const textarea = canvasElement.querySelector<HTMLTextAreaElement>(`textarea[data-state="${state}"]`)!;
           const field = textarea.parentElement!;
           const labelNode = field.querySelector('label')!;
@@ -306,21 +309,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(textarea.getBoundingClientRect().top - labelNode.getBoundingClientRect().bottom).toBe(20);
           // The textarea: the _Textarea bindings for this state, 96px high.
           const style = getComputedStyle(textarea);
-          expect(style.backgroundColor).toBe(fill);
-          // Disabled: the whole field at Figma's 50% layer opacity.
-          expect(style.opacity).toBe(state === 'Disabled' ? '0.5' : '1');
+          expect(style.backgroundColor).toBe(state === 'Disabled' ? disabledFill : fill);
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(filled ? style.color : getComputedStyle(textarea, '::placeholder').color).toBe(value);
           expect(textarea.getBoundingClientRect().height).toBe(96);
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, right under the textarea.
+          // The Helper (text.subtle) or the Error Text in its place (accent.critical.tonal.content.default):
+          // Caption/md-regular, space.8 under the textarea.
           const note = field.querySelector('p');
           if (!message) {
             expect(note).toBeNull();
             continue;
           }
-          expect(getComputedStyle(note!).color).toBe(helper);
+          expect(getComputedStyle(note!).color).toBe(error ? critical : helper);
           expect(getComputedStyle(note!).fontSize).toBe('12px');
-          expect(note!.getBoundingClientRect().top).toBe(textarea.getBoundingClientRect().bottom);
+          expect(note!.getBoundingClientRect().top).toBe(textarea.getBoundingClientRect().bottom + 8);
         }
       },
       { timeout: 3000 },

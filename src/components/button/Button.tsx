@@ -12,7 +12,7 @@ import { cn } from '../../lib/cn';
  *   (React reserves `style`).
  * - Size    → `size`: the three component sets, Big / Normal / Small.
  * - State   → the element's own states: Hover = `:hover`, Pressed = `:active`,
- *   Disabled = the `disabled` attribute.
+ *   Focus = `:focus-visible`, Disabled = the `disabled` attribute.
  * - Show Icons, and the nested Button_Normal's Show Left / Right Icon →
  *   `leftIcon` / `rightIcon`.
  *
@@ -26,60 +26,67 @@ const button = cva(
   [
     'inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap select-none',
     'rounded-8 font-sans transition-colors',
-    // Figma has no Focus state yet; the ring uses stroke.focused.
+    /* State=Focus: Figma's Focus Ring, a 2px stroke/focused ring 2px outside the
+       button (4px out, radius 12). An outline with a 2px offset draws the same
+       ring, and follows the button's radius out to 12. */
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
     'disabled:cursor-not-allowed',
   ],
   {
     variants: {
       variant: {
-        /* Style=Default — action.primary, filled. */
+        /* Style=Default — action.primary, filled. Disabled is the neutral.tonal
+           disabled pair, as on Tonal. */
         default: [
           'bg-action-primary-surface-default text-action-primary-content-default',
           'enabled:hover:bg-action-primary-surface-hover enabled:hover:text-action-primary-content-hover enabled:hover:shadow-elevation-2',
           'enabled:active:bg-action-primary-surface-pressed enabled:active:text-action-primary-content-pressed enabled:active:shadow-none',
-          'disabled:bg-action-primary-surface-disabled disabled:text-action-primary-content-disabled',
+          'disabled:bg-neutral-tonal-surface-disabled disabled:text-neutral-tonal-content-disabled',
         ],
         /* Style=Outlined — action.secondary. The 1px stroke is an inset ring,
            so it sits inside the box the way Figma's INSIDE stroke does and the
-           button is as wide as the other styles. */
+           button is as wide as the other styles. Disabled's border and label
+           are neutral.outline's disabled pair. */
         outlined: [
           'bg-action-secondary-surface-default text-action-secondary-content-default',
           'inset-ring inset-ring-action-secondary-border-default',
           'enabled:hover:bg-action-secondary-surface-hover enabled:hover:text-action-secondary-content-hover enabled:hover:inset-ring-action-secondary-border-hover',
           'enabled:active:bg-action-secondary-surface-pressed enabled:active:text-action-secondary-content-pressed enabled:active:inset-ring-action-secondary-border-pressed',
-          'disabled:bg-action-secondary-surface-disabled disabled:text-action-secondary-content-disabled disabled:inset-ring-action-secondary-border-disabled',
+          'disabled:bg-action-secondary-surface-disabled disabled:text-neutral-outline-content-disabled disabled:inset-ring-neutral-outline-border-disabled',
         ],
-        /* Style=Text — action.tertiary, no container until hovered (Dark). */
+        /* Style=Text — action.tertiary, no container until hovered (Dark).
+           Disabled's label is neutral.outline's, as on Outlined. */
         text: [
           'bg-action-tertiary-surface-default text-action-tertiary-content-default',
           'enabled:hover:bg-action-tertiary-surface-hover enabled:hover:text-action-tertiary-content-hover',
           'enabled:active:bg-action-tertiary-surface-pressed enabled:active:text-action-tertiary-content-pressed',
-          'disabled:bg-action-tertiary-surface-disabled disabled:text-action-tertiary-content-disabled',
+          'disabled:bg-action-tertiary-surface-disabled disabled:text-neutral-outline-content-disabled',
         ],
-        /* Style=Destructive — accent.critical.filled surface. Figma binds the
-           label and icon to action.primary.content.default in every state. */
+        /* Style=Destructive — accent.critical.filled: its surface and its
+           content (label and icon), state by state. */
         destructive: [
-          'bg-accent-critical-filled-surface-default text-action-primary-content-default',
-          'enabled:hover:bg-accent-critical-filled-surface-hover enabled:hover:shadow-elevation-2',
-          'enabled:active:bg-accent-critical-filled-surface-pressed enabled:active:shadow-none',
-          'disabled:bg-accent-critical-filled-surface-disabled',
+          'bg-accent-critical-filled-surface-default text-accent-critical-filled-content-default',
+          'enabled:hover:bg-accent-critical-filled-surface-hover enabled:hover:text-accent-critical-filled-content-hover enabled:hover:shadow-elevation-2',
+          'enabled:active:bg-accent-critical-filled-surface-pressed enabled:active:text-accent-critical-filled-content-pressed enabled:active:shadow-none',
+          'disabled:bg-accent-critical-filled-surface-disabled disabled:text-accent-critical-filled-content-disabled',
         ],
         /* Style=Tonal — brand tint (e.g. View Changes): surface.brand
-           faint → subtle → medium, label in action.primary.surface.default.
-           Figma's Disabled is identical to Default. */
+           faint → subtle → medium, the label in text.brand.strong
+           (text.brand.stronger while pressed). Disabled is the neutral.tonal
+           disabled pair, as on Default. */
         tonal: [
-          'bg-surface-brand-faint text-action-primary-surface-default',
+          'bg-surface-brand-faint text-text-brand-strong',
           'enabled:hover:bg-surface-brand-subtle enabled:hover:shadow-elevation-2',
-          'enabled:active:bg-surface-brand-medium enabled:active:shadow-none',
+          'enabled:active:bg-surface-brand-medium enabled:active:text-text-brand-stronger enabled:active:shadow-none',
+          'disabled:bg-neutral-tonal-surface-disabled disabled:text-neutral-tonal-content-disabled',
         ],
-        /* Style=Success — accent.success.filled surface (e.g. Download). Figma
-           binds the label and icon to action.primary.content.default. */
+        /* Style=Success — accent.success.filled (e.g. Download): its surface
+           and its content (label and icon), state by state. */
         success: [
-          'bg-accent-success-filled-surface-default text-action-primary-content-default',
-          'enabled:hover:bg-accent-success-filled-surface-hover enabled:hover:shadow-elevation-2',
-          'enabled:active:bg-accent-success-filled-surface-pressed enabled:active:shadow-none',
-          'disabled:bg-accent-success-filled-surface-disabled',
+          'bg-accent-success-filled-surface-default text-accent-success-filled-content-default',
+          'enabled:hover:bg-accent-success-filled-surface-hover enabled:hover:text-accent-success-filled-content-hover enabled:hover:shadow-elevation-2',
+          'enabled:active:bg-accent-success-filled-surface-pressed enabled:active:text-accent-success-filled-content-pressed enabled:active:shadow-none',
+          'disabled:bg-accent-success-filled-surface-disabled disabled:text-accent-success-filled-content-disabled',
         ],
       },
       size: {

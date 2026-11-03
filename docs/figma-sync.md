@@ -59,18 +59,24 @@ Radio Deselected, Checkbox's unchecked border, and Toggle's off track.
 CI runs `npm run import:figma` and fails if `tokens/` changes. So `tokens/`
 can only move together with the snapshot.
 
-## Open Figma housekeeping (snapshot of 20 Oct 2026)
+## Open Figma housekeeping (snapshot of 3 Nov 2026)
 
-`npm run import:figma` lists these. None of them changes a value:
+Fixed in Figma on 3 Nov 2026 (no value changed): Heading/md-bold and the
+Title/sm-* styles bind GDL's `font/size/…`; the Label/md-* styles bind
+`font/size/label-md`; Label/sm-bold binds `font/size/label-sm`;
+Heading/lg-regular binds `font/family/inter`. `npm run import:figma` no
+longer lists any of them.
 
-- Heading/md-bold and the four Title/sm-* styles bind their size to
-  `Font/Size/…`, a capitalised variable that isn't GDL's `font/size/…`.
-- The three Label/md-* styles have no size variable bound.
-- Label/sm-bold's size is bound to `font/size/body-sm`. It is the same
-  14px, but the wrong tier.
-- Heading/lg-regular has no family variable bound.
+Still open:
+
 - `text.link.*` and `surface.overlay` are raw colours, not aliases. The
-  contract check reports them as warnings.
+  contract check reports them as warnings. `surface.overlay` Dark is
+  `#020617bf` since 3 Nov (GDL slate 950 at 75%, decision dark-modal-edge;
+  it stays a CAF value, decision fc-modals-overlay-gdl).
+- Caption/md-medium's 16px line height and 0.3px letter spacing are typed
+  on the style, not bound: GDL's Figma has no line-height or
+  letter-spacing variables yet (a GDL change). The other styles keep AUTO
+  and 0%; code takes every metric from GDL.
 
 ## Components
 
@@ -84,9 +90,52 @@ two agree.
 
 Source: page **Buttons** (`217:1679`), sets `Button / Big` (`252:3133`),
 `Button / Normal` (`252:2890`) and `Button / Small` (`252:2649`), each Style ×
-State × Show Icons. Code: `src/components/button/`. Every colour binding is
-copied exactly, and the Storybook grids are checked against them in Light and
-Dark.
+State (Default, Hover, Pressed, Disabled, Focus) × Show Icons. Code:
+`src/components/button/`. Every colour binding is copied exactly. The
+Storybook grids check every cell against them in Light and Dark: the fill,
+the label and icon, Outlined's stroke, the hover lift and the focus ring.
+axe checks every cell's contrast, Tonal included.
+
+**Changed in Figma on 3 Nov 2026** (decisions button-rebind,
+fc-buttons-tonal, fc-buttons-disabled, button-outlined-disabled-dark,
+fc-buttons-default-disabled-dark and states-code-adds; the library is
+published). Code follows:
+- **Tonal's label passes AA.** It was `action/primary/surface/default`
+  (Light Hover 3.98, Pressed 2.48; Dark 3.59 / 2.79 / 1.77). It is now
+  `text/brand/strong` at rest and on hover and `text/brand/stronger` while
+  pressed, on the same `surface/brand` faint / subtle / medium fills. The
+  Storybook exception for it (`CONTRAST_TODO` and the "Tonal contrast"
+  stories) is gone.
+- **Destructive and Success labels** use their own
+  `accent/critical/filled/content/*` and `accent/success/filled/content/*`
+  in every state, not `action/primary/content/default`. Light is unchanged
+  (white); Dark is #020617.
+- **Disabled.** Default and Tonal: fill `neutral/tonal/surface/disabled`,
+  label and icon `neutral/tonal/content/disabled` (Tonal's Disabled was
+  the same as its Default; Default's Dark #D6D8EB box was louder than the
+  enabled one). Outlined: border `neutral/outline/border/disabled`, label
+  `neutral/outline/content/disabled`. Text: label
+  `neutral/outline/content/disabled`. Destructive and Success keep their
+  `*/surface/disabled` fills, with their own `*/content/disabled` labels.
+- **Focus** is a State: the Default look plus a Focus Ring 4px outside the
+  button, 2px `stroke/focused` (`stroke/2`), `radius/12`. Code's ring
+  already drew it: a 2px outline at a 2px offset, whose outer edge follows
+  the 8px radius out to 12. The "No Focus state" departure is gone.
+
+Contrast of the label on its fill (AA 4.5):
+
+| | Default | Hover | Pressed |
+|---|---|---|---|
+| Tonal, Light | 11.08 | 8.07 | 7.07 |
+| Tonal, Dark | 8.07 | 6.28 | 5.46 |
+| Destructive, Light | 4.77 | 6.42 | 8.36 |
+| Destructive, Dark | 5.30 | 6.98 | 10.51 |
+| Success, Light | 4.95 | 7.13 | 9.05 |
+| Success, Dark | 6.27 | 9.10 | 11.34 |
+
+Disabled is exempt (WCAG 1.4.3). Tonal and Default Disabled are 2.34
+(Light) and 1.93 (Dark); Outlined and Text Disabled labels 2.45–2.56 /
+3.07–3.75.
 
 Code departs from Figma here. Fix these in Figma:
 
@@ -96,72 +145,73 @@ Code departs from Figma here. Fix these in Figma:
 | Icon gap | Big and Normal: raw 10px, unbound | 8px (`space/8`, as Small already uses) | Bind item spacing to `space/8` |
 | Hover shadow (Default, Destructive, Tonal, Success) | Two raw drop shadows, `0 1 2` and `0 4 4` at 25% black | `shadow.elevation.2`, the closest GDL elevation (Figma's is darker) | Apply the Elevation 2 effect style |
 | Radius | Bound to GDL's `radius/8`, which the file shows under its old name `radius-4` (see TableExpandButton) | `rounded-8` | None: take GDL's library update in the CAF library |
-| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset | Add a Focus state |
 
 Also in Figma: Text / Hover keeps a zero-width raw-blue stroke, which is
 invisible and has no effect on code. The label's letter spacing is 0 in
 Figma; the GDL ramp gives Label/md-semibold 0.1px.
 
-Figma gaps the code copies exactly. These are for the designer to decide
-(ratios from the tokens after PR #1's contrast fixes):
+Not in Figma: a Label text property on the three sets. The label sits
+inside a nested GDL base button, so it is a GDL task (decision
+fc-buttons-gdl-label). In code the label is `children` either way.
 
-- **Tonal fails WCAG AA.** Its label is `action/primary/surface/default` on
-  `surface/brand/faint → subtle → medium`:
-
-  | Tonal | Default | Hover | Pressed |
-  |---|---|---|---|
-  | Light | 5.46 | **3.98** | **2.48** |
-  | Dark | **3.59** | **2.79** | **1.77** |
-
-  These are component pairs, so `npm run check:contrast` doesn't list them.
-  In Storybook the per-size grids skip Tonal in axe's contrast check only.
-  The "Tonal contrast — Light/Dark" stories report them in the a11y panel
-  without failing the run. Once Figma's Tonal passes, delete
-  `CONTRAST_TODO` in `Button.stories.tsx`.
-- **Tonal Disabled looks the same as Tonal Default.** It has no disabled
-  look.
-- **Destructive and Success labels use `action/primary/content/default`,**
-  not their own `accent/*/filled/content`. They pass AA now:
-  - Dark Destructive: 4.82 / 6.36 / 9.57 (Default / Hover / Pressed).
-  - Dark Success: 5.70 / 8.28 / 10.32.
-  - Light: both white, 4.77 and up.
-
-  The binding still ties them to the primary button's label, so a future
-  change to `action/primary/content` moves them too. Their own tokens would
-  give Dark 5.30 / 6.98 / 10.51 and 6.27 / 9.10 / 11.34.
-
-Not built yet: `Button / Icon` (`461:1151`) and `Button / Menu Trigger`
-(`461:1459`). They are separate components on the same page.
+`Button / Icon` (`461:1151`) is IconButton and `Button / Menu Trigger`
+(`461:1459`) is MenuTriggerButton: see their sections.
 
 ### Checkbox (21 Oct 2026)
 
 Source: page **Selection Controls** (`241:5133`), set `Checkbox`
-(`253:248`): State (Deselected, Hover, Selected, Mixed-State) × Size
-(16px, 20px). Code: `src/components/checkbox/`. Every colour binding is
-copied exactly. The Storybook grids are checked against them: 36 checks in
-Light and 36 in Dark, with no mismatches.
+(`253:248`): State (Deselected, Hover, Focus, Selected, Mixed-State,
+Disabled, Disabled Selected) × Size (16px, 20px). Code:
+`src/components/checkbox/`. Every colour binding is copied exactly. The
+Storybook grids check each state's radius, fill, border, glyph and glyph
+colour, and the focus ring, in Light and Dark.
+
+| State | Fill | Border (1px) | Glyph |
+|---|---|---|---|
+| Deselected | `surface/base` | `stroke/field` | none |
+| Hover | `surface/base` | `stroke/stronger` | none |
+| Focus | as Deselected, plus a 2px `stroke/focused` ring 2px outside (`radius/8`) | | |
+| Selected, Mixed-State | `action/primary/surface/default` | none | check / bar, `action/primary/content/default` |
+| Disabled | `neutral/tonal/surface/disabled` | `neutral/outline/border/disabled` | none |
+| Disabled Selected | `surface/brand/medium` | none | check, `action/primary/content/disabled` |
+
+Every state is `radius/4`.
+
+**Changed in Figma on 3 Nov 2026** (decisions fc-buttons-checkbox-radius,
+fc-buttons-checkbox-states, fc-buttons-disabled, states-code-adds,
+review Tokens open 1 and 3, fc-buttons-checkbox-pin; published). Code
+follows:
+- **One radius**, `radius/4`, in every state. It was 2 unchecked and 4
+  checked; code drew the same (`rounded-2`, `checked:rounded-4`).
+- **Hover's border is `stroke/stronger`** (7.58 Light / 9.85 Dark on
+  `surface/base`). It was `stroke/strong` (2.56 / 3.07), lighter than the
+  resting `stroke/field`.
+- **A checked box has no border.** Selected and Mixed-State had a 1px
+  edge around the blue fill. Code's border is transparent while checked.
+- **Focus, Disabled and Disabled Selected** are States. Focus is code's
+  ring (a 2px outline at a 2px offset reaches the same 4px out and radius
+  8). Disabled uses the neutral disabled pair (Text Input's Disabled in
+  Figma); Disabled Selected `surface/brand/medium` with a white
+  `action/primary/content/disabled` check, not
+  `action/primary/surface/disabled`, which is #D6D8EB in Dark and louder
+  than enabled. Code dropped its "only the cursor changes" disabled.
+- **The set's Light pin is cleared** and its white background removed, so
+  the masters follow their Dark section. Instances were not pinned.
+
+Contrast: the checked fill is 6.81 (Light) / 3.80 (Dark) on `surface/base`;
+the resting border (`stroke/field`) 4.76 / 5.71; the focus ring 6.81 / 5.33.
+Disabled is exempt (border 1.48 / 1.93).
 
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Selected artwork | Exports as one flattened SVG with the Light colours baked in (#5145CD fill, #CBD5E1 border, white check) | The box is drawn with the bound tokens. The check and the mixed bar are Figma's vectors (same path, 1.5 / 2px stroke, round caps and joins), drawn in the box's own coordinates in `action.primary.content.default` | None needed |
-| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
-| Disabled | No Disabled state | The native `disabled` attribute works, but only the cursor changes | Add a Disabled state (Radio has one) |
+| Selected artwork | Exports as one flattened SVG with the Light colours baked in | The box is drawn with the bound tokens. The check and the mixed bar are Figma's vectors (same path, 1.5 / 2px stroke, round caps and joins), drawn in the box's own coordinates | None needed |
+| Disabled Mixed-State | Not drawn (decision fc-buttons-checkbox-states) | As Disabled Selected, with the bar | None needed |
+| Invalid | No Error state; Form / Checkbox Field's State=Error overrides the box's border to `accent/critical/outline/border/default` | `aria-invalid` on an unchecked, enabled box draws that border (3.81 / 3.07 on `surface/base`), so CheckboxField's `error` shows it | Add it to the set if a lone checkbox needs it |
 
-Figma gaps the code copies exactly. These are for the designer to decide:
-
-- **The unchecked border reaches 3:1 since 2 Nov 2026.** Changed in Figma
-  on 2 Nov 2026: it was `stroke/default` (1.48:1 Light, 1.93:1 Dark on
-  `surface/base`) and is now the new `stroke/field` (4.76:1 / 5.71:1).
-  Hover is still `stroke/strong` (2.56 / 3.07), now lighter than rest in
-  Light: rebinding Hover to `stroke/stronger` is open for the designer.
-- **The corner radius changes on check.** Deselected and Hover use radius 2
-  (the inner rectangle); Selected and Mixed-State use radius 4.
-- **Selected and Mixed-State keep the `stroke/default` border** around the
-  blue fill, which shows as a light grey edge in Light.
-- **Hover is defined only for Deselected.** A checked box doesn't change on
-  hover.
+Figma gaps the code copies exactly: Hover is defined only for Deselected,
+so a checked box doesn't change on hover.
 
 ### TableCell (22 Oct 2026)
 
@@ -248,14 +298,11 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Horizontal padding | Raw 10px, unbound | 12px (`space/12`), as Tag binds | Bind to `space/12` |
-| Vertical padding | Raw 4px, unbound | 4px (`space/4`) | Bind to `space/4` |
-| Radius | Raw 9999 | `radius/full`, as Tag binds | Bind to `radius-full` |
 | Line height | Inter's auto (15px for Caption/md) | GDL's ramp (16px), so the pill is 24px tall (Figma 23) | Bind the text style's line height to the ramp |
 | Letter spacing | 0 | GDL's Caption/md-semibold, 0.3px | As above |
 
-With the padding and letter spacing, "Pending" is 74px wide (Figma 68)
-and "Recurring" 84px (Figma 77).
+With the letter spacing, "Pending" is 74px wide (Figma 72) and
+"Recurring" 84px (Figma 81).
 
 Contrast: every label passes AA.
 
@@ -275,23 +322,18 @@ accent's (or neutral's) filled surface and content pair, as Active binds
 action.primary's. They replace the patterns' stand-ins (Active for Approved and
 Paid, Tag Error for Rejected, a neutral Tag for Stopped and Inactive).
 
-Figma gaps the code copies exactly:
-
-- **Pending's label is bound to `accent/warning/filled/content/default`,**
-  not `accent/pending/filled/content/default`. Both are white in Light and
-  slate-950 in Dark today, so nothing looks different. But a change to the
-  warning label would move the pending pill too. Rebind it to
-  `accent/pending/filled/content/default`.
-
-Figma gaps the code doesn't copy:
-
-- **Status=Pending is pinned to Semantics Light,** on the variant and on
-  every Pending instance (17 on the Table page). It always renders Light, even on a
-  Dark screen. Inside the cost rows, which are pinned to Dark (see
-  TableCell), Pending shows Light (orange-700, white label) next to an
-  Active pill that shows Dark. In code both statuses follow the page's
-  theme: Pending is orange-500 with a slate-950 label in Dark. Clear the
-  explicit mode on the variant.
+**Changed in Figma on 3 Nov 2026** (decisions dark-pins-components and
+review Status Pill open 1–3; published). Code follows:
+- **Pending's label** is `accent/pending/filled/content/default`, not
+  `accent/warning/filled/content/default` (the same white / slate-950
+  today, so nothing looks different). Code binds it too.
+- **Status=Pending's Light pin is cleared,** on the variant and so on its
+  instances. Pending now follows the frame's mode, as code always did: in
+  the Dark cost rows on the screens it turns orange-500 with a slate-950
+  label (7.20:1), next to a Dark Active pill.
+- **Padding and radius are bound** on all seven variants: `space/12` /
+  `space/4` and `radius/full`, as code draws them. The sides were raw 10,
+  so each pill in Figma is 4px wider. Those three departures are gone.
 
 ### TableHeaderCell (22 Oct 2026)
 
@@ -406,18 +448,27 @@ Not Phosphor, so not in the set yet:
 ### IconButton (23 Oct 2026)
 
 Source: page **Buttons** (`217:1679`), set `Button / Icon` (`461:1151`):
-Size (32, 40) × Tone (Ghost, Tonal, Destructive) × State (Default, Hover).
-Code: `src/components/icon-button/`. Every colour binding is copied
-exactly, and the Storybook grids check each tone's fill at rest and on
-hover, its glyph colour and its glyph size, in Light and Dark.
+Size (32, 40) × Tone (Ghost, Tonal, Destructive) × State (Default, Hover,
+Disabled). Code: `src/components/icon-button/`. Every colour binding is
+copied exactly, and the Storybook grids check each tone's fill at rest, on
+hover and disabled (hovered: no hover fill), its glyph colour and its glyph
+size, in Light and Dark.
 
 | Tone | Fill at rest | Fill on hover | Glyph |
 |---|---|---|---|
 | Ghost | none | `neutral/tonal/surface/default` | `text/secondary` |
 | Tonal | `surface/base` | `neutral/tonal/surface/default` | `text/primary` |
 | Destructive | none | `accent/critical/tonal/surface/default` | `accent/critical/tonal/content/default` |
+| Disabled (every tone) | the tone's fill at rest | none | `text/disabled` |
 
 Size 32 holds a 16px glyph and size 40 a 20px one.
+
+**Changed in Figma on 3 Nov 2026** (decisions fc-buttons-icon-disabled
+and review Filters and form open 2; published): `State=Disabled` for every
+Size × Tone, the Default container with a `text/disabled` glyph (in
+Light #CBD5E1, in Dark #64748B; exempt from contrast) and no hover. Code: the
+native `disabled` draws the glyph in `text-text-disabled`; the hover fills
+were already enabled-only.
 
 Contrast: the glyph is a graphic, so it needs 3:1 (WCAG 1.4.11). Every
 pair passes, the lowest being 5.22:
@@ -434,7 +485,7 @@ Code departs from Figma here:
 |---|---|---|---|
 | Radius | Raw 8 | `radius/8` | Bind to `radius/8` |
 | Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
-| Disabled, Pressed | No such states | Native `disabled` only removes the hover and shows a not-allowed cursor; no Pressed look | Add them if the screens need them |
+| Pressed | No such state | No Pressed look | Add it if the screens need it |
 | Name | The glyph is the only content | `label` is required and becomes `aria-label` | None needed |
 
 Older icon buttons in the library that Button / Icon replaces. Code has
@@ -725,7 +776,8 @@ Figma gaps the code doesn't copy: none.
 ### TextInput (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `_Text Input` (`441:11488`): State
-(Default, Filled, Focus, Error, Disabled) with a Value text property.
+(Default, Filled, Focus, Error, Error + Focus, Disabled) with a Value text
+property.
 Code: `src/components/text-input/`. It is a native `<input>`, so each
 state is the element's own: Default is empty with a `placeholder`, Filled
 has a value, Focus is `:focus`, Error is `aria-invalid` and Disabled is
@@ -736,13 +788,14 @@ colour and height, in Light and Dark.
 
 | State | Fill | Stroke (inside) | Text |
 |---|---|---|---|
-| Default | `surface/elevated secondary` | 1px `stroke/subtle` | placeholder, `text/subtle` |
-| Filled | `surface/elevated secondary` | 1px `stroke/subtle` | value, `text/primary` |
+| Default | `surface/elevated secondary` | 1px `stroke/field` | placeholder, `text/subtle` |
+| Filled | `surface/elevated secondary` | 1px `stroke/field` | value, `text/primary` |
 | Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` |
 | Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` |
-| Disabled (50% layer opacity) | `surface/elevated secondary` | 1px `stroke/subtle` | `text/subtle` |
+| Error + Focus | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | `text/primary` |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | value or placeholder, `text/disabled` |
 
-Every state is Body/sm-regular with radius 8.
+Every state is Body/sm-regular with radius 8, a fixed 40 high (`space/40`).
 
 Contrast, on the field fill:
 
@@ -752,26 +805,37 @@ Contrast, on the field fill:
 | Placeholder, `text/subtle` (4.5:1) | 4.76 | 6.96 |
 | Focus stroke, `stroke/focused` (3:1) | 6.81 | 6.51 |
 | Error stroke, `accent/critical/outline/border/default` (3:1) | 3.81 | 3.74 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.23** | **1.72** |
+| Resting stroke, `stroke/field` (3:1) | 4.76 | 6.96 |
+| Disabled text, `text/disabled` on `neutral/tonal/surface/disabled` | 1.36 | 3.07 |
+| Disabled stroke, `neutral/outline/border/disabled` on `surface/base` | 1.48 | 1.93 |
 
-Disabled is exempt.
+Disabled is exempt (WCAG 1.4.3 and 1.4.11: an inactive control).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
 - **Radius and side padding** of every state are bound to `radius/8` and
   `space/12`. They were raw 8 and 12, so nothing looks different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `input-height`,
+`disabled-look` / `fc-form-disabled` and `states-code-adds`; published):
+- **Height:** a fixed 40 (`space/40`), top and bottom padding 0, strokes
+  outside the layout, the text centred. Code was already 40, so the Height
+  and Padding departures are gone.
+- **Disabled:** opacity 100%, fill `neutral/tonal/surface/disabled`, stroke
+  `neutral/outline/border/disabled`, text `text/disabled`. Code follows:
+  `disabled:bg-neutral-tonal-surface-disabled
+  disabled:inset-ring-neutral-outline-border-disabled
+  disabled:text-text-disabled` (placeholder too), and no `opacity-50`.
+- **Error + Focus** is a state: Focus's look with the critical stroke at
+  2px, as code already drew it.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs raw 10px padding around Inter's auto line height: 39px, and 41px in Focus (strokes are included in layout, so the 2px stroke grows the field) | Fixed 40px (`space/40`) on GDL's 20px Body/sm line height. The stroke is drawn inside and never moves the layout | Fixed height 40, strokes not in layout (a 1px change, so it's the designer's call) |
-| Padding | Raw 10 top and bottom; the sides are `space/12` | 12px sides (`space/12`). GDL has no 10; the 40px height centres the text | See Height |
-| Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
+| Letter spacing | 0, auto line height (17px, centred in the 40) | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp (left to the text-style work) |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus`. The browser's outline is hidden, but stays transparent so forced-colours mode still shows a ring | None needed |
-| Error + Focus | No such state | The critical stroke at Focus's 2px, so the error stays visible while typing | Add it if it should look different |
-| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/subtle` | None needed |
-| Disabled opacity | Layer opacity raw 0.5 | `disabled:opacity-50` (copied since the forms phase; before, code missed it) | None in CAF: GDL has no opacity token to bind |
+| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
@@ -779,17 +843,15 @@ Figma gaps the code copies exactly. These are for the designer to decide:
   2 Nov 2026: Default and Filled moved from `stroke/subtle` (1.23:1 Light,
   1.72:1 Dark on the fill) to the new `stroke/field` (4.76:1 / 6.96:1), on
   _Text Input, _Dropdown Input, _Date Input, _Combobox Input and _Textarea
-  alike. Disabled keeps `stroke/subtle` at 50%.
-- **Disabled is 50% layer opacity** over Default's fill and stroke, with
-  the text in `text/subtle`. Pagination / Item's Disabled uses
-  `text/disabled` instead, and GDL has no opacity token.
+  alike.
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
 ### SelectTrigger (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `_Dropdown Input` (`441:11504`):
-State (Default, Filled, Focus, Error, Disabled, Open) with a Value text
+State (Default, Filled, Focus, Error, Error + Focus, Disabled, Open,
+Error + Open) with a Value text
 property and a nested `CaretDown / Style=Regular, Size=20px`. Code:
 `src/components/select-trigger/`. It is the closed select. The list it
 opens (Select / Menu, `456:631`) belongs to Select, which isn't built yet.
@@ -818,12 +880,14 @@ caret colour and size, height and `aria-expanded`, in Light and Dark.
 
 | State | Fill | Stroke (inside) | Text | Caret |
 |---|---|---|---|---|
-| Default | `surface/elevated secondary` | 1px `stroke/subtle` | placeholder, `text/subtle` | `text/subtle` |
-| Filled | `surface/elevated secondary` | 1px `stroke/subtle` | value, `text/primary` | same |
+| Default | `surface/elevated secondary` | 1px `stroke/field` | placeholder, `text/subtle` | `text/subtle` |
+| Filled | `surface/elevated secondary` | 1px `stroke/field` | value, `text/primary` | same |
 | Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` | same |
 | Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` | same |
-| Disabled (50% layer opacity) | `surface/elevated secondary` | 1px `stroke/subtle` | `text/subtle` | same |
-| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | same |
+| Error + Focus | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | `text/primary` | same |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | `text/disabled` | `text/disabled` |
+| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | `text/subtle` |
+| Error + Open | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | placeholder, `text/subtle` | `text/subtle` |
 
 Every state is Body/sm-regular with radius 8, the value on the left and
 the caret on the right.
@@ -838,9 +902,9 @@ Contrast, on the field fill:
 | Caret before the 29 Oct fix, raw `#E5E5E5` (3:1) | **1.26** | 14.17 |
 | Focus and Open stroke, `stroke/focused` (3:1) | 6.81 | 6.51 |
 | Error stroke (3:1) | 3.81 | 3.74 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.23** | **1.72** |
+| Resting stroke, `stroke/field` (3:1) | 4.76 | 6.96 |
 
-Disabled is exempt.
+Disabled is exempt (as TextInput: 1.36 / 3.07 for the text).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -851,24 +915,28 @@ publishing):
 - **Radius and side padding** of every state are bound to `radius/8` and
   `space/12` (no visual change).
 
+**Changed in Figma on 3 Nov 2026** (decisions `input-height`,
+`disabled-look` / `fc-form-disabled` and `states-code-adds`; published):
+- **Height:** a fixed 40, padding 0 top and bottom, strokes outside the
+  layout. Code was already 40.
+- **Disabled:** the disabled fill and stroke, the value and the caret in
+  `text/disabled`, no opacity. Code follows (the caret switches to
+  `text-text-disabled` when disabled).
+- **Error + Focus and Error + Open** are states, drawn as code already did.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs raw 10px padding around the 20px caret: 42px, and 44px in Focus and Open (strokes are included in layout) | Fixed 40px (`space/40`), the same as TextInput. The stroke is drawn inside | Fixed height 40, strokes not in layout (the designer's call) |
-| Padding | Raw 10 top and bottom; the sides are `space/12` | 12px sides (`space/12`) | See Height |
 | Gap | 0, space-between | 8px (`space/8`), so a long value truncates (…) before the caret | Set item spacing to `space/8` |
 | Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus-visible` (keyboard focus). The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
-| Error + Focus or Open | No such state | The critical stroke at the 2px width | Add it if it should look different |
-| Disabled opacity | Layer opacity raw 0.5 | `disabled:opacity-50`, caret included (copied since the forms phase; before, code missed it) | None in CAF: GDL has no opacity token to bind |
 | Semantics | None | `role="combobox"`, `aria-haspopup="listbox"`, `aria-expanded` from `open`. Select passes `aria-controls` | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11:** the same as TextInput
-  (1.23 / 1.72).
-- **Disabled is 50% layer opacity,** as on TextInput.
+- **The resting stroke reaches 3:1 since 2 Nov 2026** (`stroke/field`), as
+  on TextInput.
 
 Figma gaps the code doesn't copy: none. The caret's raw fill was fixed in
 Figma (above).
@@ -1013,52 +1081,65 @@ Figma gaps the code doesn't copy:
 ### TabItem (29 Oct 2026)
 
 Source: page **Tabs** (`89:812`), set `Tabs / Tab Item` (`297:284`):
-State (Selected, Default) with a Label.
+Style (Segmented, Form) × State (Selected, Default, Hover), with a Label.
 
 Code: `src/components/tab-item/`. It is a `<button role="tab">` that is
-always inside a tab list (Tabs or FormTabNavigation). State=Selected means
-the list's `selected` (or `active`) is this tab's `value`, which sets
-`aria-selected`. The Label is `children`. `value` names the tab: Figma
-has no such property, but the list needs a name to refer to it. Inside
-FormTabNavigation the tab takes that component's look (see
-FormTabNavigation). Only the selected tab is in the tab order, and the list
-moves focus with the arrow keys.
+always inside a tab list. Style is the list's: Tabs draws Segmented and
+FormTabNavigation draws Form (the list's `appearance`), so TabItem has no
+prop for it. State=Selected means the list's `selected` (or `active`) is
+this tab's `value`, which sets `aria-selected`; Hover is `:hover` on a tab
+that isn't selected. The Label is `children`. `value` names the tab: Figma
+has no such property, but the list needs a name to refer to it. Only the
+selected tab is in the tab order, and the list moves focus with the arrow
+keys.
 
-| State | Fill | Label |
+| Style, State | Fill | Label |
 |---|---|---|
-| Selected | `action/primary/surface/default` | `action/primary/content/default` |
-| Default | none | `text/subtle` |
+| Segmented, Selected | `action/primary/surface/default` | `action/primary/content/default`, Body/sm-semibold |
+| Segmented, Default | none | `text/subtle`, Body/sm-semibold |
+| Segmented, Hover | `neutral/outline/surface/hover` | `text/primary`, Body/sm-semibold |
+| Form, Selected | `neutral/tonal/surface/default` | `text/primary`, Body/sm-medium |
+| Form, Default | none | `text/subtle`, Body/sm-regular |
+| Form, Hover | `neutral/outline/surface/hover` | `text/primary`, Body/sm-regular |
 
-Both are Body/sm-semibold, 32px high (fixed), with 0 / 16 padding and
-radius 8. The Storybook grids check each state's fill, label colour, type,
-height, padding and radius, in Light and Dark.
+Segmented is 32px high (fixed), with 0 / 16 padding (`space/16`) and
+`radius/8`. Form hugs its label with 8 / 16 padding (`space/8`,
+`space/16`) and `radius/6`, and in FormTabNavigation the tabs share the
+bar's width. The Storybook grids check all six variants' fill, label
+colour, type, height, padding and radius, Hover forced, in Light and
+Dark.
 
-Contrast: the labels pass AA. Selected is 6.81 (Light) and 4.77 (Dark) on
-the blue. Default is `text/subtle` on the bar's
-`surface/elevated-secondary`: 4.76 / 6.96. The focus ring
-(`stroke/focused`) is 6.81 / 6.51 on the bar.
+Contrast: the labels pass AA. Segmented Selected is 6.81 (Light) and 4.77
+(Dark) on the blue; Form Selected 16.36 / 7.58 on its pill; Hover 18.41 /
+10.35; Default is `text/subtle` on the bar's
+`surface/elevated-secondary`, 4.76 / 6.96. The focus ring
+(`stroke/focused`) is 6.81 / 6.51 on the bar. The Hover fill against the
+bar is 1.10 / 1.72; a hover doesn't need 3:1.
 
-**Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
-publishing):
-- **Selected's label** was `text/primary`: 2.96 (Light) and 3.85 (Dark) on
-  the blue, below AA. It's now `action/primary/content/default` (6.81 /
-  4.77), as on Button, Status Pill and Pagination / Item, and the Cost Type
-  tabs follow. In Dark the label turns near-black on the blue.
-- **Radius and side padding** are bound to `radius/8` and `space/16` (no
-  visual change).
+**Changed in Figma on 3 Nov 2026** (decisions fc-buttons-tab-hover,
+fc-buttons-tabs-one-set, tabs-one-set, weak-fills, states-code-adds and
+dark-pins-components; published). Code follows:
+- **Style** (Segmented, Form) is a new variant property: the old variants
+  became Style=Segmented, and Style=Form draws Form / Tab Navigation's tab.
+  It is code's `appearance`. Tabs / Cost Type and Form / Tab Navigation
+  stay two sets (fc-buttons-tabs-one-set).
+- **Hover** for both Styles: `neutral/outline/surface/hover` with a
+  `text/primary` label. Code: `hover:bg-neutral-outline-surface-hover
+  hover:text-text-primary` on a tab that isn't selected.
+- **Form Selected's fill** is `neutral/tonal/surface/default` (was
+  `surface/base`, the same as the track in Light, 1.00:1). It is now 1.23
+  (Light) / 2.36 (Dark) against the track; the weight and the
+  `text/primary` label still carry the state.
+- **The set's Dark pin is cleared.** It never reached instances.
 
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Focus, Hover, Disabled | No such states | 2px `stroke/focused` focus ring, as on Button. No hover, no `disabled` | Add Hover and Focus states if tabs need them |
+| Focus, Disabled | No such states | 2px `stroke/focused` focus ring, as on Button. No `disabled` | Add a Focus state if tabs need it |
+| Style | A variant property | Chosen by the list (Tabs or FormTabNavigation), not a TabItem prop | None needed |
 | `value` | None: the Selected variant names the tab | Each TabItem has a `value`, which the list's `selected` / `active` refers to | None needed |
 | Letter spacing | 0 | GDL's 0.4px (Body/sm), so "Recurring" is 102px wide (Figma 98) | Bind the text styles to the ramp |
-
-Figma gaps the code doesn't copy:
-
-- **The set is pinned to Semantics Dark** (`297:284`), so the library page
-  shows the tab only in Dark. Clear the explicit mode.
 
 ### Tabs (29 Oct 2026)
 
@@ -1100,10 +1181,11 @@ Code departs from Figma here:
 | Width | 238 | 245, from GDL's letter spacing on the labels | Bind the text styles to the ramp |
 | Focus | None | Each tab's focus ring (see TabItem) | Add a Focus state |
 
-Figma gaps the code doesn't copy:
-
-- **The set is pinned to Semantics Dark** (`297:317`), so the library page
-  shows the tabs only in Dark. Clear the explicit mode.
+**Changed in Figma on 3 Nov 2026** (decision dark-pins-components;
+published): the set's Dark pin is cleared, so the library page shows the
+tabs in Light too; placed instances always rendered their screen's mode.
+Its Tab Items gained Hover (see TabItem), which code follows. The Tabs
+page has Light and Dark example frames (`793:18516`).
 
 ### FormTabNavigation (29 Oct 2026)
 
@@ -1120,7 +1202,7 @@ roles. The differences:
 | Bar | Hugs its tabs; 8 / 4 padding; gap 4 | Fixed 510 (code: full width); 4 padding; gap 0 |
 | Tabs | Hug their labels | Share the width equally |
 | Tab size | 32 fixed; 0 / 16 padding; radius 8 | Hugs (33); 8 / 16 padding; radius 6 |
-| Selected fill | `action/primary/surface/default` (blue) | `surface/base` (a raised neutral pill) |
+| Selected fill | `action/primary/surface/default` (blue) | `neutral/tonal/surface/default` (a neutral pill) |
 | Selected label | `action/primary/content/default`, Body/sm-semibold | `text/primary`, Body/sm-medium |
 | Other label | `text/subtle`, Body/sm-semibold | `text/subtle`, Body/sm-regular |
 
@@ -1134,14 +1216,20 @@ Code: `src/components/form-tab-navigation/`.
 | Part | Fill | Label |
 |---|---|---|
 | Bar | `surface/elevated-secondary`, 4 padding, radius 8 | |
-| Active tab | `surface/base`, radius 6, 8 / 16 padding | `text/primary`, Body/sm-medium |
+| Active tab | `neutral/tonal/surface/default`, radius 6, 8 / 16 padding | `text/primary`, Body/sm-medium |
 | Other tab | none | `text/subtle`, Body/sm-regular |
+| Other tab, hovered | `neutral/outline/surface/hover` | `text/primary`, Body/sm-regular |
 
-Contrast: the labels pass AA. Active is 20.17 (Light) and 14.63 (Dark) on
-`surface/base`. The other tab is 4.76 / 6.96 on the bar. The active pill
-against the bar is 1.00 in Light and 1.22 in Dark. In Light the pill
-doesn't show, and only the label's colour and weight mark the active tab
-(a design question).
+Contrast: the labels pass AA. Active is 16.36 (Light) and 7.58 (Dark) on
+its pill. The other tab is 4.76 / 6.96 on the bar. The active pill
+against the bar is 1.23 in Light and 2.36 in Dark; the label's colour
+and weight also mark the active tab.
+
+**Changed in Figma on 3 Nov 2026** (decision weak-fills; published): the
+active Tab 1 / Tab 2 frame's fill is `neutral/tonal/surface/default`
+(was `surface/base`, 1.00 / 1.22 against the bar). Code's active tab
+follows, and the tabs get Tab Item's Form Hover. One placed instance
+(`545:18249`) overrides these fills by hand and keeps its old look.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -1156,8 +1244,9 @@ Code departs from Figma here:
 | Width | Fixed 510 | Full width of its container (`w-full`), shared equally by the tabs | None needed |
 | Height | Tabs 33, bar 41 (Inter's auto line height, 17) | 36 and 44 (GDL's Body/sm line height, 20) | Bind the text styles' line height to the ramp |
 | Active values | Tab 1, Tab 2 (positions) | The active tab's `value` | None needed |
-| Tab 1 / Tab 2 | Plain frames, not instances | TabItem, which takes this look inside FormTabNavigation | Consider making them a Tab Item variant |
+| Tab 1 / Tab 2 | Plain frames, not instances (Tab Item's Style=Form draws the same tab) | TabItem in Style=Form | None: the sets stay apart (fc-buttons-tabs-one-set) |
 | Focus | None | 2px `stroke/focused` focus ring | Add a Focus state |
+| Hover | Tab 1 / Tab 2 have no Hover | Tab Item's Style=Form Hover | Swap the frames for Tab Item instances, if the sets merge |
 | Letter spacing | 0 | GDL's 0.4px | Bind the text styles to the ramp |
 
 Figma gaps the code doesn't copy:
@@ -1169,18 +1258,19 @@ Figma gaps the code doesn't copy:
 ### DatePickerDay (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `Date Picker / Day` (`456:671`):
-State (Default, Today, Selected, In Range, Outside Month), with a Day text
-property. Code: `src/components/date-picker-day/`. Every colour binding is
+State (Default, Today, Selected, Today + Selected, In Range, Outside
+Month), with a Day text property. Code: `src/components/date-picker-day/`. Every colour binding is
 copied exactly. The Storybook grids check, in Light and Dark and on the
-calendar's surface, each state's label colour, its fill, Today's ring, the
-radius and the 36×36 size.
+calendar's surface, each state's label colour, its fill, Today's ring,
+Today + Selected's Today Mark, the radius and the 36×36 size.
 
 | State | Fill | Stroke | Label | In code |
 |---|---|---|---|---|
 | Default | none | none | `text/primary` | (no prop) |
 | Today | none | 1px inside `stroke/focused` | `text/primary` | `today`, sets `aria-current="date"` |
 | Selected | `action/primary/surface/default` | none | `action/primary/content/default` | `selected` |
-| In Range | `surface/base` | none | `text/primary` | `inRange` |
+| Today + Selected | Selected's | the Today Mark: 1px inside `action/primary/content/default`, inset 2px, `radius/4` | `action/primary/content/default` | `today` and `selected`: a `::before` (`inset-0.5 rounded-4 border border-action-primary-content-default`), no `stroke/focused` ring |
+| In Range | `neutral/tonal/surface/default` | none | `text/primary` | `inRange` |
 | Outside Month | none | none | `text/disabled` | `outsideMonth`, which makes the button `disabled` |
 
 Every state is 36×36 with radius 6, in Body/sm-regular. Day is `children`.
@@ -1192,12 +1282,12 @@ Contrast on the calendar's `surface/neutral/faint`:
 | Default and Today, label | 19.28 | 17.85 | 4.5 |
 | Today, ring | 6.51 | 6.51 | 3 |
 | Selected, label on fill | 6.81 | 4.77 | 4.5 |
-| In Range, label on fill | 20.17 | 14.63 | 4.5 |
-| In Range, fill against the panel | **1.05** | **1.22** | (a visible range) |
+| Today + Selected, the Today Mark on the fill | 6.81 | 4.77 | 3 |
+| (Today's `stroke/focused` ring on the Selected fill, before 3 Nov) | **1.00** | **1.40** | 3 |
+| In Range, label on fill | 16.36 | 7.58 | 4.5 |
+| In Range, fill against the panel | 1.18 | 2.36 | (decorative: the ends carry the range) |
 | Outside Month, label | **1.42** | **3.75** | exempt: inactive |
 
-- **In Range barely shows in Light:** a white fill on a near-white panel.
-  Code copies Figma. This is a design question.
 - **Outside Month is below AA in both themes.** Code makes these days
   inactive (`disabled`), and WCAG 1.4.3 exempts inactive components, so
   axe passes with no exception. This is a design question.
@@ -1207,12 +1297,20 @@ publishing):
 - **The radius** of the five variants is bound to `radius/6` (no visual
   change).
 
+**Changed in Figma on 3 Nov 2026** (decisions `weak-fills` and `date-days`
+/ `fc-form-today-selected`; published):
+- **In Range** fill `surface/base` → `neutral/tonal/surface/default`. Code
+  follows (RangeCalendar's in-range days are DatePickerDays).
+- **Today + Selected** is a variant: Selected plus the Today Mark. Code
+  follows, as a pseudo-element so the focus ring (an outline) still shows
+  around a focused day.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Focus, Hover | No such states | 2px `stroke.focused` focus ring with a 2px offset, as on Button; no hover | Add a Focus state, and Hover if wanted |
-| States combine | State is a single choice | `today` adds its ring to Selected or In Range; `outsideMonth` wins over everything | Decide how Today + Selected looks: on the Light fill the ring disappears |
+| States combine | One State each; Today + Selected is its own | `today` adds its ring to In Range too (Figma has no Today + In Range); `outsideMonth` wins over everything | Draw Today + In Range if it should differ |
 | Outside Month | A look only | The button is `disabled`, so clicks and Tab skip it | None needed |
 | Line height | Body/sm-regular, auto (17) | GDL's 20, with 0.4px letter spacing. The cell is a fixed 36, so nothing moves | Bind the text style to the ramp |
 
@@ -1281,7 +1379,9 @@ Figma gaps the code doesn't copy:
   library page shows Day, Calendar and Range only in Dark. The components
   themselves aren't pinned, so their instances follow their screen. Clear
   the section's explicit mode so Light gets reviewed too: the pin hid In
-  Range's Light problem.
+  Range's Light problem. Since 3 Nov 2026 a Light twin ("Date Ranges ·
+  Light", `794:2504`) sits beside it. Calendar's new Show Previous / Show
+  Next (default on) are what the single Calendar shows; see RangeCalendar.
 
 ### RangeCalendar (29 Oct 2026)
 
@@ -1301,27 +1401,36 @@ Calendar's `CalendarMonth` and `dates.ts`.
 | Range ends | Day State=Selected | `selected` |
 | Between | Day State=In Range, each a 36×36 tile with radius 6, 4 apart | `inRange`, the same tiles, as Figma |
 
-Contrast: as Calendar. The In Range label on its fill is 20.17 / 14.63.
-The In Range fill against the panel is 1.05 / 1.22 (design question).
+Contrast: as Calendar. The In Range label on its fill is 16.36 / 7.58.
+The In Range fill against the panel is 1.18 / 2.36 (decorative).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
 - **Radius, padding and gap** are bound to `radius/12` and `space/8` (no
   visual change).
 
+**Changed in Figma on 3 Nov 2026** (decisions `calendar-nav` and
+`weak-fills`; published):
+- **Date Picker / Calendar has Show Previous and Show Next** (default on).
+  The Range's Month / Start turns Show Next off and Month / End turns Show
+  Previous off, instead of silent overrides. Code already shows ‹ on the
+  first month and › on the second (the inner months get only `onPrevious` /
+  `onNext`), so that departure is gone.
+- **In Range** fill → `neutral/tonal/surface/default` (see DatePickerDay).
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Size | 642×354 (strokes included in layout) | 640×352 | As Calendar |
-| Arrows | No property: the Range's instances just lack › (Start) and ‹ (End) | Each month shows only its own arrow | Add Show Previous / Show Next booleans to Calendar |
 | Picking | A static frame | Two picks, in either order. The first shows Selected alone until the second, and Escape drops it. `onChange({ start, end })` gets start on or before end | None needed |
 | Across months | Not drawn | A range shows in its own month's grid. The other grid's copies of those days stay Outside Month | None needed |
 | Keyboard | (none) | One tab stop across both months (the start, else today, else the first month's 1st). The arrows cross from one month into the other, and the view pages only when the focus leaves both | None needed |
 | Today | Not in the frame | `today` gets its ring when it's in view | None needed |
 
 Figma gaps the code doesn't copy: the Date Ranges section's Dark pin (see
-Calendar).
+Calendar). Since 3 Nov 2026 a Light twin ("Date Ranges · Light",
+`794:2504`) shows the Range in Light.
 
 ### FilterField (29 Oct 2026)
 
@@ -1444,7 +1553,7 @@ state, in Light and Dark.
 | Default | `action/primary/surface/default` | `action/primary/content/default` | `Colors/Neutral/50` (remote primitive) | the label's colour |
 | Hover | `action/primary/surface/hover`, plus the hover shadow | `action/primary/content/hover` | `Colors/Neutral/50` | the label's colour |
 | Pressed | `action/primary/surface/pressed` | `action/primary/content/pressed` | `Colors/Neutral/50` | the label's colour |
-| Disabled | `action/primary/surface/disabled` | `action/primary/content/disabled` | `Colors/Neutral/300` | the label's colour |
+| Disabled | `neutral/tonal/surface/disabled` (since 3 Nov) | `neutral/tonal/content/disabled` (since 3 Nov) | `Colors/Neutral/300` | the label's colour |
 
 Contrast, on the fill (Default / Hover / Pressed; Disabled is exempt):
 
@@ -1463,12 +1572,19 @@ publishing):
   `colors/action/primary/content/{default, hover, pressed, disabled}`, so in
   Dark the caret is dark like the label.
 
+**Changed in Figma on 3 Nov 2026** (decision fc-buttons-default-disabled-dark;
+published): State=Disabled nests Button / Normal's Default Disabled, which
+is now `neutral/tonal/surface/disabled` with a `neutral/tonal/content/disabled`
+label (see Button). Code follows through Button. Its caret override was
+not updated: see below.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Height, icon gap, hover shadow, radius | Button / Normal's (35px hug, raw 10px gap, two raw shadows, remote `radius-4`) | Button's: 36px, `space/8`, `shadow.elevation.2`, `radius/8` | As listed under Button |
-| Focus | No Focus state | Button's 2px `stroke.focused` ring | Add a Focus state |
+| Disabled caret | Still overridden to `action/primary/content/disabled` (white) on the grey disabled fill, while the label is `neutral/tonal/content/disabled` | The label's colour, as in every other state | Bind the Disabled caret to `neutral/tonal/content/disabled`, or clear the override |
+| Focus | No Focus state on Button / Menu Trigger (Button / Normal has one since 3 Nov) | Button's 2px `stroke.focused` ring | Add a Focus state |
 | The menu | Not part of the component. The description says it opens `Menu / Dropdown` | MenuDropdown, below the button, 4px away and flush with its left edge (`align="right"` for a header's right end). It flips at the viewport's edges. Keyboard and focus return are MenuDropdown's | None needed |
 | Open | No such state | `aria-expanded` only, with no visual change | Add an Open state if wanted |
 
@@ -1477,7 +1593,7 @@ Figma gaps the code doesn't copy: none.
 ### SelectOption (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `Select / Option` (`456:630`):
-State (Default, Hover, Selected) with a Label. Code:
+State (Default, Hover, Active, Selected) with a Label. Code:
 `src/components/select-option/`. It is a `<div role="option">` inside a
 SelectMenu. It never takes focus: Select keeps focus on its trigger and
 points at the option with `aria-activedescendant`. Every colour and type
@@ -1487,8 +1603,9 @@ state's fill, label, check, padding, radius and height in Light and Dark.
 | State | Fill | Label | Check |
 |---|---|---|---|
 | Default | none | `text/primary` | hidden |
-| Hover (`:hover`) | `surface/base` | `text/primary` | hidden |
-| Selected (`selected`, `aria-selected`) | `surface/base` | `text/primary` | Phosphor `check`, 16px, `action/primary/surface/default` |
+| Hover (`:hover`) | `neutral/tonal/surface/default` | `text/primary` | hidden |
+| Active (`data-active`, the option the arrow keys are on) | `neutral/tonal/surface/default`, plus the Focus Ring: 2px `stroke/focused` outside, 2px out, `radius/8` (`data-focus-visible`) | `text/primary` | hidden |
+| Selected (`selected`, `aria-selected`) | `neutral/tonal/surface/default` | `text/primary` | Phosphor `check`, 16px, `text/primary` |
 
 Every option is Body/sm-regular, with 8 / 12 padding, an 8px gap and
 radius 6. It is 36px tall: 8 + GDL's 20px line height + 8, the same as
@@ -1496,17 +1613,29 @@ Figma's fixed 36.
 
 Contrast passes AA:
 - Label (`text/primary`) on the menu (`surface/neutral/faint`): 19.28 Light / 17.85 Dark.
-- Label on `surface/base` (Hover, Selected): 20.17 / 14.63.
-- Check, a graphic needing 3:1, on `surface/base`: 6.81 / 3.80.
+- Label on `neutral/tonal/surface/default` (Hover, Active, Selected): 16.36 / 7.58.
+- Check, a graphic needing 3:1, `text/primary` on that fill: 16.36 / 7.58.
+  (`action/primary/surface/default` there was 5.53 / **1.97**, why Figma
+  moved the check to `text/primary`.)
 - Focus ring (`stroke/focused`) on the menu: 6.51 / 6.51.
 
-The fill itself is only 1.05 / 1.22 against the menu. AA doesn't require
-a hover fill, and the check carries Selected (see the design question).
+The fill is 1.18 / 2.36 against the menu (it was `surface/base`, 1.05 /
+1.22). AA doesn't require a hover fill; the label and the check carry the
+state.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
 - **Radius, padding and gap** of the three variants are bound to
   `radius/6`, `space/8` / `space/12` and `space/8` (no visual change).
+
+**Changed in Figma on 3 Nov 2026** (decisions `weak-fills`,
+`fc-form-check-colour` and `states-code-adds`; published):
+- **Hover and Selected** fill `surface/base` → `neutral/tonal/surface/default`.
+  Code follows: `hover:` / `data-active:` / `aria-selected:bg-neutral-tonal-surface-default`.
+- **The check** `action/primary/surface/default` → `text/primary` (it was
+  1.97:1 on the new fill in Dark). Code follows: `text-text-primary`.
+- **State=Active** is new: Hover's fill and the Focus Ring, as code drew
+  the arrow keys' option.
 
 Code departs from Figma here:
 
@@ -1515,8 +1644,8 @@ Code departs from Figma here:
 | Width | Fixed 280 in the set; Fill in the menu | Fills the menu | None needed |
 | Height | Fixed 36 | Hugs: 8 + 20 + 8 = 36 (GDL's Body/sm line height; Figma's label is 17px tall on Inter's auto line height) | Bind the text style's line height to the ramp |
 | Letter spacing | 0 | GDL's 0.4px (Body/sm) | As above |
-| Keyboard state | None | The option the arrow keys are on: Hover's fill (`data-active`), plus Button's 2px `stroke/focused` ring 2px out when the keyboard put it there (`data-focus-visible`) | Add an Active / Focus state |
-| Selected + Hover | Not drawn | Stays `surface/base` | None needed |
+| Active from the pointer | Active always has the Focus Ring | The ring only when the keyboard put the option there (`data-focus-visible`); from the pointer, Hover's fill alone | None needed |
+| Selected + Hover | Not drawn | Stays `neutral/tonal/surface/default` | None needed |
 | Disabled | No such state | None: leave the choice out | Add one if the screens need it |
 | Check | A hidden instance in Default and Hover | Rendered only when `selected`, `aria-hidden` (`aria-selected` says the same) | None needed |
 
@@ -2261,10 +2390,12 @@ Source: page **Form** (`183:1765`). Figma has no FormField. It is the
 structure every Form / Field repeats: `Form / Field – Text` (`184:3056`),
 `– Dropdown` (`184:3063`), `– Dropdown with Edit` (`184:3073`), and the
 same in `– Textarea` (`456:809`), `– Date` (`456:818`), `– Combobox`
-(`456:830`) and `– File Upload` (`184:3085`). Each is a column with no gap:
-the Label Row (the `_Form Label`, 20px bottom padding), the Input Wrapper
-(the control, set to Fill), and the Helper Text (Show Helper + Helper,
-hidden by default). Code: `src/components/form-field/`. TextField,
+(`456:830`) and `– File Upload` (`184:3085`). Since 3 Nov 2026 each is a
+set with State (Default, Error) and an Error text property. Each is a
+column with no gap: the Label Row (the `_Form Label`, 20px bottom
+padding) and the Input Wrapper, a column `space/8` apart holding the
+control (set to Fill) and, under it, the Helper Text (Show Helper + Helper,
+hidden by default) or, in State=Error, the Error Text. Code: `src/components/form-field/`. TextField,
 SelectField, TextareaField, DateField, ComboboxField and FileUploadField are
 FormField around their control.
 
@@ -2274,11 +2405,9 @@ What code maps:
 - Input Wrapper → `children`: the control, full width.
 - Show Helper + Helper → `helper` (`FormHelperText`, which is exported for
   groups that build their own fieldset).
-- Error: a field has no Error property. Figma's patterns ("Add Cost Center –
-  Errors" `523:2702`, "Feedback messages" `528:6288`) set the input to
-  State=Error and turn Show Helper on with the message. In code that is
-  `error`: the message takes the helper's place, and the control is
-  `aria-invalid` and described by it.
+- State=Error + Error → `error`: the control's State=Error (it is
+  `aria-invalid` and described by the message) and the Error Text in the
+  helper's place.
 - `_Description Text` (`184:3020`, Body/sm-regular) isn't a field's: it
   belongs to Form / Section Header. A field's message is its own Helper Text
   layer (Caption/md-regular).
@@ -2298,18 +2427,26 @@ including `labelId`, for a control named with `aria-labelledby`.
 | Label Row | Bottom padding `space/20`. Dropdown with Edit: item spacing `space/8`, centred (raw 20 and 8 until 29 Oct) | `pb-5` (`space/20`), `gap-2` (`space/8`), centred |
 | _Form Label | See FormLabel | FormLabel |
 | Input Wrapper | Fill | The control, `w-full` |
-| Helper Text | `colors/text/subtle`, Caption/md-regular | `text-text-subtle text-caption-md-regular` |
-| Error message | The same Helper Text layer, `colors/text/subtle` | The same |
+| Input Wrapper gap | `space/8`: the message 8 under the control, nothing while it's hidden | `mt-2` on the message |
+| Helper Text | `colors/text/subtle`, Caption/md-regular, fills the width and wraps | `text-text-subtle text-caption-md-regular` (`FormHelperText`, a block `<p>`) |
+| Error Text (State=Error) | `colors/accent/critical/tonal/content/default`, Caption/md-regular (the Required marker's colour) | `text-accent-critical-tonal-content-default` on the same `<p>` |
 
-The TextField and SelectField grids check these in Light and Dark: the label
-and marker colours, the 20px from the label to the control, the control's
-bindings, and the message's colour and type, flush under the control.
+`FormHelperText` itself keeps its look and has no margin: FormField adds
+`mt-2` and, with `error`, the critical colour. RadioGroup (owned by the
+buttons work) uses `FormHelperText` in its own 8px column, so it is
+unchanged here.
+
+The Message stories (Light and Dark) and every *Field grid check these:
+the label and marker colours, the 20px from the label to the control, the
+control's bindings, and the message's colour, type and place, 8px under
+the control.
 
 Contrast (Light / Dark):
 
 | Pair | Canvas | Base |
 |---|---|---|
-| Helper and error message, `text/subtle` (4.5:1) | 4.55 / 6.96 | 4.76 / 5.71 |
+| Helper Text, `text/subtle` (4.5:1) | 4.55 / 6.96 | 4.76 / 5.71 |
+| Error Text, `accent/critical/tonal/content/default` (4.5:1) | 7.99 / 9.30 | 8.36 / 7.62 |
 
 The label is FormLabel's, and the control's are its own.
 
@@ -2322,26 +2459,37 @@ publishing):
 - **Dropdown with Edit's label-to-link gap** (`184:3074`) is bound to
   `space/8`. It was raw 8, so nothing looks different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `field-message-spacing` and
+`fc-form-error-wording`; published), on all seven Form / Field sets (Text
+`793:18796`, Dropdown `793:18931`, Dropdown with Edit `793:19070`, Textarea
+`793:18610`, Date `793:19231`, Combobox `793:19298`, File Upload
+`793:19800`):
+- **The message sits `space/8` under the control** (it was flush, gap 0).
+  Code follows: `mt-2`.
+- **State=Error and an Error text property**: the control at State=Error
+  and the Error Text in `accent/critical/tonal/content/default` (it was
+  the grey Helper). Code follows: `error` is shown in that colour. The
+  generic default ("This field is required.") stays in Figma; screens
+  pass their own messages.
+- **Helper Text fills the width and wraps** (it was a fixed 510 × 15), as
+  code's block `<p>` does.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Label Row height | 37px: Inter's auto 17px line plus 20 | 40px: GDL's 20px line plus 20 | Bind the label's text style to the ramp |
 | Width | Fixed 510 | Fills its container, as every placement does | Set the components to Fill |
-| Helper Text box | Fixed 510 × 15 | Hugs its text (Caption/md, 16px line) | Set it to Fill × Hug |
-| Error | No Error property on the field: the input's State=Error plus Show Helper | `error`: the message (in the helper's place) and `aria-invalid` on the control | Add an Error property to the fields if they should own it |
+| Helper and error | State=Error swaps the Helper for the Error Text | `error` wins over `helper` while both are given | None needed |
 | Wiring | Not defined | `htmlFor`, `aria-describedby`, `aria-invalid`, `required` on the control | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The error message is grey.** The fields have one Helper layer, bound to
-  `text/subtle`, and the error patterns show the message in it. Only the
-  input's border turns red. The message still says what's wrong, so the
-  error isn't shown by colour alone (WCAG 1.4.1).
-- **The message sits flush under the control** (gap 0), while the label is
-  20px above it.
 - **20px from label to control** in every Form / Field, but 8px in Form /
   Repeatable Field (`463:780`).
+- **Two pattern instances still write an error into the Helper**
+  (Patterns – Admin `523:2702` "Location is required.", `528:6288`):
+  they should switch to State=Error. That's a Patterns-page edit.
 
 Figma gaps the code doesn't copy: none. The components pin no mode (the
 patterns' "Pattern Slot Content" section is pinned to Dark, which code
@@ -2349,12 +2497,19 @@ doesn't copy).
 
 ### FormEditLink (29 Oct 2026)
 
-Source: page **Form** (`183:1765`), component `_Edit Link` (`184:3016`), with
-a Label text property (default "[Edit]"). It is placed only in `Form / Field
+Source: page **Form** (`183:1765`), set `_Edit Link` (`793:18231`): State
+(Default `184:3016`, Hover, Pressed, Disabled), with a Label text property
+(default "[Edit]") and an invisible "Hit Area (24×24 target)" in each
+variant. It is placed only in `Form / Field
 – Dropdown with Edit` (Currency, in Form / New Cost and pattern 09). Code:
 `src/components/form-edit-link/`.
 
 - Label → `children`, default "[Edit]".
+- State → the button's own state: Hover is `:hover`, Pressed is `:active`,
+  Disabled is `disabled`.
+- Hit Area → a `::before`, 24 high, the label's width but at least 24,
+  centred on the label and absolutely placed, so the button hugs its
+  label and the label row keeps its height.
 - It is a `<button type="button">`: it opens an editor, and never submits
   the form around it. Pass it as a field's `action`.
 - Inside a FormField it is named by its own text and the field's label
@@ -2363,16 +2518,36 @@ a Label text property (default "[Edit]"). It is placed only in `Form / Field
 
 | Layer | Figma | Code |
 |---|---|---|
-| Label | `colors/text/link/default`, Caption/sm-regular | `text-text-link-default text-caption-sm-regular` |
+| Label, Default | `colors/text/link/default`, Caption/sm-regular | `text-text-link-default text-caption-sm-regular` |
+| Hover | `colors/text/link/hover` | `enabled:hover:text-text-link-hover` |
+| Pressed | `colors/text/link/pressed` | `enabled:active:text-text-link-pressed` |
+| Disabled | `colors/text/disabled` | `disabled:text-text-disabled` |
+| Hit Area | No fill or stroke, absolute, 24 high, centred, stretching with the label (26 wide) | `relative`, `before:absolute before:top-1/2 before:left-1/2 before:h-6 before:w-full before:min-w-6 before:-translate-x-1/2 before:-translate-y-1/2` |
 
-The Storybook grids check the colour, the type and the focus ring, in Light
-and Dark.
+The Storybook grids check every state's colour (Hover and Pressed forced),
+the type, the focus ring and the target (24 high, at least 24 wide, the
+label row as high as one without the link), in Light and Dark. The Target
+story presses it 4px under the label; Disabled checks it can't be pressed.
 
 Contrast (Light / Dark):
 
 | Pair | Canvas | Base |
 |---|---|---|
 | Label, `text/link/default` (4.5:1) | 4.79 / 8.22 | 5.01 / 6.73 |
+| Hover, `text/link/hover` (4.5:1) | 6.55 / 5.61 | 6.85 / 4.60 |
+| Pressed, `text/link/pressed` (4.5:1) | 9.68 / 6.77 | 10.13 / 5.55 |
+
+Disabled is exempt.
+
+**Changed in Figma on 3 Nov 2026** (decisions `edit-link` and
+`fc-form-edit-link`; published):
+- **A set with State** Default, Hover, Pressed and Disabled. Code follows
+  with `:hover`, `:active` and `disabled`.
+- **The 24×24 target** is an invisible Hit Area outside the layout, so the
+  button hugs its label and Form / Field – Dropdown with Edit's label row
+  stays 17. Code follows with a `::before`, not a `min-h-6` (which would
+  grow the row).
+- **The description** says it's a button (an action), as built.
 
 Code departs from Figma here:
 
@@ -2382,13 +2557,6 @@ Code departs from Figma here:
 | Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button | Add a Focus state |
 | Accessible name | "[Edit]" | "[Edit] Currency" inside a field | None needed |
 | Line height | Inter's auto line height (12px) | GDL's Caption/sm: 14px | Bind the text style to the ramp |
-
-Figma gaps the code copies exactly. These are for the designer to decide:
-
-- **No Hover, Pressed or Disabled state.** `text/link/hover` and
-  `text/link/pressed` exist, and nothing uses them here.
-- **It is small:** 10px text, a target about 26 × 14. It passes WCAG 2.5.8
-  through the spacing exception: no other target is within its 24px circle.
 
 Figma gaps the code doesn't copy: none.
 
@@ -2418,7 +2586,7 @@ Bindings: FormLabel's, FormField's and TextInput's (above). The Storybook
 grids check all seven cells (Default, Filled, Focus, Error with its message,
 Disabled, Required, with a Helper), in Light and Dark: the label and
 marker, the 20px gap, the input's fill, stroke colour and width, text
-colour and height, and the message.
+colour and height, and the message (colour, 8px under the input).
 
 Contrast: as FormLabel, FormField and TextInput.
 
@@ -2431,6 +2599,11 @@ Code departs from Figma as FormField and TextInput do, and here:
 TextInput changed with it: inside a FormField it takes the field's id,
 message, error and required (`useFormFieldControl`). Its own props win.
 Outside a FormField nothing changes.
+
+**Changed in Figma on 3 Nov 2026** (decision `field-message-spacing`;
+published): the component is a set (`793:18796`) with State (Default,
+Error) and an Error text property, and the message sits `space/8` under
+the input. See FormField; code follows there.
 
 Figma gaps the code doesn't copy: none.
 
@@ -2480,6 +2653,13 @@ Select and SelectTrigger changed with it:
   `required`.
 - Select's `name` used to land on the trigger button, which a form never
   submits. It now names a hidden input with the chosen value.
+
+**Changed in Figma on 3 Nov 2026** (decisions `field-message-spacing` and
+`edit-link`; published): Form / Field – Dropdown (`793:18931`) and –
+Dropdown with Edit (`793:19070`) are sets with State (Default, Error) and
+an Error text property, and the message sits `space/8` under the trigger
+(see FormField). Dropdown with Edit's label row stays 17: the `_Edit Link`
+target is outside the layout (see FormEditLink).
 
 Figma gaps the code doesn't copy: none.
 
@@ -2543,7 +2723,7 @@ Figma gaps the code doesn't copy: none.
 ### Textarea (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `_Textarea` (`455:489`): State
-(Default, Filled, Focus, Error, Disabled) with a Value text property
+(Default, Filled, Focus, Error, Error + Focus, Disabled) with a Value text property
 ("Add notes…"). Its description says "Resize height as needed". Code:
 `src/components/textarea/`. It is a native `<textarea>` with TextInput's
 look, so each state is the element's own: Default is empty with a
@@ -2557,16 +2737,16 @@ opacity and 96px height, in Light and Dark.
 
 | State | Fill | Stroke (inside) | Text |
 |---|---|---|---|
-| Default | `surface/elevated secondary` | 1px `stroke/subtle` | placeholder, `text/subtle` |
-| Filled | `surface/elevated secondary` | 1px `stroke/subtle` | value, `text/primary` |
+| Default | `surface/elevated secondary` | 1px `stroke/field` | placeholder, `text/subtle` |
+| Filled | `surface/elevated secondary` | 1px `stroke/field` | value, `text/primary` |
 | Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` |
 | Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` |
-| Disabled | `surface/elevated secondary` | 1px `stroke/subtle` | `text/subtle` |
+| Error + Focus | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | `text/primary` |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | value or placeholder, `text/disabled` |
 
-In Disabled the whole layer is at 50% opacity (raw `0.5`, no variable):
-`disabled:opacity-50`. Every state is Body/sm-regular
-(`text-body-sm-regular`) with radius `radius/8` (`rounded-8`) and side
-padding `space/12`, the text top-left.
+Every state is Body/sm-regular (`text-body-sm-regular`) with radius
+`radius/8` (`rounded-8`), padding `space/8` / `space/12`, the text
+top-left.
 
 Contrast, on the field fill (the same pairs as TextInput):
 
@@ -2576,9 +2756,9 @@ Contrast, on the field fill (the same pairs as TextInput):
 | Placeholder, `text/subtle` (4.5:1) | 4.76 | 6.96 |
 | Focus stroke, `stroke/focused` (3:1) | 6.81 | 6.51 |
 | Error stroke, `accent/critical/outline/border/default` (3:1) | 3.81 | 3.74 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.23** | **1.72** |
+| Resting stroke, `stroke/field` (3:1) | 4.76 | 6.96 |
 
-Disabled is exempt.
+Disabled is exempt (as TextInput).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -2586,37 +2766,40 @@ publishing):
   and `space/12`, as on `_Text Input`. They were raw 8 and 12, so nothing
   looks different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `input-height`,
+`offscale-spacing`, `disabled-look` / `fc-form-disabled` and
+`states-code-adds`; published):
+- **Top and bottom padding** raw 10 → `space/8`, strokes outside the
+  layout. Code was already `py-2`, so that departure is gone.
+- **Disabled:** the disabled fill, stroke and text, no opacity, as on
+  TextInput. Code follows.
+- **Error + Focus** is a state, drawn as code already did.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Top and bottom padding | Raw 10 around Inter's auto line height (17px) | 8px (`space/8`) around GDL's 20px line. GDL has no 10. This puts the first line's glyphs where Figma draws them | Pad `space/8` with the ramp's line height (the designer's call) |
 | Height | Fixed 96 | `rows`, 4 by default: 4 × 20 + 8 + 8 = 96. More `rows` make it taller | None needed |
 | Resize | "Resize height as needed" (the description) | `rows`, and the native vertical resize handle (`resize-y`). Disabled can't be resized | None needed |
 | Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus`. The browser's outline is hidden, but stays transparent so forced-colours mode still shows a ring | None needed |
-| Error + Focus | No such state | The critical stroke at Focus's 2px, so the error stays visible while typing | Add it if it should look different |
-| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/subtle` | None needed |
-| Disabled opacity | Layer opacity raw 0.5 | `disabled:opacity-50` | None in CAF: GDL has no opacity token to bind |
+| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11:** the same as TextInput
-  (1.23 / 1.72).
+- **The resting stroke reaches 3:1 since 2 Nov 2026** (`stroke/field`), as
+  on TextInput.
 
-`_Text Input`, `_Dropdown Input` and `_Combobox Input` also set
-State=Disabled to 50% layer opacity, which TextInput's and SelectTrigger's
-docs above used to miss ("Disabled looks the same as Default"). Since this
-change TextInput, SelectTrigger and Combobox copy it too, so every form
-field's Disabled is alike.
+Every form input's Disabled (TextInput, SelectTrigger, Textarea, DateInput,
+Combobox) is the same since 3 Nov 2026: the disabled tokens, no opacity.
 
 Figma gaps the code doesn't copy:
 
 - **The Additional Inputs section (`510:2704`) pins Semantics to Dark,**
-  so the library page shows `_Textarea`, `_Date Input` and `_Combobox
-  Input` only in Dark. The components aren't pinned, so their instances
-  follow their screen, and code follows the theme. Clear the section's
-  explicit mode, as for Date Ranges.
+  so it shows `_Textarea`, `_Date Input` and `_Combobox Input` in Dark.
+  Since 3 Nov 2026 a Light twin beside it ("Additional Inputs · Light",
+  `794:2299`) shows them in Light. The components aren't pinned, and code
+  follows the theme.
 
 ### TextareaField (29 Oct 2026)
 
@@ -2645,7 +2828,8 @@ What code maps:
 | Label | Body/sm-regular, `text/secondary` | `text-body-sm-regular text-text-secondary` |
 | Required marker | `accent/critical/tonal/content/default` | the same |
 | Input Wrapper | `_Textarea`, Fill, 96 high | Textarea, `w-full`, `rows={4}` |
-| Helper Text | Caption/md-regular, `text/subtle`, hidden by default | `helper` / `error`: `text-caption-md-regular text-text-subtle` |
+| Helper Text | Caption/md-regular, `text/subtle`, `space/8` under the textarea, hidden by default | `helper`: `text-caption-md-regular text-text-subtle`, `mt-2` |
+| Error Text (State=Error) | Caption/md-regular, `accent/critical/tonal/content/default`, `space/8` under the textarea | `error`: the same, in the helper's place |
 
 The Storybook grids check the label, the marker, the 20px label row, the
 textarea's bindings and 96px height, and the Helper, in Light and Dark.
@@ -2653,23 +2837,26 @@ SubmitsWithForm checks the browser's own `required` check and the FormData.
 
 Contrast: as FormField and Textarea (above).
 
-Code departs from Figma here: as FormField and Textarea, plus:
+**Changed in Figma on 3 Nov 2026** (decision `field-message-spacing`;
+published): the component is a set (`793:18610`) with State (Default,
+Error) and an Error text property, and the message sits `space/8` under
+the textarea. See FormField; code follows there.
 
-| | Figma | Code | Fix in Figma |
-|---|---|---|---|
-| Error message | One Helper layer, `text/subtle` | `error` replaces `helper`, in the Helper's style (as FormField) | See FormField's design question on the error colour |
+Code departs from Figma here: as FormField and Textarea.
 
 Figma gaps the code doesn't copy:
 
 - **The Additional Fields section (`510:2706`) pins Semantics to Dark,**
-  as Additional Inputs does. Clear it.
+  as Additional Inputs does. Since 3 Nov 2026 a Light twin
+  ("Additional Fields · Light", `794:2431`) sits beside it.
 
 ### DateInput (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `_Date Input` (`455:510`): State
-(Default, Filled, Focus, Error, Disabled, Open) with a Value text property
-("Select date") and a nested `CalendarBlank / Style=Regular, Size=20px`
-(Icon / Calendar). Its description says it "opens Date Picker / Calendar",
+(Default, Filled, Focus, Error, Error + Focus, Disabled, Open, Error +
+Open) with a Value text property ("Select date"), a Show Clear boolean
+(the Clear Button, Button / Icon Size=32 Ghost with X 16, before the icon)
+and a nested `CalendarBlank / Style=Regular, Size=20px` (Icon / Calendar). Its description says it "opens Date Picker / Calendar",
 and Form / Field – Date's says "Pair with Date Picker / Calendar for the
 open state". Code: `src/components/date-input/`. It is a `<button
 role="combobox" aria-haspopup="dialog">` (SelectTrigger's look) that
@@ -2688,7 +2875,17 @@ What code maps:
 - Error → `aria-invalid`. Disabled → `disabled`.
 - Open → the calendar showing (`open` / `defaultOpen` / `onOpenChange`),
   which sets `aria-expanded` and, while open, `aria-controls`.
-- Icon / Calendar → Icon `calendar-blank`, 20px, `text/subtle`.
+- Icon / Calendar → Icon `calendar-blank`, 20px, `text/subtle`
+  (`text/disabled` when disabled).
+- Show Clear + Clear Button → shown by itself for an optional field (not
+  `required`) with a date, while it is enabled and the calendar is closed:
+  Figma draws it in Filled, Focus, Error and Error + Focus, and not in
+  Default, Open, Error + Open or Disabled. It is an IconButton (ghost, 32,
+  `x`, named "Clear date"), a tab stop after the field, sitting over a
+  32px gap the field keeps for it (value, `space/8`, button, `space/8`,
+  icon). It clears the date (`onValueChange('')`, as a native date input
+  reports none), the placeholder comes back and focus returns to the
+  field.
 - `name` → a hidden input carrying the `yyyy-mm-dd` value ("" for none),
   disabled with the field, as Select does.
 - `required` → `aria-required` (a button can't be `required`). The form's
@@ -2704,24 +2901,32 @@ Behaviour (the WAI-ARIA date picker dialog, non-modal):
   and returns focus. A click outside, or Tab out of the calendar, closes it
   and leaves focus where the user put it. ↓ on the field while it is open
   moves focus into the calendar.
-- The date is picked, not typed (design question).
+- The date is picked, not typed. Figma's description says a typed or
+  pasted `yyyy-mm-dd` works as well (3 Nov 2026); code doesn't do that yet
+  (below).
 - The calendar is a `role="dialog"` panel named like the field: by its
   `aria-label`, its `aria-labelledby`, or the FormField's label.
 
 Every binding is copied exactly. The Storybook grids check each state's
 fill, stroke colour and width, radius, opacity, text colour, the icon's
-colour, size and 8px gap, the 40px height, `aria-expanded` and the open
+colour, size and place, the Clear Button (32, `text/secondary`, 8px from
+the value and the icon) where Show Clear applies, the 40px height, `aria-expanded` and the open
 calendar (placed below the field), in Light and Dark. The Open stories
 check the calendar's surface and its place under the field.
 
 | State | Fill | Stroke (inside) | Text | Icon |
 |---|---|---|---|---|
-| Default | `surface/elevated secondary` | 1px `stroke/subtle` | placeholder, `text/subtle` | `text/subtle` |
-| Filled | `surface/elevated secondary` | 1px `stroke/subtle` | value, `text/primary` | same |
+| Default | `surface/elevated secondary` | 1px `stroke/field` | placeholder, `text/subtle` | `text/subtle` |
+| Filled | `surface/elevated secondary` | 1px `stroke/field` | value, `text/primary` | same |
 | Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` | same |
 | Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` | same |
-| Disabled (50% layer opacity) | `surface/elevated secondary` | 1px `stroke/subtle` | `text/subtle` | same |
-| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | same |
+| Error + Focus | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | `text/primary` | same |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | `text/disabled` | `text/disabled` |
+| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | `text/subtle` |
+| Error + Open | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | placeholder, `text/subtle` | `text/subtle` |
+
+The Clear Button is Button / Icon's Ghost 32: no fill (its hover fill is
+`neutral/tonal/surface/default`), the X glyph 16 in `text/secondary`.
 
 Every state is Body/sm-regular with radius `radius/8`, side padding
 `space/12`, 40 high, the value on the left and the icon on the right,
@@ -2739,7 +2944,8 @@ Contrast, on the field fill:
 | Icon, `text/subtle` (3:1) | 4.76 | 6.96 |
 | Focus and Open stroke, `stroke/focused` (3:1) | 6.81 | 6.51 |
 | Error stroke (3:1) | 3.81 | 3.74 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.23** | **1.72** |
+| Resting stroke, `stroke/field` (3:1) | 4.76 | 6.96 |
+| Clear Button glyph, `text/secondary` (3:1), on the field / on its hover fill | 10.35 / 8.40 | 14.48 / 6.15 |
 
 Disabled is exempt. The calendar's pairs are Calendar's and
 DatePickerDay's.
@@ -2750,33 +2956,40 @@ publishing):
   `radius/8`, `space/12` and `space/8`, as on `_Text Input` and
   `_Dropdown Input`. They were raw 8, 12 and 8, so nothing looks different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `input-height`,
+`disabled-look` / `fc-form-disabled`, `states-code-adds`, `date-input` /
+`fc-form-caret-clear` and `descriptions-and-names`; published):
+- **Height:** a fixed 40, padding 0, strokes outside the layout (as code).
+- **Disabled:** the disabled fill, stroke, text and icon, no opacity. Code
+  follows.
+- **Error + Focus and Error + Open** are states, drawn as code already did.
+- **Show Clear** and the Clear Button are new. Code adds the clear button
+  (above).
+- **The description** lists all eight states, Show Clear and typed dates.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Fixed 40, raw 10 top and bottom | 40px (`h-10`), the text centred. The stroke is drawn inside and never moves the layout | None needed |
 | Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus-visible` (keyboard focus). The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
-| Error + Focus or Open | No such state | The critical stroke at the 2px width | Add it if it should look different |
-| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/subtle` | None needed |
-| Disabled opacity | Layer opacity raw 0.5 | `disabled:opacity-50` | None in CAF: GDL has no opacity token to bind |
+| Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
+| Show Clear | A boolean the designer turns on | On by itself: an optional field with a date, enabled and closed. No prop | None needed |
+| Clear Button | Inside the field's auto layout | A sibling of the field's button (a button can't hold one), placed over the 32px the field keeps for it | None needed |
+| Typed dates | The description: "A typed or pasted yyyy-mm-dd works as well as picking" | Not built: the field is a button, the date is picked | None in Figma; a code follow-up (it turns the field into a text input) |
 | Open | The field alone, with Focus's stroke | The field plus Calendar in a Popover: below, `space/4` away, flush left. It flips above when there's no room below | Add an open example to Form / Field – Date (the field with Date Picker / Calendar under it) |
 | Value | A free text property | `value` as `yyyy-mm-dd`, the format the placements use. The same string is submitted | None needed |
 | Semantics | None | `role="combobox"`, `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls` while open. The calendar is a named non-modal dialog | None needed |
-| Description | Lists five states | Six, with Open | Add Open to the description |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11:** the same as TextInput
-  (1.23 / 1.72).
-- **A chosen date can't be cleared.** Ends At is optional, but once a
-  date is picked the field can't go back to "Select date". Code adds no
-  clear control (design question).
+- **The resting stroke reaches 3:1 since 2 Nov 2026** (`stroke/field`), as
+  on TextInput.
 
 Figma gaps the code doesn't copy:
 
-- **The Additional Inputs section (`510:2704`) pins Semantics to Dark**
-  (see Textarea).
+- **The Additional Inputs section (`510:2704`) pins Semantics to Dark**,
+  with a Light twin since 3 Nov 2026 (see Textarea).
 
 ### DateField (29 Oct 2026)
 
@@ -2810,7 +3023,8 @@ What code maps:
 | Label | Body/sm-regular, `text/secondary` | `text-body-sm-regular text-text-secondary` |
 | Required marker | `accent/critical/tonal/content/default` | the same |
 | Input Wrapper | `_Date Input`, Fill, 40 high | DateInput, `w-full`, `h-10` |
-| Helper Text | Caption/md-regular, `text/subtle`, hidden by default | `helper` / `error`: `text-caption-md-regular text-text-subtle` |
+| Helper Text | Caption/md-regular, `text/subtle`, `space/8` under the field, hidden by default | `helper`: `text-caption-md-regular text-text-subtle`, `mt-2` |
+| Error Text (State=Error) | Caption/md-regular, `accent/critical/tonal/content/default`, `space/8` under the field | `error`: the same, in the helper's place |
 
 The Storybook grids check the label, the marker, the 20px label row, the
 field's bindings, icon and height, the Helper and the open calendar, in
@@ -2820,17 +3034,22 @@ disabled field).
 
 Contrast: as FormField and DateInput.
 
+**Changed in Figma on 3 Nov 2026** (decision `field-message-spacing`;
+published): the component is a set (`793:19231`) with State (Default,
+Error) and an Error text property, and the message sits `space/8` under
+the field. See FormField; code follows there. An optional DateField with a
+date shows DateInput's clear button (Ends At, in Edit Recurring Cost).
+
 Code departs from Figma here: as FormField and DateInput, plus:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Open | No example | The DateInput's calendar, under the field | Add an open example (see DateInput) |
-| Error message | One Helper layer, `text/subtle` | `error` replaces `helper`, in the Helper's style (as FormField) | See FormField's design question on the error colour |
 
 Figma gaps the code doesn't copy:
 
-- **The Additional Fields section (`510:2706`) pins Semantics to Dark**
-  (see TextareaField).
+- **The Additional Fields section (`510:2706`) pins Semantics to Dark**,
+  with a Light twin since 3 Nov 2026 (see TextareaField).
 
 No range input was built. The Date Ranges section (`510:2708`) holds only
 `Date Picker / Range` (the panel), and no form places a range field. The
@@ -2841,9 +3060,10 @@ RangeCalendar.
 ### Combobox (29 Oct 2026)
 
 Source: page **Form** (`183:1765`), set `_Combobox Input` (`455:555`):
-State (Default, Filled, Focus, Error, Disabled, Open), a Value text
-property, and nested `MagnifyingGlass / Style=Regular, Size=20px` (Icon /
-Search) and `CaretDown / Style=Regular, Size=20px` (Icon / Caret). Figma's
+State (Default, Filled, Focus, Error, Error + Focus, Disabled, Open, Error
++ Open), a Value text property, a nested `MagnifyingGlass /
+Style=Regular, Size=20px` (Icon / Search) and the Caret Button (Button /
+Icon Size=32 Ghost with CaretDown 16). Figma's
 description: "Searchable select: type to filter, then pick from Select /
 Menu". The list is `Select / Menu` (`456:631`) of `Select / Option`
 (`456:630`), the same list Select uses. Code: `src/components/combobox/`.
@@ -2863,10 +3083,15 @@ What code maps:
 - Focus (Figma: "typing") → `:focus`. Error → `aria-invalid`. Disabled →
   `disabled`. Open → the list is showing (`open`, `defaultOpen`, or the
   user opening it), which sets `aria-expanded`.
-- Icon / Search → Icon `magnifying-glass`; Icon / Caret → Icon
-  `caret-down`. Both are 20px, `text/subtle`, 12px in from each edge, and
-  drawn over the input's 40px side padding (12 + 20 + 8). Clicks pass
-  through them to the input.
+- Icon / Search → Icon `magnifying-glass`, 20px, `text/subtle`, 12px in,
+  over the input's 40px left padding (12 + 20 + 8). Clicks pass through it
+  to the input.
+- Caret Button → an IconButton (ghost, 32, `caret-down`, named "Show
+  options"), 4px from the right (`space/4`), so its 16px glyph is 12px in,
+  over the input's 44px right padding (4 + 32 + 8). A click opens the full
+  list without typing, and closes it when open. It is `tabIndex={-1}` (the
+  input's ↓ / ↑ do the same), keeps focus in the input, and has
+  `aria-expanded`, as in the WAI-ARIA list-autocomplete example.
 - `options` (strings or `{ value, label }`), `value` / `defaultValue` /
   `onValueChange` (`null` for none), `name` (a hidden input submits the
   chosen value, never the typed text), and `emptyText`.
@@ -2902,23 +3127,29 @@ Every binding is copied exactly. The box's bindings are TextInput's:
 
 | State | Fill | Stroke (inside) | Text | Icons |
 |---|---|---|---|---|
-| Default | `surface/elevated secondary` | 1px `stroke/subtle` | placeholder, `text/subtle` | `text/subtle` |
-| Filled | `surface/elevated secondary` | 1px `stroke/subtle` | value, `text/primary` | `text/subtle` |
-| Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` | `text/subtle` |
-| Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` | `text/subtle` |
-| Disabled (50% layer opacity) | `surface/elevated secondary` | 1px `stroke/subtle` | `text/subtle` | `text/subtle` |
-| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | `text/subtle` |
+| Default | `surface/elevated secondary` | 1px `stroke/field` | placeholder, `text/subtle` | search `text/subtle`, caret `text/secondary` |
+| Filled | `surface/elevated secondary` | 1px `stroke/field` | value, `text/primary` | same |
+| Focus | `surface/elevated secondary` | 2px `stroke/focused` | `text/primary` | same |
+| Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | `text/primary` | same |
+| Error + Focus | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | `text/primary` | same |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | `text/disabled` | both `text/disabled` (the caret's is an override) |
+| Open | `surface/elevated secondary` | 2px `stroke/focused` | placeholder, `text/subtle` | search `text/subtle`, caret `text/secondary` |
+| Error + Open | `surface/elevated secondary` | 2px `accent/critical/outline/border/default` | placeholder, `text/subtle` | same |
 
 Every state is Body/sm-regular, radius `radius/8`, 40px high (Figma: a
-fixed 40). In Disabled the whole box, icons included, is at 50% opacity
-(`has-disabled:opacity-50`), as Figma's layer opacity. The list and the
+fixed 40). The Caret Button is Ghost: no fill, `neutral/tonal/surface/default`
+on hover. The list and the
 options use SelectMenu's and SelectOption's bindings. Code adds the "No
 results" row: Body/sm-regular in `text/subtle`, with an option's 8 / 12
 padding and no fill.
 
 The Storybook grids check, for each state in Light and Dark: fill, stroke
-colour and width, value or placeholder colour, both icons (colour, 20px,
-12px inset, centred), the 40px text inset, the height and `aria-expanded`.
+colour and width, no opacity, value or placeholder colour, the search icon
+(colour, 20px, 12px inset, centred), the Caret Button (32, 4px inset, its
+16px glyph 12px in, its colour, disabled with the input), the 40 / 44 text
+inset, the height and `aria-expanded` on the input and the button. The
+CaretButton story checks the toggle, focus staying in the input, and Tab
+skipping the button.
 The Open, Filtered and No results stories check the following in both
 themes:
 - the list surface and its place under the input;
@@ -2934,10 +3165,11 @@ Contrast, on the field fill (the "No results" row on the list fill):
 |---|---|---|
 | Value, `text/primary` (4.5:1) | 20.17 | 17.85 |
 | Placeholder, `text/subtle` (4.5:1) | 4.76 | 6.96 |
-| Icons, `text/subtle` (3:1) | 4.76 | 6.96 |
+| Search icon, `text/subtle` (3:1) | 4.76 | 6.96 |
+| Caret glyph, `text/secondary` (3:1), on the field / on its hover fill | 10.35 / 8.40 | 14.48 / 6.15 |
 | Focus and Open stroke, `stroke/focused` (3:1) | 6.81 | 6.51 |
 | Error stroke, `accent/critical/outline/border/default` (3:1) | 3.81 | 3.74 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.23** | **1.72** |
+| Resting stroke, `stroke/field` (3:1) | 4.76 | 6.96 |
 | "No results", `text/subtle` on `surface/neutral faint` (4.5:1) | 4.55 | 6.96 |
 
 Disabled is exempt.
@@ -2948,26 +3180,35 @@ publishing):
   `radius/8`, `space/12` and `space/8`, as on `_Text Input` and
   `_Dropdown Input`. They were raw 8, 12 and 8, so nothing looks different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `input-height`,
+`disabled-look` / `fc-form-disabled`, `states-code-adds`,
+`combobox-matching` / `fc-form-caret-clear` and `combobox-list`;
+published):
+- **Height:** a fixed 40, padding 0, strokes outside the layout (as code).
+- **Disabled:** the disabled fill, stroke, text and icons, no opacity. Code
+  follows: the box's `has-disabled:opacity-50` is gone.
+- **Error + Focus and Error + Open** are states, drawn as code already did.
+- **The caret is its own Caret Button** (Button / Icon Ghost 32), right
+  padding `space/4`. Code makes it a toggle IconButton (above).
+- **Select / Menu has Content=No results** (an Empty Text row), as code
+  draws it, and Select / Option has State=Active.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Padding top and bottom | Raw 10 inside a fixed 40px | 40px (`space/40`) with the text centred. GDL has no 10 | None needed (the height is fixed) |
-| Layout | Auto layout: icon, Value (Fill), caret, `space/8` gap | One `<input>` fills the box. The icons sit absolutely over its side padding (`space/12` + 20px icon + `space/8` = 40px) and let clicks through | None needed |
+| Layout | Auto layout: icon, Value (Fill), Caret Button, `space/8` gap, `space/12` / `space/4` sides | One `<input>` fills the box. The search icon sits over its left padding (12 + 20 + 8 = 40) and lets clicks through; the Caret Button sits over its right padding (4 + 32 + 8 = 44) | None needed |
 | Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp (as TextInput) |
 | Focus | Focus ("typing") is the 2px stroke | Copied on `:focus`. The browser's outline stays transparent, so forced-colours mode still shows one | None needed |
-| Error + Focus or Open | No such state | The critical stroke at the 2px width | Add it if it should look different |
 | Open with a value | Only the placeholder is drawn | The chosen label in `text/primary` | None needed |
-| Disabled opacity | Layer opacity raw 0.5 | `opacity-50` on the box, icons included | None in CAF: GDL has no opacity token to bind |
-| Filtering, keyboard, active option | Not drawn | The WAI-ARIA behaviour above. The active option looks like SelectOption's (Hover's fill; the ring when the keyboard put it there) | Add an Active option state (as for Select) |
-| Empty result | Not drawn | A "No results" row (`emptyText`), `text/subtle`, plus a status announcement | Add an empty row to Select / Menu (design question) |
+| Filtering, keyboard | Not drawn | The WAI-ARIA behaviour above. The active option is Select / Option's State=Active (the ring only when the keyboard put it there) | None needed |
+| Empty result | Select / Menu Content=No results | The same row (`emptyText`), plus a status announcement | None needed |
 | Long lists | Five rows | Scrolls past `space/256` | See SelectMenu |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The resting stroke is below WCAG 1.4.11:** 1.23 (Light) / 1.72 (Dark),
-  the same as TextInput.
-- **Disabled is 50% layer opacity,** as on TextInput.
+- **The resting stroke reaches 3:1 since 2 Nov 2026** (`stroke/field`), as
+  on TextInput.
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
@@ -3003,8 +3244,9 @@ What code maps:
 
 Bindings: FormField's and Combobox's. The label is Body/sm-regular in
 `text/secondary`, with the marker when Required. The input sits 20px below
-the label. The Helper, or the error in its place, is Caption/md-regular in
-`text/subtle`, directly under the input. The grids check these with each
+the label. The Helper (`text/subtle`), or the Error Text in its place
+(`accent/critical/tonal/content/default`), is Caption/md-regular,
+`space/8` under the input. The grids check these with each
 input state (Default, Filled, Focus, Error, Disabled, Required, Helper,
 Open), in Light and Dark. The form story submits a real `<form>` and checks
 three things:
@@ -3020,8 +3262,12 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Required | The field has no Required property. The Cost Breakdown overrides the nested `_Form Label` to Required=true | `required` | Expose Required on the field (as the designer decides for every Form / Field) |
-| Error | No field-level error: `_Combobox Input` State=Error, with the message in the Helper | `error`, as FormField | As FormField |
 | Open | "Pair with Select / Menu" (no open example) | The Combobox's own list | Add an open example |
+
+**Changed in Figma on 3 Nov 2026** (decision `field-message-spacing`;
+published): the component is a set (`793:19298`) with State (Default,
+Error) and an Error text property, and the message sits `space/8` under
+the input. See FormField; code follows there.
 
 Figma gaps the code doesn't copy: none.
 
@@ -3035,14 +3281,15 @@ Disabled is `disabled`. The input is the track; the knob is drawn over
 it. Space flips it, screen readers announce a switch that is on or off,
 and in a form it submits `name` = `value` ("on") while on. Every binding is
 copied exactly. The Storybook grids check the track's size, radius and
-fill, the knob's size, fill and position, and the opacity of all four
-variants in Light and Dark.
+fill, and the knob's size, fill and position, for all four variants in
+Light and Dark.
 
 | Layer | Checked=false | Checked=true | Code |
 |---|---|---|---|
-| Track (36 × 20, `radius/full`) | `neutral/tonal/surface/default` | `action/primary/surface/default` | `bg-neutral-tonal-surface-default checked:bg-action-primary-surface-default`, `rounded-full` |
+| Track (36 × 20, `radius/full`) | `surface/track` | `action/primary/surface/default` | `bg-surface-track checked:bg-action-primary-surface-default`, `rounded-full` |
+| Track, Disabled=true | `surface/neutral/medium` | `surface/brand/medium` | `disabled:not-checked:bg-surface-neutral-medium disabled:checked:bg-surface-brand-medium` |
 | Knob (16, `space/2` in) | `action/primary/content/default`, at the start | the same, at the end | `bg-action-primary-content-default`, `top-0.5 left-0.5`, `peer-checked:translate-x-4` |
-| Disabled=true | 50% layer opacity | 50% layer opacity | `has-disabled:opacity-50` on the switch |
+| Knob, Disabled=true | `action/primary/content/disabled` | the same | `peer-disabled:bg-action-primary-content-disabled` |
 
 Contrast (WCAG 1.4.11 wants 3:1 for a control's parts):
 
@@ -3056,7 +3303,16 @@ Contrast (WCAG 1.4.11 wants 3:1 for a control's parts):
 | Knob on the Checked=false track | 4.76 | 7.16 |
 | Focus ring (`stroke/focused`) on `surface/canvas` | 6.51 | 6.51 |
 
-Disabled is exempt.
+Disabled is exempt: the knob on the track is 1.48 (Light) / 4.76 (Dark)
+off and 2.74 / 6.81 on.
+
+**Changed in Figma on 3 Nov 2026** (decisions fc-buttons-disabled and
+disabled-look; published): Disabled is drawn with its own colours, not 50%
+layer opacity. The off track is `surface/neutral/medium` (was
+`neutral/tonal/surface/default` at 50%), the on track `surface/brand/medium`
+(was `action/primary/surface/default` at 50%) and the knob
+`action/primary/content/disabled`. Code dropped `has-disabled:opacity-50`
+and binds the same.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -3070,7 +3326,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button and Checkbox | Add a Focus state |
 | Hover | No Hover state | None | Add one if the screens need it |
-| Disabled | 50% layer opacity | Copied: `opacity-50` on the whole switch (GDL has no opacity token) | See the design question |
 | Forced colours | — | `forced-color-adjust: none`, so Windows High Contrast doesn't drop the track's and knob's fills and leave nothing visible | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
@@ -3078,33 +3333,31 @@ Figma gaps the code copies exactly. These are for the designer to decide:
 - **Checked=false reaches 3:1 since 2 Nov 2026.** Changed in Figma on
   2 Nov 2026: the off track moved from `neutral/tonal/surface/default`
   (1.18:1 Light, 2.36:1 Dark on the canvas) to the new `surface/track`
-  (the table above). Checked=false, Disabled=true keeps the tonal track at
-  50%. On and off tracks are now 1.43 / 1.5:1 apart; the knob's position
-  still shows the state.
-- **Disabled is 50% layer opacity**, where Pagination / Item, Date Picker /
-  Day and Button use their own disabled colours (`text/disabled`,
-  `action/primary/surface/disabled`).
+  (the table above). On and off tracks are 1.43 / 1.5:1 apart; the knob's
+  position still shows the state.
 
 Figma gaps the code doesn't copy: none. No modes are pinned.
 
 ### Radio (29 Oct 2026)
 
 Source: page **Selection Controls** (`241:5133`), set `Radio` (`457:247`):
-State (Deselected, Hover, Selected, Disabled). Code:
+State (Deselected, Hover, Selected, Disabled, Error). Code:
 `src/components/radio/`. It is a native `<input type="radio">`, so each
 state is the element's own: Deselected is unchecked, Hover is `:hover` on
-an unchecked, enabled radio, Selected is `checked` and Disabled is
-`disabled`. Radios that share a `name` are one group: the browser gives
-the arrow keys and one tab stop. Every binding is copied exactly. The
-Storybook grids force Hover and check each state's size, radius, fill,
-stroke colour and width, the dot and the opacity, in Light and Dark.
+an unchecked, enabled radio, Selected is `checked`, Error is `aria-invalid`
+on an unchecked, enabled radio and Disabled is `disabled`. Radios that
+share a `name` are one group: the browser gives the arrow keys and one tab
+stop. Every binding is copied exactly. The Storybook grids force Hover and
+check each state's size, radius, fill, stroke colour and width and the
+dot, in Light and Dark.
 
-| State | Fill | Stroke (inside) | Dot | Opacity |
-|---|---|---|---|---|
-| Deselected | `surface/elevated secondary` | 1px `stroke/strong` | none | 100% |
-| Hover | `surface/elevated secondary` | 1px `stroke/focused` | none | 100% |
-| Selected | `surface/elevated secondary` | 2px `action/primary/surface/default` | 8px, `action/primary/surface/default`, centred | 100% |
-| Disabled | `surface/elevated secondary` | 1px `stroke/strong` | none | 50% |
+| State | Fill | Stroke (inside) | Dot |
+|---|---|---|---|
+| Deselected | `surface/elevated secondary` | 1px `stroke/field` | none |
+| Hover | `surface/elevated secondary` | 1px `stroke/focused` | none |
+| Selected | `surface/elevated secondary` | 2px `action/primary/surface/default` | 8px, `action/primary/surface/default`, centred |
+| Error | `surface/elevated secondary` | 1px `accent/critical/outline/border/default` | none |
+| Disabled | `neutral/tonal/surface/disabled` | 1px `neutral/outline/border/disabled` | none |
 
 Every state is 20 × 20 and round (`radius/full`).
 
@@ -3116,9 +3369,22 @@ Contrast (3:1 for the radio's edge and dot):
 | Deselected stroke on `surface/canvas` | 4.55 | 6.96 |
 | Hover stroke (`stroke/focused`) on the fill | 6.81 | 6.51 |
 | Selected stroke and dot (`action/primary/surface/default`) on the fill | 6.81 | 4.63 |
+| Error stroke (`accent/critical/outline/border/default`) on the fill | 3.81 | 3.74 |
+| Error stroke on `surface/base` | 3.81 | 3.07 |
 | Focus ring (`stroke/focused`) on `surface/canvas` | 6.51 | 6.51 |
 
-Disabled is exempt.
+Disabled is exempt (its stroke is 1.48 / 1.93).
+
+**Changed in Figma on 3 Nov 2026** (decisions fc-buttons-disabled,
+disabled-look and radio-group; published). Code follows:
+- **Disabled** is drawn with its own colours, not 50% layer opacity: fill
+  `neutral/tonal/surface/disabled`, stroke `neutral/outline/border/disabled`
+  (was `surface/elevated secondary` and `stroke/strong` at 50%). Code
+  dropped `has-disabled:opacity-50`.
+- **State=Error** is new: the Deselected radio with the inputs' error
+  stroke, for an invalid Radio Group. Code: `aria-invalid` on an
+  unchecked, enabled radio (RadioGroup's `error` sets it). It stays while
+  hovered, as Text Input's error stays while focused.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -3130,35 +3396,40 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button and Checkbox | Add a Focus state |
-| Disabled + Selected | Not drawn (Disabled is unchecked) | Selected at 50% | Add it if it should look different |
+| Disabled + Selected | Not drawn (Disabled is unchecked) | The disabled fill, with the 2px stroke and the dot in `surface/brand/medium`, as Checkbox's Disabled Selected | Add a Disabled Selected state |
 | Selected + Hover | Not drawn | Stays Selected | None needed |
+| Error + Hover | Not drawn | Stays Error | None needed |
 | Forced colours | — | `forced-color-adjust: none`, so Windows High Contrast keeps the inside stroke (a box-shadow) and the dot | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
 - **The resting stroke reaches 3:1 since 2 Nov 2026.** Changed in Figma
   on 2 Nov 2026: Deselected moved from `stroke/strong` (2.56:1 Light) to
-  the new `stroke/field`. Disabled keeps `stroke/strong` at 50%.
-- **Disabled is 50% layer opacity**, as on Toggle (see there).
-- **No Error state.** RadioGroup's `error` shows the message and sets
-  `aria-invalid`, but the radios look the same.
+  the new `stroke/field`.
+- **Error in Dark on `surface/base` is 3.07:1,** just over 3:1.
 
 Figma gaps the code doesn't copy: none. No modes are pinned.
 
 ### RadioOption (29 Oct 2026)
 
 Source: page **Selection Controls** (`241:5133`), set `Radio Option`
-(`457:255`): Selected, with a Label text property. Code:
+(`457:255`): Selected × Error (Selected=false, Error=true is the third
+variant), with a Label text property. Code:
 `src/components/radio-option/`. It is a `<label>` around a Radio, so a
 click on the text checks it and the text is the radio's accessible name.
-`label` is Figma's Label and Selected is the radio's `checked` (or
-`defaultChecked`). Every other prop, and the ref, go to the radio. The
-Storybook grids check the label's colour and type, the 8px gap and the
-alignment, in Light and Dark.
+`label` is Figma's Label, Selected is the radio's `checked` (or
+`defaultChecked`) and Error=true is `aria-invalid` on the radio. Every
+other prop, and the ref, go to the radio. The Storybook grids check the
+three variants: the label's colour and type, the 8px gap, the alignment
+and Error's stroke, in Light and Dark.
+
+**Changed in Figma on 3 Nov 2026** (decision radio-group; published): the
+Error variant property, whose Error=true holds Radio's State=Error. Code
+passes `aria-invalid` through to the Radio, which draws it; no new prop.
 
 | Layer | Binding | Code |
 |---|---|---|
-| Radio | `Radio` instance, State=Deselected / Selected | `Radio` |
+| Radio | `Radio` instance, State=Deselected / Selected / Error | `Radio` |
 | Label | Body/sm-regular, `text/primary` | `text-body-sm-regular text-text-primary` |
 | Gap | `space/8` (raw 8 until 29 Oct) | `gap-2` (`space/8`) |
 | Alignment | Centre | `items-center` |
@@ -3177,7 +3448,7 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Letter spacing | 0 | GDL's 0.4px (Body/sm) | Bind the text style to the ramp |
-| Disabled | Not drawn | The radio at 50%; the label unchanged | See RadioGroup's design question |
+| Disabled | Not drawn | The radio's Disabled; the label unchanged | Add it if the label should dim |
 | Hover | Only the Radio's own | Hovering the radio; hovering the label text shows no Hover | Add it if the label should trigger Hover |
 
 Figma gaps the code doesn't copy: none. The Label is connected to the
@@ -3185,27 +3456,30 @@ Label property in both variants, and no modes are pinned.
 
 ### RadioGroup (29 Oct 2026)
 
-Source: page **Selection Controls** (`241:5133`), component `Form / Radio
-Group` (`457:294`): Label, Show Helper and Helper text properties over
+Source: page **Selection Controls** (`241:5133`), set `Form / Radio
+Group` (`798:16784`): State (Default `457:294`, Error `798:16777`), an
+exposed `_Form Label`, Show Helper, Helper and Error text properties over
 three Radio Options (All selected, Admin, User). Create Announcement
 (Patterns – Admin 05 and 14) places it as "Target Audience". Code:
 `src/components/radio-group/`.
 
 What code maps:
-- Label → `label`, rendered with FormLabel (the `_Form Label` look) as
-  the fieldset's `<legend>`.
+- `_Form Label`'s Label → `label`, rendered with FormLabel as the
+  fieldset's `<legend>`; its Required → `required`.
 - The Radio Options → `options`, one RadioOption each. A plain string is
   `{ value: s, label: s }`; an option can be `disabled`.
 - Each option's Selected → `value` (controlled, `null` for none) with
   `onValueChange`, or `defaultValue`.
 - Show Helper + Helper → `helper`.
 
-Code adds what a form needs and Figma doesn't draw:
-- `required`: _Form Label's marker, native `required` on every radio (the
-  browser won't submit until one is chosen, and focuses the first) and
+- State=Error + Error → `error`: the message in the Helper's place, with
+  `aria-invalid` on the group and its radios, which draw Radio's Error
+  stroke (every option is Radio Option Error=true in Figma).
+
+Code adds what a form needs:
+- `required` also sets native `required` on every radio (the browser
+  won't submit until one is chosen, and focuses the first) and
   `aria-required` on the group.
-- `error`: the message in the Helper's place and style, as FormField
-  does, with `aria-invalid` on the group and its radios.
 - `disabled`: the fieldset's own, which disables every radio.
 
 It is a `<fieldset role="radiogroup">`, named by its legend
@@ -3220,10 +3494,12 @@ Dark; the stories also check the keyboard and a real form submit.
 
 | Layer | Binding | Code |
 |---|---|---|
-| Label | Body/sm-regular, `text/secondary` (a text layer, not a `_Form Label` instance) | FormLabel: `text-body-sm-regular text-text-secondary` |
-| Required marker | — (from `_Form Label`) | `accent/critical/tonal/content/default`, 2px after the label |
+| Label | `_Form Label`: Body/sm-regular, `text/secondary` | FormLabel: `text-body-sm-regular text-text-secondary` |
+| Required marker | `_Form Label`'s, `accent/critical/tonal/content/default` | the same, 2px after the label |
 | Options row | Horizontal, `space/24` gap | `flex flex-wrap gap-x-6` (`space/24`) |
 | Helper | Caption/md-regular, `text/subtle` | FormHelperText: `text-caption-md-regular text-text-subtle` |
+| Error (State=Error) | Caption/md-regular, `accent/critical/tonal/content/default`, in the Helper's place | FormHelperText, as on main: `text/subtle` (see below) |
+| Radios (State=Error) | Radio Option Error=true | `aria-invalid` on each radio: Radio's Error stroke |
 | Column gap | `space/8` between Label, Options and Helper | 8px (`space/8`): `gap-2`, and `mb-2` on the legend |
 
 Contrast, on `surface/canvas` (and `surface/base`, inside a modal):
@@ -3248,33 +3524,46 @@ Code departs from Figma here:
 |---|---|---|---|
 | Width | Hugs (223) in the library; Fill (752) in Create Announcement | Fills its container | None needed |
 | Narrow screens | One row, no wrap | The row wraps, with `space/8` between rows | Set the Options frame to wrap, if wanted |
-| Required, Error, Disabled | Not drawn | As above | See the design questions |
+| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message (FormHelperText) as on main, `text/subtle` | None: code follows when the form area gives the shared message its error colour |
+| Disabled | Not drawn | As above | See the design question |
 | Label's line height | Inter's auto (17px) | GDL's 20px | Bind the text style to the ramp |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
-- **The Label is a text layer, not a `_Form Label` instance,** so the
-  group has no Required. It looks the same as `_Form Label`; swapping in
-  the instance would give it the marker every Form / Field has.
-- **No Error or Disabled look.** Code's `error` puts the message in the
-  Helper (in `text/subtle`, like FormField's) and the radios stay as
-  they are; a disabled option dims only its radio, not its label.
+- **No Disabled look.** A disabled option shows only its radio's
+  Disabled, not a dimmed label.
 
-Figma gaps the code doesn't copy: none. The Label and Helper are
+**Changed in Figma on 3 Nov 2026** (decision radio-group; published):
+- **The Label is an exposed `_Form Label`** (Required=false, "Target
+  Audience"), the same look; Required is set on it. Code already rendered
+  FormLabel.
+- **The component became a set with State=Error**: every option shows
+  Radio's Error stroke, the Helper is hidden and an Error text
+  ("Select an option.") takes its place. Code already put `error` there;
+  its radios now show the Error stroke.
+
+Figma gaps the code doesn't copy: none. The Label, Helper and Error are
 connected to their properties, and no modes are pinned.
 
 ### CheckboxField (29 Oct 2026)
 
 Source: page **Selection Controls** (`241:5133`), set `Form / Checkbox
-Field` (`457:280`): Checked × Bordered, with Label, Description and Show
-Description properties. Add New User (Patterns – Admin 05 and 12) places
-it Bordered as "Restricted User". Code: `src/components/checkbox-field/`.
+Field` (`457:280`): Checked × Bordered × State (Default, Disabled, Error),
+with Label, Required, Description, Show Description and Error properties.
+Add New User (Patterns – Admin 05 and 12) places it Bordered as
+"Restricted User". Code: `src/components/checkbox-field/`.
 
 What code maps:
 - The Checkbox → the existing Checkbox at 16px.
-- Label → `label`; Show Description + Description → `description`.
+- Label → `label`; Required → `required`; Show Description + Description
+  → `description`.
 - Checked → the box's `checked` (or `defaultChecked`).
 - Bordered → `bordered`.
+- State=Error + Error → `error` (new): the message under the description,
+  `aria-invalid` on the box (whose border turns critical while unchecked)
+  and the card's stroke critical.
+- State=Disabled → `disabled` (or a disabled fieldset): the box's Disabled
+  look and the text in `text/disabled`.
 
 The whole field is a `<label>`, so a click anywhere on it (the card's
 padding included) toggles the box. The label text names the checkbox
@@ -3282,9 +3571,9 @@ padding included) toggles the box. The label text names the checkbox
 (`aria-describedby`). Every other prop, and the ref, go to the native
 checkbox: `name`, `value`, `onChange`, `disabled`, `required`. In a form
 it submits `name` = `value` ("on") while checked. The Storybook grids
-check all four variants plus Required, Disabled and no description in
-Light and Dark: the box, the text styles and colours, the gaps, and the
-card's padding, radius and stroke.
+check all twelve variants plus Required (enabled and disabled) and no
+description in Light and Dark: the box, the text styles and colours, the
+error message, the gaps, and the card's padding, radius and stroke.
 
 | Layer | Bordered=false | Bordered=true | Code |
 |---|---|---|---|
@@ -3293,6 +3582,9 @@ card's padding, radius and stroke.
 | Description | Caption/md-regular, `text/secondary`, `space/2` under the label | the same | `text-caption-md-regular text-text-secondary`, `gap-0.5` |
 | Gap, box to text | `space/12`, top-aligned | the same | `gap-3` (`space/12`), `items-start` |
 | Card | none | `space/16` padding, `radius/8`, 1px inside `stroke/default`; Checked: `stroke/focused` | `p-4 rounded-8 inset-ring inset-ring-stroke-default has-checked:inset-ring-stroke-focused` |
+| Required Marker | "*", Body/sm-semibold, `accent/critical/tonal/content/default`, `space/2` after the label | the same | `ms-0.5 text-accent-critical-tonal-content-default` |
+| State=Error | Box: the inputs' `accent/critical/outline/border/default` while unchecked; Error text under the description, Caption/md-regular, `accent/critical/tonal/content/default` | Card: `accent/critical/outline/border/default` | Box: Checkbox's `aria-invalid`; message: the shared field message, as on main (`text/subtle`, see below); card: `inset-ring-accent-critical-outline-border-default` |
+| State=Disabled | Checkbox Disabled / Disabled Selected; label, marker and description `text/disabled` | Card: `neutral/outline/border/disabled` | `group-has-disabled/checkbox-field:text-text-disabled`; card `has-disabled:inset-ring-neutral-outline-border-disabled` |
 
 Contrast, on `surface/canvas` (and `surface/base`, inside a modal):
 
@@ -3302,6 +3594,11 @@ Contrast, on `surface/canvas` (and `surface/base`, inside a modal):
 | Description, `text/secondary` (4.5:1) | 9.90 (10.35) | 14.48 (11.87) |
 | Card stroke, `stroke/default` | 1.42 (1.48) | 2.36 (1.93) |
 | Checked card stroke, `stroke/focused` | 6.51 (6.81) | 6.51 (5.33) |
+| Error box and card stroke, `accent/critical/outline/border/default` | 3.64 (3.81) | 3.74 (3.07) |
+| Error message as code draws it, `text/subtle` (4.5:1) | 4.55 (4.76) | 6.96 (5.71) |
+
+Disabled is exempt: `text/disabled` is 1.42–1.48 (Light) and 3.07–3.75
+(Dark).
 
 The card's edge is decoration: the checkbox is the control, and its own
 edge is Checkbox's open question. The box's contrast is Checkbox's.
@@ -3320,14 +3617,16 @@ Code departs from Figma here:
 | Box position | Top-aligned with the label on Inter's 17px line | 2px down (`mt-0.5`), so the 16px box is centred on GDL's 20px Body/sm line | Bind the text style to the ramp |
 | Width | Fixed 464 in the library; Fill (512) in Add New User | Fills its container | None needed |
 | Click target | — | The whole field (a `<label>`) | None needed |
-| Required | No such property | Native `required`, and `_Form Label`'s marker after the label | See the design question |
-| Disabled | No such state (Checkbox has none either) | Native `disabled`: the not-allowed cursor only | Add a Disabled state |
-| Focus | No Focus state | Checkbox's 2px `stroke/focused` ring on the box | Add a Focus state |
+| Focus | Checkbox's Focus, not a field State | Checkbox's 2px `stroke/focused` ring on the box | None needed |
+| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message's style as on main (FormHelperText's `text-caption-md-regular text-text-subtle`), on a `<span>`: a `<p>` can't sit in the field's `<label>` | None: code follows when the form area gives the shared message its error colour |
+| Disabled + Error | Not drawn | Disabled wins: the box and card take their disabled colours, the message stays | None needed |
 
-Figma gaps the code copies exactly. These are for the designer to decide:
-
-- **No Required, Disabled or Error.** Code shows `_Form Label`'s marker
-  for `required`; a disabled field only changes the cursor.
+**Changed in Figma on 3 Nov 2026** (decision checkbox-toggle-field-states;
+published): a BOOLEAN **Required** (the "*" marker in a Label Row, as
+code already drew it) and a VARIANT **State**: Default, Disabled and
+Error, with an Error text ("Select this to continue."). The old variants
+are State=Default. Code adds `error`, and the disabled text and card
+colours; `required` was already there.
 
 Figma gaps the code doesn't copy: none. Label and Description are
 connected to their properties in every variant, and no modes are pinned.
@@ -3335,23 +3634,29 @@ connected to their properties in every variant, and no modes are pinned.
 ### ToggleField (29 Oct 2026)
 
 Source: page **Selection Controls** (`241:5133`), set `Form / Toggle
-Field` (`457:293`): Checked, with Label, Description and Show Description
-properties. Create Announcement (Patterns – Admin 05 and 14) places it as
-"Active", checked. Code: `src/components/toggle-field/`.
+Field` (`457:293`): Checked × State (Default, Disabled, Error), with
+Label, Required, Description, Show Description and Error properties.
+Create Announcement (Patterns – Admin 05 and 14) places it as "Active",
+checked. Code: `src/components/toggle-field/`.
 
 What code maps:
-- Label → `label`; Show Description + Description → `description`.
+- Label → `label`; Required → `required`; Show Description + Description
+  → `description`.
 - The Toggle → a Toggle at the end of the row.
 - Checked → the switch's `checked` (or `defaultChecked`).
+- State=Error + Error → `error` (new): the message under the description
+  and `aria-invalid` on the switch. The toggle has no error look.
+- State=Disabled → `disabled` (or a disabled fieldset): the Toggle's
+  Disabled=true and the text in `text/disabled`.
 
 The whole field is a `<label>`, so a click on the text flips the switch.
 The label text names the switch (`aria-labelledby`) and the description
 describes it (`aria-describedby`). Every other prop, and the ref, go to
 the native switch: `name`, `value`, `onChange`, `disabled`, `required`. In
 a form it submits `name` = `value` ("on") while on. The Storybook grids
-check both variants plus Required, Disabled and no description in Light
-and Dark: the text styles and colours, the switch's fill, its place at
-the row's end and the 16px gap.
+check all six variants plus Required (enabled and disabled) and no
+description in Light and Dark: the text styles and colours, the error
+message, the switch's fill, its place at the row's end and the 16px gap.
 
 | Layer | Binding | Code |
 |---|---|---|
@@ -3360,6 +3665,9 @@ the row's end and the 16px gap.
 | Text | Fill | `flex-1` |
 | Toggle | `Toggle` instance, Checked false / true | `Toggle` |
 | Gap, text to switch | `space/16`, centred | `gap-4` (`space/16`), `items-center` |
+| Required Marker | "*", Body/sm-semibold, `accent/critical/tonal/content/default` | `ms-0.5 text-accent-critical-tonal-content-default` |
+| State=Error | Error text under the description, Caption/md-regular, `accent/critical/tonal/content/default` | The shared field message's style as on main (`text-caption-md-regular text-text-subtle`, see below); `aria-invalid` on the switch |
+| State=Disabled | Toggle Disabled=true; label, marker and description `text/disabled` | `group-has-disabled/toggle-field:text-text-disabled` |
 
 Contrast, on `surface/canvas` (and `surface/base`): the label 19.28
 (20.17) Light / 17.85 (14.63) Dark, the description 9.90 (10.35) / 14.48
@@ -3377,22 +3685,23 @@ Code departs from Figma here:
 |---|---|---|---|
 | Width | Fixed 464 in the library; Fill (752) in Create Announcement | Fills its container | None needed |
 | Click target | — | The whole field (a `<label>`) | None needed |
-| Required | No such property | Native `required` (the switch must be on), and `_Form Label`'s marker | See the design question |
-| Disabled | No such variant (the Toggle has one) | The switch at 50%; the text unchanged | See the design question |
+| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message's style as on main, `text/subtle` (4.55 / 6.96), on a `<span>` inside the `<label>` | None: code follows when the form area gives the shared message its error colour |
 
-Figma gaps the code copies exactly. These are for the designer to decide:
-
-- **No Required or Disabled.** Code shows `_Form Label`'s marker for
-  `required`, and a disabled field dims only the switch, as Toggle's
-  Disabled does.
+**Changed in Figma on 3 Nov 2026** (decision checkbox-toggle-field-states;
+published): a BOOLEAN **Required** (the "*" marker, as code already drew
+it) and a VARIANT **State**: Default, Disabled and Error, with an Error
+text ("Error message"). The old variants are State=Default. Code adds
+`error` and the disabled text colour; `required` was already there.
+Disabled's text (`text/disabled`) is exempt from contrast.
 
 Figma gaps the code doesn't copy: none. Label and Description are
 connected to their properties in both variants, and no modes are pinned.
 
 ### FileUploadZone (29 Oct 2026)
 
-Source: page **Form** (`183:1765`), component `_File Upload Zone`
-(`184:3022`): Title and Hint text properties, no variants. Form / Field –
+Source: page **Form** (`183:1765`), set `_File Upload Zone` (`793:19709`):
+State (Default `184:3022`, Drag-over, Error, Disabled), with Title and
+Hint text properties. Form / Field –
 File Upload (`184:3085`) exposes it. Form / Bulk Upload (`191:433`) and
 pattern 10 place it with "Click or drag files to upload" / "DOC, DOCX,
 PDF, PNG, JPG, JPEG accepted (Max 10.0MB)" and "Click or drag CSV file to
@@ -3412,19 +3721,23 @@ icon, Title and Hint in every state, in Light and Dark.
 
 | Part | Binding |
 |---|---|
-| Zone | No fill; 1px dashed `stroke/subtle` stroke inside (dash 6, gap 4); `radius/8`; `space/24` padding; `space/8` gap; centred column |
+| Zone | No fill; 1px dashed `stroke/field` stroke inside (dash 6, gap 4, in the layout); `radius/8`; `space/24` padding; `space/8` gap; centred column |
 | Icon / Upload | Phosphor FileArrowUp 24px, `text/subtle` (a raw `#E5E5E5` until 29 Oct) |
 | Title | Body/sm-regular, `text/secondary` |
 | Hint | Caption/md-regular, `text/subtle` |
 
-States the code adds (Figma draws none):
+| State | Figma | Code |
+|---|---|---|
+| Default | 1px dashed `stroke/field` | `border border-dashed border-stroke-field` |
+| Drag-over (files held over the zone) | 2px dashed `stroke/focused` (the zone is 2px taller: 124) | `border-2 border-stroke-focused` (also 2px taller); it wins over Error |
+| Error (`aria-invalid`, which FormField's `error` sets) | 1px dashed `accent/critical/outline/border/default` | `border-accent-critical-outline-border-default` |
+| Disabled | Title, Hint and icon `text/disabled`; 1px dashed `stroke/subtle` | The same, plus a not-allowed cursor, no dialog, drops ignored, and `aria-disabled` on the zone |
+| Focus (keyboard, on the hidden input) | No such state | 2px `stroke/focused` outline, 2px out, as Button's ring |
 
-| State | Code |
-|---|---|
-| Focus (keyboard, on the hidden input) | 2px `stroke/focused` outline, 2px out, as Button's ring |
-| Drag-over (files held over the zone) | The dashed stroke in `stroke/focused`, `_Text Input`'s Focus colour |
-| Error (`aria-invalid`, which FormField's `error` sets) | The dashed stroke in `accent/critical/outline/border/default`, as `_Text Input`'s Error |
-| Disabled | Title in `text/subtle` (as TextInput's disabled value), not-allowed cursor, no dialog, drops ignored |
+`aria-disabled` tells assistive tech and axe that the zone's Title and Hint
+belong to an inactive control: they are `<p>`s outside the disabled
+`<input>`, so without it axe would hold them to 4.5:1. WCAG 1.4.3 exempts
+an inactive component's text.
 
 Contrast. The zone has no fill, so it is measured on `surface/canvas` / `surface/base`:
 
@@ -3435,7 +3748,10 @@ Contrast. The zone has no fill, so it is measured on `surface/canvas` / `surface
 | Icon, `text/subtle` (3:1) | 4.55 / 4.76 | 6.96 / 5.71 |
 | Focus ring and drag-over stroke, `stroke/focused` (3:1) | 6.51 / 6.81 | 6.51 / 5.33 |
 | Error stroke, `accent/critical/outline/border/default` (3:1) | 3.64 / 3.81 | 3.74 / 3.07 |
-| Resting stroke, `stroke/subtle` (3:1) | **1.18 / 1.23** | **1.72 / 1.41** |
+| Resting stroke, `stroke/field` (3:1) | 4.55 / 4.76 | 6.96 / 5.71 |
+| Drag-over against Default, `stroke/focused` vs `stroke/field` | 1.43 | 1.07 (why Drag-over is 2px) |
+| Disabled Title, Hint and icon, `text/disabled` | 1.42 / 1.48 | 3.75 / 3.07 |
+| Disabled stroke, `stroke/subtle` | 1.18 / 1.23 | 1.72 / 1.41 |
 
 Disabled is exempt.
 
@@ -3449,20 +3765,27 @@ publishing):
   `space/24` and `space/8`. They were raw 8, 24 and 8, so nothing looks
   different.
 
+**Changed in Figma on 3 Nov 2026** (decisions `upload-and-chip`,
+`fc-form-upload-border` and `fc-form-upload-disabled`; published):
+- **A set with State** Default, Drag-over, Error and Disabled, as code drew
+  them.
+- **The resting stroke** `stroke/subtle` (1.23 / 1.41:1) → `stroke/field`
+  (4.76 / 5.71 on base), like the inputs. Code follows: `border-stroke-field`.
+- **Drag-over is 2px**, so it still stands out from the stronger resting
+  stroke (1.07:1 apart in Dark at 1px). Code follows: `border-2
+  border-stroke-focused`.
+- **Disabled** dims the Title, Hint and icon to `text/disabled` (it was the
+  Title alone, in `text/subtle`). The stroke stays `stroke/subtle`. Code
+  follows.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Dash pattern | Dash 6, gap 4 | CSS `border-dashed`, with the browser's dash length. CSS can't set the pattern without an SVG border | None needed |
 | Width | Fixed 510 (Fill inside the field) | Fills its container (`w-full`) | None needed |
-| Height | 122px: Inter's auto line heights (17, 15), strokes in layout | 126px: GDL's 20px and 16px line heights | Bind the text styles to the ramp |
-| Focus, drag-over, error, disabled | No such states | As above | Add them to `_File Upload Zone` if they should look different (design question) |
-
-Figma gaps the code copies exactly. These are for the designer to decide:
-
-- **The resting dashed stroke is below WCAG 1.4.11** (1.18 to 1.72:1).
-  This is the open question TextInput and Checkbox share. The Title and
-  the icon also mark the zone. axe doesn't check non-text contrast.
+| Height | 122px (124 in Drag-over): Inter's auto line heights (17, 15), strokes in layout | 126px (128 in Drag-over): GDL's 20px and 16px line heights | Bind the text styles to the ramp |
+| Focus | No such state | The ring, as above | Add a Focus state (design question) |
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
@@ -3555,7 +3878,7 @@ FileUploadZone, then a `<ul>` of FileChips.
 
 | Part | Binding and layout |
 |---|---|
-| Label, Required, Helper, error | FormField's (see FormField): the label 20px above the zone, the Helper right under it |
+| Label, Required, Helper, error | FormField's (see FormField): the label 20px above the zone, the Helper or the Error Text `space/8` under it |
 | Zone | FileUploadZone, filling the field |
 | Chips | One FileChip per file, Action=Remove, Meta = `formatFileSize(file.size)`, 12px under the field and 12px apart (pattern 10's Screen · Added: raw 12, so `space/12`) |
 | A rejected file | FileChip State=Error, with `validate`'s reason as its Meta |
@@ -3583,9 +3906,15 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Chips | Not part of the component; pattern 10 places them 12px under it | Part of FileUploadField, 12px under the field and 12px apart | None needed, or add the list to the component (design question) |
-| Error | The zone has no Error state; the Helper carries the message | `error` shows in the Helper (`text/subtle`, as FormField does) and turns the zone's stroke critical | See FileUploadZone |
+| Error | State=Error: the zone at State=Error and the Error Text | `error`: the Error Text (FormField's) and the zone's critical stroke | None needed |
 | Size rejection | Pattern 10 shows only the type message | Whatever `validate` returns | Add the copy (design question) |
-| Spacing in Form / Bulk Upload | Its field instance overrides the gap to 12 and the Label Row padding to 0 (12px from label to zone) | FormField's 20px, as the component and pattern 10 use | Reset the instance overrides |
+
+**Changed in Figma on 3 Nov 2026** (decisions `field-message-spacing` and
+`bulk-upload-overrides`; published): the component is a set (`793:19800`)
+with State (Default, Error) and an Error text property, the message
+`space/8` under the zone (see FormField). Form / Bulk Upload's field
+instances were reset to the component's spacing, so that departure is
+gone.
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
@@ -5045,12 +5374,12 @@ Source: page **Filters** (`89:836`), section Drafts – 2 Nov 2026 (`765:15532`)
 | Field / Funnel, CaretDown | `colors/text/subtle` | `text-text-subtle` (FilterField) |
 | Field / Value ("All Status") | Body/sm-regular, `colors/text/primary` (an override) | the chosen option's label; `allLabel` while `value` is null |
 | Menu | Select / Menu, Fill: fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/8`, padding `space/6`, gap `space/2`, Effects/Elevation Dark/3 | Popover's surface with `selectMenuLayout`, `min-w-full` (as wide as the field) |
-| Option 1 ("All Status") | Select / Option State=Selected (`colors/surface/base`, Check `colors/action/primary/surface/default`) | `allLabel`, the first SelectOption; `onValueChange(null)` |
+| Option 1 ("All Status") | Select / Option State=Selected (`colors/neutral/tonal/surface/default`, Check `colors/text/primary`, since 3 Nov 2026; see SelectOption) | `allLabel`, the first SelectOption; `onValueChange(null)` |
 | Options 2…5 | Select / Option State=Default, Body/sm-regular `colors/text/primary`, padding `space/8` / `space/12`, `radius/6` | one SelectOption per `options` entry |
 
 Behaviour: Select's listbox, shared through `useSelectListbox` rather than written twice. The field is the `<button role="combobox" aria-haspopup="listbox">`, named by `label` ("Status") with the chosen option as its value; focus stays on it, and `aria-activedescendant` names the option the keys are on. Enter, Space, ↓, ↑, Home and End open the list; ↓ / ↑ / Home / End / Page Up / Page Down move; typing jumps; Enter, Space and Alt + ↑ choose; Tab chooses and moves on; Escape closes. The list is a `listbox` with the same name.
 
-Contrast, Light / Dark: the value 20.17 / 17.85 on the field; the icons and an unset value (`text/subtle`) 4.76 / 6.96; the border (`stroke/field`) 4.76 / 6.96 on the field and 4.55 / 6.96 on the bar; options 19.28 / 17.85 on the menu, 20.17 / 14.63 on Selected's fill; the check 6.81 / 3.80 on Selected's fill (a 3:1 glyph).
+Contrast, Light / Dark: the value 20.17 / 17.85 on the field; the icons and an unset value (`text/subtle`) 4.76 / 6.96; the border (`stroke/field`) 4.76 / 6.96 on the field and 4.55 / 6.96 on the bar; options 19.28 / 17.85 on the menu, 16.36 / 7.58 on Selected's fill; the check 16.36 / 7.58 on Selected's fill (a 3:1 glyph).
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
@@ -5058,7 +5387,7 @@ Contrast, Light / Dark: the value 20.17 / 17.85 on the field; the icons and an u
 | Open | The menu sits inside the component and pushes content down | The list floats over the page (Popover), and flips above when there's no room | None needed: designers place State=Open over the content (open point 6) |
 | Width | Menu Fill: exactly the field's 256 | At least the field's width; wider only for a label that needs it | None needed |
 | Name | (visual only) | A combobox named by `label`; FilterField drops its "Status: " prefix for it | None needed |
-| Active option | Not drawn | Hover's fill on the option the keys are on, and Button's 2px `stroke/focused` ring when the keyboard put it there (SelectOption) | As SelectOption |
+| Active option | Select / Option State=Active (since 3 Nov 2026) | Hover's fill on the option the keys are on, and the 2px `stroke/focused` ring when the keyboard put it there (SelectOption) | None needed |
 | No reset item | Every example has one | Without `allLabel`, only `options`, and the field shows `label` in `text/subtle` until one is chosen | None needed |
 
 ### FilterDateRange (2 Nov 2026)

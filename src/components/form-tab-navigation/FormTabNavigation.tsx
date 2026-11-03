@@ -12,10 +12,12 @@ import { useTabList } from '../tabs/Tabs';
  * It works like Tabs but doesn't look like it, so it is its own component:
  * - The bar is full width (Figma: fixed 510) with 4px padding and no gap,
  *   and its tabs share the width equally. Tabs hugs its tabs.
- * - The Active tab is a raised surface.base pill (radius 6) with a
- *   text.primary Body/sm-medium label. Tabs' selected tab is the
- *   action.primary blue with a Body/sm-semibold label.
- * - The other tab is text.subtle in Body/sm-regular (Tabs: semibold).
+ * - The Active tab is a neutral.tonal pill (radius 6) with a text.primary
+ *   Body/sm-medium label. Tabs' selected tab is the action.primary blue
+ *   with a Body/sm-semibold label.
+ * - The other tab is text.subtle in Body/sm-regular (Tabs: semibold); on
+ *   hover it takes neutral.outline's hover fill and a text.primary label.
+ * The tabs are TabItems in Figma's Style=Form (Tabs / Tab Item).
  *
  * Figma → code:
  * - Active (Tab 1, Tab 2) → `active`: the `value` of the active TabItem.
@@ -23,7 +25,7 @@ import { useTabList } from '../tabs/Tabs';
  *   `onActiveChange` gets the value of the tab the user picks.
  * - Tab 1 Label, Tab 2 Label → the TabItems' `children`, in order. Figma
  *   draws two tabs; code takes any number.
- * - The bar: surface.elevated-secondary fill, 4px padding, radius 8 (raw).
+ * - The bar: surface.elevated-secondary fill, 4px padding (space/4), radius/8.
  *
  * Keyboard and roles are Tabs': a `role="tablist"` (give it an
  * `aria-label`), ← / → / Home / End move between tabs and select them.

@@ -120,12 +120,15 @@ export const InTableRow: Story = {
     await expect(getComputedStyle(menu).position).toBe('fixed');
     await expect(button).toHaveAttribute('aria-controls', menu.id);
 
-    // Below the button, 4px away, flush with its right edge.
-    const b = button.getBoundingClientRect();
-    const m = menu.getBoundingClientRect();
+    // Below the button, 4px away, flush with its right edge (in a waitFor: the fixed panel catches up
+    // within a frame when a late font or layout shift moves the button; no DOM writes inside).
     await expect(menu).toHaveAttribute('data-align', 'right');
-    await expect(m.right).toBeCloseTo(b.right, 1);
-    await expect(m.top - b.bottom).toBeCloseTo(4, 1);
+    await waitFor(() => {
+      const b = button.getBoundingClientRect();
+      const m = menu.getBoundingClientRect();
+      expect(m.right).toBeCloseTo(b.right, 1);
+      expect(m.top - b.bottom).toBeCloseTo(4, 1);
+    });
     // It sits over the rows below it.
     const last = within(menu).getByRole('menuitem', { name: 'Delete' }).getBoundingClientRect();
     await expect(menu.contains(document.elementFromPoint(last.left + 8, last.top + last.height / 2))).toBe(true);

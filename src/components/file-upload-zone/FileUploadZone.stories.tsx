@@ -135,7 +135,7 @@ export const ClickOrKeyboardToBrowse: Story = {
 };
 
 /**
- * Drag files over the zone and it shows the drop target (the stroke in stroke/focused). Dropping puts the files in
+ * Drag files over the zone and it shows the drop target (the stroke 2px, in stroke/focused). Dropping puts the files in
  * the input and hands them to `onFilesChange`: all of them with `multiple`, the first one without.
  */
 export const DropFiles: Story = {
@@ -153,7 +153,7 @@ export const DropFiles: Story = {
     </div>
   ),
   play: async ({ args, canvas }) => {
-    const subtle = tokenColour('stroke-subtle');
+    const field = tokenColour('stroke-field');
     const focused = tokenColour('stroke-focused');
     const many = canvas.getByLabelText<HTMLInputElement>('Click or drag files to upload');
     const zone = zoneOf(many);
@@ -163,9 +163,11 @@ export const DropFiles: Story = {
     await waitFor(() => expect(getComputedStyle(zone).borderTopColor).toBe(focused));
     await expect(zone).toHaveAttribute('data-dragging');
     await expect(getComputedStyle(zone).borderTopStyle).toBe('dashed');
+    await expect(getComputedStyle(zone).borderTopWidth).toBe('2px');
     // Moving off the zone ends the drag-over look.
     drag(zone, 'dragleave', files);
-    await waitFor(() => expect(getComputedStyle(zone).borderTopColor).toBe(subtle));
+    await waitFor(() => expect(getComputedStyle(zone).borderTopColor).toBe(field));
+    await expect(getComputedStyle(zone).borderTopWidth).toBe('1px');
 
     drag(zone, 'dragenter', files);
     drag(zone, 'dragover', files);
@@ -189,11 +191,11 @@ export const DropFiles: Story = {
   },
 };
 
-/** Disabled: no dialog, and a drop is ignored. A disabled input isn’t submitted. */
+/** Disabled: no dialog, and a drop is ignored. A disabled input isn’t submitted. The title, hint and icon are text/disabled. */
 export const Disabled: Story = {
   args: { disabled: true },
   play: async ({ args, canvas }) => {
-    const subtle = tokenColour('text-subtle');
+    const disabled = tokenColour('text-disabled');
     const input = canvas.getByLabelText<HTMLInputElement>('Click or drag files to upload');
     const zone = zoneOf(input);
     await expect(input).toBeDisabled();
@@ -204,7 +206,7 @@ export const Disabled: Story = {
     drag(zone, 'drop', [invoicePdf()]);
     await expect(zone).not.toHaveAttribute('data-dragging');
     await expect(args.onFilesChange).not.toHaveBeenCalled();
-    await expect(getComputedStyle(canvas.getByText('Click or drag files to upload')).color).toBe(subtle);
+    await expect(getComputedStyle(canvas.getByText('Click or drag files to upload')).color).toBe(disabled);
   },
 };
 
@@ -279,19 +281,27 @@ function DraggedOver(props: FileUploadZoneProps) {
   );
 }
 
+/* Figma's State=Default, Drag-over, Error and Disabled, plus two Title / Hint
+   placements and the focus ring code adds. `text`: the title, hint and icon. */
+const ENABLED = { title: 'text-secondary', hint: 'text-subtle', icon: 'text-subtle' } as const;
 const STATES = [
-  { state: 'Default', props: {}, stroke: 'stroke-subtle', title: 'text-secondary' },
+  { state: 'Default', props: {}, stroke: ['stroke-field', 1], text: ENABLED },
   {
     state: 'Bulk Upload',
     props: { title: 'Click or drag CSV file to upload', hint: 'Only CSV files are accepted', accept: '.csv' },
-    stroke: 'stroke-subtle',
-    title: 'text-secondary',
+    stroke: ['stroke-field', 1],
+    text: ENABLED,
   },
-  { state: 'No hint', props: { hint: undefined }, stroke: 'stroke-subtle', title: 'text-secondary' },
-  { state: 'Focus', props: {}, stroke: 'stroke-subtle', title: 'text-secondary' },
-  { state: 'Drag-over', props: {}, stroke: 'stroke-focused', title: 'text-secondary' },
-  { state: 'Error', props: { 'aria-invalid': true }, stroke: 'accent-critical-outline-border-default', title: 'text-secondary' },
-  { state: 'Disabled', props: { disabled: true }, stroke: 'stroke-subtle', title: 'text-subtle' },
+  { state: 'No hint', props: { hint: undefined }, stroke: ['stroke-field', 1], text: ENABLED },
+  { state: 'Focus', props: {}, stroke: ['stroke-field', 1], text: ENABLED },
+  { state: 'Drag-over', props: {}, stroke: ['stroke-focused', 2], text: ENABLED },
+  { state: 'Error', props: { 'aria-invalid': true }, stroke: ['accent-critical-outline-border-default', 1], text: ENABLED },
+  {
+    state: 'Disabled',
+    props: { disabled: true },
+    stroke: ['stroke-subtle', 1],
+    text: { title: 'text-disabled', hint: 'text-disabled', icon: 'text-disabled' },
+  },
 ] as const;
 
 const grid = (theme: 'light' | 'dark'): Story => ({
@@ -332,24 +342,25 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play.
   afterEach: async ({ canvasElement }) => {
-    const hint = tokenColour('text-subtle');
-    const icon = tokenColour('text-subtle');
     const ring = tokenColour('stroke-focused');
-    const want = STATES.map(({ state, props, stroke, title }) => ({
+    const want = STATES.map(({ state, props, stroke: [token, width], text }) => ({
       state,
       hinted: !('hint' in props) || props.hint !== undefined,
-      stroke: tokenColour(stroke),
-      title: tokenColour(title),
+      stroke: tokenColour(token),
+      width: `${width}px`,
+      title: tokenColour(text.title),
+      hint: tokenColour(text.hint),
+      icon: tokenColour(text.icon),
     }));
+    const zoneAt = (state: string) => zoneOf(canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!);
     await waitFor(
       () => {
-        for (const { state, hinted, stroke, title } of want) {
-          const input = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
-          const zone = zoneOf(input);
+        for (const { state, hinted, stroke, width, title, hint, icon } of want) {
+          const zone = zoneAt(state);
           const style = getComputedStyle(zone);
-          // The zone: 1px dashed stroke, radius 8, 24px padding, no fill.
+          // The zone: a dashed stroke (1px; Drag-over 2px), radius 8, 24px padding, no fill.
           expect(style.borderTopStyle).toBe('dashed');
-          expect(style.borderTopWidth).toBe('1px');
+          expect(style.borderTopWidth).toBe(width);
           expect(style.borderTopColor).toBe(stroke);
           expect(style.borderTopLeftRadius).toBe('8px');
           expect(style.paddingTop).toBe('24px');
@@ -362,7 +373,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             expect(style.outlineOffset).toBe('2px');
             expect(style.outlineColor).toBe(ring);
           } else expect(style.outlineStyle).toBe('none');
-          // Icon / Upload: FileArrowUp 24px, text/subtle; 8px above the Title.
+          // Icon / Upload: FileArrowUp 24px, text/subtle (text/disabled when disabled); 8px above the Title.
           const svg = zone.querySelector('svg')!;
           expect(getComputedStyle(svg).color).toBe(icon);
           expect(svg.getBoundingClientRect().width).toBe(24);
@@ -372,7 +383,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(titleNode).color).toBe(title);
           expect(getComputedStyle(titleNode).fontSize).toBe('14px');
           expect(getComputedStyle(titleNode).fontWeight).toBe('400');
-          // Hint: Caption/md-regular, text/subtle, 8px under the Title.
+          // Hint: Caption/md-regular, text/subtle (text/disabled when disabled), 8px under the Title.
           if (!hinted) {
             expect(hintNode).toBeUndefined();
             continue;
@@ -381,6 +392,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(hintNode).fontSize).toBe('12px');
           expect(hintNode.getBoundingClientRect().top - titleNode.getBoundingClientRect().bottom).toBe(8);
         }
+        // Figma counts the stroke in the layout: Drag-over's 2px stroke makes the zone 2px taller (124 vs 122).
+        expect(zoneAt('Drag-over').getBoundingClientRect().height - zoneAt('Default').getBoundingClientRect().height).toBe(2);
       },
       { timeout: 3000 },
     );

@@ -275,7 +275,7 @@ export const ErrorState: Story = {
   },
 };
 
-/** State=Disabled: it can't be focused or opened. The date shows in text.subtle, and the field is at Figma's 50% opacity. */
+/** State=Disabled: it can't be focused, opened or cleared. The disabled fill and stroke, the date and the icon in text.disabled, no opacity. */
 export const Disabled: Story = {
   args: { disabled: true, defaultValue: '2026-09-01' },
   play: async ({ args, canvas }) => {
@@ -284,8 +284,85 @@ export const Disabled: Story = {
     await userEvent.click(field);
     await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
     await expect(args.onOpenChange).not.toHaveBeenCalled();
-    await expect(getComputedStyle(field).color).toBe(tokenColour('text-subtle'));
-    await expect(getComputedStyle(field).opacity).toBe('0.5');
+    await expect(canvas.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument();
+    const style = getComputedStyle(field);
+    await expect(style.color).toBe(tokenColour('text-disabled'));
+    await expect(style.backgroundColor).toBe(tokenColour('neutral-tonal-surface-disabled'));
+    await expect(style.boxShadow).toContain(insetStroke(tokenColour('neutral-outline-border-disabled'), 1));
+    await expect(style.opacity).toBe('1');
+    await expect(getComputedStyle(field.querySelector('svg')!).color).toBe(tokenColour('text-disabled'));
+  },
+};
+
+function ClearablePeriod() {
+  const [to, setTo] = useState<string | null>('2026-11-30');
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <DateInput aria-label="Period To" value={to} onValueChange={setTo} today={SEP_24} />
+      <DateInput aria-label="Starts At" defaultValue="2026-09-01" required today={SEP_24} />
+      <p role="status" className="text-body-sm-regular text-text-secondary">
+        Stored: {to === null ? 'none' : JSON.stringify(to)}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Figma's Show Clear: an optional field with a date has a clear button (×,
+ * "Clear date") before the calendar icon. It clears the date (`onValueChange('')`),
+ * the placeholder comes back and focus returns to the field. A required
+ * field, an empty one, a disabled one and an open one have none.
+ */
+export const Clear: Story = {
+  render: () => <ClearablePeriod />,
+  parameters: { controls: { disable: true } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('combobox', { name: 'Period To' });
+    const required = canvas.getByRole('combobox', { name: 'Starts At' });
+    // Only the optional field can be cleared.
+    await expect(canvas.getAllByRole('button', { name: 'Clear date' })).toHaveLength(1);
+    const clear = canvas.getByRole('button', { name: 'Clear date' });
+
+    // Button / Icon, Size=32, Tone=Ghost: before the icon, space.8 from it and from the value, centred.
+    const f = field.getBoundingClientRect();
+    const c = clear.getBoundingClientRect();
+    const icon = field.querySelector('svg')!.getBoundingClientRect();
+    const value = field.querySelector('span')!.getBoundingClientRect();
+    await expect([c.width, c.height]).toEqual([32, 32]);
+    await expect(icon.left - c.right).toBe(8);
+    await expect(c.left - value.right).toBe(8);
+    await expect(f.right - icon.right).toBe(12);
+    await expect(c.top - f.top).toBe(4);
+    await expect(getComputedStyle(clear).color).toBe(tokenColour('text-secondary'));
+    await expect(clear.querySelector('svg')!.getBoundingClientRect().width).toBe(16);
+
+    // It is a tab stop after the field.
+    field.focus();
+    await userEvent.tab();
+    await expect(clear).toHaveFocus();
+
+    // Open, the field has no clear button (Figma's Open draws none).
+    await userEvent.click(field);
+    await waitFor(() => expect(canvas.getByRole('dialog', { name: 'Period To' })).toBeInTheDocument());
+    await expect(canvas.queryAllByRole('button', { name: 'Clear date' })).toHaveLength(0);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(field).toHaveFocus());
+
+    // Clearing: the placeholder comes back, the stored value is '', and focus is on the field.
+    await userEvent.click(canvas.getByRole('button', { name: 'Clear date' }));
+    await expect(field).toHaveTextContent('Select date');
+    await expect(field).toHaveAttribute('data-placeholder');
+    await expect(canvas.getByRole('status')).toHaveTextContent('Stored: ""');
+    await expect(field).toHaveFocus();
+    await expect(canvas.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument();
+    await expect(required).toHaveTextContent('2026-09-01');
+
+    // Choosing a date brings it back. With none, the calendar opens on today's month.
+    await userEvent.click(field);
+    await userEvent.click(day(canvas, 'Wednesday 30 September 2026'));
+    await expect(canvas.getByRole('status')).toHaveTextContent('Stored: "2026-09-30"');
+    await expect(canvas.getByRole('button', { name: 'Clear date' })).toBeInTheDocument();
   },
 };
 
@@ -390,51 +467,156 @@ const open = (theme: 'light' | 'dark'): Story => ({
 export const OpenLight = open('light');
 export const OpenDark = open('dark');
 
-/* ── Every State, in Light and Dark ────────────────────────────────────────
-   The six states of the Figma component set. Focus is forced with
-   storybook-addon-pseudo-states (keyboard focus, :focus-visible). Open is
-   the calendar showing: first, with room kept under it, so the calendar
-   opens downwards over empty space in any viewport. Each cell is checked
-   against the variables Figma binds in that state. */
+/* State=Error + Open: Open's look with the critical stroke at 2px, the calendar under the field.
+   An optional field with a date, but no Clear Button while open (Figma draws none). */
+const errorOpen = (theme: 'light' | 'dark'): Story => ({
+  name: `Error + Open — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  args: { defaultOpen: true, defaultValue: '2026-09-19', 'aria-invalid': true },
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvasElement }) => {
+    const want = {
+      critical: tokenColour('accent-critical-outline-border-default'),
+      fill: tokenColour('surface-elevated-secondary'),
+      text: tokenColour('text-primary'),
+      icon: tokenColour('text-subtle'),
+    };
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('combobox', { name: 'Starts At' });
+    const dialog = canvas.getByRole('dialog', { name: 'Starts At' });
+    await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    const style = getComputedStyle(field);
+    await expect(style.boxShadow).toContain(insetStroke(want.critical, 2));
+    await expect(style.backgroundColor).toBe(want.fill);
+    await expect(getComputedStyle(field.querySelector('span')!).color).toBe(want.text);
+    await expect(getComputedStyle(field.querySelector('svg')!).color).toBe(want.icon);
+    await expect(canvas.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument();
+    await expect(dialog).toHaveAttribute('data-placement', 'bottom');
+  },
+});
 
+export const ErrorOpenLight = errorOpen('light');
+export const ErrorOpenDark = errorOpen('dark');
+
+/* ── Every State, in Light and Dark ────────────────────────────────────────
+   The states of the Figma component set, with and without Show Clear;
+   Error + Open has its own stories above (a second open calendar here would
+   flip over the cells). Focus is forced with storybook-addon-pseudo-states
+   (keyboard focus, :focus-visible). Open is the calendar showing: first,
+   with room kept under it, so the calendar opens downwards over empty space
+   in any viewport. Each cell is checked against the variables Figma binds
+   in that state. */
+
+const FIELD = 'surface-elevated-secondary';
+const DISABLED = 'neutral-tonal-surface-disabled';
+/* `clear`: Figma's Show Clear, on by itself for an optional field with a date
+   (closed and enabled). The Filled, Focus and Error cells are drawn both ways. */
 const STATES = [
   {
     state: 'Open',
     props: { defaultOpen: true },
     text: 'text-subtle',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['stroke-focused', 2],
+    clear: false,
   },
   {
     state: 'Default',
     props: {},
     text: 'text-subtle',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['stroke-field', 1],
+    clear: false,
   },
   {
     state: 'Filled',
+    props: { defaultValue: '2026-09-01', required: true },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['stroke-field', 1],
+    clear: false,
+  },
+  {
+    state: 'Filled, Show Clear',
     props: { defaultValue: '2026-09-01' },
     text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['stroke-field', 1],
+    clear: true,
   },
   {
     state: 'Focus',
+    props: { defaultValue: '2026-09-01', required: true },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['stroke-focused', 2],
+    clear: false,
+  },
+  {
+    state: 'Focus, Show Clear',
     props: { defaultValue: '2026-09-01' },
     text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['stroke-focused', 2],
+    clear: true,
   },
   {
     state: 'Error',
+    props: { defaultValue: '2026-09-01', 'aria-invalid': true, required: true },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['accent-critical-outline-border-default', 1],
+    clear: false,
+  },
+  {
+    state: 'Error, Show Clear',
     props: { defaultValue: '2026-09-01', 'aria-invalid': true },
     text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['accent-critical-outline-border-default', 1],
+    clear: true,
+  },
+  {
+    state: 'Error + Focus',
+    props: { defaultValue: '2026-09-01', 'aria-invalid': true },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['accent-critical-outline-border-default', 2],
+    clear: true,
   },
   {
     state: 'Disabled',
     props: { disabled: true },
-    text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    text: 'text-disabled',
+    fill: DISABLED,
+    icon: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+    clear: false,
+  },
+  {
+    state: 'Disabled, filled',
+    props: { disabled: true, defaultValue: '2026-09-01' },
+    text: 'text-disabled',
+    fill: DISABLED,
+    icon: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+    clear: false,
   },
 ] as const;
+
+const forcedFocus = (state: string) => state === 'Focus' || state.startsWith('Focus,') || state === 'Error + Focus';
 
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
@@ -443,7 +625,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       {STATES.map(({ state, props }) => (
         <div
           key={state}
-          className={state === 'Open' ? 'flex flex-col gap-2 pb-96' : 'flex flex-col gap-2'}
+          className={'defaultOpen' in props ? 'flex flex-col gap-2 pb-96' : 'flex flex-col gap-2'}
           data-cell={state}
         >
           <span className="text-caption-md-medium text-text-secondary">{state}</span>
@@ -451,7 +633,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             {...props}
             aria-label={`${state} field`}
             today={SEP_24}
-            data-pseudo={state === 'Focus' ? 'focus-visible' : undefined}
+            data-pseudo={forcedFocus(state) ? 'focus-visible' : undefined}
           />
         </div>
       ))}
@@ -471,31 +653,48 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play.
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const icon = tokenColour('text-subtle');
-    const want = STATES.map(({ state, props, text, stroke: [token, width] }) => ({
+    const glyph = tokenColour('text-secondary');
+    const want = STATES.map(({ state, props, text, fill, icon, clear, stroke: [token, width] }) => ({
       state,
       open: 'defaultOpen' in props,
       text: tokenColour(text),
+      fill: tokenColour(fill),
+      icon: tokenColour(icon),
+      clear,
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, open, text, stroke } of want) {
+        for (const { state, open, text, fill, icon, clear, stroke } of want) {
           const cell = canvasElement.querySelector<HTMLElement>(`[data-cell="${state}"]`)!;
           const field = cell.querySelector<HTMLButtonElement>('[role="combobox"]')!;
           const style = getComputedStyle(field);
           expect(style.backgroundColor).toBe(fill);
-          // Disabled: the whole field at Figma's 50% layer opacity.
-          expect(style.opacity).toBe(state === 'Disabled' ? '0.5' : '1');
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(style.borderRadius).toBe('8px');
+          const value = field.querySelector('span')!.getBoundingClientRect();
           expect(getComputedStyle(field.querySelector('span')!).color).toBe(text);
-          // Icon / Calendar: CalendarBlank, 20px, text.subtle, space.8 after the value.
+          // Icon / Calendar: CalendarBlank, 20px, text.subtle (text.disabled when disabled), 12px from the right.
           const svg = field.querySelector('svg')!;
+          const box = svg.getBoundingClientRect();
           expect(getComputedStyle(svg).color).toBe(icon);
-          expect(svg.getBoundingClientRect().width).toBe(20);
-          expect(svg.getBoundingClientRect().left - field.querySelector('span')!.getBoundingClientRect().right).toBe(8);
+          expect(box.width).toBe(20);
+          expect(field.getBoundingClientRect().right - box.right).toBe(12);
+          // Show Clear: the Clear Button (ghost 32, X in text.secondary) space.8 before the icon and
+          // after the value. Without it, the icon is space.8 after the value.
+          const button = cell.querySelector<HTMLButtonElement>('button[aria-label="Clear date"]');
+          expect(button !== null).toBe(clear);
+          if (button) {
+            const b = button.getBoundingClientRect();
+            expect([b.width, b.height]).toEqual([32, 32]);
+            expect(box.left - b.right).toBe(8);
+            expect(b.left - value.right).toBe(8);
+            expect(getComputedStyle(button).color).toBe(glyph);
+          } else {
+            expect(box.left - value.right).toBe(8);
+          }
           expect(field.getBoundingClientRect().height).toBe(40);
           expect(field.getAttribute('aria-expanded')).toBe(String(open));
           expect(cell.querySelector('[role="dialog"]') !== null).toBe(open);

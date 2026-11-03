@@ -245,8 +245,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
       subtle: tokenColour('text-subtle'),
       menu: tokenColour('surface-elevated'),
       menuStroke: tokenColour('stroke-subtle'),
-      selected: tokenColour('surface-base'),
-      check: tokenColour('action-primary-surface-default'),
+      selected: tokenColour('neutral-tonal-surface-default'),
+      check: tokenColour('text-primary'),
     };
     const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(0.6);
 
@@ -293,7 +293,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
       await expect(field).not.toHaveFocus();
       await expect(list.querySelector('[data-focus-visible]')).toBeNull();
 
-      // Options: Select / Option — 36 high, Body/sm-regular in text.primary; Pending is Selected (surface.base + check).
+      // Options: Select / Option — 36 high, Body/sm-regular in text.primary; Pending is Selected (neutral.tonal.surface.default + the text.primary check).
       const options = within(list).getAllByRole('option');
       await expect(options.map((o) => o.textContent)).toEqual(['All Status', 'Pending', 'Approved', 'Paid', 'Rejected']);
       near(options[1].getBoundingClientRect().top - options[0].getBoundingClientRect().bottom, 2);

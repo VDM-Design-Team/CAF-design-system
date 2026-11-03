@@ -17,7 +17,7 @@ const meta = {
           '`variant` is Figma’s **Style**: `default` (primary), `outlined`, `text`, `destructive`, ' +
           '`tonal` (brand tint, e.g. View Changes) and `success` (e.g. Download). ' +
           '`size` is the component set: `big` (48px), `normal` (36px) and `small` (32px). ' +
-          'Hover, Pressed and Disabled are the element’s own states. ' +
+          'Hover, Pressed, Focus and Disabled are the element’s own states. ' +
           '`leftIcon` / `rightIcon` are Show Icons; the icon takes the colour and size of the button.',
       },
     },
@@ -64,14 +64,21 @@ export const Disabled: Story = {
 
 /* ── Every Style × State, per size, in Light and Dark ─────────────────────
    The same grid as the Figma component sets: a row per Style, without and
-   with the icon, and a column per State. Hover and Pressed are forced with
-   storybook-addon-pseudo-states, so Chromatic snapshots them too. */
+   with the icon, and a column per State. Hover, Pressed and Focus are forced
+   with storybook-addon-pseudo-states, so Chromatic snapshots them too, and
+   every cell is checked against the variables Figma binds in that state. */
 
-const STATES = ['default', 'hover', 'pressed', 'disabled'] as const;
+const STATES = ['default', 'hover', 'pressed', 'disabled', 'focus'] as const;
 type State = (typeof STATES)[number];
 type Variant = (typeof BUTTON_VARIANTS)[number];
 type Size = (typeof BUTTON_SIZES)[number];
-const STATE_LABEL: Record<State, string> = { default: 'Default', hover: 'Hover', pressed: 'Pressed', disabled: 'Disabled' };
+const STATE_LABEL: Record<State, string> = {
+  default: 'Default',
+  hover: 'Hover',
+  pressed: 'Pressed',
+  disabled: 'Disabled',
+  focus: 'Focus',
+};
 const STYLE_LABEL: Record<Variant, string> = {
   default: 'Default',
   outlined: 'Outlined',
@@ -82,13 +89,52 @@ const STYLE_LABEL: Record<Variant, string> = {
 };
 const SIZE_LABEL: Record<Size, string> = { big: 'Big', normal: 'Normal', small: 'Small' };
 
-/* Tonal's label (action.primary.surface.default) on its surface.brand fills
-   is below WCAG AA: Light Hover 3.98, Pressed 2.48; Dark Default 3.59,
-   Hover 2.79, Pressed 1.77. It's a Figma binding, tracked in
-   docs/figma-sync.md ("Button"). Until it's fixed, axe's contrast rule skips
-   cells marked like this in the per-size grids, and reports them in the
-   Tonal grids below without failing the run. */
-const CONTRAST_TODO: ReadonlySet<Variant> = new Set(['tonal']);
+/* Figma's bindings per Style and State: [fill, label and icon, 1px inside stroke].
+   Focus is the Default look plus the ring. */
+type Look = readonly [fill: string, label: string, stroke?: string];
+const filled = (accent: string): Record<Exclude<State, 'focus'>, Look> => ({
+  default: [`${accent}-surface-default`, `${accent}-content-default`],
+  hover: [`${accent}-surface-hover`, `${accent}-content-hover`],
+  pressed: [`${accent}-surface-pressed`, `${accent}-content-pressed`],
+  disabled: [`${accent}-surface-disabled`, `${accent}-content-disabled`],
+});
+const BOUND: Record<Variant, Record<Exclude<State, 'focus'>, Look>> = {
+  default: {
+    ...filled('action-primary'),
+    disabled: ['neutral-tonal-surface-disabled', 'neutral-tonal-content-disabled'],
+  },
+  outlined: {
+    default: ['action-secondary-surface-default', 'action-secondary-content-default', 'action-secondary-border-default'],
+    hover: ['action-secondary-surface-hover', 'action-secondary-content-hover', 'action-secondary-border-hover'],
+    pressed: ['action-secondary-surface-pressed', 'action-secondary-content-pressed', 'action-secondary-border-pressed'],
+    disabled: ['action-secondary-surface-disabled', 'neutral-outline-content-disabled', 'neutral-outline-border-disabled'],
+  },
+  text: {
+    ...filled('action-tertiary'),
+    disabled: ['action-tertiary-surface-disabled', 'neutral-outline-content-disabled'],
+  },
+  destructive: filled('accent-critical-filled'),
+  tonal: {
+    default: ['surface-brand-faint', 'text-brand-strong'],
+    hover: ['surface-brand-subtle', 'text-brand-strong'],
+    pressed: ['surface-brand-medium', 'text-brand-stronger'],
+    disabled: ['neutral-tonal-surface-disabled', 'neutral-tonal-content-disabled'],
+  },
+  success: filled('accent-success-filled'),
+};
+/* Hover lifts every filled Style (not Outlined or Text) with elevation 2. */
+const LIFTS: ReadonlySet<Variant> = new Set(['default', 'destructive', 'tonal', 'success']);
+
+/* A token's computed colour in the current theme. Measure before waitFor, never inside it:
+   the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
+function tokenColour(token: string) {
+  const probe = document.createElement('span');
+  probe.style.color = `var(--color-${token})`;
+  document.body.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
 
 type Row = { label: string; variant: Variant; size: Size; withIcon: boolean };
 
@@ -122,8 +168,8 @@ function Matrix({ rows, rowHeader }: { rows: Row[]; rowHeader: string }) {
                   size={size}
                   leftIcon={withIcon ? icon : undefined}
                   disabled={state === 'disabled'}
+                  data-variant={variant}
                   data-pseudo={state}
-                  data-a11y-todo={CONTRAST_TODO.has(variant) ? 'contrast' : undefined}
                 >
                   Label
                 </Button>
@@ -141,35 +187,62 @@ const withAndWithoutIcon = (label: string, variant: Variant, size: Size): Row[] 
   { label: `${label} · icon`, variant, size, withIcon: true },
 ];
 
-const grid = (name: string, rowHeader: string, rows: Row[], theme: 'light' | 'dark', a11y: object): Story => ({
-  name: `${name} — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  render: () => <Matrix rows={rows} rowHeader={rowHeader} />,
+/* Per size: every Style, as in Figma. axe checks every cell, contrast included. */
+const sizeGrid = (size: Size, theme: 'light' | 'dark'): Story => ({
+  name: `${SIZE_LABEL[size]} — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => (
+    <Matrix rows={BUTTON_VARIANTS.flatMap((v) => withAndWithoutIcon(STYLE_LABEL[v], v, size))} rowHeader="Style" />
+  ),
   globals: { theme },
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'], active: ['[data-pseudo="pressed"]'] },
-    a11y,
+    pseudo: {
+      rootSelector: 'body',
+      hover: ['[data-pseudo="hover"]'],
+      active: ['[data-pseudo="pressed"]'],
+      focusVisible: ['[data-pseudo="focus"]'],
+    },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
-  // Every Style has its own Hover and Pressed look. This is checked in
-  // afterEach, not play: pseudo-states rewrites the :hover / :active CSS on
-  // STORY_RENDERED, which Storybook emits only after play has finished. So in
-  // a fresh static build (Chromatic) a play function could never see the
-  // forced states. afterEach runs after that event, as axe does; a failure
-  // here still fails the story.
+  // Every cell is checked against Figma's bindings for its Style and State.
+  // This is in afterEach, not play: pseudo-states rewrites the :hover /
+  // :active / :focus-visible CSS on STORY_RENDERED, which Storybook emits only
+  // after play has finished. So in a fresh static build (Chromatic) a play
+  // function could never see the forced states. afterEach runs after that
+  // event, as axe does; a failure here still fails the story.
   afterEach: async ({ canvasElement }) => {
-    const look = (el: Element) => {
-      const cs = getComputedStyle(el);
-      return `${cs.backgroundColor} ${cs.color} ${cs.boxShadow}`;
-    };
+    const want = Object.fromEntries(
+      BUTTON_VARIANTS.map((variant) => [
+        variant,
+        Object.fromEntries(
+          Object.entries(BOUND[variant]).map(([state, look]) => [state, look.map((token) => token && tokenColour(token))]),
+        ),
+      ]),
+    ) as Record<Variant, Record<Exclude<State, 'focus'>, string[]>>;
+    const ring = tokenColour('stroke-focused');
     await waitFor(
       () => {
-        for (const row of canvasElement.querySelectorAll('tbody tr')) {
-          const [rest, hover, pressed] = row.querySelectorAll('button');
-          expect(look(hover)).not.toBe(look(rest));
-          expect(look(pressed)).not.toBe(look(hover));
+        for (const button of canvasElement.querySelectorAll<HTMLButtonElement>('button[data-variant]')) {
+          const variant = button.dataset.variant as Variant;
+          const state = button.dataset.pseudo as State;
+          const [fill, label, stroke] = want[variant][state === 'focus' ? 'default' : state];
+          const style = getComputedStyle(button);
+          expect(style.backgroundColor).toBe(fill);
+          expect(style.color).toBe(label);
+          // The icon follows the label.
+          const svg = button.querySelector('svg');
+          if (svg) expect(getComputedStyle(svg).color).toBe(label);
+          if (stroke) expect(style.boxShadow).toContain(`${stroke} 0px 0px 0px 1px inset`);
+          if (state === 'hover' && LIFTS.has(variant)) expect(style.boxShadow).not.toBe('none');
+          // Focus: Figma's Focus Ring, 2px stroke.focused, 2px outside the button.
+          if (state === 'focus') {
+            expect([style.outlineStyle, style.outlineWidth, style.outlineOffset]).toEqual(['solid', '2px', '2px']);
+            expect(style.outlineColor).toBe(ring);
+          } else {
+            expect(style.outlineStyle).toBe('none');
+          }
         }
       },
       { timeout: 3000 },
@@ -177,37 +250,9 @@ const grid = (name: string, rowHeader: string, rows: Row[], theme: 'light' | 'da
   },
 });
 
-/* Per size: every Style, as in Figma. axe fails the run on any violation;
-   only the contrast check skips the Tonal cells (CONTRAST_TODO). */
-const sizeGrid = (size: Size, theme: 'light' | 'dark') =>
-  grid(
-    SIZE_LABEL[size],
-    'Style',
-    BUTTON_VARIANTS.flatMap((v) => withAndWithoutIcon(STYLE_LABEL[v], v, size)),
-    theme,
-    {
-      test: 'error',
-      config: { rules: [{ id: 'color-contrast', selector: '*:not([data-a11y-todo~="contrast"])' }] },
-    },
-  );
-
 export const BigLight = sizeGrid('big', 'light');
 export const BigDark = sizeGrid('big', 'dark');
 export const NormalLight = sizeGrid('normal', 'light');
 export const NormalDark = sizeGrid('normal', 'dark');
 export const SmallLight = sizeGrid('small', 'light');
 export const SmallDark = sizeGrid('small', 'dark');
-
-/* Tonal in every size: its contrast is reported in the a11y panel, not
-   failed, until the Figma binding is fixed (see CONTRAST_TODO). */
-const tonalGrid = (theme: 'light' | 'dark') =>
-  grid(
-    'Tonal contrast',
-    'Size',
-    BUTTON_SIZES.flatMap((size) => withAndWithoutIcon(SIZE_LABEL[size], 'tonal', size)),
-    theme,
-    { test: 'todo' },
-  );
-
-export const TonalContrastLight = tonalGrid('light');
-export const TonalContrastDark = tonalGrid('dark');

@@ -367,9 +367,9 @@ const open = (theme: 'light' | 'dark'): Story => ({
     const want = {
       fill: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
-      selected: tokenColour('surface-base'),
+      selected: tokenColour('neutral-tonal-surface-default'),
       label: tokenColour('text-primary'),
-      check: tokenColour('action-primary-surface-default'),
+      check: tokenColour('text-primary'),
       focused: tokenColour('stroke-focused'),
     };
     const canvas = within(canvasElement);
@@ -390,7 +390,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     await expect(style.boxShadow).toContain(`${want.stroke} 0px 0px 0px 1px inset`);
     await expect(style.borderRadius).toBe('8px');
     await expect(style.padding).toBe('6px');
-    // Select / Option: Selected is surface.base with the check; the rest have no fill.
+    // Select / Option: Selected is neutral.tonal.surface.default with the text.primary check; the rest have no fill.
     const [chosen, ...rest] = options;
     await expect(chosen).toHaveAttribute('aria-selected', 'true');
     await expect(getComputedStyle(chosen).backgroundColor).toBe(want.selected);
