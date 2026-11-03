@@ -11,10 +11,11 @@ const meta = {
     docs: {
       description: {
         component:
-          'Built from the CAF Figma library, page **Table** (`Table / Expand Button`): the caret button that opens a cost ' +
-          'row to show its breakdown. `expanded` is the cost row’s Expanded: it swaps CaretDown for CaretUp and sets ' +
-          '`aria-expanded`. Point `aria-controls` at what it shows. `label` is required: it is the accessible name, and ' +
-          'it stays the same in both states.',
+          'Built from the CAF Figma library, page **Table** (`Table / Expand Button`, Expanded × State): the caret ' +
+          'button that opens a cost row to show its breakdown. `expanded` is Figma’s Expanded: it swaps CaretDown for ' +
+          'CaretUp and sets `aria-expanded`. Point `aria-controls` at what it shows. State is the button’s own: Hover ' +
+          'moves the fill to `neutral/tonal/surface/hover`, Focus shows a 2px `stroke/focused` ring 2px outside it. ' +
+          '`label` is required: it is the accessible name, and it stays the same in both Expanded states.',
       },
     },
   },
@@ -32,15 +33,19 @@ export const Playground: Story = {
   },
 };
 
-/* ── Both states, in Light and Dark ────────────────────────────────────────
-   Collapsed is the component as Figma draws it; Expanded is the glyph the
-   Expanded cost row swaps in. Figma has no Hover or Disabled. Each button is
-   checked against the variables its Figma layers are bound to. */
+/* ── Every Expanded × State, in Light and Dark ─────────────────────────────
+   The same grid as the Figma component set: Expanded false / true ×
+   Default, Hover and Focus. Hover and Focus are forced with
+   storybook-addon-pseudo-states. Each button is checked against the
+   variables its Figma layers are bound to. */
 
-const STATES = [
-  { state: 'Collapsed', expanded: false, glyph: 'caret-down' },
-  { state: 'Expanded', expanded: true, glyph: 'caret-up' },
+const EXPANDED = [
+  { expanded: false, glyph: 'caret-down' },
+  { expanded: true, glyph: 'caret-up' },
 ] as const;
+
+const STATES = ['Default', 'Hover', 'Focus'] as const;
+const PSEUDO = { Default: undefined, Hover: 'hover', Focus: 'focus-visible' } as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
@@ -56,39 +61,97 @@ function tokenColour(token: string) {
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
-    <div className="flex items-end gap-8">
-      {STATES.map(({ state, expanded }) => (
-        <div key={state} className="flex flex-col items-center gap-2">
-          <span className="text-caption-md-medium text-text-secondary">{state}</span>
-          <TableExpandButton label={`Show details, ${state.toLowerCase()}`} expanded={expanded} data-state={state} />
-        </div>
-      ))}
-    </div>
+    <table className="border-separate border-spacing-x-8 border-spacing-y-4 text-left">
+      <thead>
+        <tr>
+          <th scope="col" className="text-caption-md-medium text-text-secondary">
+            Expanded
+          </th>
+          {STATES.map((state) => (
+            <th key={state} scope="col" className="text-caption-md-medium text-text-secondary">
+              {state}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {EXPANDED.map(({ expanded }) => (
+          <tr key={String(expanded)}>
+            <th scope="row" className="text-caption-md-medium text-text-secondary">
+              {String(expanded)}
+            </th>
+            {STATES.map((state) => (
+              <td key={state}>
+                <TableExpandButton
+                  label={`Show details, expanded ${expanded}, ${state}`}
+                  expanded={expanded}
+                  data-state={state}
+                  data-pseudo={PSEUDO[state]}
+                  // No colour transition in the grid, so the check reads the end colour, not a frame of the fade.
+                  className="transition-none"
+                />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   ),
   globals: { theme },
-  parameters: { controls: { disable: true } },
+  parameters: {
+    controls: { disable: true },
+    // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
+    pseudo: {
+      rootSelector: 'body',
+      hover: ['[data-pseudo="hover"]'],
+      focusVisible: ['[data-pseudo="focus-visible"]'],
+    },
+  },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
-  play: async ({ canvasElement }) => {
-    const want = { fill: tokenColour('neutral-tonal-surface-default'), glyph: tokenColour('text-primary') };
-    await waitFor(() => {
-      for (const { state, expanded, glyph } of STATES) {
-        const button = canvasElement.querySelector<HTMLElement>(`[data-state="${state}"]`)!;
-        const svg = button.querySelector('svg')!;
-        // Figma: neutral.tonal.surface.default fill, text.primary glyph, radius 4, 28×28.
-        expect(getComputedStyle(button).backgroundColor).toBe(want.fill);
-        expect(getComputedStyle(svg).color).toBe(want.glyph);
-        expect(getComputedStyle(button).borderTopLeftRadius).toBe('4px');
-        const box = button.getBoundingClientRect();
-        expect([box.width, box.height]).toEqual([28, 28]);
-        // The 20px glyph, centred: 4px from each edge, as Figma renders it.
-        const g = svg.getBoundingClientRect();
-        expect([g.width, g.left - box.left, g.top - box.top]).toEqual([20, 4, 4]);
-        // CaretDown when collapsed, CaretUp when expanded; aria-expanded says which.
-        expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS[glyph]);
-        expect(button).toHaveAttribute('aria-expanded', String(expanded));
-      }
-    });
+  // Checked in afterEach, not play: pseudo-states applies the forced Hover and
+  // Focus on STORY_RENDERED, which comes after play (see Button's stories).
+  afterEach: async ({ canvasElement }) => {
+    const want = {
+      fill: tokenColour('neutral-tonal-surface-default'),
+      hover: tokenColour('neutral-tonal-surface-hover'),
+      glyph: tokenColour('text-primary'),
+      focused: tokenColour('stroke-focused'),
+    };
+    await waitFor(
+      () => {
+        for (const { expanded, glyph } of EXPANDED) {
+          for (const state of STATES) {
+            const button = canvasElement.querySelector<HTMLElement>(
+              `[aria-expanded="${expanded}"][data-state="${state}"]`,
+            )!;
+            const svg = button.querySelector('svg')!;
+            const style = getComputedStyle(button);
+            // Figma: neutral.tonal.surface.default fill (.hover on Hover), text.primary glyph, radius 4, 28×28.
+            expect(style.backgroundColor).toBe(state === 'Hover' ? want.hover : want.fill);
+            expect(getComputedStyle(svg).color).toBe(want.glyph);
+            expect(style.borderTopLeftRadius).toBe('4px');
+            const box = button.getBoundingClientRect();
+            expect([box.width, box.height]).toEqual([28, 28]);
+            // The 20px glyph in space/4 padding: 4px from each edge.
+            const g = svg.getBoundingClientRect();
+            expect([g.width, g.left - box.left, g.top - box.top]).toEqual([20, 4, 4]);
+            // CaretDown when collapsed, CaretUp when expanded.
+            expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS[glyph]);
+            // Focus: a 2px stroke.focused ring 2px outside the button, as Figma's Focus Ring (36×36 at −4, −4).
+            if (state === 'Focus') {
+              expect(style.outlineStyle).toBe('solid');
+              expect(style.outlineWidth).toBe('2px');
+              expect(style.outlineOffset).toBe('2px');
+              expect(style.outlineColor).toBe(want.focused);
+            } else {
+              expect(style.outlineStyle).toBe('none');
+            }
+          }
+        }
+      },
+      { timeout: 3000 },
+    );
   },
 });
 

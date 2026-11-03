@@ -15,6 +15,10 @@ import { cn } from '../../lib/cn';
  *   `{ key, value }` per line. Key → `key`, the filter's name ("Search");
  *   code adds the colon Figma types into the text. Value → `value`, what it
  *   is set to ("All").
+ * - The Filters box: `surface.elevated-secondary`, radius 8, and a 1px
+ *   `stroke.subtle` stroke inside, kept out of the layout as in Figma
+ *   (`inset-ring`), so the box shows on a dialog and on the canvas. The edge
+ *   is decorative, as Card / Panel's.
  *
  * `Filter / Summary Line` is used only here, so it stays inside
  * FilterSummary rather than being its own component. The lines are a
@@ -53,8 +57,8 @@ export const FilterSummary = React.forwardRef<HTMLDivElement, FilterSummaryProps
         <p id={titleId} className="text-body-sm-medium text-text-secondary">
           {title}
         </p>
-        {/* Filters — 12px top and bottom, 16px sides, 6px gap, radius 8; surface.elevated-secondary. */}
-        <dl className="flex flex-col gap-1.5 rounded-8 bg-surface-elevated-secondary px-4 py-3">
+        {/* Filters — 12px top and bottom, 16px sides, 6px gap, radius 8; surface.elevated-secondary, a 1px stroke.subtle stroke inside. */}
+        <dl className="flex flex-col gap-1.5 rounded-8 bg-surface-elevated-secondary px-4 py-3 inset-ring inset-ring-stroke-subtle">
           {filters.map(({ key, value }) => (
             /* Summary Line — horizontal, gap 4. */
             <div key={key} className="flex gap-1">

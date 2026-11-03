@@ -17,13 +17,20 @@ import { TableAccountDetails } from './TableAccountDetails';
 function Lines({ id = '32430' }: { id?: string }) {
   return (
     <>
-      <TableDetailLabel>ID: {id}</TableDetailLabel>
-      <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
-      <TableDetailLabel>Beneficiary name: Jane Doe</TableDetailLabel>
-      <TableDetailLabel>IBAN Account: 982389428934</TableDetailLabel>
+      <TableDetailLabel label="ID:" value={id} />
+      <TableDetailLabel label="Applicant:" value="QA Test Bryan" />
+      <TableDetailLabel label="Beneficiary name:" value="Jane Doe" />
+      <TableDetailLabel label="IBAN Account:" value="982389428934" />
     </>
   );
 }
+
+/* Figma's default Category Tag: Tag Status=Info, Show Icon off, "Recurring". */
+const recurring = (
+  <Tag status="info" showIcon={false}>
+    Recurring
+  </Tag>
+);
 
 const meta = {
   title: 'Components/TableAccountDetails',
@@ -33,20 +40,21 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Table** (`Table / Account Details`): the cost row’s Account column. ' +
-          'The lines are `children`, one `TableDetailLabel` each. Figma’s Category Tag is `categoryTag`, 12px below them: ' +
-          'Figma’s default is a `StatusPill` (“Recurring”), and a `Tag` fits too. Leave it out for no tag. ' +
+          'The lines are `children`, one `TableDetailLabel` (`label`, `value`) each. Figma’s Category Tag is `categoryTag`, ' +
+          '12px below them: Figma’s default is `<Tag status="info" showIcon={false}>` “Recurring”, and Tag Neutral is ' +
+          'its other preferred value. Leave it out for no tag. ' +
           'In a table, put it in a `TableCell`, next to a `TableExpandButton`.',
       },
     },
   },
-  args: { children: <Lines />, categoryTag: <StatusPill>Recurring</StatusPill> },
+  args: { children: <Lines />, categoryTag: recurring },
   argTypes: { children: { control: false }, categoryTag: { control: false } },
 } satisfies Meta<typeof TableAccountDetails>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma's default: four lines and a “Recurring” Status Pill. */
+/** Figma's default: four lines and a “Recurring” Tag Info, without its icon. */
 export const Playground: Story = {};
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -71,24 +79,33 @@ function utilityBackground(className: string) {
 }
 
 /* ── Category Tag, in Light and Dark ───────────────────────────────────────
-   Figma's default Status Pill, a Tag swapped in, and no tag. Checked against
-   Figma's layout and bindings: lines stacked with no gap in text/primary,
-   the tag 12px below them. */
+   Figma's default Tag Info and its other preferred value, Tag Neutral (both
+   with Show Icon off), and no tag. Checked against Figma's layout and
+   bindings: lines stacked with no gap in text/primary, the tag 12px below
+   them in its tonal colours. */
 
 const TAGS = [
-  { name: 'Status Pill (Figma’s default)', tag: <StatusPill>Recurring</StatusPill> },
-  { name: 'Tag', tag: <Tag status="info" showIcon={false}>Recurring</Tag> },
-  { name: 'No tag', tag: undefined },
+  { name: 'Tag Info (Figma’s default)', status: 'info', tag: recurring },
+  {
+    name: 'Tag Neutral',
+    status: 'neutral',
+    tag: (
+      <Tag status="neutral" showIcon={false}>
+        Single
+      </Tag>
+    ),
+  },
+  { name: 'No tag', status: undefined, tag: undefined },
 ] as const;
 
 const tags = (theme: 'light' | 'dark'): Story => ({
   name: `Category Tag — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
     <div className="flex flex-wrap items-start gap-10">
-      {TAGS.map(({ name, tag }) => (
+      {TAGS.map(({ name, status, tag }) => (
         <div key={name} className="flex flex-col gap-2">
           <span className="text-caption-md-medium text-text-secondary">{name}</span>
-          <TableAccountDetails data-details categoryTag={tag}>
+          <TableAccountDetails data-details={status ?? 'none'} categoryTag={tag}>
             <Lines />
           </TableAccountDetails>
         </div>
@@ -101,18 +118,32 @@ const tags = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const text = tokenColour('text-primary');
+    // Tag's tonal fill and label colour per status.
+    const tagColours: Record<string, string[]> = {
+      info: [tokenColour('accent-info-tonal-surface-default'), tokenColour('accent-info-tonal-content-default')],
+      neutral: [tokenColour('neutral-tonal-surface-default'), tokenColour('neutral-tonal-content-default')],
+    };
     await waitFor(() => {
       for (const details of canvasElement.querySelectorAll<HTMLElement>('[data-details]')) {
         const [lines, tag] = details.children as unknown as HTMLElement[];
         const rows = [...lines.querySelectorAll('p')];
         expect(rows).toHaveLength(4);
         rows.forEach((p, i) => {
-          expect(getComputedStyle(p).color).toBe(text);
+          // Each line: Label and Value in text/primary.
+          for (const span of p.children) expect(getComputedStyle(span).color).toBe(text);
           // Figma's Details frame: gap 0.
           if (i > 0) expect(p.getBoundingClientRect().top).toBe(rows[i - 1].getBoundingClientRect().bottom);
         });
-        // Figma: 12px between the lines and the Category Tag.
-        if (tag) expect(tag.getBoundingClientRect().top - lines.getBoundingClientRect().bottom).toBe(12);
+        expect(rows[0].textContent).toBe('ID: 32430');
+        const status = details.dataset.details!;
+        if (status === 'none') {
+          expect(tag).toBeUndefined();
+          continue;
+        }
+        // Figma: 12px between the lines and the Category Tag, a tonal Tag with no icon.
+        expect(tag.getBoundingClientRect().top - lines.getBoundingClientRect().bottom).toBe(12);
+        expect([getComputedStyle(tag).backgroundColor, getComputedStyle(tag).color]).toEqual(tagColours[status]);
+        expect(tag.querySelector('svg')).toBeNull();
       }
     });
   },
@@ -199,7 +230,7 @@ function CostRow({
         </TableCell>
         {/* Account Details is a nested component: Table / Cell Type=Custom holds it. */}
         <TableCell type="custom" className="w-75">
-          <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
+          <TableAccountDetails categoryTag={recurring}>
             <Lines id={id} />
           </TableAccountDetails>
         </TableCell>

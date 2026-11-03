@@ -210,10 +210,17 @@ const CUSTOM: { label: string; cell: ReactNode; content: string }[] = [
     content: '[data-content="account"]',
     cell: (
       <TableCell type="custom">
-        <TableAccountDetails data-content="account" categoryTag={<StatusPill>Recurring</StatusPill>}>
-          <TableDetailLabel>ID: 32430</TableDetailLabel>
-          <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
-          <TableDetailLabel>Beneficiary name: Geekee Ltd</TableDetailLabel>
+        <TableAccountDetails
+          data-content="account"
+          categoryTag={
+            <Tag status="info" showIcon={false}>
+              Recurring
+            </Tag>
+          }
+        >
+          <TableDetailLabel label="ID:" value="32430" />
+          <TableDetailLabel label="Applicant:" value="QA Test Bryan" />
+          <TableDetailLabel label="Beneficiary name:" value="Geekee Ltd" />
         </TableAccountDetails>
       </TableCell>
     ),

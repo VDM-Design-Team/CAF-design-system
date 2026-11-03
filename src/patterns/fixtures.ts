@@ -431,9 +431,11 @@ export const costs: Cost[] = [
   ),
 ];
 
-/** The Account column's last line: "IBAN Account: …", or "Credit Card details: …" for a card. */
-export const accountLine = (cost: Pick<Cost, 'paymentMethod' | 'account'>) =>
-  cost.paymentMethod === 'Credit Card' ? `Credit Card details: ${cost.account}` : `IBAN Account: ${cost.account}`;
+/** The Account column's last line, as Detail Label's Label and Value: "IBAN Account:" …, or "Credit Card details:" … for a card. */
+export const accountLine = (cost: Pick<Cost, 'paymentMethod' | 'account'>) => ({
+  label: cost.paymentMethod === 'Credit Card' ? 'Credit Card details:' : 'IBAN Account:',
+  value: cost.account,
+});
 
 /* ── Change history (Audit Logs: Admin 2102:5857; pattern 08, 526:5189) ──── */
 
@@ -449,7 +451,8 @@ export const auditActivityTag: Record<AuditActivity, { label: string; status: 'c
 /** One changed field: a Table / Change Diff row. */
 export interface CostChange {
   field: string;
-  before: string;
+  /** The old value. None on a Created entry: Change Diff Row's Show Before off. */
+  before?: string;
   after: string;
 }
 
@@ -468,7 +471,7 @@ export interface AuditLogEntry {
 export const auditLog: AuditLogEntry[] = [
   { id: 'log-12', costId: '32430', user: ADMIN, at: '2026-10-08T09:42', activity: 'updated', changes: [{ field: 'Status', before: 'Unknown', after: 'Pending' }] },
   { id: 'log-11', costId: '32418', user: MARIA, at: '2026-10-07T16:05', activity: 'deleted', changes: [] },
-  { id: 'log-10', costId: '32411', user: JOHN, at: '2026-10-07T11:20', activity: 'created', changes: [{ field: 'Amount', before: '-', after: 'GBP 2400' }, { field: 'Status', before: '-', after: 'Pending' }] },
+  { id: 'log-10', costId: '32411', user: JOHN, at: '2026-10-07T11:20', activity: 'created', changes: [{ field: 'Amount', after: 'GBP 2400' }, { field: 'Status', after: 'Pending' }] },
   { id: 'log-9', costId: '32402', user: ADMIN, at: '2026-10-06T14:58', activity: 'updated', changes: [{ field: 'Amount', before: 'EUR 3000', after: 'EUR 3150' }, { field: 'Status', before: 'Pending', after: 'Approved' }] },
   { id: 'log-8', costId: '37027', user: ADMIN, at: '2026-09-24T00:49', activity: 'deleted', changes: [] },
   { id: 'log-7', costId: '37026', user: ADMIN, at: '2026-09-24T00:48', activity: 'deleted', changes: [] },

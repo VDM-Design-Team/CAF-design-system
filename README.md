@@ -240,9 +240,9 @@ names. A component that a second brand needs moves up to GDL.
     <TableExpandButton label="Show details for cost 32430" expanded={open} aria-controls="cost-32430" onClick={toggle} />
   </TableCell>
   <TableCell type="custom">
-    <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
-      <TableDetailLabel>ID: 32430</TableDetailLabel>                // "Label: Value"
-      <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
+    <TableAccountDetails categoryTag={<Tag status="info" showIcon={false}>Recurring</Tag>}>  // Figma's default
+      <TableDetailLabel label="ID:" value="32430" />               // Label, Value (truncates)
+      <TableDetailLabel label="Applicant:" value="QA Test Bryan" />
     </TableAccountDetails>
   </TableCell>
 </TableRow>
@@ -411,7 +411,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 </ul>
 
 <ChangeDiff aria-label="Changes to cost #32430">                   // Table / Change Diff: Field / Before / After
-  <ChangeDiffRow field="Status" before="Unknown" after="Pending" /> // <del> tinted red, <ins> tinted green
+  <ChangeDiffRow field="Status" before="Unknown" after="Pending" /> // <del> tinted red and struck, <ins> tinted green
+  <ChangeDiffRow field="Amount" after="GBP 2400" />                 // Show Before off (a Created entry): Before stays empty
 </ChangeDiff>
 
 <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />  // Status=Upcoming
@@ -425,11 +426,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   <BulletItem>new update for CAF</BulletItem>                                    // What's new in this release:
 </ChangelogModal>
 
-<ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026">  // Show New
+<ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026" showNew>  // Show New
   <BulletItem>new update for CAF</BulletItem>
   <BulletItem>Improved export performance</BulletItem>
 </ChangelogEntry>
-<ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026" showNew={false}>…</ChangelogEntry>
+<ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026">…</ChangelogEntry>  // no New (default)
 
 <VersionBadge>v2.5.6</VersionBadge>                                               // Modal / Version Badge
 
@@ -561,14 +562,16 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   pass `aria-controls` with the list's id too). It is a
   `<button role="combobox">`, named by its label, not its text. Select
   opens its list from it.
-- `TableExpandButton` is Figma's Expand Button: `expanded` swaps
-  CaretDown for CaretUp and sets `aria-expanded`. Point `aria-controls` at
-  what it opens. The row owns the state. `label` is required: it's the
-  accessible name.
+- `TableExpandButton` is Figma's Expand Button (Expanded × State):
+  `expanded` swaps CaretDown for CaretUp and sets `aria-expanded`; Hover and
+  Focus are the button's own. Point `aria-controls` at what it opens. The
+  row owns the state. `label` is required: it's the accessible name.
 - `TableAccountDetails` is Figma's Account Details: its lines are
-  `TableDetailLabel`s (one "Label: Value" line each, the text is
-  `children`), and `categoryTag` is the Category Tag below them: a
-  `StatusPill`, as in Figma, or a `Tag`. Put it in a `TableCell`.
+  `TableDetailLabel`s (one line each: `label`, with its colon, and `value`,
+  which ends in … when the line is too narrow; the whole line as `children`
+  still works but is deprecated), and `categoryTag` is the Category Tag
+  below them: `<Tag status="info" showIcon={false}>`, as in Figma, or a Tag
+  Neutral. Put it in a `TableCell`.
 - `Tabs` is Figma's segmented tabs (Tabs / Cost Type, made generic). Put
   `TabItem`s in it: each has a `value`, and its label is `children`.
   `selected` is Figma's Selected, the selected tab's value
@@ -788,10 +791,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   and ref go to the `<input>`) and a destructive trash IconButton
   (`showRemove`, `removeLabel`, `onRemove`).
 - `StatCard` is Figma's Card / Stat: a `label`, a `value` and the Status
-  Indicator tile, which is `icon` (a Phosphor name) and `tone` (`info`,
-  `success`, `pending` or `critical`). Each of Figma's seven `_Stat Icon`
-  Types is one icon and one tone (Completed is `check-circle`, `success`).
-  The card is an `article` named by its label; the value is not a heading.
+  Indicator tile, Figma's `_Stat Icon` Tone × Icon: `tone` (`info`,
+  `success`, `pending` or `critical`) and `icon` (a Phosphor name;
+  Completed is `check-circle`, `success`). The card is an `article` named
+  by its label, with a decorative `stroke.subtle` edge; the value is not a
+  heading.
 - `StatRow` lays out StatCards the way Figma's stat rows do: they share the
   row equally, 16px apart, and wrap when a card would be narrower than
   256px, stacking on a phone. Fragments and components that return several
@@ -801,13 +805,16 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   any content). Long values wrap.
 - `FilterSummary` is Figma's Filter / Summary: a `title` (default "Current
   Filters") over a box of `filters`, one `{ key, value }` line each
-  ("Status: Completed"). Pass the filter's name as `key`; the colon is
-  added. It is read-only, a group named by its title.
+  ("Status: Completed"), with a decorative `stroke.subtle` edge. Pass the
+  filter's name as `key`; the colon is added. It is read-only, a group
+  named by its title.
 - `BreakdownItem` is one breakdown line of a cost: title, meta, period and
   amount. Give it `actions` (MenuItems) for the ••• menu.
 - `ChangeDiff` is a real `<table>` (Field / Before / After) of
-  `ChangeDiffRow`s. Old values are `<del>` and new ones `<ins>`, each with
-  hidden "Removed:" / "Added:" text, so colour is never the only cue.
+  `ChangeDiffRow`s. Old values are `<del>`, struck through, and new ones
+  `<ins>`, each with hidden "Removed:" / "Added:" text, so colour is never
+  the only cue. Leave `before` out for a Created entry (Figma's Show Before
+  off): its Before cell stays empty.
 - `PaymentRow` is one payment: Done or Upcoming, date and subtitle. Its
   status icon and badge are part of it.
 - `PaymentSchedules` is the View Schedules modal: a ModalHeader over a list
@@ -822,7 +829,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `ChangelogEntry` is Card / Changelog Entry, one release on the Changelog
   page. It takes `title` (an `<h2>`; `headingLevel` changes the level
   without changing the look), `meta` ("Version 2.5.6 • August 10, 2026"),
-  `showNew` (the Info Tag "New", default true as in Figma; set it on the
+  `showNew` (the Info Tag "New", default false as in Figma; set it on the
   latest release only) and `BulletItem` children. It's an `<article>` named
   by its title.
 - `ChangelogHeader` (rocket, title, date, VersionBadge) and `ReleaseNotes`

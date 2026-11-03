@@ -71,7 +71,7 @@ const meta = {
         component:
           'The Costs list’s table: a story-level organism (`src/patterns/costs/CostsTable.tsx`), not a DS component. ' +
           'It composes TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell, Checkbox, TableExpandButton, TableAccountDetails, ' +
-          'StatusPill and RowActionsMenu the way the CAF Figma library draws **Table / Header – Costs** (121:4938, ' +
+          'StatusPill, Tag and RowActionsMenu the way the CAF Figma library draws **Table / Header – Costs** (121:4938, ' +
           'Selected false / true / Mixed) and **Table / Row – Cost** (121:2782, Expanded; Selectable 121:5197). ' +
           'Headers sort (a new column ascending, the same one flips); the header checkbox selects every row shown, ' +
           'and shows Mixed when some are; the caret opens the cost’s breakdown under its row; ••• opens the row’s menu. ' +
@@ -112,10 +112,13 @@ export const Default: Story = {
       const content = first.querySelector(`td:nth-child(${column}) > div > *`)!.getBoundingClientRect().left;
       await expect(label).toBe(content);
     }
-    // A recurring cost carries the "Recurring" pill under its account lines; a single one doesn't.
+    // A recurring cost carries the "Recurring" tag under its account lines; a single one doesn't.
     await expect(within(rowOf(table, '37022')).getByText('Recurring')).toBeVisible();
     await expect(within(rowOf(table, '37023')).queryByText('Recurring')).not.toBeInTheDocument();
-    await expect(within(rowOf(table, '37023')).getByText('Credit Card details: **** **** **** 1234')).toBeVisible();
+    // A card's last line: Label "Credit Card details:", Value the card number.
+    const card = within(rowOf(table, '37023')).getByText('**** **** **** 1234');
+    await expect(card).toBeVisible();
+    await expect(card.closest('p')).toHaveTextContent('Credit Card details: **** **** **** 1234');
   },
 };
 

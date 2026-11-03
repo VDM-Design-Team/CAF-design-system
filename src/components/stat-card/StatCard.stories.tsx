@@ -12,8 +12,9 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Cards** (`Card / Stat`, with its private `_Stat Icon` tile): one ' +
           'total in the row of stats above a list. `label` and `value` are Figma’s Label and Value. Figma’s Status ' +
-          'Indicator is `icon` (a Phosphor name) and `tone` (`info`, `success`, `pending` or `critical`), the glyph and ' +
-          'the accent colour of the tile. The card is an `article` named by its label. Put several in a `StatRow`.',
+          'Indicator, `_Stat Icon`, is Tone × Icon: `tone` (`info`, `success`, `pending` or `critical`) is the accent ' +
+          'colour of the tile and `icon` (a Phosphor name) the glyph. A 1px `stroke/subtle` edge inside, decorative as ' +
+          'Card / Panel’s. The card is an `article` named by its label. Put several in a `StatRow`.',
       },
     },
   },
@@ -28,13 +29,14 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma's default: Total Exports. */
+/** Figma's default: Total Exports, Tone=Info with the FileText icon. */
 export const Playground: Story = {};
 
-/* ── Every `_Stat Icon` Type, in Light and Dark ────────────────────────────
-   Figma's seven Types, with the labels and values the two stat rows give
-   them. Each part is checked against the variable, size and text style its
-   Figma layer is bound to. */
+/* ── Every Tone, with the stat rows' icons, in Light and Dark ──────────────
+   `_Stat Icon` is Tone × Icon. The seven cards of Figma's two stat rows
+   (Exports, Announcements) cover the four tones, each with its row's glyph.
+   Each part is checked against the variable, size and text style its Figma
+   layer is bound to. */
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
@@ -47,32 +49,34 @@ function tokenColour(token: string) {
   return value;
 }
 
-const TYPES: (Pick<StatCardProps, 'icon'> & {
-  type: string;
+/* The stroke drawn inside the edge (Tailwind's inset-ring), as computed box-shadow text. */
+const insetStroke = (colour: string) => `${colour} 0px 0px 0px 1px inset`;
+
+const CARDS: (Pick<StatCardProps, 'icon'> & {
   label: string;
   value: string;
   tone: NonNullable<StatCardProps['tone']>;
 })[] = [
-  { type: 'Total Exports', label: 'Total Exports', value: '5981', icon: 'file-text', tone: 'info' },
-  { type: 'Completed', label: 'Completed', value: '5648', icon: 'check-circle', tone: 'success' },
-  { type: 'Processing', label: 'Processing', value: '0', icon: 'clock', tone: 'pending' },
-  { type: 'Failed', label: 'Failed', value: '333', icon: 'x-circle', tone: 'critical' },
-  { type: 'Total Announcements', label: 'Total Announcements', value: '7', icon: 'bell', tone: 'info' },
-  { type: 'Latest Version', label: 'Latest Version', value: '2.5.6', icon: 'tag', tone: 'success' },
-  { type: 'Last Updated', label: 'Last Updated', value: 'Aug 10, 2026', icon: 'calendar-blank', tone: 'info' },
+  { label: 'Total Exports', value: '5981', icon: 'file-text', tone: 'info' },
+  { label: 'Completed', value: '5648', icon: 'check-circle', tone: 'success' },
+  { label: 'Processing', value: '0', icon: 'clock', tone: 'pending' },
+  { label: 'Failed', value: '333', icon: 'x-circle', tone: 'critical' },
+  { label: 'Total Announcements', value: '7', icon: 'bell', tone: 'info' },
+  { label: 'Latest Version', value: '2.5.6', icon: 'tag', tone: 'success' },
+  { label: 'Last Updated', value: 'Aug 10, 2026', icon: 'calendar-blank', tone: 'info' },
 ];
 
-const types = (theme: 'light' | 'dark'): Story => ({
-  name: `Types — ${theme === 'light' ? 'Light' : 'Dark'}`,
+const tones = (theme: 'light' | 'dark'): Story => ({
+  name: `Tones — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
     <div className="grid w-max grid-cols-2 gap-x-4 gap-y-6">
-      {TYPES.map(({ type, ...card }) => (
-        <div key={type} className="flex flex-col gap-2">
+      {CARDS.map((card) => (
+        <div key={card.label} className="flex flex-col gap-2">
           <p className="text-caption-md-medium text-text-secondary">
-            Type={type} · {card.icon}, {card.tone}
+            Tone={card.tone[0].toUpperCase() + card.tone.slice(1)} · Icon={card.icon}
           </p>
           {/* Figma's card: 372 wide → w-93. */}
-          <StatCard {...card} className="w-93" data-type={type} />
+          <StatCard {...card} className="w-93" data-card={card.label} />
         </div>
       ))}
     </div>
@@ -84,6 +88,7 @@ const types = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       base: tokenColour('surface-base'),
+      edge: tokenColour('stroke-subtle'),
       subtle: tokenColour('text-subtle'),
       primary: tokenColour('text-primary'),
       ...Object.fromEntries(
@@ -95,20 +100,25 @@ const types = (theme: 'light' | 'dark'): Story => ({
     } as Record<string, string>;
     const canvas = within(canvasElement);
     await waitFor(() => {
-      for (const { type, label, tone } of TYPES) {
-        const card = canvasElement.querySelector<HTMLElement>(`[data-type="${type}"]`)!;
+      for (const { label, tone } of CARDS) {
+        const card = canvasElement.querySelector<HTMLElement>(`[data-card="${label}"]`)!;
         const [tile, text] = [...card.children] as HTMLElement[];
         const [labelText, valueText] = [...text.children] as HTMLElement[];
         const icon = tile.querySelector('svg')!;
         // The card: an article named by its label.
         expect(canvas.getByRole('article', { name: label })).toBe(card);
-        // Card / Stat — surface.base, radius 12, 24px padding, 12px gap, items centred.
+        // Card / Stat — surface.base, a 1px stroke.subtle stroke inside, radius 12, 24px padding, 12px gap, items centred.
         const style = getComputedStyle(card);
         expect(style.backgroundColor).toBe(want.base);
+        expect(style.boxShadow).toContain(insetStroke(want.edge));
+        expect(style.borderTopWidth).toBe('0px');
         expect(style.borderTopLeftRadius).toBe('12px');
         expect([style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft]).toEqual(['24px', '24px', '24px', '24px']);
         expect(style.columnGap).toBe('12px');
         expect(style.alignItems).toBe('center');
+        // The stroke is kept out of the layout: 24 + the 40px tile + 24, at Figma's 372 width.
+        expect(card.getBoundingClientRect().width).toBe(372);
+        expect(tile.getBoundingClientRect().left - card.getBoundingClientRect().left).toBe(24);
         // _Stat Icon — 40×40, radius 8, accent.<tone>.tonal surface; a decorative 24px glyph in its content.
         expect([tile.getBoundingClientRect().width, tile.getBoundingClientRect().height]).toEqual([40, 40]);
         expect(getComputedStyle(tile).borderTopLeftRadius).toBe('8px');
@@ -130,8 +140,8 @@ const types = (theme: 'light' | 'dark'): Story => ({
   },
 });
 
-export const TypesLight = types('light');
-export const TypesDark = types('dark');
+export const TonesLight = tones('light');
+export const TonesDark = tones('dark');
 
 /* ── Long content ──────────────────────────────────────────────────────────
    A label or value longer than the card wraps inside it; the tile stays
