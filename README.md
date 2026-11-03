@@ -359,6 +359,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 
 <CheckboxField bordered name="restrictedUser" label="Restricted User"
                description="Users with this role can only see their own costs." />  // Bordered
+<CheckboxField name="terms" required label="I accept the terms"
+               error="Select this to continue." />                // State=Error
 
 <RadioGroup label="Target Audience" name="audience" required
             options={[{ value: 'all', label: 'All' }, { value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }]}
@@ -478,7 +480,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `tonal`, `success`. `size` is `big`, `normal` or `small`.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
-- Hover, Pressed and Disabled are the element's own states.
+- Hover, Pressed, Focus (`:focus-visible`) and Disabled are the element's
+  own states.
 - `Pagination` takes the current `page` and `pageCount` and calls
   `onPageChange` with the page to show. Its items are `PaginationItem`s
   (Figma's Pagination / Item: `selected`, `disabled`).
@@ -487,9 +490,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `npm run icons`.
 - `IconButton` is Figma's Button / Icon: `size` 32 or 40, `tone` ghost,
   tonal or destructive, and a required `label` (its accessible name).
+  Disabled is `disabled`.
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
-  Selected and Mixed-State are `checked` and `indeterminate`. Label it with
-  a `<label>` or `aria-label`.
+  Selected and Mixed-State are `checked` and `indeterminate`; Disabled and
+  Disabled Selected are `disabled`. Label it with a `<label>` or
+  `aria-label`.
 - `TableHeaderCell` is Figma's Header Cell: `sortable` makes the label a
   button that calls `onSort` (the table owns the order), and `sort` is
   `none`, `ascending` or `descending`. A sorted column sets `aria-sort`.
@@ -732,18 +737,20 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - Every form field's Disabled is Figma's: the whole field at 50% opacity,
   with the value in `text.subtle`.
 - `Toggle` is Figma's Toggle, a native `<input type="checkbox" role="switch">`.
-  Checked is `checked` / `defaultChecked` and Disabled is `disabled`. Space
-  flips it, and while it's on it submits `name` = `value` ("on"). Name it
-  with a `<label>`, `aria-labelledby` or `aria-label`.
+  Checked is `checked` / `defaultChecked` and Disabled is `disabled` (its
+  own disabled colours, not opacity). Space flips it, and while it's on it
+  submits `name` = `value` ("on"). Name it with a `<label>`,
+  `aria-labelledby` or `aria-label`.
 - `Radio` is Figma's Radio, a native radio. Selected is `checked`, Hover is
-  `:hover` and Disabled is `disabled`. Radios that share a `name` form one
-  group. `RadioOption` is Radio Option: a `<label>` that puts `label` beside
-  the radio. Its other props and the ref go to the radio.
+  `:hover`, Error is `aria-invalid` and Disabled is `disabled`. Radios that
+  share a `name` form one group. `RadioOption` is Radio Option: a `<label>`
+  that puts `label` beside the radio. Its other props (`aria-invalid` for
+  Error=true) and the ref go to the radio.
 - `RadioGroup` is Form / Radio Group. It takes `label`, `options` (strings or
   `{ value, label, disabled }`), `value` / `onValueChange` (or
-  `defaultValue`) and `helper`. Code adds `required` (_Form Label's marker
-  plus native `required`), `error` (the message where the Helper goes) and
-  `disabled`. It is a `<fieldset role="radiogroup">` of native radios that
+  `defaultValue`), `helper`, `required` (_Form Label's marker plus native
+  `required`) and `error` (State=Error: the message where the Helper goes,
+  and every radio `aria-invalid`). Code adds `disabled`. It is a `<fieldset role="radiogroup">` of native radios that
   share `name`. The group is one tab stop, the arrow keys move and choose,
   and the chosen `value` is submitted under `name`.
 - `CheckboxField` and `ToggleField` are Form / Checkbox Field and Form /
@@ -751,8 +758,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   beside a 16px Checkbox (`bordered` adds Figma's card) or before a Toggle
   at the end of the row. The whole field is a `<label>`. The label names the
   control and the description describes it. Every other prop and the ref go
-  to the native input, `id` included. `required` also shows _Form Label's
-  marker.
+  to the native input, `id` included. `required` also shows the Required
+  marker. `error` is State=Error: the message under the description and
+  the control `aria-invalid` (CheckboxField's box, or its card, turns
+  critical). `disabled` is State=Disabled: the control's disabled look
+  and the text in `text.disabled`.
 - `FileUploadField` is Figma's Form / Field – File Upload, with a File
   Chip for each file under it, as pattern 10 shows. It takes `label`,
   `required`, `helper`, `error`, and `title` and `hint` (the zone's text).

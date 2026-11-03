@@ -10,8 +10,9 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Selection Controls** (`Radio`). Figma’s States are the native ' +
-          'radio’s own: Deselected is unchecked, Hover is hovering an unchecked radio, Selected is `checked` and ' +
-          'Disabled is `disabled`. Radios that share a `name` are one group (arrow keys move between them). Name it ' +
+          'radio’s own: Deselected is unchecked, Hover is hovering an unchecked radio, Selected is `checked`, Error is ' +
+          '`aria-invalid` (an invalid group) and Disabled is `disabled`. Radios that share a `name` are one group ' +
+          '(arrow keys move between them). Name it ' +
           'with a `<label>` or `aria-label`; RadioOption adds Figma’s label and RadioGroup the whole group.',
       },
     },
@@ -54,7 +55,7 @@ export const Playground: Story = {
 
 export const Selected: Story = { args: { defaultChecked: true } };
 
-/** Disabled: it can’t be checked or focused. */
+/** Disabled: the neutral disabled fill and stroke; it can’t be checked or focused. */
 export const Disabled: Story = {
   args: { disabled: true },
   play: async ({ args, canvas }) => {
@@ -87,20 +88,48 @@ export const Keyboard: Story = {
 };
 
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   Figma's four States, plus Disabled while checked, which Figma doesn't draw.
-   Hover is forced with storybook-addon-pseudo-states. */
+   Figma's five States, then two it doesn't draw: Error while hovered (the
+   error stays) and Disabled while checked. Hover is forced with
+   storybook-addon-pseudo-states. Each is checked against Figma's bindings:
+   [fill, stroke and its width, dot colour (`null`: no dot)]. */
 
 const STATES = [
-  { state: 'Deselected', props: {}, stroke: ['stroke-field', 1], dot: false, opacity: '1' },
-  { state: 'Hover', props: {}, stroke: ['stroke-focused', 1], dot: false, opacity: '1' },
-  { state: 'Selected', props: { defaultChecked: true }, stroke: ['action-primary-surface-default', 2], dot: true, opacity: '1' },
-  { state: 'Disabled', props: { disabled: true }, stroke: ['stroke-strong', 1], dot: false, opacity: '0.5' },
+  { state: 'Deselected', props: {}, fill: 'surface-elevated-secondary', stroke: ['stroke-field', 1], dot: null },
+  { state: 'Hover', props: {}, fill: 'surface-elevated-secondary', stroke: ['stroke-focused', 1], dot: null },
+  {
+    state: 'Selected',
+    props: { defaultChecked: true },
+    fill: 'surface-elevated-secondary',
+    stroke: ['action-primary-surface-default', 2],
+    dot: 'action-primary-surface-default',
+  },
+  {
+    state: 'Error',
+    props: { 'aria-invalid': true },
+    fill: 'surface-elevated-secondary',
+    stroke: ['accent-critical-outline-border-default', 1],
+    dot: null,
+  },
+  {
+    state: 'Disabled',
+    props: { disabled: true },
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+    dot: null,
+  },
+  {
+    state: 'Error, hover',
+    props: { 'aria-invalid': true },
+    fill: 'surface-elevated-secondary',
+    stroke: ['accent-critical-outline-border-default', 1],
+    dot: null,
+  },
   {
     state: 'Disabled, selected',
     props: { disabled: true, defaultChecked: true },
-    stroke: ['action-primary-surface-default', 2],
-    dot: true,
-    opacity: '0.5',
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['surface-brand-medium', 2],
+    dot: 'surface-brand-medium',
   },
 ] as const;
 
@@ -116,7 +145,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             name={state}
             aria-label={state}
             data-state={state}
-            data-pseudo={state === 'Hover' ? 'hover' : undefined}
+            data-pseudo={state === 'Hover' || state === 'Error, hover' ? 'hover' : undefined}
           />
           <span className="text-caption-md-regular text-text-secondary">{state}</span>
         </div>
@@ -134,36 +163,34 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Hover on
   // STORY_RENDERED, which comes after play.
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const dotFill = tokenColour('action-primary-surface-default');
-    const want = STATES.map(({ state, stroke: [token, width], dot, opacity }) => ({
+    const want = STATES.map(({ state, fill, stroke: [token, width], dot }) => ({
       state,
+      fill: tokenColour(fill),
       stroke: insetStroke(tokenColour(token), width),
-      dot,
-      opacity,
+      dot: dot && tokenColour(dot),
     }));
     await waitFor(
       () => {
-        for (const { state, stroke, dot, opacity } of want) {
+        for (const { state, fill, stroke, dot } of want) {
           const input = canvasElement.querySelector<HTMLInputElement>(`[data-state="${state}"]`)!;
           const marker = input.nextElementSibling!;
           const style = getComputedStyle(input);
           const box = input.getBoundingClientRect();
-          // 20 × 20, a circle, surface.elevated-secondary, with the state's stroke inside the edge.
+          // 20 × 20, a circle, the state's fill, with the state's stroke inside the edge.
           expect([box.width, box.height]).toEqual([20, 20]);
           expect(style.borderRadius).toBe('1000px');
           expect(style.backgroundColor).toBe(fill);
           expect(style.boxShadow).toContain(stroke);
-          // Selected's dot: 8px, centred, action.primary.surface.
+          // Selected's dot: 8px, centred, in the state's colour.
           expect(getComputedStyle(marker).display).toBe(dot ? 'block' : 'none');
           if (dot) {
             const d = marker.getBoundingClientRect();
             expect([d.width, d.height]).toEqual([8, 8]);
             expect([d.left - box.left, d.top - box.top]).toEqual([6, 6]);
-            expect(getComputedStyle(marker).backgroundColor).toBe(dotFill);
+            expect(getComputedStyle(marker).backgroundColor).toBe(dot);
           }
-          // Disabled: the whole radio at 50%.
-          expect(getComputedStyle(input.parentElement!).opacity).toBe(opacity);
+          // Disabled is drawn with its own colours, not layer opacity.
+          expect(getComputedStyle(input.parentElement!).opacity).toBe('1');
           // Forced colours keep the stroke and the dot, so the radio doesn't vanish in High Contrast.
           expect(getComputedStyle(input.parentElement!).forcedColorAdjust).toBe('none');
         }

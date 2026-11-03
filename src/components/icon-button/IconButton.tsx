@@ -11,7 +11,9 @@ import { Icon, type IconName } from '../icon';
  * Figma → code:
  * - Size  → `size`: 32 (16px glyph, default) or 40 (20px glyph).
  * - Tone  → `tone`: ghost (default), tonal or destructive.
- * - State → the element's own state: Hover = `:hover`.
+ * - State → the element's own state: Hover = `:hover`, Disabled = the
+ *   `disabled` attribute (the glyph in text.disabled, no hover fill; the
+ *   tone's container stays).
  * - The nested icon instance → `icon`, an Icon name (e.g. `dots-three`).
  *
  * It has no visible text, so `label` is required: it is the button's
@@ -24,7 +26,9 @@ const iconButton = cva(
     'inline-flex shrink-0 cursor-pointer items-center justify-center rounded-8 transition-colors',
     // Figma has no Focus state yet; the ring uses stroke.focused, as Button's does.
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
-    'disabled:cursor-not-allowed',
+    /* State=Disabled: every tone keeps its container (Tonal's surface.base) and
+       draws the glyph in text.disabled; the hover fills are enabled-only. */
+    'disabled:cursor-not-allowed disabled:text-text-disabled',
   ],
   {
     variants: {

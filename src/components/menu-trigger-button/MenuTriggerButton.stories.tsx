@@ -183,10 +183,13 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Hover and
   // Pressed on STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
+    // Button / Normal, Style=Default: action.primary per state; Disabled is the neutral.tonal disabled pair.
     const want = Object.fromEntries(
       MENU_TRIGGER_BUTTON_STATES.map((s) => [
         s,
-        [tokenColour(`action-primary-surface-${s}`), tokenColour(`action-primary-content-${s}`)],
+        s === 'disabled'
+          ? [tokenColour('neutral-tonal-surface-disabled'), tokenColour('neutral-tonal-content-disabled')]
+          : [tokenColour(`action-primary-surface-${s}`), tokenColour(`action-primary-content-${s}`)],
       ]),
     ) as Record<State, [string, string]>;
     /* A box-shadow that shows: not `none`, and not only Tailwind's transparent placeholder layers. */
