@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { cn } from '../../lib/cn';
 import { IconButton, type IconButtonProps } from '../icon-button';
 
 /**
@@ -13,8 +12,8 @@ import { IconButton, type IconButtonProps } from '../icon-button';
  *   the theme in use; a click asks for the other one.
  * - The 40×40 frame, radius 8 and 20px Phosphor glyph → IconButton size 40
  *   (Button / Icon, whose description names it for the theme button).
- * - Glyph fill → `text.primary`, the Theme Toggle's own binding. (Button /
- *   Icon Ghost's glyph is `text.secondary`; the Toggle's binding wins.)
+ * - Glyph fill → `text.secondary`, Button / Icon Ghost's glyph colour, which
+ *   IconButton's ghost tone draws.
  * - Figma has no Hover → Button / Icon Ghost's, `neutral.tonal.surface.default`.
  *
  * It is controlled: `theme` is the theme in use, and `onThemeChange` gets the
@@ -62,9 +61,9 @@ export const ThemeToggle = React.forwardRef<HTMLButtonElement, ThemeToggleProps>
         icon={icon}
         label={THEME_TOGGLE_LABELS[theme]}
         size={40}
+        /* Ghost: the glyph is text.secondary, as Figma binds it. */
         tone="ghost"
-        /* Figma binds the glyph to text.primary, over Ghost's text.secondary. */
-        className={cn('text-text-primary', className)}
+        className={className}
         onClick={(event) => {
           onClick?.(event);
           if (!event.defaultPrevented) onThemeChange?.(next);

@@ -187,7 +187,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
       label: tokenColour('text-primary'),
       hover: tokenColour('surface-base'),
       divider: tokenColour('stroke-subtle'),
-      glyph: tokenColour('text-primary'),
+      glyph: tokenColour('text-secondary'),
       iconHover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
     };
@@ -216,7 +216,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
         expect(line.borderTopColor).toBe(want.divider);
         expect(line.borderTopWidth).toBe('1px');
         expect(divider.getBoundingClientRect().height).toBe(1);
-        // The account icon: User glyph in text.primary; no fill at rest, neutral.tonal on hover.
+        // The account icon: User glyph in text.secondary (Ghost's); no fill at rest, neutral.tonal on hover.
         for (const icon of [trigger, ...closedIcons]) {
           const svg = icon.querySelector('svg')!;
           expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);

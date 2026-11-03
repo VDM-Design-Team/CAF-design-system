@@ -34,8 +34,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Navigation** (`Navigation / User Actions`): the right end of the top ' +
           'bar. “Hi, {username}” (UserGreeting), the theme toggle (ThemeToggle, with the tooltip pattern 15 asks for) ' +
-          'and the account icon, which opens the Account Menu. No gap between them, as in Figma: the buttons’ 40×40 ' +
-          'boxes space them. The theme is controlled: `theme` is the one in use, `onThemeChange` gets the one asked for, ' +
+          'and the account icon, which opens the Account Menu, `space/8` apart, as in Figma. The theme is controlled: ' +
+          '`theme` is the one in use, `onThemeChange` gets the one asked for, ' +
           'and the app switches it. `onAccountSelect` gets the account menu item chosen.',
       },
     },
@@ -183,7 +183,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
   afterEach: async ({ canvasElement }) => {
     const want = {
       greeting: tokenColour('text-secondary'),
-      glyph: tokenColour('text-primary'),
+      glyph: tokenColour('text-secondary'),
       hover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
     };
@@ -199,19 +199,20 @@ const states = (theme: 'light' | 'dark'): Story => ({
           const toggle = within(group).getByRole('button', { name });
           const account = within(group).getByRole('button', { name: 'Account' });
           expect(getComputedStyle(greeting).color).toBe(want.greeting);
-          // Toggle: the page theme's glyph. Both glyphs text.primary; neutral.tonal fill on hover.
+          // Toggle: the page theme's glyph. Both glyphs text.secondary (Ghost's); neutral.tonal fill on hover.
           expect(toggle.querySelector('path')!.getAttribute('d')).toBe(glyph);
           expect(account.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
           for (const button of [toggle, account]) {
             expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(hovered ? want.hover : want.none);
           }
-          // Auto layout: greeting, toggle, account, no gap, centred on one line.
+          // Auto layout: greeting, toggle, account, space.8 between, centred on one line.
           const g = greeting.getBoundingClientRect();
           const t = toggle.getBoundingClientRect();
           const a = account.getBoundingClientRect();
-          expect(t.left).toBeCloseTo(g.right, 0);
-          expect(a.left).toBeCloseTo(t.right, 0);
+          expect(getComputedStyle(group).columnGap).toBe('8px');
+          expect(t.left - g.right).toBeCloseTo(8, 0);
+          expect(a.left - t.right).toBeCloseTo(8, 0);
           expect(g.top + g.height / 2).toBeCloseTo(t.top + t.height / 2, 0);
           expect([t.width, t.height, a.width, a.height]).toEqual([40, 40, 40, 40]);
           expect(group.getBoundingClientRect().height).toBe(40);

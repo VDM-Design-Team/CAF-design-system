@@ -191,7 +191,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const want = {
       fill: tokenColour('surface-neutral-base'),
       wordmark: tokenColour('text-primary'),
-      glyph: tokenColour('text-primary'),
+      glyph: tokenColour('text-secondary'),
       hover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
     };
@@ -228,7 +228,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(account.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
           expect(menu.querySelector('path')!.getAttribute('d')).toBe(menuOpen ? ICON_PATHS.x : ICON_PATHS.list);
           expect(menu.getAttribute('aria-expanded')).toBe(String(menuOpen));
-          // Every glyph text.primary; neutral.tonal fill on hover.
+          // Every glyph text.secondary (Ghost's); neutral.tonal fill on hover.
           for (const button of [toggle, account, menu]) {
             expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(state === 'hover' ? want.hover : want.none);

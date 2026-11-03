@@ -11,14 +11,14 @@ import { UserGreeting } from '../user-greeting';
  * "Greeting + theme toggle + account icon buttons" (its description).
  *
  * Figma → code:
- * - Auto layout, horizontal, centred, no gap → `flex items-center`.
+ * - Auto layout, horizontal, centred, `space.8` between → `flex items-center gap-2`.
  * - Navigation / User Greeting → UserGreeting (`username`).
- * - The first Navigation / Icon Button → ThemeToggle (`theme`,
- *   `onThemeChange`), in a Tooltip with its name. Figma places a second User
- *   icon there, but its description and patterns 15 and U08 put the theme
- *   toggle in this spot ("give it a tooltip").
- * - The second Navigation / Icon Button (User glyph) → AccountMenu's trigger,
- *   which opens Navigation / Account Menu below it, flush right (`onAccountSelect`).
+ * - Navigation / Theme Toggle → ThemeToggle (`theme`, `onThemeChange`), in a
+ *   Tooltip with its name, as patterns 15 and U08 ask ("give it a tooltip").
+ *   Figma exposes it through Top Bar and Header, so a placed header sets its
+ *   Theme; here that is `theme`.
+ * - Navigation / Icon Button (User glyph) → AccountMenu's trigger, which opens
+ *   Navigation / Account Menu below it, flush right (`onAccountSelect`).
  *
  * The theme is controlled: the toggle reports the theme the user asked for in
  * `onThemeChange`, and the app switches it (and remembers it, pattern 15).
@@ -41,8 +41,8 @@ export interface UserActionsProps extends Omit<React.HTMLAttributes<HTMLDivEleme
 
 export const UserActions = React.forwardRef<HTMLDivElement, UserActionsProps>(
   ({ username, theme, onThemeChange, onAccountSelect, className, ...props }, ref) => (
-    /* Figma: horizontal auto layout, centred, 0 gap. The buttons' own 40×40 boxes space them. */
-    <div ref={ref} className={cn('flex items-center', className)} {...props}>
+    /* Figma: horizontal auto layout, centred, space.8 between the greeting, the toggle and the account icon. */
+    <div ref={ref} className={cn('flex items-center gap-2', className)} {...props}>
       <UserGreeting username={username} />
       {/* Pattern 15: the toggle is icon-only, so it gets a tooltip. Below it: the header is at the top. */}
       <Tooltip text={THEME_TOGGLE_LABELS[theme]} placement="bottom">

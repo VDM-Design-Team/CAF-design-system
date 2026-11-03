@@ -304,6 +304,44 @@ export const Mobile: Story = {
 };
 
 /**
+ * Pattern 15, step 3, below 768px: "The account row opens the Account Menu".
+ * The menu opens over the scrim, under the row (or above it on a short screen);
+ * choosing Settings passes it on and leaves the mobile menu open. Left open for
+ * the snapshot.
+ */
+export const MobileAccountMenu: Story = {
+  name: 'Mobile, account menu open',
+  args: { page: 'Costs', defaultMenuOpen: true },
+  globals: { viewport: MOBILE },
+  parameters: { chromatic: MOBILE_SNAPSHOT },
+  // An open modal menu makes the docs page inert.
+  tags: ['!autodocs'],
+  play: async ({ args, canvasElement }) => {
+    if (isDesktop()) return desktopInstead(canvasElement, APP_HEADER_ADMIN_PAGES.length);
+    const dialog = await screen.findByRole('dialog', { name: 'Menu' });
+    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Close menu' })).toHaveFocus());
+    const row = within(dialog).getByRole('button', { name: signedInAccounts.admin.name });
+    await expect(row).toHaveAttribute('data-part', 'account');
+
+    await userEvent.click(row);
+    const menu = await screen.findByRole('menu', { name: 'Account' });
+    const items = within(menu).getAllByRole('menuitem');
+    await expect(items.map((item) => item.textContent)).toEqual(ACCOUNT_MENU_ITEMS.map((item) => item.label));
+    await waitFor(() => expect(items[0]).toHaveFocus());
+    await userEvent.click(items[1]);
+    await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(row).toHaveFocus();
+    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
+
+    // Open again for the snapshot: 16 in, under the row's glyph, over the scrim.
+    await userEvent.click(row);
+    const open = await screen.findByRole('menu', { name: 'Account' });
+    await expect(open.getBoundingClientRect().left).toBeCloseTo(row.querySelector('svg')!.getBoundingClientRect().left, 0);
+  },
+};
+
+/**
  * U08, step 5, below 768px: the user's Mobile Menu, with the same five links.
  * Figma has no Mobile Menu – User yet; MobileMenu takes the user's links.
  */

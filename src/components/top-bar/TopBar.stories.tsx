@@ -122,7 +122,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
     const want = {
       wordmark: tokenColour('text-primary'),
       greeting: tokenColour('text-secondary'),
-      glyph: tokenColour('text-primary'),
+      glyph: tokenColour('text-secondary'),
       hover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
     };

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
-import type { AccountMenuItem } from '../account-menu';
+import { AccountMenu, type AccountMenuItem } from '../account-menu';
 import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from '../app-header/links';
 import { Icon } from '../icon';
 import { MobileHeader } from '../mobile-header';
@@ -26,8 +26,12 @@ import type { ThemeToggleTheme } from '../theme-toggle';
  *   Menu – User next to Mobile Menu – Admin").
  * - Account Row (12 / 16 padding, 12 between, a 1px `stroke.subtle` line on
  *   top; User glyph 20 and the name in Body/sm-medium, both `text.secondary`)
- *   → the signed-in person, `username`. It is text, as Figma draws it; the
- *   account menu is the header's User icon.
+ *   → AccountMenu's trigger: a full-width button with the glyph and
+ *   `username`. It opens Navigation / Account Menu below it, its left edge
+ *   16 in, under the glyph (pattern 15 step 3: "The account row opens the
+ *   Account Menu"), and `onAccountSelect` gets the item chosen. The row looks
+ *   as Figma draws it, with no caret and no open look. The menu is portalled
+ *   on `document.body`, so the panel's scroll doesn't cut it off.
  *
  * Behaviour, hand-built on Overlay (as SideSheet is): the panel is a modal
  * dialog named "Menu" (`aria-label`), in a portal over the page's scrim. It
@@ -142,14 +146,31 @@ export const MobileMenu = React.forwardRef<HTMLDivElement, MobileMenuProps>(func
           ))}
         </ul>
       </nav>
-      {/* Account Row: 12 / 16 padding, 12 between, 1px stroke.subtle on top; Body/sm-medium, text.secondary. */}
-      <p
-        data-part="account"
-        className="flex shrink-0 items-center gap-3 border-t border-stroke-subtle px-4 py-3 text-body-sm-medium text-text-secondary"
-      >
-        <Icon name="user" size={20} />
-        {username}
-      </p>
+      {/* Account Row: AccountMenu's trigger. The menu opens below it, 16 in (under the glyph), on <body>. */}
+      <AccountMenu
+        onSelect={onAccountSelect}
+        label="Account"
+        align="left"
+        portal
+        className="flex w-full shrink-0"
+        panelClassName="ml-4"
+        trigger={
+          /* 12 / 16 padding, 12 between, 1px stroke.subtle on top; Body/sm-medium, text.secondary. Figma has
+             no Focus state: the ring is stroke.focused, inside the row, as the menu clips at its sides. */
+          <button
+            type="button"
+            data-part="account"
+            className={cn(
+              'flex w-full cursor-pointer items-center gap-3 border-t border-stroke-subtle px-4 py-3 text-left',
+              'text-body-sm-medium text-text-secondary',
+              'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focused',
+            )}
+          >
+            <Icon name="user" size={20} />
+            {username}
+          </button>
+        }
+      />
     </Overlay>
   );
 });

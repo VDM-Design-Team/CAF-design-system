@@ -47,7 +47,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Navigation** (`Navigation / Mobile Menu – Admin`): the open mobile ' +
           'navigation, full width against the top of the screen. The Mobile Header with ✕ (Menu Open=true), the links ' +
-          'as vertical NavLinks (`links`, with `page` Active) and the Account Row with the signed-in `username`. It is ' +
+          'as vertical NavLinks (`links`, with `page` Active) and the Account Row with the signed-in `username`, which ' +
+          'opens the Account Menu below it (`onAccountSelect`). It is ' +
           'a modal dialog on Overlay, named “Menu”: focus moves to ✕ and is trapped; Escape, ✕, a tap on the scrim or ' +
           'a chosen link call `onClose`; you set `open`, and focus goes back to ☰. The links are data, so the user ' +
           'app’s five links work the same.',
@@ -106,8 +107,8 @@ function bodyChildOf(el: HTMLElement): HTMLElement {
 /* ── Open, in Light and Dark ───────────────────────────────────────────────
    Mobile Menu – Admin as Figma draws it: Page=Users. Full width against the top
    of the screen, surface.neutral.base with Elevation 3; the Mobile Header with
-   ✕; the ten links, 8 / 16 padding, 2 apart; the Account Row under a
-   stroke.subtle line. */
+   ✕; the ten links, 8 / 16 padding, 2 apart, the Active one semibold with its
+   left Indicator; the Account Row, a button, under a stroke.subtle line. */
 const opened = (theme: 'light' | 'dark'): Story => ({
   name: `Mobile Menu – Admin — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: (args) => (
@@ -124,6 +125,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
       scrim: tokenColour('surface-overlay'),
       fill: tokenColour('surface-neutral-base'),
       active: tokenColour('surface-base'),
+      indicator: tokenColour('action-primary-surface-selected'),
       primary: tokenColour('text-primary'),
       secondary: tokenColour('text-secondary'),
       stroke: tokenColour('stroke-subtle'),
@@ -165,6 +167,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
       await expect(link.getAttribute('aria-current')).toBe(active ? 'page' : null);
       await expect(style.backgroundColor).toBe(active ? want.active : want.none);
       await expect(style.color).toBe(active ? want.primary : want.secondary);
+      await expect(getComputedStyle(link, '::before').backgroundColor).toBe(active ? want.indicator : want.none);
       const r = link.getBoundingClientRect();
       await expect(r.left).toBeCloseTo(box.left + 16, 0);
       await expect(r.right).toBeCloseTo(box.right - 16, 0);
@@ -172,9 +175,14 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     }
 
     // Account Row: a 1px stroke.subtle line on top, 12 / 16 padding, 12 between; Body/sm-medium, text.secondary.
+    // It is the Account Menu's trigger: a button named by the name it shows, the menu closed.
     const account = menu.querySelector<HTMLElement>('[data-part="account"]')!;
     const row = getComputedStyle(account);
-    await expect(account).toHaveTextContent('Admin Account');
+    await expect(account).toBe(within(menu).getByRole('button', { name: 'Admin Account' }));
+    await expect(account).toHaveAttribute('aria-haspopup', 'menu');
+    await expect(account).toHaveAttribute('aria-expanded', 'false');
+    await expect(row.backgroundColor).toBe(want.none);
+    await expect(account.getBoundingClientRect().width).toBeCloseTo(menu.clientWidth, 0);
     await expect(row.borderTopWidth).toBe('1px');
     await expect(row.borderTopColor).toBe(want.stroke);
     await expect(row.padding).toBe('12px 16px');
@@ -185,7 +193,8 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     await expect(glyph.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
     await expect(glyph.getBoundingClientRect().width).toBe(20);
     // Last, at the end of the menu's content. On a screen shorter than the menu, the menu scrolls.
-    await expect(menu.lastElementChild).toBe(account);
+    await expect(menu.lastElementChild).toBe(account.parentElement);
+    await expect(account.parentElement!.lastElementChild).toBe(account);
     await expect(account.getBoundingClientRect().bottom - box.top + menu.scrollTop).toBeCloseTo(menu.scrollHeight, 0);
     await expect(box.height).toBeLessThanOrEqual(window.innerHeight);
     await expect(getComputedStyle(menu).overflowY).toBe('auto');
@@ -214,7 +223,7 @@ export const User: Story = {
     const links = within(nav).getAllByRole('link');
     await expect(links.map((link) => link.textContent)).toEqual([...APP_HEADER_USER_PAGES]);
     await expect(within(nav).getByRole('link', { name: 'Create Cost' })).toHaveAttribute('aria-current', 'page');
-    await expect(menu.querySelector('[data-part="account"]')).toHaveTextContent('QA Test');
+    await expect(within(menu).getByRole('button', { name: 'QA Test' })).toHaveAttribute('data-part', 'account');
   },
 };
 
@@ -278,10 +287,11 @@ export const OpensTrapsAndCloses: Story = {
     await expect(bodyChildOf(canvasElement)).toHaveAttribute('inert');
     await expect(document.body.style.overflow).toBe('hidden');
 
-    // Tab order inside: the toggle, the account icon, ✕, then the ten links. It wraps both ways.
+    // Tab order inside: the toggle, the account icon, ✕, the ten links, then the Account Row. It wraps both ways.
     const links = within(menu).getAllByRole('link');
     const toggle = within(menu).getByRole('button', { name: 'Switch to dark theme' });
     const account = within(menu).getByRole('button', { name: 'Account' });
+    const accountRow = within(menu).getByRole('button', { name: 'Admin Account' });
     await userEvent.tab();
     await expect(links[0]).toHaveFocus();
     await userEvent.tab({ shift: true });
@@ -291,11 +301,15 @@ export const OpensTrapsAndCloses: Story = {
     await userEvent.tab({ shift: true });
     await expect(toggle).toHaveFocus();
     await userEvent.tab({ shift: true });
+    await expect(accountRow).toHaveFocus();
+    await userEvent.tab({ shift: true });
     await expect(links[links.length - 1]).toHaveFocus();
+    await userEvent.tab();
+    await expect(accountRow).toHaveFocus();
     await userEvent.tab();
     await expect(toggle).toHaveFocus();
     await userEvent.tab({ shift: true });
-    await expect(links[links.length - 1]).toHaveFocus();
+    await expect(accountRow).toHaveFocus();
 
     // Escape closes it; focus, the page and its scroll come back.
     await userEvent.keyboard('{Escape}');
@@ -367,6 +381,126 @@ export const EscapeClosesTheAccountMenuFirst: Story = {
     await expect(account).toHaveFocus();
     await expect(screen.getByRole('dialog', { name: 'Menu' })).toBeInTheDocument();
 
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(opener).toHaveFocus();
+  },
+};
+
+/* ── The Account Row opens the Account Menu, in Light and Dark ──────────────
+   Pattern 15 step 3: "The account row opens the Account Menu". The menu opens
+   on <body> (it isn't cut off by the panel's scroll), under the row, its left
+   edge 16 in, under the glyph; space.4 below the row, as every Popover. */
+const accountRow = (theme: 'light' | 'dark'): Story => ({
+  name: `Account Row opens the Account Menu — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: (args) => (
+    <Page>
+      <MobileMenu {...args} theme={theme} />
+    </Page>
+  ),
+  globals: { theme, viewport: MOBILE },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ args, canvasElement }) => {
+    const want = { ring: tokenColour('stroke-focused'), secondary: tokenColour('text-secondary') };
+    const dialog = await screen.findByRole('dialog', { name: 'Menu' });
+    const row = within(dialog).getByRole('button', { name: 'Admin Account' });
+    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Close menu' })).toHaveFocus());
+
+    // Keyboard focus: the stroke.focused ring, inside the row (the panel clips at its sides).
+    row.focus();
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}{Tab}');
+    await expect(row).toHaveFocus();
+    await waitFor(() => {
+      const style = getComputedStyle(row);
+      expect([style.outlineStyle, style.outlineWidth, style.outlineOffset]).toEqual(['solid', '2px', '-2px']);
+      expect(style.outlineColor).toBe(want.ring);
+    });
+
+    // A click opens Navigation / Account Menu on its first item.
+    await userEvent.click(row);
+    const menu = await screen.findByRole('menu', { name: 'Account' });
+    await expect(row).toHaveAttribute('aria-expanded', 'true');
+    await expect(row).toHaveAttribute('aria-controls', menu.id);
+    await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Manage Currencies' })).toHaveFocus());
+    await expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
+      'Manage Currencies',
+      'Settings',
+      'Changelog',
+      'Logout',
+    ]);
+    // On <body>, not in the dialog, so the panel's scroll doesn't cut it off; above the scrim.
+    await expect(dialog.contains(menu)).toBe(false);
+    await expect(bodyChildOf(menu)).not.toHaveAttribute('inert');
+    // Under the row, 16 in (under the glyph), space.4 below it; inside the screen.
+    const r = row.getBoundingClientRect();
+    const m = menu.getBoundingClientRect();
+    const glyph = row.querySelector('svg')!.getBoundingClientRect();
+    await expect(m.left).toBeCloseTo(r.left + 16, 0);
+    await expect(m.left).toBeCloseTo(glyph.left, 0);
+    if (m.top > r.top) await expect(m.top - r.bottom).toBeCloseTo(4, 0);
+    // A screen too short for it below the row (320 × 568) flips it above, as every Popover.
+    else await expect(r.top - m.bottom).toBeCloseTo(4, 0);
+    await expect(m.right).toBeLessThanOrEqual(window.innerWidth);
+    await expect(m.bottom).toBeLessThanOrEqual(window.innerHeight);
+    await expect(document.elementFromPoint(m.left + m.width / 2, m.top + m.height / 2)?.closest('[role="menu"]')).toBe(menu);
+    // The row looks the same open: no fill, text.secondary.
+    await expect(getComputedStyle(row).color).toBe(want.secondary);
+
+    // ↓ moves; Enter chooses. The item goes to onAccountSelect, the menu closes, focus is back on the row.
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(row).toHaveFocus();
+    await expect(row).toHaveAttribute('aria-expanded', 'false');
+    // The mobile menu stays open, as it does for the header's account icon.
+    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
+
+    // Enter opens it again; Tab closes it and goes back to the row, still inside the dialog.
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(within(screen.getByRole('menu', { name: 'Account' })).getAllByRole('menuitem')[0]).toHaveFocus());
+    await userEvent.tab();
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(row).toHaveFocus();
+    await expect(bodyChildOf(canvasElement)).toHaveAttribute('inert');
+
+    // Open again for the snapshot, as pattern 15 step 3 draws it.
+    await userEvent.click(row);
+    await screen.findByRole('menu', { name: 'Account' });
+  },
+});
+
+export const AccountRowLight = accountRow('light');
+export const AccountRowDark = accountRow('dark');
+
+/** A tap on a menu item chooses it; a tap outside the Account Menu closes it and leaves the mobile menu open. Escape closes it first, then the mobile menu. */
+export const AccountRowEscapeAndOutsideTap: Story = {
+  render: () => <MobileShell />,
+  globals: { viewport: MOBILE },
+  parameters: { controls: { disable: true } },
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const opener = within(canvasElement).getByRole('button', { name: 'Open menu' });
+    await userEvent.click(opener);
+    const dialog = await screen.findByRole('dialog', { name: 'Menu' });
+    const row = within(dialog).getByRole('button', { name: 'Admin Account' });
+
+    // A tap on the panel, outside the Account Menu (the logo), closes the Account Menu only.
+    await userEvent.click(row);
+    await screen.findByRole('menu', { name: 'Account' });
+    await userEvent.click(within(dialog).getByRole('img', { name: 'CAF' }));
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
+
+    // Escape closes the Account Menu first, focus back on the row; a second Escape closes the mobile menu.
+    await userEvent.click(row);
+    const menu = await screen.findByRole('menu', { name: 'Account' });
+    await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Manage Currencies' })).toHaveFocus());
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await expect(row).toHaveFocus();
+    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await expect(opener).toHaveFocus();

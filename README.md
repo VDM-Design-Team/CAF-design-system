@@ -471,7 +471,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 <TopBar username="QA Test" theme={theme} onThemeChange={setTheme} />   // Navigation / Top Bar
 <MobileHeader theme={theme} menuOpen={open} onMenuOpenChange={setOpen} menuId="menu" />   // Menu Open=false: ☰
 <MobileMenu id="menu" open={open} onClose={() => setOpen(false)} links={links} page="Users"
-            username="Admin Account" theme={theme} onThemeChange={setTheme} />            // Mobile Menu – Admin
+            username="Admin Account" theme={theme} onThemeChange={setTheme}              // Mobile Menu – Admin
+            onAccountSelect={openAccountItem} />                                         // its Account Row opens the Account Menu
 ```
 
 - `variant` is Figma's Style: `default`, `outlined`, `text`, `destructive`,
