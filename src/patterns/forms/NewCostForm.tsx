@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { Button } from '../../components/button';
 import { DateField } from '../../components/date-field';
+import { Divider } from '../../components/divider';
 import { FileUploadField } from '../../components/file-upload-field';
 import { fileMatchesAccept } from '../../components/file-upload-zone';
 import { FormEditLink } from '../../components/form-edit-link';
 import { FormHint } from '../../components/form-hint';
 import { FormSectionHeader } from '../../components/form-section-header';
 import { FormTabNavigation } from '../../components/form-tab-navigation';
+import { PageHeader } from '../../components/page-header';
+import { PanelCard } from '../../components/panel-card';
 import { SelectField } from '../../components/select-field';
 import { TabItem } from '../../components/tab-item';
 import { TextField } from '../../components/text-field';
@@ -25,7 +28,6 @@ import {
   type FrequencyUnit,
   type Person,
 } from '../fixtures';
-import { PageHeader } from '../../components/page-header';
 import { BreakdownsSection } from './BreakdownsSection';
 
 /**
@@ -34,8 +36,14 @@ import { BreakdownsSection } from './BreakdownsSection';
  * cost is created in (patterns 09 and U02), composed from DS components.
  *
  * Figma → code, top to bottom:
- * - Page Heading "New Cost" → PageHeader's `<h1>` (`description` can say which
- *   draft is open).
+ * - Page Heading "New Cost" → PageHeader's `<h1>`, above the card (decision
+ *   add-form-heading; `description` can say which draft is open).
+ * - The form's frame (578 wide: surface.base, 1px stroke.subtle, radius 12, 32
+ *   padding) → PanelCard (Card / Panel, decision add-card-panel), 24 under the
+ *   heading as Layout's Card / Panel example draws it (765:15978). The column
+ *   is `max-w-xl` (576, the nearest container width to 578; GDL has no width
+ *   scale), so the fields are 512 wide (Figma 510). The card holds only the
+ *   `<form>`, whose parts stay 24 apart (184:3120).
  * - Form / Tab Navigation (Single Cost | Recurring Cost) → FormTabNavigation;
  *   the fields under it are its tab panel. Recurring adds "Recurring Details"
  *   at the top (U02: Starts At, Frequency Value and Unit, and the live summary
@@ -47,7 +55,13 @@ import { BreakdownsSection } from './BreakdownsSection';
  *   method; the "Beneficiary Information" section (name, street, city, postal
  *   code, country, IBAN, Swift); Notes; Attach invoice (Field – File Upload,
  *   pattern 10's rules); then Breakdowns (BreakdownsSection).
- * - Button Group → Outlined "Save to Drafts" and Default "Save", side by side.
+ * - The two Dividers (184:3182 before Beneficiary Information, 184:3260
+ *   before Breakdowns; U02 draws them on the Recurring tab too) → Divider,
+ *   12 above and below it (the instances' padding) on top of the fields' 12
+ *   gap. The labelled "Cost Details" rule (U02 545:18259) stays a
+ *   FormSectionHeader (decision add-divider).
+ * - Button Group → Outlined "Save to Drafts" and Default "Save", side by side
+ *   (stacked below sm, where they don't fit the card side by side).
  *
  * Behaviour (patterns 09, U02, U03):
  * - Save checks every section, shows each message in place, and focuses the
@@ -57,10 +71,13 @@ import { BreakdownsSection } from './BreakdownsSection';
  * - Save to Drafts doesn't check anything: `onSaveDraft` gets the FormData as
  *   it is.
  *
- * Left out, with the reason in docs/patterns.md: the card around the form
- * (fill surface.base, stroke subtle, radius 12, 32 padding) and the two
- * Dividers, which have no DS component; the Title/md-bold heading, which
- * PageHeader sets in Heading/xl-bold.
+ * `className` goes on the page's column (the heading and the card); `ref`
+ * and the other props go on the `<form>`.
+ *
+ * Where code departs from Figma (docs/patterns.md, 09 / U02): Figma's
+ * Dividers are the remote Divider (184:1944), stroke.stronger; code's is the
+ * library's (Layout → Divider), stroke.subtle. The heading is the Page
+ * Header's Heading/xl-bold, not Figma's Title/md-bold inside the card.
  */
 export type NewCostField =
   | 'applicantName'
@@ -154,7 +171,7 @@ export interface NewCostFormProps
   defaultFiles?: readonly File[];
   /** The signed-in user, who pre-fills Applicant name and Email. */
   applicant?: Person;
-  /** Under the heading, e.g. "Draft #36741". */
+  /** Under the page's heading, e.g. "Draft #36741". */
   description?: React.ReactNode;
   /** Save, when every check passes. */
   onSubmit?: (data: FormData) => void;
@@ -251,189 +268,199 @@ export const NewCostForm = React.forwardRef<HTMLFormElement, NewCostFormProps>(f
   );
 
   return (
-    <form
-      ref={(node) => {
-        formRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
-      }}
-      noValidate
-      className={cn('flex w-full max-w-xl flex-col gap-6', className)}
-      onSubmit={(event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        const found = validateNewCost(data, breakdowns.length);
-        setErrors(found);
-        const first = ERROR_ORDER.find((key) => found[key]);
-        if (first) {
-          refs[first].current?.focus();
-          return;
-        }
-        onSubmit?.(data);
-      }}
-      {...form}
-    >
+    <div className={cn('flex w-full max-w-xl flex-col gap-6', className)}>
       <PageHeader title="New Cost" description={description} />
-      <FormTabNavigation aria-label="Cost type" active={current} onActiveChange={changeType}>
-        {NEW_COST_TABS.map((tab) => (
-          <TabItem key={tab.value} value={tab.value} id={tabId(tab.value)} aria-controls={panelId}>
-            {tab.label}
-          </TabItem>
-        ))}
-      </FormTabNavigation>
-      <input type="hidden" name="type" value={current} />
+      <PanelCard>
+        <form
+          ref={(node) => {
+            formRef.current = node;
+            if (typeof ref === 'function') ref(node);
+            else if (ref) ref.current = node;
+          }}
+          noValidate
+          className="flex flex-col gap-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            const found = validateNewCost(data, breakdowns.length);
+            setErrors(found);
+            const first = ERROR_ORDER.find((key) => found[key]);
+            if (first) {
+              refs[first].current?.focus();
+              return;
+            }
+            onSubmit?.(data);
+          }}
+          {...form}
+        >
+          <FormTabNavigation aria-label="Cost type" active={current} onActiveChange={changeType}>
+            {NEW_COST_TABS.map((tab) => (
+              <TabItem key={tab.value} value={tab.value} id={tabId(tab.value)} aria-controls={panelId}>
+                {tab.label}
+              </TabItem>
+            ))}
+          </FormTabNavigation>
+          <input type="hidden" name="type" value={current} />
 
-      <div role="tabpanel" id={panelId} aria-labelledby={tabId(current)} className="flex flex-col gap-3">
-        {recurring && (
-          <>
-            <FormSectionHeader title="Recurring Details" description="How often this cost repeats and when it starts." />
-            <DateField
-              ref={setRef<HTMLButtonElement>('startsAt')}
-              label="Starts At"
-              name="startsAt"
+          <div role="tabpanel" id={panelId} aria-labelledby={tabId(current)} className="flex flex-col gap-3">
+            {recurring && (
+              <>
+                <FormSectionHeader title="Recurring Details" description="How often this cost repeats and when it starts." />
+                <DateField
+                  ref={setRef<HTMLButtonElement>('startsAt')}
+                  label="Starts At"
+                  name="startsAt"
+                  required
+                  placeholder="Select start date"
+                  defaultValue={value('startsAt') ?? null}
+                  today={today}
+                  error={errors.startsAt}
+                  onValueChange={() => clear('startsAt')}
+                />
+                {/* U02's Frequency row (Value and Unit side by side), and its Recurrence hint space.8 under it. */}
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <TextField
+                      ref={setRef<HTMLInputElement>('frequencyValue')}
+                      label="Frequency Value"
+                      name="frequencyValue"
+                      type="number"
+                      min={1}
+                      step={1}
+                      required
+                      value={every}
+                      error={errors.frequencyValue}
+                      onChange={(event) => {
+                        setEvery(event.target.value);
+                        clear('frequencyValue');
+                      }}
+                    />
+                    <SelectField
+                      ref={setRef<HTMLButtonElement>('frequencyUnit')}
+                      label="Frequency Unit"
+                      name="frequencyUnit"
+                      required
+                      options={frequencyUnits}
+                      value={unit}
+                      error={errors.frequencyUnit}
+                      onValueChange={(next) => {
+                        setUnit(next as FrequencyUnit);
+                        clear('frequencyUnit');
+                      }}
+                    />
+                  </div>
+                  {/* U02's Recurrence hint (545:18256): a FormHint; the live summary, as a polite status. */}
+                  {Number.isInteger(everyNumber) && everyNumber >= 1 && (
+                    <FormHint role="status">{recurrenceSummary(everyNumber, unit)}</FormHint>
+                  )}
+                </div>
+                <FormSectionHeader title="Cost Details" />
+              </>
+            )}
+            {text('applicantName', 'Applicant name', { required: true, defaultValue: value('applicantName', applicant.name), autoComplete: 'name' })}
+            {text('email', 'Email', { required: true, type: 'email', defaultValue: value('email', applicant.email), autoComplete: 'email' })}
+            {!recurring && text('invoiceNumber', 'Invoice number', { placeholder: 'e.g. INV-2026-0436' })}
+            <SelectField
+              ref={setRef<HTMLButtonElement>('currency')}
+              label="Currency"
+              action={<FormEditLink onClick={onEditCurrency} />}
+              name="currency"
               required
-              placeholder="Select start date"
-              defaultValue={value('startsAt') ?? null}
-              today={today}
-              error={errors.startsAt}
-              onValueChange={() => clear('startsAt')}
+              placeholder="Select option"
+              options={currencies.filter((c) => c.enabled).map((c) => ({ value: c.code, label: c.name }))}
+              defaultValue={value('currency') ?? null}
+              error={errors.currency}
+              onValueChange={(next) => {
+                setCurrency(next);
+                clear('currency');
+              }}
             />
-            {/* U02's Frequency row (Value and Unit side by side), and its Recurrence hint space.8 under it. */}
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <TextField
-                  ref={setRef<HTMLInputElement>('frequencyValue')}
-                  label="Frequency Value"
-                  name="frequencyValue"
-                  type="number"
-                  min={1}
-                  step={1}
-                  required
-                  value={every}
-                  error={errors.frequencyValue}
-                  onChange={(event) => {
-                    setEvery(event.target.value);
-                    clear('frequencyValue');
-                  }}
-                />
-                <SelectField
-                  ref={setRef<HTMLButtonElement>('frequencyUnit')}
-                  label="Frequency Unit"
-                  name="frequencyUnit"
-                  required
-                  options={frequencyUnits}
-                  value={unit}
-                  error={errors.frequencyUnit}
-                  onValueChange={(next) => {
-                    setUnit(next as FrequencyUnit);
-                    clear('frequencyUnit');
-                  }}
-                />
-              </div>
-              {/* U02's Recurrence hint (545:18256): a FormHint; the live summary, as a polite status. */}
-              {Number.isInteger(everyNumber) && everyNumber >= 1 && (
-                <FormHint role="status">{recurrenceSummary(everyNumber, unit)}</FormHint>
-              )}
-            </div>
-            <FormSectionHeader title="Cost Details" />
-          </>
-        )}
-        {text('applicantName', 'Applicant name', { required: true, defaultValue: value('applicantName', applicant.name), autoComplete: 'name' })}
-        {text('email', 'Email', { required: true, type: 'email', defaultValue: value('email', applicant.email), autoComplete: 'email' })}
-        {!recurring && text('invoiceNumber', 'Invoice number', { placeholder: 'e.g. INV-2026-0436' })}
-        <SelectField
-          ref={setRef<HTMLButtonElement>('currency')}
-          label="Currency"
-          action={<FormEditLink onClick={onEditCurrency} />}
-          name="currency"
-          required
-          placeholder="Select option"
-          options={currencies.filter((c) => c.enabled).map((c) => ({ value: c.code, label: c.name }))}
-          defaultValue={value('currency') ?? null}
-          error={errors.currency}
-          onValueChange={(next) => {
-            setCurrency(next);
-            clear('currency');
-          }}
-        />
-        <SelectField
-          ref={setRef<HTMLButtonElement>('partner')}
-          label="Select Partner"
-          name="partner"
-          required
-          placeholder="Select option"
-          options={partners.map((p) => p.name)}
-          defaultValue={value('partner') ?? null}
-          error={errors.partner}
-          onValueChange={() => clear('partner')}
-        />
-        <SelectField
-          ref={setRef<HTMLButtonElement>('paymentMethod')}
-          label="Payment method"
-          name="paymentMethod"
-          required
-          placeholder="Select option"
-          options={paymentMethods}
-          defaultValue={value('paymentMethod') ?? null}
-          error={errors.paymentMethod}
-          onValueChange={() => clear('paymentMethod')}
-        />
+            <SelectField
+              ref={setRef<HTMLButtonElement>('partner')}
+              label="Select Partner"
+              name="partner"
+              required
+              placeholder="Select option"
+              options={partners.map((p) => p.name)}
+              defaultValue={value('partner') ?? null}
+              error={errors.partner}
+              onValueChange={() => clear('partner')}
+            />
+            <SelectField
+              ref={setRef<HTMLButtonElement>('paymentMethod')}
+              label="Payment method"
+              name="paymentMethod"
+              required
+              placeholder="Select option"
+              options={paymentMethods}
+              defaultValue={value('paymentMethod') ?? null}
+              error={errors.paymentMethod}
+              onValueChange={() => clear('paymentMethod')}
+            />
 
-        <FormSectionHeader title="Beneficiary Information" description="Use a permanent address where you can receive mail" />
-        {text('beneficiaryName', 'Beneficiary name')}
-        {text('street', 'Street', { autoComplete: 'street-address' })}
-        {text('city', 'City', { autoComplete: 'address-level2' })}
-        {text('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
-        <SelectField
-          ref={setRef<HTMLButtonElement>('country')}
-          label="Country"
-          name="country"
-          placeholder="Select option"
-          options={locations}
-          defaultValue={value('country') ?? null}
-        />
-        {text('iban', 'IBAN account number')}
-        {text('swift', 'Swift code')}
-        {text('notes', 'Notes')}
-        <FileUploadField
-          ref={setRef<HTMLInputElement>('invoices')}
-          label="Attach invoice"
-          name="invoices"
-          multiple
-          required={!recurring}
-          accept={invoiceRules.accept}
-          hint={invoiceRules.hint}
-          validate={validateInvoice}
-          defaultFiles={defaultFiles}
-          error={errors.invoices}
-          onFilesChange={(files) => files.length && clear('invoices')}
-        />
+            {/* Divider (184:3182): 12 above and below the rule, on top of the 12 gap. */}
+            <Divider className="my-3" />
+            <FormSectionHeader title="Beneficiary Information" description="Use a permanent address where you can receive mail" />
+            {text('beneficiaryName', 'Beneficiary name')}
+            {text('street', 'Street', { autoComplete: 'street-address' })}
+            {text('city', 'City', { autoComplete: 'address-level2' })}
+            {text('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
+            <SelectField
+              ref={setRef<HTMLButtonElement>('country')}
+              label="Country"
+              name="country"
+              placeholder="Select option"
+              options={locations}
+              defaultValue={value('country') ?? null}
+            />
+            {text('iban', 'IBAN account number')}
+            {text('swift', 'Swift code')}
+            {text('notes', 'Notes')}
+            <FileUploadField
+              ref={setRef<HTMLInputElement>('invoices')}
+              label="Attach invoice"
+              name="invoices"
+              multiple
+              required={!recurring}
+              accept={invoiceRules.accept}
+              hint={invoiceRules.hint}
+              validate={validateInvoice}
+              defaultFiles={defaultFiles}
+              error={errors.invoices}
+              onFilesChange={(files) => files.length && clear('invoices')}
+            />
 
-        <BreakdownsSection
-          breakdowns={breakdowns}
-          onBreakdownsChange={(next) => {
-            setBreakdowns(next);
-            if (next.length) clear('breakdowns');
-          }}
-          currency={currency}
-          name="breakdown"
-          error={errors.breakdowns}
-          addRef={setRef<HTMLButtonElement>('breakdowns')}
-          defaultDialogOpen={defaultBreakdownDialogOpen}
-          today={today}
-        />
-      </div>
+            {/* Divider (184:3260), before Breakdowns. */}
+            <Divider className="my-3" />
+            <BreakdownsSection
+              breakdowns={breakdowns}
+              onBreakdownsChange={(next) => {
+                setBreakdowns(next);
+                if (next.length) clear('breakdowns');
+              }}
+              currency={currency}
+              name="breakdown"
+              error={errors.breakdowns}
+              addRef={setRef<HTMLButtonElement>('breakdowns')}
+              defaultDialogOpen={defaultBreakdownDialogOpen}
+              today={today}
+            />
+          </div>
 
-      {/* Button Group: Save to Drafts and Save share the width, 12 apart. */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button variant="outlined" className="w-full" onClick={() => formRef.current && onSaveDraft?.(new FormData(formRef.current))}>
-          Save to Drafts
-        </Button>
-        <Button type="submit" className="w-full">
-          Save
-        </Button>
-      </div>
-    </form>
+          {/* Button Group: Save to Drafts and Save share the width, 12 apart. Below sm (a phone, where the card's
+              padding leaves 224 for the fields) they stack, as the Frequency row does: side by side, "Save to
+              Drafts" wouldn't fit its half. */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Button variant="outlined" className="w-full" onClick={() => formRef.current && onSaveDraft?.(new FormData(formRef.current))}>
+              Save to Drafts
+            </Button>
+            <Button type="submit" className="w-full">
+              Save
+            </Button>
+          </div>
+        </form>
+      </PanelCard>
+    </div>
   );
 });
 NewCostForm.displayName = 'NewCostForm';

@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { Button } from '../../components/button';
 import { FormSectionHeader } from '../../components/form-section-header';
-import { TextField } from '../../components/text-field';
 import { PageHeader } from '../../components/page-header';
+import { PanelCard } from '../../components/panel-card';
+import { TextField } from '../../components/text-field';
 
 /**
  * SettingsPage — a story-level composition, not a library component: U06's
@@ -10,12 +11,16 @@ import { PageHeader } from '../../components/page-header';
  * Name, and Save".
  *
  * Figma → code:
- * - Settings Card (545:25208; 576 wide, centred, 32 padding, 20 between,
- *   `surface.base` fill, 1px `stroke.subtle`, radius 12) → a centred column,
- *   `max-w-xl` with `gap-5`. There is no Card component, so the fill, stroke
- *   and radius are left out (docs/patterns.md).
- * - "Settings" (text.primary) → PageHeader's title, the page's `<h1>`.
- * - "My Account Details" (text.secondary) → FormSectionHeader, an `<h2>`.
+ * - Settings Card (545:25208; drawn at 115%: 578 wide, centred, 32 padding,
+ *   20 between, `surface.base` fill, 1px `stroke.subtle`, radius 12) →
+ *   PanelCard (Card / Panel, decision add-card-panel), holding the form. The
+ *   page is a centred `max-w-xl` column (576, the nearest container width to
+ *   578): the heading, then the card 24 under it, as Layout's Card / Panel
+ *   example draws a Settings page (765:15978).
+ * - "Settings" (text.primary) → PageHeader's title, the page's `<h1>`, above
+ *   the card (decision add-form-heading; Figma still draws it in the card).
+ * - "My Account Details" (text.secondary) → FormSectionHeader, an `<h2>`, the
+ *   first thing in the card.
  * - Form / Field – Text ×2 (Email, Name) → TextField, `type="email"` and
  *   text. Both are required here (an account needs both), so they show the
  *   marker Figma doesn't draw.
@@ -72,24 +77,27 @@ export function SettingsPage({ account, onSave }: SettingsPageProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
       <PageHeader title="Settings" />
-      <form noValidate aria-label="My Account Details" onSubmit={onSubmit} className="flex flex-col gap-5">
-        <FormSectionHeader title="My Account Details" />
-        <TextField
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          defaultValue={account.email}
-          error={errors.email}
-        />
-        <TextField label="Name" name="name" autoComplete="name" required defaultValue={account.name} error={errors.name} />
-        <Button type="submit" className="self-start">
-          Save
-        </Button>
-      </form>
+      <PanelCard>
+        {/* The Settings Card's 20 between its parts. */}
+        <form noValidate aria-label="My Account Details" onSubmit={onSubmit} className="flex flex-col gap-5">
+          <FormSectionHeader title="My Account Details" />
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            defaultValue={account.email}
+            error={errors.email}
+          />
+          <TextField label="Name" name="name" autoComplete="name" required defaultValue={account.name} error={errors.name} />
+          <Button type="submit" className="self-start">
+            Save
+          </Button>
+        </form>
+      </PanelCard>
     </div>
   );
 }

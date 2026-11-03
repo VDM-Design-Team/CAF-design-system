@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { ToastProvider, useToast } from '../../components/toast';
 import { sampleBreakdowns } from '../fixtures';
+import { expectDividers, expectFormInCard } from './checks';
 import { NewCostForm, type NewCostFormProps } from './NewCostForm';
 
 /* The calendars open on 1 November 2026, the dates patterns 09 and U02 draw. */
@@ -51,7 +52,9 @@ const meta = {
           'name and Email are pre-filled from the account. Breakdowns → “Add new” opens the **Cost Breakdown** dialog, ' +
           'checked on its own; each saved breakdown is a **Card / Breakdown Item** with Edit and Remove. **Save** checks ' +
           'every section, shows each message in place and focuses the first; when it passes, the FormData goes to ' +
-          '`onSubmit` and a Toast confirms it. **Save to Drafts** keeps the cost as it is (pattern U03).',
+          '`onSubmit` and a Toast confirms it. **Save to Drafts** keeps the cost as it is (pattern U03). The form sits ' +
+          'in a **PanelCard** (Card / Panel) under the page’s **PageHeader**, and a **Divider** opens Beneficiary ' +
+          'Information and Breakdowns, as Figma draws them.',
       },
     },
   },
@@ -78,6 +81,9 @@ async function choose(scope: HTMLElement, label: RegExp, option: string) {
   await userEvent.click(within(scope).getByRole('combobox', { name: label }));
   await userEvent.click(within(scope).getByRole('option', { name: option }));
 }
+
+/** Figma's two rules: before Beneficiary Information and before Breakdowns, 24 from what's above and below. */
+const expectSectionDividers = (form: HTMLFormElement) => expectDividers(form, 24, ['Beneficiary Information', 'Breakdowns']);
 
 /** Adds a breakdown through the Cost Breakdown dialog. */
 async function addBreakdown(form: HTMLElement, title: string, amount: string) {
@@ -114,7 +120,11 @@ export const SingleCost: Story = {
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const form = canvasElement.querySelector('form')!;
-    await expect(canvas.getByRole('heading', { level: 1, name: 'New Cost' })).toBeVisible();
+    const heading = canvas.getByRole('heading', { level: 1, name: 'New Cost' });
+    await expect(heading).toBeVisible();
+    // The page's heading, then the form alone in its card (Card / Panel), with Figma's two Dividers.
+    await expectFormInCard(form, heading);
+    await expectSectionDividers(form);
     await expect(canvas.getByRole('tab', { name: 'Single Cost' })).toHaveAttribute('aria-selected', 'true');
     await expect(canvas.getByRole('tabpanel', { name: 'Single Cost' })).toBeVisible();
     // Step 2 (U02): pre-filled from the account.
@@ -213,6 +223,8 @@ export const RecurringCost: Story = {
       'Breakdowns',
     ]);
     await expect(canvas.queryByRole('textbox', { name: /^Invoice number/ })).toBeNull();
+    // U02 keeps both rules; "Cost Details" is a section header, not a Divider.
+    await expectSectionDividers(form);
     // Kept across the switch.
     await expect(canvas.getByRole('textbox', { name: /^Applicant name/ })).toHaveValue('QA Test Bryan');
     await expect(canvas.getByRole('combobox', { name: /^Payment method/ })).toHaveTextContent('SEPA');
@@ -328,5 +340,9 @@ export const Dark: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('tab', { name: 'Recurring Cost' })).toHaveAttribute('aria-selected', 'true');
     await expect(canvas.getByRole('status')).toHaveTextContent('This will recur every 1 month');
+    // The card in Dark: surface.base and its stroke.subtle edge.
+    const form = canvasElement.querySelector('form')!;
+    await expectFormInCard(form, canvas.getByRole('heading', { level: 1, name: 'New Cost' }));
+    await expectSectionDividers(form);
   },
 };
