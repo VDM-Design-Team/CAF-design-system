@@ -124,7 +124,7 @@ export const ErrorState: Story = {
   },
 };
 
-/** State=Disabled: it can't be focused, typed into or resized. A value shows in text.subtle, like the placeholder, and the field is at Figma's 50% opacity. */
+/** State=Disabled: it can't be focused, typed into or resized. The disabled fill and stroke, the value in text.disabled, no opacity. */
 export const Disabled: Story = {
   args: {
     disabled: true,
@@ -137,14 +137,17 @@ export const Disabled: Story = {
     await expect(textarea).toHaveValue('Monthly team salary, split by cost center.');
     await expect(textarea).not.toHaveFocus();
     await expect(args.onChange).not.toHaveBeenCalled();
-    await expect(getComputedStyle(textarea).color).toBe(tokenColour('text-subtle'));
-    await expect(getComputedStyle(textarea).opacity).toBe('0.5');
-    await expect(getComputedStyle(textarea).resize).toBe('none');
+    const style = getComputedStyle(textarea);
+    await expect(style.color).toBe(tokenColour('text-disabled'));
+    await expect(style.backgroundColor).toBe(tokenColour('neutral-tonal-surface-disabled'));
+    await expect(style.boxShadow).toContain(insetStroke(tokenColour('neutral-outline-border-disabled'), 1));
+    await expect(style.opacity).toBe('1');
+    await expect(style.resize).toBe('none');
   },
 };
 
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The same five states as the Figma component set. Focus is forced with
+   The same six states as the Figma component set (and Disabled with a value). Focus is forced with
    storybook-addon-pseudo-states, and each cell is checked against the
    variables Figma binds in that state, and against Figma's 96px height. */
 
@@ -153,18 +156,21 @@ const STATES = [
     state: 'Default',
     props: {},
     value: 'text-subtle',
+    fill: 'surface-elevated-secondary',
     stroke: ['stroke-field', 1],
   },
   {
     state: 'Filled',
     props: { defaultValue: 'Monthly team salary, split by cost center.' },
     value: 'text-primary',
+    fill: 'surface-elevated-secondary',
     stroke: ['stroke-field', 1],
   },
   {
     state: 'Focus',
     props: { defaultValue: 'Monthly team salary, split by cost center.' },
     value: 'text-primary',
+    fill: 'surface-elevated-secondary',
     stroke: ['stroke-focused', 2],
   },
   {
@@ -174,13 +180,32 @@ const STATES = [
       'aria-invalid': true,
     },
     value: 'text-primary',
+    fill: 'surface-elevated-secondary',
     stroke: ['accent-critical-outline-border-default', 1],
+  },
+  {
+    state: 'Error + Focus',
+    props: {
+      defaultValue: 'Monthly team salary, split by cost center.',
+      'aria-invalid': true,
+    },
+    value: 'text-primary',
+    fill: 'surface-elevated-secondary',
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Disabled',
     props: { disabled: true },
-    value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    value: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  {
+    state: 'Disabled, filled',
+    props: { disabled: true, defaultValue: 'Monthly team salary, split by cost center.' },
+    value: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
   },
 ] as const;
 
@@ -196,7 +221,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             aria-label={`${state} field`}
             placeholder="Add notes…"
             data-state={state}
-            data-pseudo={state === 'Focus' ? 'focus' : undefined}
+            data-pseudo={state === 'Focus' || state === 'Error + Focus' ? 'focus' : undefined}
           />
         </div>
       ))}
@@ -213,21 +238,21 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const want = STATES.map(({ state, props, value, stroke: [token, width] }) => ({
+    const want = STATES.map(({ state, props, value, fill, stroke: [token, width] }) => ({
       state,
       filled: 'defaultValue' in props,
       value: tokenColour(value),
+      fill: tokenColour(fill),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, filled, value, stroke } of want) {
+        for (const { state, filled, value, fill, stroke } of want) {
           const textarea = canvasElement.querySelector<HTMLTextAreaElement>(`[data-state="${state}"]`)!;
           const style = getComputedStyle(textarea);
           expect(style.backgroundColor).toBe(fill);
-          // Disabled: the whole field at Figma's 50% layer opacity.
-          expect(style.opacity).toBe(state === 'Disabled' ? '0.5' : '1');
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(style.borderRadius).toBe('8px');
           expect(style.padding).toBe('8px 12px');

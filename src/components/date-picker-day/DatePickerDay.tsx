@@ -11,11 +11,15 @@ import { cn } from '../../lib/cn';
  * Figma → code:
  * - State=Default       → the button as it is.
  * - State=Today         → `today`: a 1px inside `stroke.focused` ring, and
- *   `aria-current="date"`. It adds to the other states.
+ *   `aria-current="date"`. It adds to Default and In Range.
  * - State=Selected      → `selected`: the `action.primary` fill and its
  *   content colour.
- * - State=In Range      → `inRange`: a `surface.base` fill, the days between
- *   a range's Selected ends.
+ * - State=Today + Selected → `today` and `selected`: Selected's look plus the
+ *   Today Mark, a 1px ring inset 2px (radius 4) in the selected content
+ *   colour `action.primary.content.default`, where Today's stroke.focused
+ *   ring would vanish on the fill.
+ * - State=In Range      → `inRange`: a `neutral.tonal.surface.default` fill,
+ *   the days between a range's Selected ends.
  * - State=Outside Month → `outsideMonth`: a neighbouring month's day, drawn
  *   for context in `text.disabled`. It isn't a target, so the button is
  *   `disabled`. It wins over the other states.
@@ -35,14 +39,27 @@ export const datePickerDayVariants = cva(
         default: 'text-text-primary',
         /* State=Selected: action.primary fill and its content colour. */
         selected: 'bg-action-primary-surface-default text-action-primary-content-default',
-        /* State=In Range: surface.base fill, text.primary. */
-        'in-range': 'bg-surface-base text-text-primary',
+        /* State=In Range: neutral.tonal.surface.default fill, text.primary. */
+        'in-range': 'bg-neutral-tonal-surface-default text-text-primary',
         /* State=Outside Month: no fill, text.disabled. */
         'outside-month': 'text-text-disabled',
       },
-      /* State=Today: 1px inside stroke.focused, over whichever fill the day has. */
-      today: { false: '', true: 'inset-ring inset-ring-stroke-focused' },
+      /* State=Today: drawn per state, below. */
+      today: { false: '', true: '' },
     },
+    compoundVariants: [
+      /* State=Today: 1px inside stroke.focused, over the day's fill. */
+      { state: ['default', 'in-range'], today: true, class: 'inset-ring inset-ring-stroke-focused' },
+      /* State=Today + Selected: the Today Mark instead, a 1px action.primary.content.default
+         ring inset 2px, radius 4. A pseudo-element, so the focus ring (the outline) still
+         shows around the day. */
+      {
+        state: 'selected',
+        today: true,
+        class:
+          'relative before:pointer-events-none before:absolute before:inset-0.5 before:rounded-4 before:border before:border-action-primary-content-default',
+      },
+    ],
     defaultVariants: { state: 'default', today: false },
   },
 );
@@ -54,7 +71,7 @@ const interactive = [
 ];
 
 export interface DatePickerDayProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Figma State=Today: today's date. Adds the ring to any other state. */
+  /** Figma State=Today: today's date. Adds the ring to Default and In Range, the Today Mark to Selected (Today + Selected). */
   today?: boolean;
   /** Figma State=Selected: the chosen date, or either end of a range. */
   selected?: boolean;

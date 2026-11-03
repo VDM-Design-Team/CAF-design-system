@@ -15,10 +15,10 @@ import { Icon } from '../icon';
  * - State=Filled   → a `value`, in text/primary.
  * - State=Focus    → `:focus-visible`: a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border.
- * - State=Disabled → the native `disabled` attribute.
+ * - State=Disabled → the native `disabled` attribute: the disabled fill and stroke, the text in text/disabled.
  * - State=Open     → `open`, which sets `aria-expanded`: Focus's 2px stroke.
  * - Value          → `value`, the chosen option's label; `placeholder` while empty.
- * - Icon / Caret   → Icon `caret-down`, 20px.
+ * - Icon / Caret   → Icon `caret-down`, 20px, text/subtle (text/disabled when disabled).
  *
  * It is a `<button role="combobox" aria-haspopup="listbox">`, the trigger of a
  * select-only combobox, so Select can hand it `aria-controls` and its keys.
@@ -28,9 +28,8 @@ import { Icon } from '../icon';
  * from the field (`useFormFieldControl`). A button can't be `required`, so
  * `required` becomes `aria-required`.
  *
- * Every colour is the semantic variable the Figma layer is bound to, except
- * the caret, whose fill Figma leaves raw. Where code departs from Figma, the
- * reason is in docs/figma-sync.md ("SelectTrigger").
+ * Every colour is the semantic variable the Figma layer is bound to. Where
+ * code departs from Figma, the reason is in docs/figma-sync.md ("SelectTrigger").
  */
 const selectTriggerClasses = [
   /* Every state: surface.elevated-secondary fill, radius 8, Body/sm-regular,
@@ -50,9 +49,11 @@ const selectTriggerClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour when
      focused or open (at their 2px width), so the error stays visible. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
-     whole field, caret included, at 50% opacity (Figma's layer opacity, raw 0.5). */
-  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
+  /* State=Disabled: the neutral.tonal disabled fill, a 1px
+     neutral.outline.border.disabled stroke, and the value or the placeholder
+     in text.disabled (the caret too, below). No opacity. */
+  'disabled:cursor-not-allowed disabled:bg-neutral-tonal-surface-disabled disabled:inset-ring-neutral-outline-border-disabled',
+  'disabled:text-text-disabled disabled:data-placeholder:text-text-disabled',
 ];
 
 export interface SelectTriggerProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'value' | 'children'> {
@@ -94,8 +95,8 @@ export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerPr
       {...props}
     >
       <span className="min-w-0 truncate">{empty ? placeholder : value}</span>
-      {/* Figma's caret fill is raw #E5E5E5; text.subtle is what _Combobox Input and _Date Input bind. */}
-      <Icon name="caret-down" size={20} className="text-text-subtle" />
+      {/* Icon / Caret: CaretDown 20, text.subtle; text.disabled in State=Disabled. */}
+      <Icon name="caret-down" size={20} className={props.disabled ? 'text-text-disabled' : 'text-text-subtle'} />
     </button>
   );
 });

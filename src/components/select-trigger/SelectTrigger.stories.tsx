@@ -148,7 +148,7 @@ export const ErrorState: Story = {
   },
 };
 
-/** State=Disabled: it can't be focused or pressed, and a value shows in text.subtle, like the placeholder. */
+/** State=Disabled: it can't be focused or pressed. The disabled fill and stroke, the value and the caret in text.disabled, no opacity. */
 export const Disabled: Story = {
   args: { disabled: true, value: 'Monthly' },
   play: async ({ args, canvas }) => {
@@ -158,28 +158,88 @@ export const Disabled: Story = {
     await expect(args.onClick).not.toHaveBeenCalled();
     await userEvent.tab();
     await expect(trigger).not.toHaveFocus();
-    await expect(getComputedStyle(trigger).color).toBe(tokenColour('text-subtle'));
+    const style = getComputedStyle(trigger);
+    await expect(style.color).toBe(tokenColour('text-disabled'));
+    await expect(style.backgroundColor).toBe(tokenColour('neutral-tonal-surface-disabled'));
+    await expect(style.boxShadow).toContain(insetStroke(tokenColour('neutral-outline-border-disabled'), 1));
+    await expect(style.opacity).toBe('1');
+    await expect(getComputedStyle(trigger.querySelector('svg')!).color).toBe(tokenColour('text-disabled'));
   },
 };
 
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The same six states as the Figma component set. Focus is forced with
+   The same eight states as the Figma component set (and Disabled with a value). Focus is forced with
    storybook-addon-pseudo-states, and each cell is checked against the
-   variables Figma binds in that state (the caret against text.subtle, the
-   binding code corrects; see docs/figma-sync.md). */
+   variables Figma binds in that state (the caret text.subtle, text.disabled
+   when disabled). */
 
+const FIELD = 'surface-elevated-secondary';
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
-  { state: 'Filled', props: { value: 'Monthly' }, text: 'text-primary', stroke: ['stroke-field', 1] },
-  { state: 'Focus', props: { value: 'Monthly' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
+  { state: 'Default', props: {}, text: 'text-subtle', fill: FIELD, caret: 'text-subtle', stroke: ['stroke-field', 1] },
+  {
+    state: 'Filled',
+    props: { value: 'Monthly' },
+    text: 'text-primary',
+    fill: FIELD,
+    caret: 'text-subtle',
+    stroke: ['stroke-field', 1],
+  },
+  {
+    state: 'Focus',
+    props: { value: 'Monthly' },
+    text: 'text-primary',
+    fill: FIELD,
+    caret: 'text-subtle',
+    stroke: ['stroke-focused', 2],
+  },
   {
     state: 'Error',
     props: { value: 'Monthly', 'aria-invalid': true },
     text: 'text-primary',
+    fill: FIELD,
+    caret: 'text-subtle',
     stroke: ['accent-critical-outline-border-default', 1],
   },
-  { state: 'Disabled', props: { disabled: true }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  { state: 'Open', props: { open: true, 'aria-controls': 'open-list' }, text: 'text-subtle', stroke: ['stroke-focused', 2] },
+  {
+    state: 'Error + Focus',
+    props: { value: 'Monthly', 'aria-invalid': true },
+    text: 'text-primary',
+    fill: FIELD,
+    caret: 'text-subtle',
+    stroke: ['accent-critical-outline-border-default', 2],
+  },
+  {
+    state: 'Disabled',
+    props: { disabled: true },
+    text: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    caret: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  {
+    state: 'Disabled, filled',
+    props: { disabled: true, value: 'Monthly' },
+    text: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    caret: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  {
+    state: 'Open',
+    props: { open: true, 'aria-controls': 'open-list' },
+    text: 'text-subtle',
+    fill: FIELD,
+    caret: 'text-subtle',
+    stroke: ['stroke-focused', 2],
+  },
+  {
+    state: 'Error + Open',
+    props: { open: true, 'aria-controls': 'open-list', 'aria-invalid': true },
+    text: 'text-subtle',
+    fill: FIELD,
+    caret: 'text-subtle',
+    stroke: ['accent-critical-outline-border-default', 2],
+  },
 ] as const;
 
 const grid = (theme: 'light' | 'dark'): Story => ({
@@ -193,7 +253,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             {...props}
             aria-label={`${state} select`}
             data-state={state}
-            data-pseudo={state === 'Focus' ? 'focus-visible' : undefined}
+            data-pseudo={state === 'Focus' || state === 'Error + Focus' ? 'focus-visible' : undefined}
           />
         </div>
       ))}
@@ -211,26 +271,27 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const caret = tokenColour('text-subtle');
-    const want = STATES.map(({ state, text, stroke: [token, width] }) => ({
+    const want = STATES.map(({ state, text, fill, caret, stroke: [token, width] }) => ({
       state,
       text: tokenColour(text),
+      fill: tokenColour(fill),
+      caret: tokenColour(caret),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, text, stroke } of want) {
+        for (const { state, text, fill, caret, stroke } of want) {
           const trigger = canvasElement.querySelector<HTMLButtonElement>(`[data-state="${state}"]`)!;
           const style = getComputedStyle(trigger);
           expect(style.backgroundColor).toBe(fill);
           expect(style.boxShadow).toContain(stroke);
+          expect(style.opacity).toBe('1');
           expect(getComputedStyle(trigger.querySelector('span')!).color).toBe(text);
           const svg = trigger.querySelector('svg')!;
           expect(getComputedStyle(svg).color).toBe(caret);
           expect(svg.getBoundingClientRect().width).toBe(20);
           expect(trigger.getBoundingClientRect().height).toBe(40);
-          expect(trigger.getAttribute('aria-expanded')).toBe(String(state === 'Open'));
+          expect(trigger.getAttribute('aria-expanded')).toBe(String(state.endsWith('Open')));
         }
       },
       { timeout: 3000 },

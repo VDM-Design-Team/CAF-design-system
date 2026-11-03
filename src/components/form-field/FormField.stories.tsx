@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import * as React from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Select } from '../select';
 import { TextInput } from '../text-input';
 import { FormField } from './FormField';
@@ -14,7 +14,8 @@ const meta = {
       description: {
         component:
           'The part every **Form / Field – \\*** in the CAF Figma library shares: the `_Form Label` (with Required), ' +
-          'the control, and the Helper under it, where an `error` message takes the helper’s place. ' +
+          'the control, and the Helper space.8 under it (text/subtle). State=Error is `error`: its message takes the ' +
+          'helper’s place, in accent/critical/tonal/content/default. ' +
           'TextField and SelectField are FormField around a TextInput or a Select. ' +
           'FormField wires the control through a context: a control that calls `useFormFieldControl(props)` ' +
           '(TextInput, SelectTrigger, Select) gets the label’s `htmlFor` as its `id`, the message in ' +
@@ -152,3 +153,79 @@ export const OtherControls: Story = {
     await expect(date).not.toHaveAttribute('aria-invalid');
   },
 };
+
+/* A token's computed colour in the current theme. Measure before waitFor, never inside it:
+   the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
+function tokenColour(token: string) {
+  const probe = document.createElement('span');
+  probe.style.color = `var(--color-${token})`;
+  document.body.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
+
+/* ── The message, in Light and Dark ────────────────────────────────────────
+   Form / Field – Text's State=Default (with and without Show Helper) and
+   State=Error: the label 20 above the control; the Helper Text (text/subtle)
+   or the Error Text (accent/critical/tonal/content/default) space.8 under
+   it, Caption/md-regular; nothing under the control while there is none. */
+
+const CELLS = [
+  { id: 'none', label: 'Default', props: {} },
+  { id: 'helper', label: 'Default, Show Helper', props: { helper: 'As it appears on the bank statement.' } },
+  { id: 'error', label: 'Error', props: { error: 'This field is required.' } },
+  {
+    id: 'error-helper',
+    label: 'Error, with a helper',
+    props: { helper: 'As it appears on the bank statement.', error: 'This field is required.' },
+  },
+] as const;
+
+const message = (theme: 'light' | 'dark'): Story => ({
+  name: `Message — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => (
+    <div className="flex flex-col gap-6">
+      {CELLS.map(({ id, label, props }) => (
+        <FormField key={id} label={label} data-cell={id} {...props}>
+          <TextInput placeholder="Placeholder" />
+        </FormField>
+      ))}
+    </div>
+  ),
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark grid would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvasElement }) => {
+    const want = { helper: tokenColour('text-subtle'), error: tokenColour('accent-critical-tonal-content-default') };
+    await waitFor(() => {
+      for (const { id } of CELLS) {
+        const field = canvasElement.querySelector<HTMLElement>(`[data-cell="${id}"]`)!;
+        const [row, input, text] = Array.from(field.children) as HTMLElement[];
+        const control = input.getBoundingClientRect();
+        // Label Row: 20 above the control.
+        expect(control.top - row.querySelector('label')!.getBoundingClientRect().bottom).toBe(20);
+        if (id === 'none') {
+          expect(text).toBeUndefined();
+          expect(field.getBoundingClientRect().bottom).toBe(control.bottom);
+          continue;
+        }
+        // The message: space.8 under the control, Caption/md-regular, filling the width.
+        const box = text.getBoundingClientRect();
+        const style = getComputedStyle(text);
+        expect(box.top - control.bottom).toBe(8);
+        expect(box.width).toBe(control.width);
+        expect(style.fontSize).toBe('12px');
+        expect(style.fontWeight).toBe('400');
+        expect(style.color).toBe(id.startsWith('error') ? want.error : want.helper);
+        expect(text).toHaveTextContent(id.startsWith('error') ? 'This field is required.' : 'As it appears on the bank statement.');
+        expect(input).toHaveAccessibleDescription(text.textContent!);
+        expect(input.getAttribute('aria-invalid')).toBe(id.startsWith('error') ? 'true' : null);
+      }
+    });
+  },
+});
+
+export const MessageLight = message('light');
+export const MessageDark = message('dark');

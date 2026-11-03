@@ -408,8 +408,13 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const label = tokenColour('text-secondary');
     const marker = tokenColour('accent-critical-tonal-content-default');
     const subtle = tokenColour('text-subtle');
+    const critical = tokenColour('accent-critical-tonal-content-default');
     const ring = tokenColour('stroke-focused');
-    const stroke = { rest: tokenColour('stroke-subtle'), error: tokenColour('accent-critical-outline-border-default') };
+    const stroke = {
+      rest: tokenColour('stroke-field'),
+      error: tokenColour('accent-critical-outline-border-default'),
+      disabled: tokenColour('stroke-subtle'),
+    };
     const want = STATES.map(({ state, props }) => ({
       state,
       required: 'required' in props,
@@ -417,10 +422,11 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       error: 'error' in props,
       files: 'defaultFiles' in props ? props.defaultFiles.length : 0,
       removable: !('disabled' in props),
+      disabled: 'disabled' in props,
     }));
     await waitFor(
       () => {
-        for (const { state, required, message, error, files, removable } of want) {
+        for (const { state, required, message, error, files, removable, disabled } of want) {
           const input = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
           const zone = input.parentElement!;
           const field = zone.parentElement!;
@@ -434,17 +440,19 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           if (required) expect(getComputedStyle(star!).color).toBe(marker);
           else expect(star).toBeNull();
           expect(zone.getBoundingClientRect().top - labelNode.getBoundingClientRect().bottom).toBe(20);
-          // The zone fills the field: the dashed stroke (critical with an error), the ring when focused.
+          // The zone fills the field: the dashed stroke (stroke.field; critical with an error, stroke.subtle
+          // when disabled), the ring when focused.
           expect(zone.getBoundingClientRect().width).toBe(root.getBoundingClientRect().width);
-          expect(getComputedStyle(zone).borderTopColor).toBe(error ? stroke.error : stroke.rest);
+          expect(getComputedStyle(zone).borderTopColor).toBe(error ? stroke.error : disabled ? stroke.disabled : stroke.rest);
           expect(getComputedStyle(zone).outlineStyle).toBe(state === 'Focus' ? 'solid' : 'none');
           if (state === 'Focus') expect(getComputedStyle(zone).outlineColor).toBe(ring);
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, right under the zone.
+          // The Helper (text.subtle) or the Error Text in its place (accent.critical.tonal.content.default):
+          // Caption/md-regular, space.8 under the zone.
           const note = [...field.children].find((node) => node.tagName === 'P') as HTMLElement | undefined;
           if (message) {
-            expect(getComputedStyle(note!).color).toBe(subtle);
+            expect(getComputedStyle(note!).color).toBe(error ? critical : subtle);
             expect(getComputedStyle(note!).fontSize).toBe('12px');
-            expect(note!.getBoundingClientRect().top).toBe(zone.getBoundingClientRect().bottom);
+            expect(note!.getBoundingClientRect().top).toBe(zone.getBoundingClientRect().bottom + 8);
           } else expect(note).toBeUndefined();
           // The chips: 12px under the field, 12px apart, as wide as the field.
           const chips = [...root.querySelectorAll<HTMLElement>('li > [data-state]')];
