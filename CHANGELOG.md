@@ -1,5 +1,73 @@
 # Changelog
 
+## 0.9.0 — 2026-11-03
+
+### TableHeaderRow, TableList and TableCell type="custom" (November 2026)
+
+Three table parts from the CAF Figma library's **Table** page, added there
+first from the CAF design decisions:
+
+- **`TableHeaderRow`** (Table / Header Row): the header over a table of
+  TableRows. Its `TableHeaderCell`s are `children`, one per column, and
+  `showExpand`, `showCheckbox` (a select-all box; `checkboxProps` go to it)
+  and `showActions` add a column per control. Inside it, header cells take the
+  rows' padding (16 at the sides, 12 above and below), so the labels line up
+  with the cells under them, and a 1px `stroke.subtle` line runs under the row.
+- **`TableList`** (Table / List): the plain list table, a `TableHeaderRow`
+  (`header`) over `TableRow`s (`children`), with no fill or outer border, at
+  its container's width.
+- **`TableCell` `type="custom"`** (Table / Cell Type=Custom): any content or
+  control at its own size (Account Details, a Toggle, the expand button, an
+  Empty State across the row), with the other types' padding.
+
+`TableHeaderCell` keeps its 6px padding on its own and takes the rows'
+padding inside a `TableHeaderRow`. `SkeletonTableRow`'s cells are now
+`type="custom"`; nothing looks different.
+
+In Storybook, every table's header is now a `TableHeaderRow`: header rows are
+45px tall (44 and the line) instead of 33, in Light and Dark, and Manage
+Currencies' header gains its bottom line. The patterns' `RecordsTable` is
+replaced by `TableList`.
+
+### FilterSelect, FilterDateRange, FormHint, and RepeatableField's helper and error (November 2026)
+
+Three components and a RepeatableField extension from the CAF Figma
+library's Filters and Form pages, added there first from the CAF design
+decisions:
+
+- **`FilterSelect`** (Filter / Field – Select): a dropdown filter. The
+  Filter / Field opens a Select / Menu as wide as itself, with the chosen
+  option checked. `allLabel` ("All Status") is the reset item and the
+  field's value while no filter is in use (`onValueChange(null)`). It shares
+  Select's listbox, keys and typeahead (`useSelectListbox`, internal).
+- **`FilterDateRange`** (Filter / Field – Date range): a period filter with
+  the calendar icon that opens Date Picker / Range under it. The field shows
+  `placeholder` ("Select Period") until two picks, then the range in a short
+  format (`formatDateRange`): no year when both ends are in the current year
+  ("12–24 Oct", "28 Sep – 31 Oct"), the year otherwise ("12–24 Oct 2025",
+  "28 Dec 2025 – 3 Jan 2026"). Every current-year range fits the 256 field.
+  A screen reader hears the full dates, with the year. Its content-to-caret
+  gap is 12, not 16.
+- **`FormHint`** (_Form Hint): an inline note under a field, "This will
+  recur every 3 weeks": an Info glyph (`icon`) and a Caption line in
+  `text.subtle`.
+- **`RepeatableField`**: `helper` (Show Helper) and `error` (State=Error),
+  under the rows and above Add. `error` shows in the critical colour and
+  marks the empty rows (`invalidRows` names others) as invalid, with the
+  critical border. The label now sits 20px above the first row, as on
+  every form field (was 8), so a placed field is 12px taller.
+
+`FilterField` Type=Dropdown given `role="combobox"` takes `label` as its
+`aria-label` and drops its hidden "Status: " prefix (FilterSelect and
+FilterDateRange use this). Select's behaviour is unchanged.
+
+In Storybook, every filter bar's dropdowns are FilterSelect and
+FilterDateRange (the list opens with a check on the chosen option), the
+Exports screen's and Cost Centers' filters read "All Status", "All Types"
+and "All Cost Centers" instead of a "Filter by …" placeholder, the recurrence
+summary in the cost forms is a FormHint, and Create Announcement's Features
+shows its own error.
+
 ## 0.8.0 — 2026-11-02
 
 ### Alert action, ModalHeader actions and a Changelog item in the Account Menu (November 2026)
