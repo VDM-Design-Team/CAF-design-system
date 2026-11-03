@@ -49,7 +49,7 @@ export const Playground: Story = {
 
 export const Selected: Story = { args: { defaultChecked: true } };
 
-/** Disabled: the radio is at 50% and a click on the label does nothing. */
+/** Disabled: the radio takes its disabled colours and a click on the label does nothing. */
 export const Disabled: Story = {
   args: { disabled: true },
   play: async ({ args, canvas }) => {
@@ -59,19 +59,29 @@ export const Disabled: Story = {
   },
 };
 
-/* ── Selected false / true, in Light and Dark ────────────────────────────── */
+/* ── Every Selected × Error, in Light and Dark ─────────────────────────────
+   Figma's three variants. Error=true is `aria-invalid` on the radio: Radio's
+   critical stroke. */
 
 const VARIANTS = [
-  { selected: false, label: 'User' },
-  { selected: true, label: 'All' },
+  { selected: false, error: false, label: 'User' },
+  { selected: true, error: false, label: 'All' },
+  { selected: false, error: true, label: 'Admin' },
 ] as const;
 
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
     <div className="flex flex-col items-start gap-4">
-      {VARIANTS.map(({ selected, label }) => (
-        <RadioOption key={label} name={label} label={label} defaultChecked={selected} data-selected={selected} />
+      {VARIANTS.map(({ selected, error, label }) => (
+        <RadioOption
+          key={label}
+          name={label}
+          label={label}
+          defaultChecked={selected}
+          aria-invalid={error || undefined}
+          data-variant={label}
+        />
       ))}
     </div>
   ),
@@ -81,16 +91,19 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   afterEach: async ({ canvasElement }) => {
     const text = tokenColour('text-primary');
+    const critical = `${tokenColour('accent-critical-outline-border-default')} 0px 0px 0px 1px inset`;
     await waitFor(
       () => {
-        for (const { selected } of VARIANTS) {
-          const input = canvasElement.querySelector<HTMLInputElement>(`[data-selected="${selected}"]`)!;
+        for (const { selected, error, label: name } of VARIANTS) {
+          const input = canvasElement.querySelector<HTMLInputElement>(`[data-variant="${name}"]`)!;
           const label = input.closest('label')!;
           const radio = input.getBoundingClientRect();
           const words = document.createRange();
           words.selectNodeContents(label.lastChild!);
           const textBox = words.getBoundingClientRect();
           expect(input.checked).toBe(selected);
+          // Error=true: the radio's critical stroke.
+          if (error) expect(getComputedStyle(input).boxShadow).toContain(critical);
           // Label: Body/sm-regular, text.primary, 8px after the radio, centred on it.
           expect(getComputedStyle(label).color).toBe(text);
           expect(getComputedStyle(label).fontSize).toBe('14px');

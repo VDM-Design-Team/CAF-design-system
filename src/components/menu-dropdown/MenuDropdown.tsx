@@ -9,8 +9,9 @@ import { Popover, type PopoverProps } from '../popover';
  * keyboard pattern. Put MenuItems in it.
  *
  * Figma → code:
- * - The panel → Popover's surface, which is this component's: fill, 1px
- *   inside stroke, radius, elevation and padding.
+ * - The panel → Popover's surface, which is this component's: fill
+ *   `surface.elevated` (since 3 Nov 2026), 1px inside `stroke.subtle`, radius
+ *   8, Elevation 3 and padding 6.
  * - Auto layout, vertical, 2px between items → `gap-0.5`.
  * - Fixed width 212 (raw) → at least 256 (`space.256`), wider for a longer label.
  * - Item instances → MenuItem `children`. Figma's "hide unused items" is

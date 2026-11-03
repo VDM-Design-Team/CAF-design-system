@@ -22,7 +22,8 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Menus** (`Menu / Item`): one action in a menu. Figma’s Type is ' +
-          'Default, Hover (`:hover`) or Destructive (`destructive`); the Label is `children`. It is a ' +
+          'Default, Hover (`:hover`), Destructive (`destructive`) or Destructive Hover; the Label is `children`. The ' +
+          'item the keyboard is on takes the Hover look, plus the focus ring. It is a ' +
           '`<button role="menuitem">` outside the tab order: use it inside MenuDropdown or RowActionsMenu, which move ' +
           'focus between items and close when one is chosen. Figma has no Disabled item.',
       },
@@ -48,13 +49,15 @@ export const Playground: Story = {
 };
 
 /* ── Every Type × state, in Light and Dark ─────────────────────────────────
-   Figma's Default, Hover and Destructive, plus Destructive on hover (which
-   Figma doesn't draw), on the menu's surface. Hover is forced with
-   storybook-addon-pseudo-states and checked against Figma's bindings. */
+   Figma's Default, Hover, Destructive and Destructive Hover, plus the item the
+   keyboard is on (`:focus-visible`, Hover's look and the ring), on the menu's
+   surface. Hover and focus are forced with storybook-addon-pseudo-states and
+   checked against Figma's bindings. */
 
 const STATES = [
   { state: 'default', label: 'At rest' },
   { state: 'hover', label: 'Hover' },
+  { state: 'focus-visible', label: 'Keyboard focus' },
 ] as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -101,7 +104,11 @@ const types = (theme: 'light' | 'dark'): Story => ({
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'] },
+    pseudo: {
+      rootSelector: 'body',
+      hover: ['[data-pseudo="hover"]'],
+      focusVisible: ['[data-pseudo="focus-visible"]'],
+    },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -109,10 +116,12 @@ const types = (theme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const want = {
-      panel: tokenColour('surface-neutral-faint'),
-      hover: tokenColour('surface-base'),
+      panel: tokenColour('surface-elevated'),
+      hover: tokenColour('neutral-tonal-surface-default'),
       default: tokenColour('text-primary'),
       destructive: tokenColour('accent-critical-tonal-content-default'),
+      destructiveHover: tokenColour('accent-critical-tonal-content-hover'),
+      ring: tokenColour('stroke-focused'),
       type: utilityType('text-body-sm-regular'),
     };
     await waitFor(
@@ -121,13 +130,27 @@ const types = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(menu).backgroundColor).toBe(want.panel);
         }
         const items = canvasElement.querySelectorAll<HTMLElement>('[role="menuitem"]');
-        expect(items).toHaveLength(4);
+        expect(items).toHaveLength(6);
         for (const item of items) {
           const style = getComputedStyle(item);
-          // Type=Hover: surface.base. At rest: no fill.
-          expect(style.backgroundColor).toBe(item.dataset.pseudo === 'hover' ? want.hover : 'rgba(0, 0, 0, 0)');
-          // Type=Default: text.primary. Type=Destructive: accent.critical.tonal.content.default.
-          expect(style.color).toBe(want[item.dataset.type as 'default' | 'destructive']);
+          const lifted = item.dataset.pseudo !== 'default';
+          // Type=Hover, Destructive Hover and the keyboard's item: neutral.tonal.surface.default. At rest: no fill.
+          expect(style.backgroundColor).toBe(lifted ? want.hover : 'rgba(0, 0, 0, 0)');
+          // Type=Default (and Hover): text.primary. Destructive: accent.critical.tonal.content.default,
+          // and .hover on the lifted fill.
+          const label = item.dataset.type === 'default' ? want.default : lifted ? want.destructiveHover : want.destructive;
+          expect(style.color).toBe(label);
+          // The focus ring only on the keyboard's item: 2px stroke.focused, 2px out.
+          if (item.dataset.pseudo === 'focus-visible') {
+            expect([style.outlineStyle, style.outlineWidth, style.outlineColor, style.outlineOffset]).toEqual([
+              'solid',
+              '2px',
+              want.ring,
+              '2px',
+            ]);
+          } else {
+            expect(style.outlineStyle).toBe('none');
+          }
           // Body/sm-regular; 8 / 12 padding; radius 6.
           expect({ fontSize: style.fontSize, lineHeight: style.lineHeight, fontWeight: style.fontWeight }).toEqual(want.type);
           expect(style.padding).toBe('8px 12px');

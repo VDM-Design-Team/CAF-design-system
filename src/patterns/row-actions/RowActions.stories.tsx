@@ -17,7 +17,15 @@ import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { TextField } from '../../components/text-field';
 import { ToastProvider, useToast } from '../../components/toast';
-import { costCentres, formatDate, formatShortDate, recurringCosts, rowActionLabels, type CostCentre } from '../fixtures';
+import {
+  costCentres,
+  formatDate,
+  formatPaymentAmount,
+  formatShortDate,
+  recurringCosts,
+  rowActionLabels,
+  type CostCentre,
+} from '../fixtures';
 import { PageHeader } from '../../components/page-header';
 import { RecurringCostsTable } from '../recurring/RecurringCostsTable';
 
@@ -408,6 +416,7 @@ function ViewSchedulesDemo() {
             status={p.status}
             date={formatDate(p.date)}
             subtitle={p.status === 'done' ? `Processed on ${formatShortDate(p.date)}` : 'Scheduled'}
+            amount={formatPaymentAmount(cost)}
           />
         ))}
       </PaymentSchedules>

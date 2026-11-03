@@ -7,13 +7,14 @@ import { RadioOption } from '../radio-option';
 
 /**
  * RadioGroup — built from the CAF Figma library, page "Selection Controls":
- * `Form / Radio Group`, a label over a row of Radio Options with the Helper
- * under them (Create Announcement's "Target Audience": All, Admin, User).
+ * `Form / Radio Group` (State), a label over a row of Radio Options with the
+ * Helper under them (Create Announcement's "Target Audience": All, Admin,
+ * User).
  *
  * Figma → code:
- * - Label → `label`: Body/sm-regular in text/secondary, the `_Form Label`
- *   look (code renders FormLabel as the fieldset's `<legend>`). `required`
- *   adds _Form Label's marker; see below.
+ * - Label → `label`: the exposed `_Form Label` (Body/sm-regular in
+ *   text/secondary), rendered with FormLabel as the fieldset's `<legend>`.
+ *   Its Required → `required`; see below.
  * - Options → `options`, one RadioOption each, in a row 24px apart
  *   (Figma: raw 24 → space/24). A plain string is `{ value: s, label: s }`.
  * - Each Radio Option's Selected → `value` (controlled, with
@@ -21,13 +22,14 @@ import { RadioOption } from '../radio-option';
  * - Show Helper + Helper → `helper`: Caption/md-regular in text/subtle.
  * - Label, options and Helper are 8px apart (Figma: raw 8 → space/8).
  *
- * Code adds what a form needs, which Figma doesn't draw:
+ * Code adds what a form needs:
  * - `required`: _Form Label's marker after the label, `required` on every
  *   radio (the browser won't submit the form until one is chosen) and
  *   `aria-required` on the group.
- * - `error`: the message, in the Helper's place and style (as FormField
- *   does), with `aria-invalid` on the group and its radios. Radio has no
- *   Error state, so the radios look the same.
+ * - `error` (Figma's State=Error and Error text): the message, in the
+ *   Helper's place and style (as FormField does), with `aria-invalid` on the
+ *   group and its radios, which then show Radio's Error stroke (Radio
+ *   Option's Error=true).
  * - `disabled`: the fieldset's own, which disables every radio.
  *
  * It is a `<fieldset role="radiogroup">` named by its legend, with the

@@ -11,14 +11,14 @@ import { cn } from '../../lib/cn';
  *
  * Its surface is `Menu / Dropdown`'s (page "Menus"), so every CAF overlay
  * looks the same:
- * - Fill    → `surface.neutral.faint`
+ * - Fill    → `surface.elevated` ("Cards, Widgets, Popovers"; since 3 Nov
+ *   2026, decision menu-surface: it was `surface.neutral.faint`, the canvas)
  * - Stroke  → 1px inside `stroke.subtle` (an inset ring)
- * - Radius  → `radius.8` (Figma: raw 8)
- * - Effect  → `shadow-elevation-3` (Figma: the Elevation Dark/3 style, which
- *   is GDL's Dark Elevation 3). Tailwind compiles the utility to GDL's Light
- *   Elevation 3 in both themes, so Dark is a little lighter than Figma until
- *   the theme output carries Dark elevation (docs/figma-sync.md, "Popover").
- * - Padding → `space.6` on every side (Figma: raw 6)
+ * - Radius  → `radius.8`
+ * - Effect  → `shadow-elevation-3` (Figma: the Elevation Light/3 style, GDL's
+ *   Elevation 3). Tailwind compiles the utility to GDL's Light Elevation 3 in
+ *   both themes (docs/figma-sync.md, "Popover").
+ * - Padding → `space.6` on every side
  *
  * Behaviour:
  * - The trigger is cloned, so the real control keeps its own semantics. It
@@ -52,7 +52,7 @@ import { cn } from '../../lib/cn';
 
 /** Menu / Dropdown's surface, for anything that floats: fill, 1px inside stroke, radius, elevation, padding. */
 export const popoverSurface =
-  'rounded-8 bg-surface-neutral-faint p-1.5 text-text-primary shadow-elevation-3 inset-ring inset-ring-stroke-subtle';
+  'rounded-8 bg-surface-elevated p-1.5 text-text-primary shadow-elevation-3 inset-ring inset-ring-stroke-subtle';
 
 const panel = cva(
   [

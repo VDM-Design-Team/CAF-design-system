@@ -17,8 +17,15 @@ import { Icon } from '../icon';
  *   "Click or drag files to upload", is the default here.
  * - Hint  → `hint`: the accepted types and size limit, Caption/md-regular,
  *   text/subtle (e.g. "DOC, DOCX, PDF, PNG, JPG, JPEG accepted (Max 10.0MB)").
- * - Icon / Upload → Phosphor FileArrowUp, 24px, in text/subtle (Figma's
- *   vector is a raw #E5E5E5; see docs/figma-sync.md).
+ * - Icon / Upload → Phosphor FileArrowUp, 24px, in text/subtle.
+ * - State=Default   → a 1px dashed stroke/field stroke, as the inputs' 3:1 border.
+ * - State=Drag-over → a file held over the zone: the dashed stroke 2px, in
+ *   stroke/focused (the inputs' Focus is 2px too), so it stands out from Default.
+ * - State=Error     → the input is `aria-invalid` (FormField sets it): the
+ *   dashed stroke in accent/critical/outline/border/default.
+ * - State=Disabled  → `disabled`: the title, the hint and the icon in
+ *   text/disabled; the stroke stroke/subtle. The zone is `aria-disabled`,
+ *   so its text reads as an inactive control's (WCAG 1.4.3 exempts it).
  *
  * It is a native `<input type="file">`, visually hidden but real: Tab
  * reaches it and Enter or Space opens the browse dialog, clicking anywhere
@@ -29,12 +36,8 @@ import { Icon } from '../icon';
  * `fileMatchesAccept`), `required`, `disabled`, `onChange`. `className`
  * styles the zone.
  *
- * States Figma doesn't draw (in docs/figma-sync.md): drag-over (a file held
- * over the zone) shows the dashed stroke in stroke/focused, the Focus colour
- * of `_Text Input`; keyboard focus shows the focus ring; Error (the input is
- * `aria-invalid`, which FormField sets) shows the stroke in
- * accent/critical/outline, as `_Text Input`'s Error; Disabled takes the
- * Title to text/subtle, as TextInput's disabled value.
+ * Figma has no Focus state: keyboard focus shows the focus ring (in
+ * docs/figma-sync.md).
  *
  * Inside a FormField (FileUploadField is one) the input takes the field's
  * id, message, error and required (`useFormFieldControl`), and the Hint is
@@ -49,9 +52,9 @@ const zoneClasses = [
   /* The zone: a centred column, 24px padding, 8px gap, radius 8, no fill.
      `relative` keeps the hidden input inside it. */
   'relative flex w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-2 rounded-8 p-6 text-center',
-  /* The 1px dashed stroke/subtle stroke (Figma: inside, dash 6 gap 4). CSS
-     can't set the dash pattern; the browser draws its own. */
-  'border border-dashed border-stroke-subtle transition-colors',
+  /* State=Default: the 1px dashed stroke/field stroke (Figma: inside, dash 6 gap 4, in the
+     layout). CSS can't set the dash pattern; the browser draws its own. */
+  'border border-dashed border-stroke-field transition-colors',
   /* Keyboard focus is on the hidden input; the zone shows the ring, as Button's. */
   'has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-stroke-focused',
 ];
@@ -149,14 +152,19 @@ export const FileUploadZone = React.forwardRef<HTMLInputElement, FileUploadZoneP
     <div
       className={cn(
         zoneClasses,
-        /* Error: the input is aria-invalid. */
+        /* State=Error: the input is aria-invalid. */
         invalid && 'border-accent-critical-outline-border-default',
-        /* Drag-over: a file is held over the zone. It wins over Error, so the target shows. */
-        dragging && 'border-stroke-focused',
-        disabled && 'cursor-not-allowed',
+        /* State=Drag-over: a file is held over the zone, 2px stroke.focused. It wins over Error,
+           so the target shows. Figma counts the stroke in the layout, so the zone is 2px taller. */
+        dragging && 'border-2 border-stroke-focused',
+        /* State=Disabled: stroke.subtle (no drag-over while disabled). */
+        disabled && 'cursor-not-allowed border-stroke-subtle',
         className,
       )}
       data-dragging={dragging ? '' : undefined}
+      /* The zone is the control the user sees: while its input is disabled, its title and hint
+         are an inactive component's text (WCAG 1.4.3 exempts them; axe reads this). */
+      aria-disabled={disabled || undefined}
       onClick={(event) => {
         /* A click on the input itself (a label's, or Enter / Space) already opens the dialog. */
         if (event.target !== inputRef.current) inputRef.current?.click();
@@ -194,18 +202,21 @@ export const FileUploadZone = React.forwardRef<HTMLInputElement, FileUploadZoneP
         }}
         {...input}
       />
-      {/* Icon / Upload: FileArrowUp 24px, text/subtle. */}
-      <Icon name="file-arrow-up" size={24} className="text-text-subtle" />
-      {/* Title: Body/sm-regular, text/secondary; text/subtle while disabled. */}
+      {/* Icon / Upload: FileArrowUp 24px, text/subtle; text/disabled while disabled. */}
+      <Icon name="file-arrow-up" size={24} className={disabled ? 'text-text-disabled' : 'text-text-subtle'} />
+      {/* Title: Body/sm-regular, text/secondary; text/disabled while disabled. */}
       <p
         id={titleId}
-        className={cn('text-body-sm-regular', disabled ? 'text-text-subtle' : 'text-text-secondary')}
+        className={cn('text-body-sm-regular', disabled ? 'text-text-disabled' : 'text-text-secondary')}
       >
         {title}
       </p>
-      {/* Hint: Caption/md-regular, text/subtle. */}
+      {/* Hint: Caption/md-regular, text/subtle; text/disabled while disabled. */}
       {hintId && (
-        <p id={hintId} className="text-caption-md-regular text-text-subtle">
+        <p
+          id={hintId}
+          className={cn('text-caption-md-regular', disabled ? 'text-text-disabled' : 'text-text-subtle')}
+        >
           {hint}
         </p>
       )}

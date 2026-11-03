@@ -11,7 +11,7 @@ import { TableHeaderRow } from '../../components/table-header-row';
 import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { useToast } from '../../components/toast';
-import { formatDate, formatFrequency, formatShortDate, recurringCosts } from '../fixtures';
+import { formatDate, formatFrequency, formatPaymentAmount, formatShortDate, recurringCosts } from '../fixtures';
 import { PageHeader } from '../../components/page-header';
 import { RecurringCostSheet, type EditableRecurringCost, type RecurringCostUpdate } from './RecurringCostSheet';
 
@@ -138,6 +138,7 @@ export function RecurringCostsPage({
             status={payment.status}
             date={formatDate(payment.date)}
             subtitle={payment.status === 'done' ? `Processed on ${formatShortDate(payment.date)}` : 'Scheduled'}
+            amount={formatPaymentAmount(scheduled)}
           />
         ))}
       </PaymentSchedules>

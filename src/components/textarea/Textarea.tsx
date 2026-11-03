@@ -13,8 +13,8 @@ import { useFormFieldControl } from '../form-field';
  * - State=Filled   → a value (`value` or `defaultValue`), in text/primary.
  * - State=Focus    → `:focus`: a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border.
- * - State=Disabled → the native `disabled` attribute: Default's look at
- *   Figma's 50% layer opacity.
+ * - State=Disabled → the native `disabled` attribute: the disabled fill and
+ *   stroke, the text in text/disabled.
  * - Value          → `placeholder` while empty, the value once filled.
  * - The 96px height → `rows`, 4 by default: four 20px lines and 8px above and
  *   below make Figma's 96. Figma's note "Resize height as needed" → more
@@ -43,9 +43,11 @@ const textareaClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour while
      focused (Focus's 2px width), so the error stays visible as you type. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
-     whole field at 50% opacity (Figma's layer opacity, raw 0.5). It can't be resized. */
-  'disabled:cursor-not-allowed disabled:resize-none disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
+  /* State=Disabled: the neutral.tonal disabled fill, a 1px
+     neutral.outline.border.disabled stroke, and the value and the placeholder
+     in text.disabled. No opacity. It can't be resized. */
+  'disabled:cursor-not-allowed disabled:resize-none disabled:bg-neutral-tonal-surface-disabled disabled:inset-ring-neutral-outline-border-disabled',
+  'disabled:text-text-disabled disabled:placeholder:text-text-disabled',
 ];
 
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;

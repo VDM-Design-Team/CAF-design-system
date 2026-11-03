@@ -114,7 +114,7 @@ const frame = (theme: 'light' | 'dark'): Story => ({
       disabled: tokenColour('text-disabled'),
       selectedFill: tokenColour('action-primary-surface-default'),
       selectedText: tokenColour('action-primary-content-default'),
-      rangeFill: tokenColour('surface-base'),
+      rangeFill: tokenColour('neutral-tonal-surface-default'),
     };
     const panel = canvas.getByRole('group');
     const [start, end] = [canvas.getByText('October 2026'), canvas.getByText('November 2026')];

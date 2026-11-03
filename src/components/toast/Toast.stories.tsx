@@ -79,6 +79,7 @@ function utilityShadow(className: string) {
 const COLUMNS = [
   { key: 'off', heading: 'Show Action off' },
   { key: 'on', heading: 'Show Action on' },
+  { key: 'action-hover', heading: 'Action State=Hover' },
   { key: 'hover', heading: 'X, Hover' },
 ] as const;
 
@@ -119,10 +120,11 @@ const grid = (theme: 'light' | 'dark'): Story => ({
                 <Toast
                   type={type}
                   message={MESSAGE[type]}
-                  showAction={key === 'on'}
+                  showAction={key === 'on' || key === 'action-hover'}
                   action={type === 'error' ? 'Retry' : 'Undo'}
                   data-type={type}
-                  data-pseudo={key === 'hover' ? 'hover' : undefined}
+                  data-column={key}
+                  data-pseudo={key === 'off' || key === 'on' ? undefined : key}
                 />
               </td>
             ))}
@@ -135,8 +137,11 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    // The forced Hover goes on the X inside the marked toast.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"] [data-toast-dismiss]'] },
+    // The forced Hover goes on the X, or on the action, inside the marked toast.
+    pseudo: {
+      rootSelector: 'body',
+      hover: ['[data-pseudo="hover"] [data-toast-dismiss]', '[data-pseudo="action-hover"] [data-toast-action]'],
+    },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -150,6 +155,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       shadow: utilityShadow('shadow-elevation-3 inset-ring inset-ring-stroke-subtle'),
       message: tokenColour('text-primary'),
       action: tokenColour('text-link-default'),
+      actionHover: tokenColour('text-link-hover'),
       glyph: tokenColour('text-secondary'),
       hover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
@@ -170,8 +176,12 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(glyph).color).toBe(icon[el.dataset.type!]);
           expect(glyph.getBoundingClientRect().width).toBe(20);
           expect(getComputedStyle(el.querySelector('p')!).color).toBe(want.message);
-          const action = el.querySelector('button:not([data-toast-dismiss])');
-          if (action) expect(getComputedStyle(action).color).toBe(want.action);
+          // Action: text.link.default; Action State=Hover: text.link.hover.
+          const action = el.querySelector('[data-toast-action]');
+          expect(action !== null).toBe(el.dataset.column === 'on' || el.dataset.column === 'action-hover');
+          if (action) {
+            expect(getComputedStyle(action).color).toBe(el.dataset.pseudo === 'action-hover' ? want.actionHover : want.action);
+          }
           const dismiss = el.querySelector<HTMLElement>('[data-toast-dismiss]')!;
           expect(getComputedStyle(dismiss.querySelector('svg')!).color).toBe(want.glyph);
           expect(getComputedStyle(dismiss).backgroundColor).toBe(el.dataset.pseudo === 'hover' ? want.hover : want.none);
