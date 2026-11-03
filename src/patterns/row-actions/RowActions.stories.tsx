@@ -261,7 +261,7 @@ export const DeleteFromRowMenu: Story = {
     const button = canvas.getByRole('button', { name: 'Actions for Employee Expenses' });
     await expect(button.closest('td')).toBe(button.closest('tr')!.lastElementChild);
     await userEvent.click(button);
-    const menu = canvas.getByRole('menu', { name: 'Actions for Employee Expenses' });
+    const menu = screen.getByRole('menu', { name: 'Actions for Employee Expenses' });
     await expect(menuItems(menu)).toEqual([...rowActionLabels.default]);
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
     await expect(menu.getBoundingClientRect().top).toBeGreaterThanOrEqual(button.getBoundingClientRect().bottom);
@@ -269,11 +269,11 @@ export const DeleteFromRowMenu: Story = {
 
     // A click outside closes it without choosing.
     await userEvent.click(canvas.getByRole('heading', { level: 1 }));
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
     // Delete asks first: the title asks, the message names the record, focus opens on Cancel.
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     const dialog = await screen.findByRole('alertdialog', { name: 'Delete cost center?' });
     await expect(dialog).toHaveAccessibleDescription('“Employee Expenses” will be permanently deleted. This can’t be undone.');
     await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus());
@@ -286,7 +286,7 @@ export const DeleteFromRowMenu: Story = {
 
     // From the keyboard: ↑ opens the menu on its last item, Delete; Enter, Tab to the red Delete, Enter.
     await userEvent.keyboard('{ArrowUp}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveFocus());
     await userEvent.keyboard('{Enter}');
     const again = await screen.findByRole('alertdialog', { name: 'Delete cost center?' });
     await waitFor(() => expect(within(again).getByRole('button', { name: 'Cancel' })).toHaveFocus());
@@ -310,7 +310,7 @@ export const EditFromRowMenu: Story = {
     const t = tableOf(canvasElement);
     const button = canvas.getByRole('button', { name: 'Actions for IT Expenses' });
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Edit' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const dialog = await screen.findByRole('dialog', { name: 'Edit Cost Center' });
     const form = within(dialog);
     // Focus starts on the first field, pre-filled.
@@ -373,7 +373,7 @@ export const MenusForEachPage: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     for (const { page, items } of MENUS) {
-      const menu = canvas.getByRole('menu', { name: `${page} row actions` });
+      const menu = screen.getByRole('menu', { name: `${page} row actions` });
       await expect(menu).toBeVisible();
       await expect(menuItems(menu)).toEqual([...items]);
       const last = within(menu).getAllByRole('menuitem').at(-1)!;
@@ -423,7 +423,7 @@ export const ViewOpensAModal: Story = {
     const canvas = within(canvasElement);
     const button = canvas.getByRole('button', { name: 'Actions for recurring cost 1240' });
     await userEvent.click(button);
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'View Schedules' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'View Schedules' }));
     const dialog = await screen.findByRole('dialog', { name: 'Payment Schedules' });
     await expect(within(dialog).getByText('September 1, 2026')).toBeVisible();
     await expect(within(dialog).getByText('Processed on Sep 1, 2026')).toBeVisible();
@@ -435,7 +435,7 @@ export const ViewOpensAModal: Story = {
 
     // Escape closes it too.
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}{Enter}');
     await screen.findByRole('dialog', { name: 'Payment Schedules' });
     await userEvent.keyboard('{Escape}');
@@ -449,7 +449,7 @@ export const MenuOpen: Story = {
   name: 'Menu open',
   args: { menuOpenFor: 'cc-1' },
   play: async ({ canvasElement }) => {
-    const menu = within(canvasElement).getByRole('menu', { name: 'Actions for Employee Expenses' });
+    const menu = screen.getByRole('menu', { name: 'Actions for Employee Expenses' });
     await expect(menu).toBeVisible();
   },
 };
@@ -473,6 +473,6 @@ export const Dark: Story = {
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole('menu', { name: 'Actions for Employee Expenses' })).toBeVisible();
+    await expect(screen.getByRole('menu', { name: 'Actions for Employee Expenses' })).toBeVisible();
   },
 };

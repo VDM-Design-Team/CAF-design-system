@@ -398,7 +398,7 @@ export const PreviewAndDelete: Story = {
     const trigger = canvas.getByRole('button', { name: `Actions for ${first.title} v${first.version}` });
     trigger.focus();
     await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Preview' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Preview' })).toHaveFocus());
     await userEvent.keyboard('{Enter}');
 
     const preview = await screen.findByRole('dialog', { name: first.title });
@@ -412,7 +412,7 @@ export const PreviewAndDelete: Story = {
     // Delete the second one.
     const second = announcements[1];
     await userEvent.click(canvas.getByRole('button', { name: `Actions for ${second.title} v${second.version}` }));
-    await userEvent.click(canvas.getByRole('menuitem', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     const confirm = await screen.findByRole('alertdialog', { name: 'Delete announcement?' });
     await expect(confirm).toHaveAccessibleDescription(`“${second.title}” will be permanently deleted. This can’t be undone.`);
     await userEvent.click(within(confirm).getByRole('button', { name: 'Delete' }));

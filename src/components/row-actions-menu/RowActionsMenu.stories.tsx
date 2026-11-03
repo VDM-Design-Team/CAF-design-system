@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { MenuItem } from '../menu-item';
 import { StatusPill } from '../status-pill';
 import { TableCell } from '../table-cell';
@@ -72,7 +72,8 @@ const meta = {
           'table row, with the `Menu / Dropdown` it opens. The button is an IconButton (`dots-three`, Ghost, 32); the ' +
           'menu opens below it, flush with its right edge, as in Figma’s row actions pattern. Put it in a TableCell of ' +
           'type `actions`, with the row’s MenuItems as `children`. `label` names the button and its menu: “Row actions” ' +
-          'by default; name the record when there are many rows.',
+          'by default; name the record when there are many rows. The menu opens outside the table (Popover’s `portal`, ' +
+          'on `<body>`), so a TableList’s scroll region never cuts it off; find it with `screen` in tests.',
       },
     },
   },
@@ -98,7 +99,7 @@ export const Playground: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Row actions' }));
-    await expect(canvas.getByRole('menu', { name: 'Row actions' })).toBeVisible();
+    await expect(screen.getByRole('menu', { name: 'Row actions' })).toBeVisible();
   },
 };
 
@@ -110,8 +111,14 @@ export const InTableRow: Story = {
     const canvas = within(canvasElement);
     const button = canvas.getByRole('button', { name: 'Actions for cost 123456' });
     await userEvent.click(button);
-    const menu = canvas.getByRole('menu', { name: 'Actions for cost 123456' });
+    const menu = screen.getByRole('menu', { name: 'Actions for cost 123456' });
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
+
+    // Outside the table: on <body>, fixed at the button (Popover's portal), and wired to it.
+    await expect(menu.parentElement).toBe(document.body);
+    await expect(canvasElement.contains(menu)).toBe(false);
+    await expect(getComputedStyle(menu).position).toBe('fixed');
+    await expect(button).toHaveAttribute('aria-controls', menu.id);
 
     // Below the button, 4px away, flush with its right edge.
     const b = button.getBoundingClientRect();
@@ -124,7 +131,7 @@ export const InTableRow: Story = {
     await expect(menu.contains(document.elementFromPoint(last.left + 8, last.top + last.height / 2))).toBe(true);
 
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'View invoices' }));
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(canvas.getByRole('status')).toHaveTextContent('View invoices: cost 123456');
     await expect(button).toHaveFocus();
 
@@ -132,9 +139,9 @@ export const InTableRow: Story = {
     const next = canvas.getByRole('button', { name: 'Actions for cost 123457' });
     next.focus();
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
     await userEvent.keyboard('{End}{Enter}');
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(canvas.getByRole('status')).toHaveTextContent('Delete: cost 123457');
     await expect(next).toHaveFocus();
   },
@@ -164,7 +171,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     const want = { fill: tokenColour('surface-neutral-faint'), glyph: tokenColour('text-secondary') };
     const canvas = within(canvasElement);
     const button = canvas.getByRole('button', { name: 'Actions for cost 123457' });
-    const menu = canvas.getByRole('menu', { name: 'Actions for cost 123457' });
+    const menu = screen.getByRole('menu', { name: 'Actions for cost 123457' });
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(getComputedStyle(menu).backgroundColor).toBe(want.fill);
     // The ••• is Ghost: text.secondary.

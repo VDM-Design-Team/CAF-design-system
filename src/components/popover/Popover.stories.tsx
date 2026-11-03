@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
 import { Popover, POPOVER_ALIGNS, POPOVER_PLACEMENTS } from './Popover';
 
@@ -14,7 +14,9 @@ const meta = {
           'Date picker are built on, with **Menu / Dropdown**’s surface (fill, 1px inside stroke, radius 8, Elevation 3, ' +
           'padding 6). It opens below the trigger, 4px away, flush with its left or right edge (`placement`, `align`), and ' +
           'flips when the viewport has no room. A click outside, Escape or focus leaving closes it; focus goes back to ' +
-          'the trigger if it was inside. It is non-modal and has no portal, so a parent that clips overflow clips it too.',
+          'the trigger if it was inside. It is non-modal. By default it has no portal, so a parent that clips overflow ' +
+          'clips it too; `portal` renders the panel on `<body>` instead, fixed at the trigger (RowActionsMenu does, so ' +
+          'row menus open outside a table’s scroll region). A portalled panel is found with `screen`.',
       },
     },
   },
@@ -125,9 +127,9 @@ function utilityShadow(className: string) {
   return value;
 }
 
-const surface = (theme: 'light' | 'dark'): Story => ({
-  name: `Surface — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  args: { defaultOpen: true },
+const surface = (theme: 'light' | 'dark', portal = false): Story => ({
+  name: `Surface${portal ? ', portal' : ''} — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  args: { defaultOpen: true, portal },
   render: (args) => (
     <div className="pb-24">
       <Popover {...args} />
@@ -136,7 +138,7 @@ const surface = (theme: 'light' | 'dark'): Story => ({
   globals: { theme },
   parameters: { controls: { disable: true } },
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
-  tags: theme === 'dark' ? ['!autodocs'] : [],
+  tags: theme === 'dark' || portal ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
       fill: tokenColour('surface-neutral-faint'),
@@ -161,11 +163,107 @@ const surface = (theme: 'light' | 'dark'): Story => ({
     await expect(p.left).toBeCloseTo(t.left, 1);
     await expect(panel).toHaveAttribute('data-placement', 'bottom');
     await expect(panel).toHaveAttribute('data-align', 'left');
+    // Inline in the trigger's wrapper, or (`portal`) on <body>, fixed: the same surface and place either way.
+    await expect(panel.parentElement === document.body).toBe(portal);
+    await expect(style.position).toBe(portal ? 'fixed' : 'absolute');
   },
 });
 
 export const SurfaceLight = surface('light');
 export const SurfaceDark = surface('dark');
+export const SurfacePortalLight = surface('light', true);
+export const SurfacePortalDark = surface('dark', true);
+
+/* ── portal: in a container that scrolls ───────────────────────────────────
+   The trigger sits in a box that scrolls sideways, as a ••• does in a
+   TableList's scroll region. A box that scrolls clips what is inside it, so
+   the default panel would be cut off at the box's bottom edge. With `portal`
+   the panel opens on <body>, fixed at the trigger: over the box's edge, still
+   wired to the trigger, and it follows the trigger when the box scrolls. */
+export const Portal: Story = {
+  render: (args) => (
+    <div className="flex flex-col items-start gap-4 pb-48">
+      <div data-testid="box" className="w-80 overflow-x-auto rounded-8 inset-ring inset-ring-stroke-subtle">
+        <div className="flex w-max items-center gap-4 p-3">
+          <Popover {...args} portal trigger={<Button size="small">Show details</Button>}>
+            <div className="flex w-64 flex-col items-start gap-2">
+              <p className="text-body-sm-regular">Submitted on 8 Oct 2026 by the finance team.</p>
+              <Button size="small" variant="outlined">
+                Copy link
+              </Button>
+            </div>
+          </Popover>
+          <span className="text-body-sm-regular text-text-secondary">Invoice 4521 · USD 5130.37 · Pending · Credit card</span>
+        </div>
+      </div>
+      <Button variant="outlined">After the box</Button>
+    </div>
+  ),
+  parameters: { controls: { disable: true } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByTestId('box');
+    const trigger = canvas.getByRole('button', { name: 'Show details' });
+    const after = canvas.getByRole('button', { name: 'After the box' });
+
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const panel = document.getElementById(trigger.getAttribute('aria-controls')!)!;
+    // On <body>, not in the box; fixed, above the page.
+    await expect(canvasElement.contains(panel)).toBe(false);
+    await expect(panel.parentElement).toBe(document.body);
+    await expect(getComputedStyle(panel).position).toBe('fixed');
+    await expect(getComputedStyle(panel).zIndex).toBe('50');
+    // Where the inline panel would be: 4px under the trigger, flush with its left edge…
+    const t = trigger.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    await expect(p.top - t.bottom).toBeCloseTo(4, 1);
+    await expect(p.left).toBeCloseTo(t.left, 1);
+    // …past the box's bottom edge, and all of it shows.
+    await expect(p.bottom).toBeGreaterThan(box.getBoundingClientRect().bottom);
+    const copy = within(panel).getByRole('button', { name: 'Copy link' }).getBoundingClientRect();
+    await expect(panel.contains(document.elementFromPoint(copy.left + 4, copy.top + copy.height / 2))).toBe(true);
+
+    // It follows the trigger when the box scrolls.
+    box.scrollLeft = 40;
+    await waitFor(() => expect(box.scrollLeft).toBe(40));
+    await waitFor(() => expect(panel.getBoundingClientRect().left).toBeCloseTo(trigger.getBoundingClientRect().left, 1));
+    box.scrollLeft = 0;
+    await waitFor(() => expect(panel.getBoundingClientRect().left).toBeCloseTo(trigger.getBoundingClientRect().left, 1));
+
+    // A click inside keeps it open; Tab goes from the trigger into the panel, as inline.
+    await userEvent.click(within(panel).getByText(/Submitted on/));
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    trigger.focus();
+    await userEvent.tab();
+    await expect(within(panel).getByRole('button', { name: 'Copy link' })).toHaveFocus();
+    // Shift+Tab from its first control goes back to the trigger, and it stays open.
+    await userEvent.tab({ shift: true });
+    await expect(trigger).toHaveFocus();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    // Tab past its last control goes on to what follows the trigger, and closes it.
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect(after).toHaveFocus();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(document.getElementById(panel.id)).toBeNull();
+
+    // Escape from inside closes it and hands focus back to the trigger.
+    trigger.focus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.tab();
+    await expect(screen.getByRole('button', { name: 'Copy link' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(trigger).toHaveFocus();
+
+    // A click outside closes it and leaves focus where it lands.
+    await userEvent.click(trigger);
+    await userEvent.click(document.body);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(screen.queryByText(/Submitted on/)).toBeNull();
+  },
+};
 
 /* ── Flipping at the viewport's edges ──────────────────────────────────────
    Four popovers asked for bottom-left, one in each corner of the viewport.

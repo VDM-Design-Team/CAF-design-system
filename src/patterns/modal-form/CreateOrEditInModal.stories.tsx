@@ -139,7 +139,7 @@ export const EditFromRowMenu: Story = {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole('button', { name: 'Actions for Travel Expenses, Philippines' });
     await userEvent.click(trigger);
-    const menu = canvas.getByRole('menu', { name: 'Actions for Travel Expenses, Philippines' });
+    const menu = screen.getByRole('menu', { name: 'Actions for Travel Expenses, Philippines' });
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'Edit' }));
 
     const dialog = await screen.findByRole('dialog', { name: 'Edit Cost Center' });

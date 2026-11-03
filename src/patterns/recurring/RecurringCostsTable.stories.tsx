@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { EmptyState } from '../../components/empty-state';
 import { MenuItem } from '../../components/menu-item';
 import { recurringCosts, rowActionLabels } from '../fixtures';
@@ -129,7 +129,7 @@ export const Dark: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('columnheader', { name: 'ID' })).toHaveAttribute('aria-sort', 'descending');
-    const menu = await canvas.findByRole('menu', { name: 'Actions for recurring cost 1882' });
+    const menu = await screen.findByRole('menu', { name: 'Actions for recurring cost 1882' });
     await waitFor(() => expect(menu).toBeVisible());
     await expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual([...rowActionLabels.recurringCosts]);
   },

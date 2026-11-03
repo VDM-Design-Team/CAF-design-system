@@ -29,7 +29,9 @@ import { cn } from '../../lib/cn';
  *   panel, makes every other child of `<body>` inert (except a live region, such
  *   as ToastProvider's stack, so a toast is still announced) and locks the page
  *   scroll (giving the scrollbar's width back as padding, so nothing shifts).
- * - While open: Tab and Shift+Tab wrap inside the panel. Escape asks to close,
+ * - While open: Tab and Shift+Tab wrap inside the panel (and leave alone a
+ *   popup it opened in a portal, such as a RowActionsMenu's menu, which handles
+ *   its own Tab). Escape asks to close,
  *   unless a popup inside it is open (a MenuDropdown): that closes first. A
  *   click on the backdrop asks to close when `dismissible` (the default). With
  *   several open, only the innermost answers the keyboard.
@@ -111,6 +113,8 @@ const openPanels: HTMLElement[] = [];
 
 /* The trigger of an open popup (MenuDropdown, Select, a date picker): Escape is theirs first. */
 const OPEN_POPUP = '[aria-haspopup]:not([aria-haspopup="false"])[aria-expanded="true"]';
+/* A Popover panel rendered in a portal (`portal`): it carries this attribute. */
+const PORTALLED_POPUP = '[data-popover-portal]';
 
 /* ── Focus trap ────────────────────────────────────────────────────────────── */
 const FOCUSABLE = [
@@ -228,6 +232,12 @@ export const Overlay = React.forwardRef<HTMLDivElement, OverlayProps>(function O
         return;
       }
       if (event.key !== 'Tab') return;
+      /* Focus in a popup the panel opened in a portal (a row's ••• menu, which
+         RowActionsMenu renders on <body>): outside the panel in the DOM, but
+         the panel's. Its own Tab handling closes it and hands focus back to
+         its trigger, inside. */
+      const popup = document.activeElement?.closest<HTMLElement>(PORTALLED_POPUP);
+      if (popup?.id && panel.querySelector(`[aria-controls="${CSS.escape(popup.id)}"]`)) return;
       const items = tabbable(panel);
       if (items.length === 0) {
         event.preventDefault();

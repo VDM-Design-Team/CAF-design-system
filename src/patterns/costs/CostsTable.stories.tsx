@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { MenuItem } from '../../components/menu-item';
 import { costs, type Cost, type CostStatus } from '../fixtures';
 import { CostsTable, sortCosts, type CostSort } from './CostsTable';
@@ -234,13 +234,13 @@ export const RowMenu: Story = {
     const button = canvas.getByRole('button', { name: 'Actions for cost 37022' });
 
     await userEvent.click(button);
-    const menu = canvas.getByRole('menu', { name: 'Actions for cost 37022' });
+    const menu = screen.getByRole('menu', { name: 'Actions for cost 37022' });
     const items = within(menu).getAllByRole('menuitem').map((i) => i.textContent);
     await expect(items).toEqual(['Approve', 'Reject', 'View invoices', 'Request adjustment', 'Delete']);
     await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
 
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'Approve' }));
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(button).toHaveFocus();
     await expect(within(rowOf(table, '37022')).getByText('Approved')).toBeVisible();
     await expect(canvas.getByRole('status')).toHaveTextContent('Approved: cost 37022');
@@ -249,17 +249,17 @@ export const RowMenu: Story = {
     const next = canvas.getByRole('button', { name: 'Actions for cost 37021' });
     next.focus();
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Approve' })).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}{Enter}');
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(next).toHaveFocus();
     await expect(within(rowOf(table, '37021')).getByText('Rejected')).toBeVisible();
 
     // Escape closes the menu without choosing.
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menu')).toBeVisible());
+    await waitFor(() => expect(screen.getByRole('menu')).toBeVisible());
     await userEvent.keyboard('{Escape}');
-    await expect(canvas.queryByRole('menu')).not.toBeInTheDocument();
+    await expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     await expect(next).toHaveFocus();
   },
 };

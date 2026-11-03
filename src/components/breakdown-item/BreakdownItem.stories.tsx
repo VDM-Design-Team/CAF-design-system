@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { MenuItem } from '../menu-item';
 import { BreakdownItem } from './BreakdownItem';
 
@@ -86,18 +86,18 @@ export const OnTheScreens: Story = {
 
     // Pointer: open, pick Delete.
     await userEvent.click(second);
-    await userEvent.click(await canvas.findByRole('menuitem', { name: 'Delete' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
     await expect(canvas.getByRole('status')).toHaveTextContent('Delete: Breakdown 2');
-    await expect(canvas.queryByRole('menu')).toBeNull();
+    await expect(screen.queryByRole('menu')).toBeNull();
 
     await expect(second).toHaveFocus();
 
     // Keyboard: ↓ opens it on the first item; Escape closes it and gives focus back.
     second.focus();
     await userEvent.keyboard('{ArrowDown}');
-    await waitFor(() => expect(canvas.getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus());
     await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(canvas.queryByRole('menu')).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
     await expect(second).toHaveFocus();
   },
 };
