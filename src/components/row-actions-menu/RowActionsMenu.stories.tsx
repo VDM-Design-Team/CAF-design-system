@@ -170,16 +170,20 @@ const open = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = { fill: tokenColour('surface-neutral-faint'), glyph: tokenColour('text-secondary') };
     const canvas = within(canvasElement);
-    const button = canvas.getByRole('button', { name: 'Actions for cost 123457' });
-    const menu = screen.getByRole('menu', { name: 'Actions for cost 123457' });
-    await expect(button).toHaveAttribute('aria-expanded', 'true');
-    await expect(getComputedStyle(menu).backgroundColor).toBe(want.fill);
-    // The ••• is Ghost: text.secondary.
-    await expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
-    const b = button.getBoundingClientRect();
-    const m = menu.getBoundingClientRect();
-    await expect(m.right).toBeCloseTo(b.right, 1);
-    await expect(m.top - b.bottom).toBeCloseTo(4, 1);
+    // Queried afresh on every try: the story's globals can re-render it while the play starts,
+    // and the menu (on <body>, Popover's portal) is then a new element. No DOM writes inside.
+    await waitFor(() => {
+      const button = canvas.getByRole('button', { name: 'Actions for cost 123457' });
+      const menu = screen.getByRole('menu', { name: 'Actions for cost 123457' });
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      expect(getComputedStyle(menu).backgroundColor).toBe(want.fill);
+      // The ••• is Ghost: text.secondary.
+      expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
+      const b = button.getBoundingClientRect();
+      const m = menu.getBoundingClientRect();
+      expect(m.right).toBeCloseTo(b.right, 1);
+      expect(m.top - b.bottom).toBeCloseTo(4, 1);
+    });
   },
 });
 

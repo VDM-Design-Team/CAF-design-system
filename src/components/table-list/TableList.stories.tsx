@@ -313,12 +313,15 @@ const phone = (theme: 'light' | 'dark'): Story => ({
     await userEvent.tab({ shift: true });
     await expect(region).toHaveFocus();
 
-    // Scrolled to the end, the last column (the •••) comes into the region.
-    region.scrollLeft = region.scrollWidth;
-    await waitFor(() => expect(region.scrollLeft).toBe(region.scrollWidth - region.clientWidth));
+    // Scrolled to the end, the last column (the •••) comes into the region. Again if a late font
+    // widens the table: a scroll is no DOM mutation, so it is safe inside waitFor.
     const button = canvas.getByRole('button', { name: lastLabel });
+    await waitFor(() => {
+      region.scrollLeft = region.scrollWidth;
+      expect(region.scrollLeft).toBe(region.scrollWidth - region.clientWidth);
+      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(region.getBoundingClientRect().right + 0.5);
+    });
     const r = region.getBoundingClientRect();
-    await expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(r.right + 0.5);
     await expectNoSidewaysScroll();
 
     // The last row's menu opens outside the region: on <body>, over the region's bottom edge, all of it on screen.

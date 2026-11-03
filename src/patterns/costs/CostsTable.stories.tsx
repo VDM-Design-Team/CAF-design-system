@@ -312,14 +312,17 @@ export const Phone: Story = {
     await expect(region.scrollWidth).toBeGreaterThan(900);
     await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth);
 
-    // The last row's •••, brought into view: the region scrolls to its last column, the page down to the row.
+    // The last row's •••, brought into view: the region scrolls to its last column (again if a
+    // late font widens the table: a scroll is no DOM mutation, so it is safe in waitFor), and the
+    // page scrolls the row near the top, so the menu has room under it even in a short viewport.
     const id = SCREEN_IDS[SCREEN_IDS.length - 1];
     const button = within(table).getByRole('button', { name: `Actions for cost ${id}` });
-    region.scrollLeft = region.scrollWidth;
-    await waitFor(() => expect(region.scrollLeft).toBe(region.scrollWidth - region.clientWidth));
-    window.scrollTo(0, window.scrollY + button.getBoundingClientRect().top - window.innerHeight / 3);
+    await waitFor(() => {
+      region.scrollLeft = region.scrollWidth;
+      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(region.getBoundingClientRect().right + 0.5);
+    });
+    window.scrollTo(0, window.scrollY + button.getBoundingClientRect().top - 16);
     const r = region.getBoundingClientRect();
-    await expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(r.right + 0.5);
 
     await userEvent.click(button);
     const menu = screen.getByRole('menu', { name: `Actions for cost ${id}` });
