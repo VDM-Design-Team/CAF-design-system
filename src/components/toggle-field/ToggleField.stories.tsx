@@ -15,8 +15,9 @@ const meta = {
           'optional description with a Toggle at the end of the row. `label` is Figma’s Label, `description` Show ' +
           'Description + Description, and Checked is the switch’s `checked` (or `defaultChecked`). The whole field ' +
           'is a `<label>`: a click on the text flips the switch. The label names it and the description describes ' +
-          'it. Every other prop, and the ref, go to the native switch: `name`, `value`, `onChange`, `disabled`, ' +
-          '`required` (which also shows _Form Label’s marker). `className` styles the field.',
+          'it. Figma’s State is `error` (the message under the description) or `disabled` (the text in ' +
+          'text/disabled), and Required is `required`. Every other prop, and the ref, go to the native switch: ' +
+          '`name`, `value`, `onChange`, `disabled`, `required`. `className` styles the field.',
       },
     },
   },
@@ -31,6 +32,7 @@ const meta = {
     disabled: { control: 'boolean' },
     required: { control: 'boolean' },
     description: { control: 'text' },
+    error: { control: 'text' },
   },
   decorators: [
     (Story) => (
@@ -93,7 +95,20 @@ export const Keyboard: Story = {
   },
 };
 
-/** Disabled: the switch is at 50%, and neither it nor the text flips it. */
+/** Error: the message under the description, which also describes the switch; the switch is `aria-invalid`. */
+export const ErrorState: Story = {
+  name: 'Error',
+  args: { required: true, error: 'Turn this on to publish the announcement.' },
+  play: async ({ canvas }) => {
+    const toggle = canvas.getByRole('switch', { name: 'Active' });
+    await expect(toggle).toHaveAttribute('aria-invalid', 'true');
+    await expect(toggle).toHaveAccessibleDescription(
+      'Only active announcements are shown to users. Turn this on to publish the announcement.',
+    );
+  },
+};
+
+/** Disabled: the switch and the text take their disabled colours, and neither the switch nor the text flips it. */
 export const Disabled: Story = {
   args: { disabled: true, defaultChecked: true },
   play: async ({ args, canvas }) => {
@@ -178,16 +193,34 @@ export const SubmitsWithForm: Story = {
   },
 };
 
-/* ── Checked false / true, in Light and Dark ───────────────────────────────
-   Figma's two variants, then code's Required, Disabled and no description. */
+/* ── Every Checked × State, in Light and Dark ─────────────────────────────
+   Figma's six variants, then Required (enabled and disabled) and no
+   description. */
 
-const STATES = [
-  { state: 'Checked=false', props: {} },
-  { state: 'Checked=true', props: { defaultChecked: true } },
+type FieldProps = {
+  defaultChecked?: boolean;
+  disabled?: boolean;
+  error?: string;
+  required?: boolean;
+  description?: undefined;
+};
+
+const ERROR = 'Error message';
+const STATES: Array<{ state: string; props: FieldProps }> = [
+  ...[false, true].flatMap((checked) =>
+    (['Default', 'Disabled', 'Error'] as const).map((s) => ({
+      state: `Checked=${checked}, State=${s}`,
+      props: {
+        ...(checked && { defaultChecked: true }),
+        ...(s === 'Disabled' && { disabled: true }),
+        ...(s === 'Error' && { error: ERROR }),
+      },
+    })),
+  ),
   { state: 'Required', props: { required: true } },
-  { state: 'Disabled', props: { disabled: true, defaultChecked: true } },
+  { state: 'Required, disabled', props: { required: true, disabled: true } },
   { state: 'No description', props: { description: undefined } },
-] as const;
+];
 
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
@@ -211,39 +244,54 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   afterEach: async ({ canvasElement }) => {
     const label = tokenColour('text-primary');
     const description = tokenColour('text-secondary');
+    const disabledText = tokenColour('text-disabled');
     const marker = tokenColour('accent-critical-tonal-content-default');
-    const off = tokenColour('surface-track');
-    const on = tokenColour('action-primary-surface-default');
+    // The shared field message (FormHelperText), as on main.
+    const messageColour = tokenColour('text-subtle');
+    // The Toggle's tracks: [enabled, disabled].
+    const off = [tokenColour('surface-track'), tokenColour('surface-neutral-medium')];
+    const on = [tokenColour('action-primary-surface-default'), tokenColour('surface-brand-medium')];
     await waitFor(
       () => {
         for (const { state, props } of STATES) {
           const toggle = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
           const field = toggle.closest('label')!;
           const text = field.firstElementChild!;
-          const [title, note] = [...text.children] as HTMLElement[];
+          const [title, note, message] = [...text.children] as HTMLElement[];
           const track = toggle.getBoundingClientRect();
           const textRect = text.getBoundingClientRect();
           const fieldRect = field.getBoundingClientRect();
-          // The switch: the Toggle, at the row's end, 16px after the text, centred on it.
+          const { defaultChecked: checked, disabled, error, required } = props;
+          const colour = (c: string) => (disabled ? disabledText : c);
+          // The switch: the Toggle (Disabled=true when disabled), at the row's end, 16px after the text, centred on it.
           expect([track.width, track.height]).toEqual([36, 20]);
-          expect(getComputedStyle(toggle).backgroundColor).toBe('defaultChecked' in props ? on : off);
+          expect(getComputedStyle(toggle).backgroundColor).toBe((checked ? on : off)[Number(!!disabled)]);
+          expect(toggle.getAttribute('aria-invalid')).toBe(error ? 'true' : null);
           expect(track.right).toBe(fieldRect.right);
           expect(track.left - textRect.right).toBe(16);
           expect(track.top + track.height / 2).toBe(textRect.top + textRect.height / 2);
-          expect(getComputedStyle(toggle.parentElement!).opacity).toBe('disabled' in props ? '0.5' : '1');
-          // Label: Body/sm-semibold, text.primary; the marker when Required.
-          expect(getComputedStyle(title).color).toBe(label);
+          // Label: Body/sm-semibold, text.primary (text.disabled when disabled); the marker when Required.
+          expect(getComputedStyle(title).color).toBe(colour(label));
           expect(getComputedStyle(title).fontSize).toBe('14px');
           expect(getComputedStyle(title).fontWeight).toBe('600');
           const star = title.querySelector('[aria-hidden]');
-          if ('required' in props) expect(getComputedStyle(star!).color).toBe(marker);
+          if (required) expect(getComputedStyle(star!).color).toBe(colour(marker));
           else expect(star).toBeNull();
-          // Description: Caption/md-regular, text.secondary, 2px under the label.
+          // Description: Caption/md-regular, text.secondary (text.disabled when disabled), 2px under the label.
           if ('description' in props) expect(note).toBeUndefined();
           else {
-            expect(getComputedStyle(note).color).toBe(description);
+            expect(getComputedStyle(note).color).toBe(colour(description));
             expect(getComputedStyle(note).fontSize).toBe('12px');
             expect(note.getBoundingClientRect().top - title.getBoundingClientRect().bottom).toBe(2);
+          }
+          // State=Error: the message, Caption/md-regular, 2px under the description.
+          if (error) {
+            expect(message).toHaveTextContent(ERROR);
+            expect(getComputedStyle(message).color).toBe(messageColour);
+            expect(getComputedStyle(message).fontSize).toBe('12px');
+            expect(message.getBoundingClientRect().top - note.getBoundingClientRect().bottom).toBe(2);
+          } else {
+            expect(message).toBeUndefined();
           }
         }
       },

@@ -11,7 +11,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Selection Controls** (`Checkbox`). ' +
           '`size` is Figma’s Size: `16` (default) or `20`. Figma’s States are the native checkbox’s own: ' +
-          'Deselected is unchecked, Selected is `checked`, Mixed-State is `indeterminate`, and Hover is hovering an unchecked box. ' +
+          'Deselected is unchecked, Selected is `checked`, Mixed-State is `indeterminate`, Hover is hovering an unchecked box, ' +
+          'Focus is `:focus-visible`, and Disabled / Disabled Selected are `disabled`. ' +
           'It is a real `<input type="checkbox">`: give it a `<label>` or `aria-label`.',
       },
     },
@@ -66,12 +67,97 @@ export const WithLabel: Story = {
   },
 };
 
+/** Disabled: it can’t be toggled. Disabled Selected keeps its check, on surface/brand/medium. */
+export const Disabled: Story = {
+  args: { disabled: true, defaultChecked: true },
+  play: async ({ args, canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: 'Select row' });
+    await expect(box).toBeDisabled();
+    await userEvent.click(box, { pointerEventsCheck: 0 });
+    await expect(box).toBeChecked();
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
+};
+
 /* ── Every State × Size, in Light and Dark ────────────────────────────────
    The same grid as the Figma component set: a row per Size, a column per
-   State. Hover is forced with storybook-addon-pseudo-states. */
+   State, then two that code adds: a disabled Mixed-State and an invalid box
+   (Checkbox Field's Error). Hover and Focus are forced with
+   storybook-addon-pseudo-states. */
 
-const STATES = ['deselected', 'hover', 'selected', 'mixed'] as const;
-const STATE_LABEL = { deselected: 'Deselected', hover: 'Hover', selected: 'Selected', mixed: 'Mixed-State' } as const;
+type Cell = {
+  label: string;
+  props: { defaultChecked?: boolean; indeterminate?: boolean; disabled?: boolean; 'aria-invalid'?: boolean };
+  pseudo?: 'hover' | 'focus';
+  /* Figma's bindings: fill, border (`null`: none), glyph (`null`: none shown) and its colour. */
+  fill: string;
+  border: string | null;
+  glyph: 'check' | 'bar' | null;
+  glyphColour?: string;
+};
+
+const CELLS: Cell[] = [
+  { label: 'Deselected', props: {}, fill: 'surface-base', border: 'stroke-field', glyph: null },
+  { label: 'Hover', props: {}, pseudo: 'hover', fill: 'surface-base', border: 'stroke-stronger', glyph: null },
+  { label: 'Focus', props: {}, pseudo: 'focus', fill: 'surface-base', border: 'stroke-field', glyph: null },
+  {
+    label: 'Selected',
+    props: { defaultChecked: true },
+    fill: 'action-primary-surface-default',
+    border: null,
+    glyph: 'check',
+    glyphColour: 'action-primary-content-default',
+  },
+  {
+    label: 'Mixed-State',
+    props: { indeterminate: true },
+    fill: 'action-primary-surface-default',
+    border: null,
+    glyph: 'bar',
+    glyphColour: 'action-primary-content-default',
+  },
+  {
+    label: 'Disabled',
+    props: { disabled: true },
+    fill: 'neutral-tonal-surface-disabled',
+    border: 'neutral-outline-border-disabled',
+    glyph: null,
+  },
+  {
+    label: 'Disabled Selected',
+    props: { disabled: true, defaultChecked: true },
+    fill: 'surface-brand-medium',
+    border: null,
+    glyph: 'check',
+    glyphColour: 'action-primary-content-disabled',
+  },
+  {
+    label: 'Disabled Mixed (code)',
+    props: { disabled: true, indeterminate: true },
+    fill: 'surface-brand-medium',
+    border: null,
+    glyph: 'bar',
+    glyphColour: 'action-primary-content-disabled',
+  },
+  {
+    label: 'Invalid (code)',
+    props: { 'aria-invalid': true },
+    fill: 'surface-base',
+    border: 'accent-critical-outline-border-default',
+    glyph: null,
+  },
+];
+
+/* A token's computed colour in the current theme. Measure before waitFor, never inside it:
+   the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
+function tokenColour(token: string) {
+  const probe = document.createElement('span');
+  probe.style.color = `var(--color-${token})`;
+  document.body.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
 
 function Matrix() {
   return (
@@ -81,9 +167,9 @@ function Matrix() {
           <th scope="col" className="text-caption-md-medium text-text-secondary">
             Size
           </th>
-          {STATES.map((s) => (
-            <th key={s} scope="col" className="text-caption-md-medium text-text-secondary">
-              {STATE_LABEL[s]}
+          {CELLS.map(({ label }) => (
+            <th key={label} scope="col" className="text-caption-md-medium text-text-secondary">
+              {label}
             </th>
           ))}
         </tr>
@@ -94,15 +180,9 @@ function Matrix() {
             <th scope="row" className="pr-4 text-caption-md-medium text-text-secondary">
               {size}px
             </th>
-            {STATES.map((state) => (
-              <td key={state}>
-                <Checkbox
-                  size={size}
-                  aria-label={`${STATE_LABEL[state]}, ${size}px`}
-                  defaultChecked={state === 'selected'}
-                  indeterminate={state === 'mixed'}
-                  data-pseudo={state}
-                />
+            {CELLS.map(({ label, props, pseudo }) => (
+              <td key={label}>
+                <Checkbox size={size} aria-label={`${label}, ${size}px`} {...props} data-cell={label} data-pseudo={pseudo} />
               </td>
             ))}
           </tr>
@@ -119,24 +199,51 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'] },
+    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'], focusVisible: ['[data-pseudo="focus"]'] },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   // Checked in afterEach, not play: pseudo-states applies the forced Hover
-  // on STORY_RENDERED, which comes after play (see Button's stories).
+  // and Focus on STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
-    const shown = (box: HTMLInputElement) =>
-      [...box.parentElement!.querySelectorAll('svg')].map((svg) => getComputedStyle(svg).display);
+    const none = 'rgba(0, 0, 0, 0)';
+    const ring = tokenColour('stroke-focused');
+    const want = Object.fromEntries(
+      CELLS.map((cell) => [
+        cell.label,
+        {
+          ...cell,
+          fill: tokenColour(cell.fill),
+          border: cell.border ? tokenColour(cell.border) : none,
+          glyphColour: cell.glyphColour && tokenColour(cell.glyphColour),
+        },
+      ]),
+    );
     await waitFor(
       () => {
-        for (const row of canvasElement.querySelectorAll('tbody tr')) {
-          const [rest, hover, selected, mixed] = row.querySelectorAll('input');
-          // Hover has its own border; the glyphs follow the state: [check, bar].
-          expect(getComputedStyle(hover).borderColor).not.toBe(getComputedStyle(rest).borderColor);
-          expect(shown(rest)).toEqual(['none', 'none']);
-          expect(shown(selected)).toEqual(['block', 'none']);
-          expect(shown(mixed)).toEqual(['none', 'block']);
+        const boxes = canvasElement.querySelectorAll<HTMLInputElement>('input[data-cell]');
+        expect(boxes).toHaveLength(CELLS.length * CHECKBOX_SIZES.length);
+        for (const box of boxes) {
+          const { fill, border, glyph, glyphColour, pseudo } = want[box.dataset.cell!];
+          const style = getComputedStyle(box);
+          // One radius in every state; the state's fill and border (none while checked).
+          expect(style.borderTopLeftRadius).toBe('4px');
+          expect(style.backgroundColor).toBe(fill);
+          expect(style.borderTopColor).toBe(border);
+          // The glyphs follow the state: [check, bar], in the state's colour.
+          const [check, bar] = [...box.parentElement!.querySelectorAll('svg')];
+          expect([getComputedStyle(check).display, getComputedStyle(bar).display]).toEqual([
+            glyph === 'check' ? 'block' : 'none',
+            glyph === 'bar' ? 'block' : 'none',
+          ]);
+          if (glyph) expect(getComputedStyle(glyph === 'check' ? check : bar).color).toBe(glyphColour);
+          // Focus: a 2px stroke.focused ring, 2px outside the box.
+          if (pseudo === 'focus') {
+            expect([style.outlineStyle, style.outlineWidth, style.outlineOffset]).toEqual(['solid', '2px', '2px']);
+            expect(style.outlineColor).toBe(ring);
+          } else {
+            expect(style.outlineStyle).toBe('none');
+          }
         }
       },
       { timeout: 3000 },

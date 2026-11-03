@@ -543,10 +543,11 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           tokenColour('action-secondary-content-hover'),
           tokenColour('action-secondary-border-hover'),
         ],
+        // Button Outlined, Disabled: neutral.outline's disabled label and border (Figma, 3 Nov 2026).
         disabled: [
           tokenColour('action-secondary-surface-disabled'),
-          tokenColour('action-secondary-content-disabled'),
-          tokenColour('action-secondary-border-disabled'),
+          tokenColour('neutral-outline-content-disabled'),
+          tokenColour('neutral-outline-border-disabled'),
         ],
       },
     };
