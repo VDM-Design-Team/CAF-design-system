@@ -18,9 +18,9 @@ The sidebar reads Components, then Patterns, then Templates.
 
 **Only DS components.** Every pattern and template is built from the
 components in `src/components/` and GDL's tokens. Where the library has no
-component for something Figma draws (a divider, a card, a filter's options
-panel), the pattern stands in with what exists and says so. Those gaps are
-collected under [Missing components](#missing-components).
+component for something Figma draws (a table layout for phones, a Clear
+Filters control), the pattern stands in with what exists and says so. Those
+gaps are collected under [Missing components](#missing-components).
 
 **The Costs organisms are stories, not components** (COMPONENT-PLAN
 decision 4). The Costs table, the Costs filter bar, Form / New Cost,
@@ -385,17 +385,20 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** creating a cost, the longest form in the product. It is a full page in titled sections, with repeatable breakdowns and attachments, and it can be saved as a draft at any point.
 
-**Components:** the organism **Form / New Cost** (`src/patterns/forms/NewCostForm.tsx`) is built from PageHeader, FormTabNavigation with TabItems (its tab panel holds the fields), FormSectionHeader, TextField, SelectField (Currency with FormEditLink "[Edit]"), DateField, FileUploadField, FormHint (the recurrence summary, since 2 Nov 2026), BreakdownsSection (BreakdownItem with RowActionsMenu, and CostBreakdownDialog: ModalDialog, TextField, SelectField, ComboboxField, DateField) and Button (Outlined "Save to Drafts", Default "Save").
+**Components:** the organism **Form / New Cost** (`src/patterns/forms/NewCostForm.tsx`) is built from PageHeader, PanelCard (the card the form sits in, since 3 Nov 2026), Divider (Figma's two rules, since 3 Nov 2026), FormTabNavigation with TabItems (its tab panel holds the fields), FormSectionHeader, TextField, SelectField (Currency with FormEditLink "[Edit]"), DateField, FileUploadField, FormHint (the recurrence summary, since 2 Nov 2026), BreakdownsSection (BreakdownItem with RowActionsMenu, and CostBreakdownDialog: ModalDialog, TextField, SelectField, ComboboxField, DateField) and Button (Outlined "Save to Drafts", Default "Save").
 
 **Flow the stories show:**
+- *Layout* (Single cost, Recurring cost, Dark): "New Cost" is the page's PageHeader, and 24 under it a PanelCard holds only the form, in a centred column as wide as Figma's card (`max-w-xl`, 576; Figma 578, the nearest container width, as GDL has no width scale). A Divider opens Beneficiary Information and Breakdowns, 24 from what is above and below it, on both tabs (U02 draws them on the Recurring tab too). "Cost Details" stays a section header (decision add-divider). Below 640px Save to Drafts and Save stack, as the Frequency row does: on a 320 phone the card leaves 224 for the fields, too narrow for both side by side.
 - *Single cost:* Applicant name and Email are pre-filled from the account, and "[Edit]" calls `onEditCurrency`. Save with the cost half done marks every section that needs something: Currency, Partner, Payment method, the invoice, and "Add at least one breakdown." in an Alert. Focus goes to the first error. Currency is chosen by typeahead, then an invoice is attached and a breakdown added through the dialog. Save sends the FormData (`type`, the fields, `invoices`, one JSON `breakdown` per breakdown), and a toast confirms it.
 - *Recurring cost:* → switches the tab. "Recurring Details" and "Cost Details" are inserted and Invoice number goes; what was typed is kept. The summary follows Value and Unit ("This will recur every 3 weeks"). Save starts its checks at Starts At, and ← goes back.
 - *Edit and remove breakdowns:* Edit opens the dialog pre-filled, with an Update button, and an amount of 0 is rejected. Remove moves focus to the next •••, then to "Add new".
 - *Cost Breakdown dialog* and *Dark:* the dialog open; the Recurring tab in Dark.
 
 **What Figma draws that the stories don't, and why:**
-- The card around the form, and the two Dividers: there is no DS component for either.
-- The Title/md-bold heading: PageHeader sets the heading in Heading/xl-bold.
+- ~~The card around the form, and the two Dividers~~: PanelCard and Divider since 3 Nov 2026 (decisions add-card-panel, add-divider).
+- ~~The Title/md-bold heading inside the card~~: decided (add-form-heading): form pages use the PageHeader (Heading/xl-bold) above the card. Form / New Cost (184:3121) and the screens still draw the heading in the card. Fix in Figma: take the Page Heading out of Form / New Cost and place a Page Header above it.
+- Figma's rules are the remote Divider (184:1944): 184:3182 binds its line to `stroke/stronger`, 184:3260 too. Code uses the library's Divider (Layout 765:15396, `stroke/subtle`). Fix in Figma: swap them to Layout → Divider.
+- The card is `max-w-xl` (576) where Figma draws 578, so the fields are 512 wide (Figma 510).
 - 09's Frequency dropdown and Ends At: the stories follow U02.
 - The tabs' own URLs (`/new-cost/single`, `/new-cost/recurring`): the app routes them.
 - Manage Currencies: that is U06.
@@ -411,16 +414,19 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** adding files by dragging or browsing, with a chip per file that can be removed before saving or downloaded later. It also covers bulk upload from a CSV.
 
-**Components:** FileUploadField (`_File Upload Zone` and FileChip), FileChip (Download), ModalDialog (Small), EmptyState (Compact), CostsTable (from the foundation) with MenuItem, and the organism **Form / Bulk Upload** (`src/patterns/forms/BulkUploadForm.tsx`: PageHeader, SelectField, FileUploadField, Button Outlined with download-simple, Button Default). Results come from ToastProvider.
+**Components:** FileUploadField (`_File Upload Zone` and FileChip), FileChip (Download), ModalDialog (Small), EmptyState (Compact), CostsTable (from the foundation) with MenuItem, and the organism **Form / Bulk Upload** (`src/patterns/forms/BulkUploadForm.tsx`: PageHeader, PanelCard, SelectField, FileUploadField, Divider, Button Outlined with download-simple, Button Default). Results come from ToastProvider.
 
 **Flow the stories show:**
+- *Layout* (Attach and remove, Bulk upload, Dark): each form is alone in a PanelCard under the page's PageHeader, 24 apart, in a centred `max-w-xl` column (576; Figma 578). Bulk Upload's Divider sits between the CSV upload and the template row, 12 from each.
 - *Attach and remove:* the hint describes the input. Files become chips with their sizes (245 KB, 1.2 MB). contract.zip gets a red chip, "File type not supported…", and isn't in the input. × removes a file and focus moves to the next ×. Save's FormData holds exactly the files shown.
 - *View invoices:* Costs → ••• → View invoices opens "Invoices" with the description "Cost #32430 · 2 files" and a chip with Download per file. Escape returns focus to the •••. A cost without invoices says so.
 - *Bulk upload:* Download asks for a payment method first, then calls `onDownloadTemplate('Wiretransfer')`. Upload with no file marks the field and focuses it. An .xlsx is turned down in a red chip and the .csv is accepted. Upload's FormData is `paymentMethod` and `file`, and the toast says "12 costs uploaded."
 - *Bulk upload, rows fail:* an error toast names rows 4 and 9 and why, and stays until dismissed.
 - *Invoices open* and *Dark:* for Chromatic.
 
-**What Figma draws that the stories don't, and why:** Bulk Upload's card and Divider, for which there is no DS component.
+**What Figma draws that the stories don't, and why:**
+- ~~Bulk Upload's card and Divider~~: PanelCard and Divider since 3 Nov 2026 (decisions add-card-panel, add-divider). The heading is the PageHeader above the card (add-form-heading); Form / Bulk Upload (191:435) still draws it in the card.
+- Figma's rule (191:459) is the remote Divider (184:1944) with a raw slate line (#475569, no variable). Code uses the library's Divider (`stroke/subtle`). Fix in Figma: swap it to Layout → Divider.
 
 **Design questions:**
 - No Required markers on Bulk Upload.
@@ -563,10 +569,10 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What it solves:** parking an unfinished cost and picking it up again later from Drafts.
 
-**Components:** NewCostForm (Save to Drafts), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (TableList, two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
+**Components:** NewCostForm (Save to Drafts; the form in its PanelCard under the page's PageHeader, which names the open draft), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (TableList, two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
 
 **Flow the stories show:**
-- *Save and resume:* a half-done cost is saved to Drafts without checks, and the FormData is checked. The view switches to Drafts with focus on its heading, and "Draft #36742 saved." appears. The new draft is the first row (Single, QA Test, November 2, 2026). Edit reopens New Cost with "Draft #36742" and the values loaded. Saving again updates the row instead of adding one.
+- *Save and resume:* a half-done cost is saved to Drafts without checks, and the FormData is checked. The view switches to Drafts with focus on its heading, and "Draft #36742 saved." appears. The new draft is the first row (Single, QA Test, November 2, 2026). Edit reopens New Cost with "Draft #36742" in the page's header, above the form's card, and the values loaded. Saving again updates the row instead of adding one.
 - *Resume a recurring draft:* it opens on the Recurring Cost tab with every 1 month.
 - *Search and delete:* the search narrows the list or says nothing matched, and Clear Filters brings it back. Delete asks "Delete draft?", then "Draft deleted." appears and focus moves to the next •••.
 - *No drafts:* an Empty State with Create Cost, which opens a blank New Cost.
@@ -593,7 +599,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - Snapshots: *Payment schedules open*, *Edit side sheet open*, *Dark*, *Edit side sheet — Dark*.
 - The table also has its own stories, *Patterns/Recurring costs table*: Default, Sort (Frequency sorts by length in days), Empty and Dark.
 
-**What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (no Divider component). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
+**What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (545:19054): Divider exists since 2 Nov 2026, but the side sheet's form doesn't use it yet (the form pages and Settings did first, 3 Nov 2026). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
 
 **Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. Starts At is a Text field or a Date field. U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
 
@@ -601,19 +607,19 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What it solves.** What sits behind the account icon in the user header (U06): Manage Currencies (which currencies the Currency dropdown offers), Settings (the account's name and email) and Logout.
 
-**Components.** AppShell (pattern 15), AccountMenu, ModalDialog (Medium, no footer), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (Custom for the Toggle), Toggle, Pagination (no page info), ToastProvider with Toast (Success), PageHeader, FormSectionHeader, TextField and Button. There are two compositions at story level, in `src/patterns/account-settings/`:
+**Components.** AppShell (pattern 15), AccountMenu, ModalDialog (Medium, no footer), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (Custom for the Toggle), Toggle, Pagination (no page info), ToastProvider with Toast (Success), PageHeader, PanelCard, FormSectionHeader, TextField and Button. There are two compositions at story level, in `src/patterns/account-settings/`:
 - `ManageCurrenciesDialog`: Figma's `_Pattern Content / Manage Currencies`, a table of Currency Name, Code and an Enabled Toggle, seven rows to a page, with Pagination straight under it. It starts on page 1 each time it opens.
-- `SettingsPage`: My Account Details. Save reads the form's FormData and checks it. An empty or badly formed field shows its error and takes focus; otherwise `onSave` gets the details.
+- `SettingsPage`: "Settings" as the page's PageHeader, and 24 under it a PanelCard (the Settings Card) with only the form: My Account Details, Email, Name and Save, 20 apart. Save reads the form's FormData and checks it. An empty or badly formed field shows its error and takes focus; otherwise `onSave` gets the details.
 
 **The flow in the stories.**
 - *Flow*: Enter on the account icon opens the menu, and Enter opens Manage Currencies. Space on Albanian Lek's switch turns it on at once, and a Toast confirms it. Page 2 shows the next seven currencies. Escape closes the dialog and focus goes back to the icon. Reopened, the dialog is back on page 1 and the change has stuck. Settings opens its page, where no nav link is current. Logout calls `onLogout`.
 - *Account menu* (step 1): Manage Currencies, Settings, a divider, then Logout.
 - *Manage Currencies* (step 2, open): Figma's seven rows, with only Albanian Lek off. There is no footer. Paging from the keyboard turns ‹ off on the first page and › off on the last, and Tab wraps inside the dialog.
-- *Settings* (step 3): an empty Name and a badly formed Email both show errors, and focus goes to the first one. Once fixed, Enter saves (`{ email, name }`), a Toast confirms it and the header greets the new name. The form sits in a centred column.
+- *Settings* (step 3): an empty Name and a badly formed Email both show errors, and focus goes to the first one. Once fixed, Enter saves (`{ email, name }`), a Toast confirms it and the header greets the new name. The heading and the card share a centred column as wide as Figma's card (`max-w-xl`, 576; Figma 578).
 - *Dark*: Manage Currencies, open, in Dark.
 
 **What Figma draws that the stories don't.**
-- The Settings Card's surface: there is no Card component, so the stories keep its width and centring but not its fill, stroke or radius.
+- ~~The Settings Card's surface~~: a PanelCard since 3 Nov 2026 (decision add-card-panel). "Settings" is the PageHeader above it (add-form-heading); the pattern (545:25208) still draws it inside the card, at 115% (662 wide). Fix in Figma: move the title to a Page Header above a Card / Panel, as Layout's example does (765:15978).
 - ~~The Enabled column's bare frame: TableCell `type="tag"` stands in.~~ Rebuilt from the generic parts (decision add-table-cell-custom): a TableHeaderRow, TableRows, and the Toggle in a TableCell `type="custom"`. Figma's pattern (545:22175) still draws bare Header Cells (no line, 6px padding) and a frame round the Toggle; the library's example 772:1406 shows the rebuilt row.
 - The dialog over the New Cost form, opened from the [Edit] link next to Currency: that is the multi-section form pattern (09 / U02). Here the dialog opens over the Costs page.
 - What follows Logout: the sign-in screen isn't in the library.
@@ -624,7 +630,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - The Settings fields show no required marker. There is also no Figma copy for a badly formed email, or for the two success Toasts.
 - The Name differs from the header greeting ("QA test" vs "QA Test").
 - Component issue: a Toast raised while a dialog is open lands under the scrim, inert, so it is dimmed, can't be dismissed and isn't announced. ToastProvider's stack should go in a portal above overlays.
-- Missing: a Card / Panel component (added as PanelCard on 2 Nov 2026), ~~and a Table / Cell that holds a control~~ (TableCell `type="custom"`, 2 Nov 2026).
+- ~~Missing: a Card / Panel component~~ (PanelCard, added on 2 Nov 2026; Settings uses it since 3 Nov 2026), ~~and a Table / Cell that holds a control~~ (TableCell `type="custom"`, 2 Nov 2026).
 
 ## Templates
 
@@ -713,24 +719,28 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 
 ### Form page (Figma: User / Create Cost 2102:1154, 2102:1159; Bulk Upload 2102:6027, 2102:1223)
 
-**What it solves.** A page that is one form: centred in the page container (576 wide), its heading at the top, its sections in one column, its actions at the end.
+**What it solves.** A page that is one form: the page's PageHeader, then, 24 under it, the form alone in a PanelCard (Card / Panel), centred in the page container at the form cards' width (`max-w-xl`, 576; Figma 578). Its sections run in one column, with a Divider where Figma draws a rule, and its actions at the end.
 
 **Built from.**
-- NewCostForm (patterns 09, U02): FormTabNavigation, TextField, SelectField, DateField, FileUploadField, FormSectionHeader, BreakdownsSection.
-- BulkUploadForm (patterns 10, U05).
+- NewCostForm (patterns 09, U02): PageHeader, PanelCard, Divider, FormTabNavigation, TextField, SelectField, DateField, FileUploadField, FormSectionHeader, BreakdownsSection.
+- BulkUploadForm (patterns 10, U05): PageHeader, PanelCard, Divider.
 - ToastProvider.
 - Composed in `CreateCostScreen` and `BulkUploadScreen`. Save, Save to Drafts and Upload hand over the FormData and confirm with a toast.
 
 **Stories.**
-- **Create cost, single**, **recurring**, **dark** and **mobile**: the heading is in the form; the selected tab, the tab panel and the applicant pre-filled from the account; section headings in order (Recurring adds Recurring Details and Cost Details); Save to Drafts then Save at the end, Save being the submit; the form centred, or filling the container on a phone with no sideways scroll.
-- **Bulk upload** (user), **admin**, **dark** and **mobile**: Payment Method, the CSV upload, Download and Upload, in that order, centred.
+- **Create cost, single**, **recurring**, **dark** and **mobile**: the heading above the card, and the card holding only the form (its fill, edge, radius 12 and 32 padding; 24 under the heading); the two Dividers, 24 from their neighbours; the selected tab, the tab panel and the applicant pre-filled from the account; section headings in order (Recurring adds Recurring Details and Cost Details); Save to Drafts then Save at the end, Save being the submit (side by side from 640px, stacked below, each label fitting its button); the heading and card 576 wide and centred, or filling the container on a phone with no sideways scroll (the card keeps its 32 padding there).
+- **Bulk upload** (user), **admin**, **dark** and **mobile**: the heading above the card; Payment Method, the CSV upload, the Divider (12 from each side), Download and Upload, in that order, centred.
+- **App shell**'s *User* (Settings) and *User, mobile* (Create Cost) check the same card.
 
 **What Figma draws that the stories don't.**
-- The card around each form (fill, stroke, radius 12, 32 padding) and its dividers: no Card component.
-- The Title/md heading: PageHeader sets the page's h1 in Heading/xl.
+- ~~The card around each form (fill, stroke, radius 12, 32 padding) and its dividers~~: PanelCard and Divider since 3 Nov 2026.
+- ~~The Title/md heading inside the card~~: decided (add-form-heading); the PageHeader's h1 (Heading/xl) sits above the card. The screens still draw the heading inside the card: Form / New Cost and Form / Bulk Upload instances (2102:1157, 2102:6030, 2102:1226) and the detached New Cost Form / Recurring (2102:1162).
+- Figma's forms place the remote Divider (stroke/stronger or a raw slate) where code has the library's Divider (stroke/subtle); see 09 and 10.
+- The card is 576 wide (`max-w-xl`), Figma's 578.
 
 **Design questions.**
 - The Bulk Upload toast: "Costs uploaded." (pattern 12) or "{n} costs uploaded." (U05)?
+- On a 320 phone the card's 32 padding (inside the page's 16) leaves 224 for the fields, so New Cost's two buttons stack there. Figma draws no narrow form: keep 32, or a smaller padding below 640?
 
 ### Overlay flows (Figma: 2102:6074, 2102:5857, 2102:1201, 2102:1266, 2102:1284; pattern 04 523:2612)
 
@@ -778,9 +788,9 @@ components (or left out) until the library and code have it.
 
 **Page structure**
 - ~~**Page Header.**~~ Added on 2 Nov 2026 (`PageHeader`); every pattern and template uses it.
-- ~~**Divider**~~ Added on 2 Nov 2026 (`Divider`, plain only; the labelled one stays a Form / Section Header). The forms adopt it in a later PR.
-- ~~**Card / Panel**~~ Added on 2 Nov 2026 (`PanelCard`). The form pages and Settings adopt it in a later PR.
-- **Form heading in Title/md-bold** (184:3121, 191:435). Stand-in: PageHeader (Heading/xl-bold).
+- ~~**Divider**~~ Added on 2 Nov 2026 (`Divider`, plain only; the labelled one stays a Form / Section Header). New Cost and Bulk Upload use it since 3 Nov 2026; U04's side-sheet form (545:19054) doesn't yet.
+- ~~**Card / Panel**~~ Added on 2 Nov 2026 (`PanelCard`). The form pages (New Cost, Bulk Upload, Attach invoice) and Settings sit in it since 3 Nov 2026, under the page's PageHeader.
+- ~~**Form heading in Title/md-bold**~~ (184:3121, 191:435). Not added (decision add-form-heading): form pages use the PageHeader, above the card.
 
 **Tables**
 - ~~**Table header row**~~ Added on 2 Nov 2026 (`TableHeaderRow`, Table / Header Row): every table's header uses it.

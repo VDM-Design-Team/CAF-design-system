@@ -4936,7 +4936,7 @@ Source: page **Layout**, component `Card / Panel` (`765:15457`): the Settings Ca
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Width | Fixed 578 (the form cards') | Its container's width; pages set a max width | None needed |
+| Width | Fixed 578 (the form cards') | Its container's width; pages set a max width. The form pages and Settings (3 Nov 2026) use `max-w-xl`, 576: the nearest container width, as GDL has no width scale | None in the component; 576 for the form cards, or a GDL width scale once there is one |
 
 In Light the card's fill is the same white as `surface/base` pages, so its edge is the 1.23:1 stroke only: an open design question (the review notes, "stroke/subtle under 3:1").
 

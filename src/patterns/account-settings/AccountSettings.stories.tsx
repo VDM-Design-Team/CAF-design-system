@@ -6,6 +6,7 @@ import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { ToastProvider, useToast } from '../../components/toast';
 import { AppShell, useDocumentTheme } from '../app-shell/AppShell';
 import { managedCurrencies, signedInAccounts } from '../fixtures';
+import { expectFormInCard } from '../forms/checks';
 import { PageHeader } from '../../components/page-header';
 import { ManageCurrenciesDialog } from './ManageCurrenciesDialog';
 import { SettingsPage, type AccountDetails } from './SettingsPage';
@@ -96,8 +97,8 @@ const meta = {
           'Pattern U06 (Figma 545:23189): what sits behind the account icon in the user header. The Account Menu lists ' +
           'Manage Currencies, Settings and Logout. Manage Currencies is a dialog (`ManageCurrenciesDialog`): a table of ' +
           'currencies with an Enabled Toggle each and pagination; a toggle applies at once and a Toast confirms it. ' +
-          'Settings is its own page (`SettingsPage`): My Account Details, Email and Name, and Save, which checks the ' +
-          'form and confirms with a Toast. Logout ends the session (the app’s job; here it calls `onLogout`).',
+          'Settings is its own page (`SettingsPage`): under the page’s heading, a **PanelCard** (the Settings Card) ' +
+          'holds My Account Details, Email and Name, and Save, which checks the form and confirms with a Toast. Logout ends the session (the app’s job; here it calls `onLogout`).',
       },
     },
   },
@@ -281,7 +282,8 @@ export const ManageCurrencies: Story = {
 };
 
 /**
- * U06, step 3: Settings, its own page. Save checks the form: an empty or
+ * U06, step 3: Settings, its own page: the heading, then the form in its
+ * card (the Settings Card, 545:25208). Save checks the form: an empty or
  * malformed field shows its error and takes focus; a valid one saves (the form's
  * FormData), a Toast confirms it and the header greets the new name.
  */
@@ -294,8 +296,11 @@ export const Settings: Story = {
     const email = within(form).getByRole('textbox', { name: /Email/ });
     const name = within(form).getByRole('textbox', { name: /Name/ });
     const save = within(form).getByRole('button', { name: 'Save' });
-    await expect(within(main).getByRole('heading', { level: 1 })).toHaveTextContent('Settings');
+    const heading = within(main).getByRole('heading', { level: 1 });
+    await expect(heading).toHaveTextContent('Settings');
     await expect(within(main).getByRole('heading', { level: 2 })).toHaveTextContent('My Account Details');
+    // The Settings Card: "Settings" is the page's heading above it, and the card holds only the form.
+    const { column } = await expectFormInCard(form as HTMLFormElement, heading);
     await expect(email).toHaveValue('qa.test@example.com');
     await expect(name).toHaveValue('QA Test');
 
@@ -320,8 +325,8 @@ export const Settings: Story = {
     await expect(await screen.findByText('Account details saved.')).toBeVisible();
     await expect(within(canvas.getByRole('banner')).getByText('Hi, QA Tester')).toBeVisible();
 
-    // The form sits in a centred column: as wide as Figma's card (max-w-xl), in the middle of the page.
-    const box = form.getBoundingClientRect();
+    // The heading and the card sit in a centred column, as wide as Figma's card (max-w-xl), in the middle of the page.
+    const box = column.getBoundingClientRect();
     const page = main.firstElementChild!.getBoundingClientRect();
     await expect((box.left + box.right) / 2).toBeCloseTo((page.left + page.right) / 2, 0);
 

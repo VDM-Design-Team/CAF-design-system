@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { APP_HEADER_ADMIN_PAGES, APP_HEADER_USER_PAGES } from '../../components/app-header';
+import { expectFormInCard } from '../../patterns/forms/checks';
 import { expectFrame, expectNoSidewaysScroll, isDesktop, MOBILE_SNAPSHOT, MOBILE_VIEWPORT, navigateTo } from '../checks';
 import { APP_SCREENS } from '../screens';
 import { TemplateFrame, type TemplateFrameProps } from '../TemplateFrame';
@@ -101,8 +102,11 @@ export const User: Story = {
     await userEvent.keyboard('{ArrowDown}{Enter}');
     await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
     await expect(args.onNavigate).toHaveBeenLastCalledWith('Settings');
-    await expectFrame(canvasElement, 'Settings');
-    await expect(within(main).getByRole('form', { name: 'My Account Details' })).toBeVisible();
+    const { heading } = await expectFrame(canvasElement, 'Settings');
+    const form = within(main).getByRole<HTMLFormElement>('form', { name: 'My Account Details' });
+    await expect(form).toBeVisible();
+    // The Settings Card: the form alone in a PanelCard under the page's heading.
+    await expectFormInCard(form, heading);
     await expect(banner.querySelectorAll('[aria-current]')).toHaveLength(0);
     // The snapshot shows the page, not a focus ring.
     (document.activeElement as HTMLElement | null)?.blur();
@@ -151,8 +155,10 @@ export const UserMobile: Story = {
   globals: { viewport: MOBILE_VIEWPORT },
   parameters: { chromatic: MOBILE_SNAPSHOT },
   play: async ({ canvasElement }) => {
-    const { main } = await expectFrame(canvasElement, 'New Cost');
+    const { main, heading } = await expectFrame(canvasElement, 'New Cost');
     await expect(within(main).getByRole('button', { name: 'Save' })).toBeVisible();
+    // The card keeps its 32 padding on a phone.
+    await expectFormInCard(main.querySelector('form')!, heading);
     if (!isDesktop()) await expectNoSidewaysScroll();
   },
 };
