@@ -156,11 +156,15 @@ const surface = (theme: 'light' | 'dark', portal = false): Story => ({
     await expect(style.borderRadius).toBe('8px');
     await expect(style.padding).toBe('6px');
     await expect(style.color).toBe(want.text);
-    // Below the trigger, 4px away, flush with its left edge.
-    const t = trigger.getBoundingClientRect();
-    const p = panel.getBoundingClientRect();
-    await expect(p.top - t.bottom).toBeCloseTo(4, 1);
-    await expect(p.left).toBeCloseTo(t.left, 1);
+    // Below the trigger, 4px away, flush with its left edge (in a waitFor: a portalled panel
+    // catches up with a trigger that moved within a frame; no DOM writes inside).
+    await waitFor(() => {
+      const current = within(canvasElement).getByRole('button', { name: 'Show details' });
+      const t = current.getBoundingClientRect();
+      const p = document.getElementById(current.getAttribute('aria-controls')!)!.getBoundingClientRect();
+      expect(p.top - t.bottom).toBeCloseTo(4, 1);
+      expect(p.left).toBeCloseTo(t.left, 1);
+    });
     await expect(panel).toHaveAttribute('data-placement', 'bottom');
     await expect(panel).toHaveAttribute('data-align', 'left');
     // Inline in the trigger's wrapper, or (`portal`) on <body>, fixed: the same surface and place either way.
@@ -230,6 +234,11 @@ export const Portal: Story = {
     await waitFor(() => expect(panel.getBoundingClientRect().left).toBeCloseTo(trigger.getBoundingClientRect().left, 1));
     box.scrollLeft = 0;
     await waitFor(() => expect(panel.getBoundingClientRect().left).toBeCloseTo(trigger.getBoundingClientRect().left, 1));
+    // And through a layout shift with no scroll or size change (a transform moves the trigger).
+    box.style.transform = 'translateY(24px)';
+    await waitFor(() => expect(panel.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom).toBeCloseTo(4, 1));
+    box.style.transform = '';
+    await waitFor(() => expect(panel.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom).toBeCloseTo(4, 1));
 
     // A click inside keeps it open; Tab goes from the trigger into the panel, as inline.
     await userEvent.click(within(panel).getByText(/Submitted on/));

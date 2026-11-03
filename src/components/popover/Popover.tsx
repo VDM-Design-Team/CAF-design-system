@@ -37,8 +37,9 @@ import { cn } from '../../lib/cn';
  *   wrapper, so a parent with `overflow: hidden` or `auto` clips it.
  * - `portal` (opt-in) renders the panel outside instead: in a portal on
  *   `document.body`, `position: fixed` at the trigger's box, re-placed on
- *   every scroll, resize and size change, above the page (`z-50`, after it in
- *   the DOM). For a trigger in a container that scrolls or clips, such as a
+ *   every scroll, resize and size change and every frame while open (so a
+ *   layout shift that moves the trigger moves it too), above the page (`z-50`,
+ *   after it in the DOM). For a trigger in a container that scrolls or clips, such as a
  *   table's scroll region: RowActionsMenu turns it on. Everything above still
  *   holds: the ARIA wiring, outside click, Escape, focus return. Tab keeps the
  *   inline order: from the open trigger into the panel, out of its last
@@ -337,11 +338,22 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
       frame = requestAnimationFrame(place);
     });
     for (const el of [triggerRef.current, panelRef.current, document.body]) if (el) observer.observe(el);
+    /* Portalled, the panel is fixed to where the trigger was: a layout shift that
+       moves the trigger without a scroll or a size change (content above it
+       appearing, a transform) would leave it behind. So it also follows the
+       trigger every frame while open. place() only sets state when an edge moved. */
+    let follow = 0;
+    const track = () => {
+      place();
+      follow = requestAnimationFrame(track);
+    };
+    if (portal) follow = requestAnimationFrame(track);
     return () => {
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
       observer.disconnect();
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(follow);
     };
   }, [isOpen, placement, align, portal]);
 
