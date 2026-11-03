@@ -152,7 +152,7 @@ export const LoadingAList: Story = {
     // The real header, the filters and the page action are there already.
     await expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Name', 'Role', 'Date Created']);
     await expect(canvas.getByRole('searchbox', { name: 'Search users' })).toBeVisible();
-    await expect(canvas.getByRole('button', { name: 'Role: All Roles' })).toBeVisible();
+    await expect(canvas.getByRole('combobox', { name: 'Role' })).toHaveTextContent('All Roles');
     await expect(canvas.getByRole('button', { name: 'Add New' })).toBeVisible();
   },
 };

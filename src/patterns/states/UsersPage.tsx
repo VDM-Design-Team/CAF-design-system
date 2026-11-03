@@ -3,11 +3,11 @@ import { Alert } from '../../components/alert';
 import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/toast';
 import { emptyStateCopy, userRoles, users as fixtureUsers, type User } from '../fixtures';
 import { AddUserDialog } from '../feedback/AddUserDialog';
-import { FilterMenu } from '../overview/FilterMenu';
 import { PageHeader } from '../../components/page-header';
 import { UsersTable } from './UsersTable';
 
@@ -50,7 +50,7 @@ export interface UsersPageProps {
   as?: 'main' | 'div';
 }
 
-const ROLE_OPTIONS = ['All Roles', ...userRoles];
+const ROLE_OPTIONS = [...userRoles];
 
 export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: Page = 'main' }: UsersPageProps) {
   const { toast } = useToast();
@@ -58,7 +58,8 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: 
   const [state, setState] = React.useState<'loading' | 'ready' | 'error'>(load ? 'loading' : 'ready');
   const [attempt, setAttempt] = React.useState(0);
   const [query, setQuery] = React.useState('');
-  const [role, setRole] = React.useState(ROLE_OPTIONS[0]);
+  /* null: All Roles, the filter's reset item. */
+  const [role, setRole] = React.useState<string | null>(null);
   const [adding, setAdding] = React.useState(dialogOpen);
   const tableRef = React.useRef<HTMLTableElement>(null);
 
@@ -85,7 +86,7 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: 
       ? users.filter(
           (u) =>
             (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
-            (role === ROLE_OPTIONS[0] || u.role === role),
+            (role === null || u.role === role),
         )
       : [];
 
@@ -107,7 +108,7 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <FilterMenu className="w-64" label="Role" value={role} options={ROLE_OPTIONS} onValueChange={setRole} />
+        <FilterSelect className="w-64" label="Role" allLabel="All Roles" options={ROLE_OPTIONS} value={role} onValueChange={setRole} />
       </div>
       <p role="status" className="sr-only">
         {state === 'loading' ? 'Loading users' : ''}

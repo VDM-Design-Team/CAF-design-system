@@ -14,10 +14,11 @@ import { TextInput, type TextInputProps } from '../text-input';
  * Admin, 14 · Announcements & what's new), with rows "one", "two", "three"
  * and an "Add Feature" button.
  *
- * Figma → code (Repeatable Field):
+ * Figma → code (Repeatable Field, set 768:2247: State × Rows):
  * - `_Form Label` (Label, Required) → `label`, `required`: the fieldset's
- *   `<legend>`, a FormLabel. Required shows the marker, makes every row's
- *   input `required`, and keeps at least one row.
+ *   `<legend>`, a FormLabel, 20px above the first row (Figma: the Label
+ *   Row's 20 bottom padding, as in Form / Field). Required shows the marker,
+ *   makes every row's input `required`, and keeps at least one row.
  * - The Repeatable Field Rows → one RepeatableFieldRow per entry of `values`
  *   (controlled, with `onValuesChange`) or `defaultValues` (uncontrolled).
  *   "Add or remove rows per instance" (Figma's description) is the user's
@@ -25,8 +26,19 @@ import { TextInput, type TextInputProps } from '../text-input';
  * - `Add Button` (Button / Small, Outlined, Show Icons, the Plus glyph) →
  *   a small outlined Button with the `plus` icon; its label is `addLabel`.
  *   It is disabled once the list holds `max` rows.
- * - Layout: a column with space.8 between the label, each row and the add
- *   button (Figma: gap 8), filling its container (the pattern sets it to Fill).
+ * - Show Helper + Helper → `helper`: guidance under the rows, above the add
+ *   button, in Caption/md-regular, text/subtle.
+ * - State=Error + Error → `error`: the message in the helper's place, in
+ *   Caption/md-regular and the critical colour (accent/critical/tonal/
+ *   content), and the offending rows' inputs in _Text Input State=Error
+ *   (`aria-invalid`: the critical border). Figma marks the empty row; so does
+ *   code, unless `invalidRows` names the rows.
+ * - Rows=Default / Minimum / Full → how many rows there are. At `min` the
+ *   remove buttons go (Figma draws them disabled); at `max` the add button is
+ *   disabled, as Figma's Full draws it.
+ * - Layout: a column with space.8 between each row, the message and the add
+ *   button (Figma: the List's gap 8), filling its container (the pattern sets
+ *   it to Fill).
  *
  * Figma → code (Repeatable Field Row): a `_Text Input` (State=Filled: the
  * row's value; Default: the `placeholder`) that fills the row, then the
@@ -44,7 +56,10 @@ import { TextInput, type TextInputProps } from '../text-input';
  * Names: the group is named by the legend. Each input is "<label> <n>"
  * ("Features 2") and each remove button "Remove <label> <n>", unless
  * `rowLabel` / `removeLabel` say otherwise (they must, when `label` isn't
- * plain text).
+ * plain text). The helper or the error describes every row's input
+ * (`aria-describedby`), so a screen reader reads it with the row; a form
+ * that focuses its first `[aria-invalid="true"]` field on submit lands on the
+ * first offending row.
  *
  * Every colour is the semantic variable the Figma layer is bound to, through
  * FormLabel, TextInput, IconButton and Button. Where code departs from Figma,
@@ -118,10 +133,18 @@ export interface RepeatableFieldProps extends Omit<
   rowLabel?: (index: number) => string;
   /** The accessible name of row `index`'s remove button. Default "Remove <row's name>". */
   removeLabel?: (index: number) => string;
+  /** Figma Show Helper + Helper: guidance under the rows, above the add button. `error` takes its place. */
+  helper?: React.ReactNode;
+  /** Figma State=Error + Error: the message, in the helper's place, in the critical colour. Marks the offending rows. */
+  error?: React.ReactNode;
+  /** With `error`: the rows to mark (_Text Input State=Error), by index. Default: the empty rows, as Figma marks them. */
+  invalidRows?: readonly number[];
 }
 
 /* Focus target for the add button, next to the row keys. */
 const ADD = 'add';
+
+const shows = (node: React.ReactNode) => node !== undefined && node !== null && node !== false && node !== '';
 
 export const RepeatableField = React.forwardRef<HTMLFieldSetElement, RepeatableFieldProps>(function RepeatableField(
   {
@@ -137,6 +160,9 @@ export const RepeatableField = React.forwardRef<HTMLFieldSetElement, RepeatableF
     placeholder,
     rowLabel,
     removeLabel,
+    helper,
+    error,
+    invalidRows,
     className,
     ...props
   },
@@ -207,16 +233,22 @@ export const RepeatableField = React.forwardRef<HTMLFieldSetElement, RepeatableF
   };
 
   const text = typeof label === 'string' || typeof label === 'number' ? String(label) : 'Row';
+  const invalid = shows(error);
+  const message = invalid ? error : helper;
+  const messageId = `${React.useId()}-message`;
+  const describedBy = shows(message) ? messageId : undefined;
+  const isInvalid = (index: number) =>
+    invalid && (invalidRows ? invalidRows.includes(index) : values[index].trim() === '');
   const nameOf = rowLabel ?? ((index: number) => `${text} ${index + 1}`);
   const removeNameOf = removeLabel ?? ((index: number) => `Remove ${nameOf(index)}`);
 
   return (
     <fieldset ref={ref} className={cn('m-0 w-full min-w-0 border-0 p-0', className)} {...props}>
-      {/* _Form Label, space.8 above the first row (Figma: the field's gap 8). */}
-      <FormLabel as="legend" required={required} className="p-0 pb-2">
+      {/* _Form Label, 20px above the first row (Figma: the Label Row's 20 bottom padding). */}
+      <FormLabel as="legend" required={required} className="p-0 pb-5">
         {label}
       </FormLabel>
-      {/* The rows and the add button: a column, space.8 apart. */}
+      {/* List: the rows, the message and the add button, a column space.8 apart. */}
       <div className="flex flex-col gap-2">
         {values.map((value, index) => {
           const key = keys[index];
@@ -233,12 +265,26 @@ export const RepeatableField = React.forwardRef<HTMLFieldSetElement, RepeatableF
               placeholder={placeholder}
               required={required || undefined}
               aria-label={nameOf(index)}
+              aria-describedby={describedBy}
+              aria-invalid={isInvalid(index) || undefined}
               showRemove={values.length > floor}
               removeLabel={removeNameOf(index)}
               onRemove={() => remove(index)}
             />
           );
         })}
+        {/* Helper Text / Error Text: Caption/md-regular, text/subtle; the error in accent/critical/tonal/content. */}
+        {describedBy && (
+          <p
+            id={messageId}
+            className={cn(
+              'text-caption-md-regular',
+              invalid ? 'text-accent-critical-tonal-content-default' : 'text-text-subtle',
+            )}
+          >
+            {message}
+          </p>
+        )}
         {/* Add Button: Button / Small, Outlined, the Plus glyph. It hugs its label (Figma: Hug, left-aligned). */}
         <Button
           ref={addButton}

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
 import { TextField } from '../text-field';
@@ -16,8 +16,10 @@ const meta = {
           'Field Row`): a `_Form Label`, one row per entry (a `_Text Input` and a destructive trash `Button / Icon`), ' +
           'and an outlined “Add …” `Button / Small`. Placed as “Features” in the Create Announcement pattern. ' +
           '`values` / `defaultValues` / `onValuesChange` hold the list; every row submits `name` with the form; ' +
-          '`min` hides the remove buttons and `max` disables the add button. Adding a row focuses it; removing one ' +
-          'focuses its neighbour. The ref is the `<fieldset>`.',
+          '`min` hides the remove buttons and `max` disables the add button (Figma’s Rows=Minimum and Full). `helper` ' +
+          'is guidance under the rows (Show Helper); `error` is State=Error: the message in the critical colour in the ' +
+          'helper’s place, and the empty rows (or `invalidRows`) marked. Adding a row focuses it; removing one focuses ' +
+          'its neighbour. The ref is the `<fieldset>`.',
       },
     },
   },
@@ -38,6 +40,7 @@ const meta = {
     values: { control: false },
     rowLabel: { control: false },
     removeLabel: { control: false },
+    invalidRows: { control: false },
   },
   decorators: [
     (Story) => (
@@ -293,6 +296,190 @@ export const SubmitsWithForm: Story = {
   },
 };
 
+/* ── Helper and error ──────────────────────────────────────────────────────
+   Figma's Show Helper + Helper, and State=Error + Error. */
+
+function CheckedFeatures() {
+  const [features, setFeatures] = useState<string[]>(['one', 'two', '']);
+  const [error, setError] = useState<string | undefined>();
+  const formRef = useRef<HTMLFormElement>(null);
+  const check = (values: string[]) => (values.every((f) => f.trim()) ? undefined : 'Enter a feature in every row.');
+  return (
+    <form
+      ref={formRef}
+      noValidate
+      className="flex flex-col gap-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const next = check(features);
+        setError(next);
+        // As the patterns do: focus the first field in error once it shows.
+        if (next) requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+      }}
+    >
+      <RepeatableField
+        label="Features"
+        required
+        addLabel="Add Feature"
+        max={5}
+        helper="You can add up to 5 features."
+        error={error}
+        values={features}
+        onValuesChange={(next) => {
+          setFeatures(next);
+          // An error clears as soon as the list is valid.
+          if (error) setError(check(next));
+        }}
+      />
+      <Button type="submit" className="self-start">
+        Create
+      </Button>
+    </form>
+  );
+}
+
+/**
+ * The helper describes every row. A submit with an empty row shows the error in the helper’s place, marks the empty
+ * row (`aria-invalid`, the critical border) and the form focuses it; filling it clears the error and the helper
+ * comes back.
+ */
+export const HelperAndError: Story = {
+  name: 'Helper and error',
+  render: () => <CheckedFeatures />,
+  parameters: { controls: { disable: true } },
+  play: async ({ canvas }) => {
+    const third = canvas.getByRole('textbox', { name: 'Features 3' });
+    for (const input of canvas.getAllByRole('textbox')) {
+      await expect(input).toHaveAccessibleDescription('You can add up to 5 features.');
+      await expect(input).not.toHaveAttribute('aria-invalid');
+    }
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Create' }));
+    await waitFor(() => expect(third).toHaveFocus());
+    await expect(third).toHaveAttribute('aria-invalid', 'true');
+    await expect(canvas.getByRole('textbox', { name: 'Features 1' })).not.toHaveAttribute('aria-invalid');
+    await expect(third).toHaveAccessibleDescription('Enter a feature in every row.');
+    await expect(canvas.queryByText('You can add up to 5 features.')).not.toBeInTheDocument();
+
+    await userEvent.keyboard('three');
+    await expect(third).not.toHaveAttribute('aria-invalid');
+    await expect(third).toHaveAccessibleDescription('You can add up to 5 features.');
+  },
+};
+
+/** `invalidRows` marks rows that aren’t empty: here a duplicate, the second “two”. */
+export const InvalidRows: Story = {
+  name: 'Invalid rows',
+  args: {
+    defaultValues: ['one', 'two', 'two'],
+    error: 'Each feature must be different.',
+    invalidRows: [2],
+  },
+  play: async ({ canvas }) => {
+    const inputs = canvas.getAllByRole('textbox');
+    await expect(inputs.map((input) => input.getAttribute('aria-invalid'))).toEqual([null, null, 'true']);
+    for (const input of inputs) await expect(input).toHaveAccessibleDescription('Each feature must be different.');
+  },
+};
+
+/* Figma's set (768:2247) beyond the Default row count: Show Helper, State=Error × Rows Default /
+   Minimum / Full, and Rows=Full with the helper (770:8683's examples). */
+const MESSAGES: { state: string; props: Partial<RepeatableFieldProps>; invalid: number[]; full: boolean }[] = [
+  {
+    state: 'With helper',
+    props: { defaultValues: ['one', 'two', 'three'], helper: 'You can add up to 5 features.' },
+    invalid: [],
+    full: false,
+  },
+  {
+    state: 'Error',
+    props: { defaultValues: ['one', 'two', ''], error: 'Enter a feature in every row.' },
+    invalid: [2],
+    full: false,
+  },
+  {
+    state: 'Error at minimum',
+    props: { defaultValues: [''], error: 'Enter at least one feature.' },
+    invalid: [0],
+    full: false,
+  },
+  {
+    state: 'Full list',
+    props: { defaultValues: ['one', 'two', 'three', 'four', 'five'], max: 5, helper: 'You can add up to 5 features.' },
+    invalid: [],
+    full: true,
+  },
+  {
+    state: 'Error, full',
+    props: { defaultValues: ['one', 'two', 'three', 'four', ''], max: 5, error: 'Enter a feature in every row.' },
+    invalid: [4],
+    full: true,
+  },
+];
+
+const messages = (theme: 'light' | 'dark'): Story => ({
+  name: `Helper and error — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => (
+    <div className="flex flex-col gap-8 [&_button]:transition-none">
+      {MESSAGES.map(({ state, props }) => (
+        <RepeatableField
+          key={state}
+          {...props}
+          label="Features"
+          required
+          addLabel="Add Feature"
+          placeholder="Feature"
+          data-state={state}
+        />
+      ))}
+    </div>
+  ),
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark grid would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvasElement }) => {
+    const c = {
+      helper: tokenColour('text-subtle'),
+      error: tokenColour('accent-critical-tonal-content-default'),
+      stroke: insetStroke(tokenColour('stroke-field'), 1),
+      critical: insetStroke(tokenColour('accent-critical-outline-border-default'), 1),
+    };
+    for (const { state, props, invalid, full } of MESSAGES) {
+      const field = canvasElement.querySelector<HTMLFieldSetElement>(`fieldset[data-state="${state}"]`)!;
+      const inputs = [...field.querySelectorAll('input')];
+      const addButton = within(field).getByRole('button', { name: 'Add Feature' });
+      const text = String(props.error ?? props.helper);
+      const message = within(field).getByText(text);
+
+      // Helper Text / Error Text: Caption/md-regular, text.subtle or the critical colour, describing every row.
+      const style = getComputedStyle(message);
+      await expect(style.color).toBe(props.error ? c.error : c.helper);
+      await expect([style.fontSize, style.lineHeight]).toEqual(['12px', '16px']);
+      for (const input of inputs) await expect(input).toHaveAccessibleDescription(text);
+
+      // In the List, space.8 under the last row and space.8 above Add.
+      const lastRow = inputs.at(-1)!.parentElement!.getBoundingClientRect();
+      const m = message.getBoundingClientRect();
+      await expect(m.top - lastRow.bottom).toBe(8);
+      await expect(addButton.getBoundingClientRect().top - m.bottom).toBe(8);
+
+      // The offending rows: _Text Input State=Error, the critical border; the rest State=Filled.
+      for (const [i, input] of inputs.entries()) {
+        const bad = invalid.includes(i);
+        await expect(input.getAttribute('aria-invalid')).toBe(bad ? 'true' : null);
+        await expect(getComputedStyle(input).boxShadow).toContain(bad ? c.critical : c.stroke);
+      }
+      // Rows=Minimum: one row, no Remove; Rows=Full: Add disabled.
+      await expect(within(field).queryAllByRole('button', { name: /^Remove/ })).toHaveLength(inputs.length > 1 ? inputs.length : 0);
+      await expect(addButton).toHaveProperty('disabled', full);
+    }
+  },
+});
+
+export const HelperAndErrorLight = messages('light');
+export const HelperAndErrorDark = messages('dark');
+
 /* ── Every state, in Light and Dark ────────────────────────────────────────
    The field as Figma draws it, at rest and with its buttons hovered (forced with
    storybook-addon-pseudo-states), an empty row at `min` (Default, Show Remove off),
@@ -377,14 +564,15 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           if (hovered || state === 'Rest') expect(getComputedStyle(star!).color).toBe(c.marker);
           else expect(star).toBeNull();
 
-          // The column: label, rows and add button, space.8 apart. The legend carries its 8 as
-          // bottom padding (a fieldset's legend isn't a flex item), and the first row starts right under it.
+          // The label 20 above the first row (Figma: the Label Row's 20 bottom padding); then the rows and the
+          // add button, space.8 apart. The legend carries its 20 as bottom padding (a fieldset's legend isn't a
+          // flex item), and the first row starts right under it.
           const inputs = [...field.querySelectorAll('input')];
           const addButton = [...field.querySelectorAll('button')].at(-1)!;
           const boxes = [...inputs.map((input) => input.parentElement!), addButton].map((el) =>
             el.getBoundingClientRect(),
           );
-          expect(getComputedStyle(legend).paddingBottom).toBe('8px');
+          expect(getComputedStyle(legend).paddingBottom).toBe('20px');
           expect(boxes[0].top).toBe(legend.getBoundingClientRect().bottom);
           for (let i = 1; i < boxes.length; i++) expect(boxes[i].top - boxes[i - 1].bottom).toBe(8);
 

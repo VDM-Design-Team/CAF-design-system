@@ -90,6 +90,8 @@ names. A component that a second brand needs moves up to GDL.
 | `Calendar` | Form → `Date Picker / Calendar` | Components/Calendar |
 | `RangeCalendar` | Form → `Date Picker / Range` | Components/RangeCalendar |
 | `FilterField` | Filters → `Filter / Field` | Components/FilterField |
+| `FilterSelect` | Filters → `Filter / Field – Select` | Components/FilterSelect |
+| `FilterDateRange`, `formatDateRange` | Filters → `Filter / Field – Date range` | Components/FilterDateRange |
 | `MenuTriggerButton` | Buttons → `Button / Menu Trigger` | Components/MenuTriggerButton |
 | `SelectOption` | Form → `Select / Option` | Components/SelectOption |
 | `SelectMenu` | Form → `Select / Menu` | Components/SelectMenu |
@@ -110,6 +112,7 @@ names. A component that a second brand needs moves up to GDL.
 | `FormLabel` | Form → `_Form Label` | Components/FormLabel |
 | `FormField`, `FormHelperText`, `useFormField`, `useFormFieldControl` | Form → the part every `Form / Field – *` shares (code only) | Components/FormField |
 | `FormEditLink` | Form → `_Edit Link` | Components/FormEditLink |
+| `FormHint` | Form → `_Form Hint` | Components/FormHint |
 | `TextField` | Form → `Form / Field – Text` | Components/TextField |
 | `SelectField` | Form → `Form / Field – Dropdown`, `Form / Field – Dropdown with Edit` | Components/SelectField |
 | `FormSectionHeader` | Form → `Form / Section Header`, `Form / Section Header – Action` | Components/FormSectionHeader |
@@ -258,10 +261,11 @@ names. A component that a second brand needs moves up to GDL.
 <RangeCalendar value={period} onChange={setPeriod} />             // two months; onChange({ start, end })
 
 <FilterField label="Search costs" placeholder="Search costs..." />   // Type=Search; Filled (with ×) once typed
-<Popover panelRole="listbox" trigger={<FilterField type="dropdown" label="Status" value="All Status" />}>
-  …                                                                // Select's options (List page pattern)
-</Popover>
-<FilterField type="dropdown" label="Period" placeholder="Select Period" icon="calendar-blank" />
+<FilterSelect className="w-64" label="Status" allLabel="All Status"
+  options={[{ value: 'pending', label: 'Pending' }, { value: 'paid', label: 'Paid' }]}
+  value={status} onValueChange={setStatus} />                       // Filter / Field – Select; null is All Status
+<FilterDateRange className="w-64" label="Period" placeholder="Select Period"
+  value={period} onValueChange={setPeriod} />                       // Filter / Field – Date range; "12–24 Oct" this year
 
 <MenuTriggerButton label="Change Status (3)">                      // Button / Menu Trigger
   <MenuItem>Approve</MenuItem>
@@ -379,6 +383,9 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   defaultValues={['one', 'two', 'three']} />                     // uncontrolled; submits features=one&features=two&features=three
 <RepeatableField label="Features" addLabel="Add Feature" values={features}
   onValuesChange={setFeatures} max={5} />                       // controlled, at most 5 rows
+<RepeatableField label="Features" required addLabel="Add Feature" name="features"
+  helper="You can add up to 5 features." error={errors.features} />   // Show Helper; State=Error marks the empty rows
+<FormHint role="status">This will recur every 3 weeks</FormHint>    // _Form Hint, space.8 under its field
 
 <StatRow>                                                                  // Card / Stat Row – Exports
   <StatCard label="Total Exports" value="5981" icon="file-text" />          // tone="info" (default)
@@ -578,9 +585,22 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   filter bar. `type="search"` (the default) is a search box with a clear
   (×) button once it is filled (State=Filled). The button and Escape both
   empty it. `type="dropdown"` is a trigger button: a leading icon, the
-  chosen `value` (or a `placeholder`) and a caret. Put it in a Popover with
-  a Select or a RangeCalendar. `icon` swaps the leading icon, and `label`
+  chosen `value` (or a `placeholder`) and a caret: the part FilterSelect and
+  FilterDateRange share. `icon` swaps the leading icon, and `label`
   (required) is the accessible name.
+- `FilterSelect` is Figma's Filter / Field – Select: a Dropdown filter
+  field that opens a Select / Menu as wide as itself, the chosen option
+  checked. `allLabel` ("All Status") is the reset item and the value while
+  `value` is null; `options`, `value` / `defaultValue` and `onValueChange`
+  (null for the reset item) hold the filter. It is Select's listbox (the
+  same keys and typeahead), a combobox named by `label`.
+- `FilterDateRange` is Figma's Filter / Field – Date range: a Dropdown
+  filter field with the calendar icon that opens Date Picker / Range under
+  it. `placeholder` shows until a range is picked; then the field shows it
+  in the short format (`formatDateRange`): no year when both ends are in
+  `today`'s year ("12–24 Oct", "28 Sep – 31 Oct"), the year otherwise
+  ("28 Dec 2025 – 3 Jan 2026"). A screen reader hears the full dates. Two
+  picks close it, and `onValueChange` gets `{ start, end }`.
 - `MenuTriggerButton` is Figma's Button / Menu Trigger: the primary Button
   with a trailing caret that opens a MenuDropdown, for Export and the bulk
   Change Status (n). `label` is the button's text, the MenuItems are
@@ -666,6 +686,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   SelectTrigger and Select do), or from a function child.
 - `FormLabel` is `_Form Label`: `required` shows the "*" marker (the control
   announces it). `as="legend"` labels a fieldset.
+- `FormHint` is `_Form Hint`: an inline note under a field ("This will
+  recur every 3 weeks"), an Info glyph (`icon` swaps it) and one line of
+  Caption in `text.subtle` (`children`). Put it space.8 under its field;
+  pass `role="status"` when it follows what the user types.
 - `FormSectionHeader` is Form / Section Header (`title`, `description`) and
   – Action (`action`, a small Text Button). The title is an `<h2>`;
   `headingLevel` moves it without changing the look.
@@ -742,7 +766,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   or `defaultValues`, and an outlined "Add …" button labelled `addLabel`.
   Every row submits `name`, so `formData.getAll(name)` returns the list in
   order. `required` shows the marker, requires every row and keeps one row.
-  `min` hides the remove buttons and `max` disables the add button. Adding
+  `min` hides the remove buttons and `max` disables the add button.
+  `helper` is Show Helper: guidance under the rows. `error` is State=Error:
+  the message in the critical colour in the helper's place, and the empty
+  rows (or the rows in `invalidRows`) marked `aria-invalid`. Adding
   a row focuses it. Removing one focuses the row that takes its place, the
   one before it, or the add button. The ref is the fieldset; `disabled`
   disables everything in it.

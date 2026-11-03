@@ -71,8 +71,8 @@ async function expectExports(canvasElement: HTMLElement) {
   await expectStat(stats, 'Total Exports', String(exportStats.total));
   const bar = page.getByRole('search', { name: 'Filter exports' });
   await expect(within(bar).getByRole('searchbox', { name: 'Search exports' })).toBeVisible();
-  await expect(within(bar).getByRole('button', { name: 'Status: Filter by status' })).toBeVisible();
-  await expect(within(bar).getByRole('button', { name: 'Type: Filter by type' })).toBeVisible();
+  await expect(within(bar).getByRole('combobox', { name: 'Status' })).toHaveTextContent('All Status');
+  await expect(within(bar).getByRole('combobox', { name: 'Type' })).toHaveTextContent('All Types');
   const table = page.getByRole('table', { name: 'Exports' }) as HTMLTableElement;
   await expect(table.tBodies[0].rows).toHaveLength(4);
   const pagination = page.getByRole('navigation', { name: 'Pagination' });
@@ -90,7 +90,7 @@ async function expectAnnouncements(canvasElement: HTMLElement) {
   const create = page.getByRole('button', { name: 'New Announcement' });
   await expect(page.getByRole('button', { name: 'View Changelog' })).toBeVisible();
   const bar = page.getByRole('search', { name: 'Filter announcements' });
-  await expect(within(bar).getByRole('button', { name: 'Release date: Filter Date' })).toBeVisible();
+  await expect(within(bar).getByRole('combobox', { name: 'Release date' })).toHaveTextContent('Filter Date');
   const table = page.getByRole('table', { name: 'Announcements' }) as HTMLTableElement;
   await expect(table.tBodies[0].rows).toHaveLength(announcements.length);
   // The screen's order: the actions sit between the totals and the filter bar.

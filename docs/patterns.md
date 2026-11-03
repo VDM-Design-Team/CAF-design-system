@@ -77,7 +77,7 @@ Compositions the patterns share. None is exported from the package.
 |---|---|---|
 | `CostsTable` (+ `CostBreakdownTable`, `CostStatusBadge`, `sortCosts`) | Table / Header – Costs 121:4938, Table / Row – Cost 121:2782 (+ Selectable 121:5197) | `src/patterns/costs/CostsTable.tsx` |
 | `PageHeader` | Layout → Page Header (since 2 Nov 2026) | `src/components/page-header` (a DS component now) |
-| `CostsFilterBar` (+ `FilterBar`, `FilterMenu`, `FilterDateRange`, `filterCosts`) | Filter / Bar – Costs 256:4585, Filter / Bar 256:5338 | `src/patterns/filters/CostsFilterBar.tsx` |
+| `CostsFilterBar` (+ `FilterBar`, `filterCosts`; the DS's FilterSelect and FilterDateRange since 2 Nov 2026) | Filter / Bar – Costs 256:4585, Filter / Bar 256:5338 | `src/patterns/filters/CostsFilterBar.tsx` |
 | `CostsListPage` | 01 B 518:514, U01 545:13511 | `src/patterns/list-page/CostsListPage.tsx` |
 | `AuditLogTable`, `AuditLogsDialog` | 526:4980 | `src/patterns/expand-details/AuditLogs.tsx` |
 | `RecurringCostsTable` | Table / Recurring Costs 260:1065, Header 260:1021, Row 260:1000 | `src/patterns/recurring/RecurringCostsTable.tsx` |
@@ -92,7 +92,7 @@ Compositions the patterns share. None is exported from the package.
 | `UsersPage`, `UsersTable` | 528:5768, 528:5814, 528:6194 | `src/patterns/states/` |
 | `AddUserDialog` | 528:6197 | `src/patterns/feedback/AddUserDialog.tsx` |
 | `ExportsStatRow`, `AnnouncementsStatRow` | Card / Stat Row – Exports 387:3601, – Announcements 389:163 | `src/patterns/overview/StatRows.tsx` |
-| `ExportsTable`, `ExportDetailsDialog`, `FilterMenu` | 529:6211, 529:6740, 528:5884; 529:6175 | `src/patterns/overview/` |
+| `ExportsTable`, `ExportDetailsDialog` | 529:6211, 529:6740, 528:5884 | `src/patterns/overview/` |
 | `AnnouncementsTable`, `CreateAnnouncementDialog` | 528:5948, 529:7050 | `src/patterns/announcements/` |
 | `AppShell`, `useDocumentTheme` | 530:7296, 530:7582, 530:7659; 545:27687 | `src/patterns/app-shell/AppShell.tsx` |
 | `ManageCurrenciesDialog`, `SettingsPage` | 545:24755, 545:25204 | `src/patterns/account-settings/` |
@@ -101,8 +101,8 @@ Compositions the patterns share. None is exported from the package.
 Known overlaps, to settle once design answers the questions below:
 - Two Edit Recurring Cost forms: `EditRecurringCostForm` follows U04,
   `RecurringCostSheet` follows 06 (the two Figma forms differ).
-- Two filter dropdown stand-ins: `filters/CostsFilterBar`'s `FilterMenu` and
-  `overview/FilterMenu`. The templates use the first.
+- ~~Two filter dropdown stand-ins (`FilterMenu`)~~: every filter bar uses
+  the DS's FilterSelect since 2 Nov 2026.
 - The Cost Centers list is drawn in the List page story and in
   `CostCentresPage`.
 - `CostsListPage` and `UsersPage` render `<main>` by default (`as="div"`
@@ -230,8 +230,8 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Components.** The organism `src/patterns/filters/CostsFilterBar.tsx` (Filter / Bar – Costs 256:4585; Filter / Bar 256:5338, Page=Costs / Recurring) is story-level, not exported from `src/index.ts`:
 - **FilterBar:** Figma's Bar as a `search` landmark: surface.neutral.faint, a 1px stroke.subtle inset stroke, radius 12, 16 padding, fields 12 apart. Clear Filters (Button, Outlined) sits on the far right, with an optional row under the fields.
-- **FilterMenu:** FilterField Dropdown → MenuDropdown of MenuItems ("All Status", Pending, …). It stands in for Select / Menu.
-- **FilterDateRange:** FilterField Dropdown → Popover → RangeCalendar. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field.
+- **FilterSelect** (DS, Filter / Field – Select, since 2 Nov 2026): the Status, Payment Method and Currency dropdowns. A Select / Menu under the field with the chosen option checked; "All Status" is the reset item. Select's keys.
+- **FilterDateRange** (DS, Filter / Field – Date range, since 2 Nov 2026): Select Period and Creation Date. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field, which shows the range as "12–24 Oct" (no year in the current year; a screen reader hears it). Filter / Summary keeps the ISO days.
 - **Filter / Summary:** "Current Filters" with the lines in use, when `showSummary` is set.
 - **Helpers:** `filterCosts` (search over ID, title, invoice #, applicant name and email, beneficiary and account; status, payment method, currency; Period overlaps the cost's period; Creation Date contains the submitted date), `hasActiveCostFilters`, `costFilterSummary`.
 
@@ -264,18 +264,17 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Design questions.**
 - Select Period vs Creation Date.
-- The Funnel icon and the truncated range on step 4's period field.
-- Which list a dropdown filter opens (no selected mark on Menu / Item).
+- ~~The Funnel icon and the truncated range on step 4's period field~~: the calendar icon and the short format without the current year (2 Nov 2026): every current-year range fits the 256 field (the widest, "30 May – 30 Nov", is 118px). Only a long range in another year is still cut (docs/figma-sync.md, "FilterDateRange").
+- ~~Which list a dropdown filter opens~~: Select / Menu with the chosen option checked (FilterSelect, 2 Nov 2026).
 - Filter / Summary or chips on list pages.
 - A visible results count.
 - A per-field ×.
-- The "Filter by Cost Center" vs "All Status" wording.
+- ~~The "Filter by Cost Center" vs "All Status" wording~~: a value, "All Cost Centers" (decision filter-wording); the Cost Centers list and the Exports screen read so since 2 Nov 2026.
 - How the bar wraps.
 - 240 vs 256 width.
 
 **Missing components.**
-- Filter / Field – Select.
-- Filter / Field – Date range (Popover has no bare panel, so the pattern strips its surface with DateInput's own classes).
+- ~~Filter / Field – Select~~ and ~~Filter / Field – Date range~~: FilterSelect and FilterDateRange since 2 Nov 2026.
 
 ### 03 · Row actions menu (Figma 520:2387)
 
@@ -383,7 +382,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** creating a cost, the longest form in the product. It is a full page in titled sections, with repeatable breakdowns and attachments, and it can be saved as a draft at any point.
 
-**Components:** the organism **Form / New Cost** (`src/patterns/forms/NewCostForm.tsx`) is built from PageHeader, FormTabNavigation with TabItems (its tab panel holds the fields), FormSectionHeader, TextField, SelectField (Currency with FormEditLink "[Edit]"), DateField, FileUploadField, Alert (the recurrence summary), BreakdownsSection (BreakdownItem with RowActionsMenu, and CostBreakdownDialog: ModalDialog, TextField, SelectField, ComboboxField, DateField) and Button (Outlined "Save to Drafts", Default "Save").
+**Components:** the organism **Form / New Cost** (`src/patterns/forms/NewCostForm.tsx`) is built from PageHeader, FormTabNavigation with TabItems (its tab panel holds the fields), FormSectionHeader, TextField, SelectField (Currency with FormEditLink "[Edit]"), DateField, FileUploadField, FormHint (the recurrence summary, since 2 Nov 2026), BreakdownsSection (BreakdownItem with RowActionsMenu, and CostBreakdownDialog: ModalDialog, TextField, SelectField, ComboboxField, DateField) and Button (Outlined "Save to Drafts", Default "Save").
 
 **Flow the stories show:**
 - *Single cost:* Applicant name and Email are pre-filled from the account, and "[Edit]" calls `onEditCurrency`. Save with the cost half done marks every section that needs something: Currency, Partner, Payment method, the invoice, and "Add at least one breakdown." in an Alert. Focus goes to the first error. Currency is chosen by typeahead, then an invoice is attached and a breakdown added through the dialog. Save sends the FormData (`type`, the fields, `invoices`, one JSON `breakdown` per breakdown), and a toast confirms it.
@@ -429,7 +428,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Solves:** every list and dialog has to handle waiting, having nothing to show, failing, and pages that don't exist. It does this without the layout jumping, and it tells the user what to do next.
 
-**Components:** SkeletonTableRow (Skeleton), Spinner (24), EmptyState (Default and Compact), Alert (Error), Button, TableList / TableHeaderRow / TableHeaderCell / TableRow / TableCell, FilterField, MenuDropdown + MenuItem (via `FilterMenu`), ModalDialog (via `ExportDetailsDialog`), PageHeader. Story-level organisms in `src/patterns/states/`: `UsersPage` (the Users screen, shared with pattern 12) and `UsersTable` (Name, Role, Date Created).
+**Components:** SkeletonTableRow (Skeleton), Spinner (24), EmptyState (Default and Compact), Alert (Error), Button, TableList / TableHeaderRow / TableHeaderCell / TableRow / TableCell, FilterField, FilterSelect (Role), ModalDialog (via `ExportDetailsDialog`), PageHeader. Story-level organisms in `src/patterns/states/`: `UsersPage` (the Users screen, shared with pattern 12) and `UsersTable` (Name, Role, Date Created).
 
 **Flow the stories show:**
 - *Loading a list* (Step 1): the Users header, filters and table header are in place at once. The body shows five SkeletonTableRows of three cells, the table is `aria-busy`, and a visually hidden status says "Loading users". This story never answers, so it can be snapshotted.
@@ -465,7 +464,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Solves:** pages that track jobs (Exports) show totals above the list, and open each record's full details read-only in a dialog.
 
-**Components:** StatRow + StatCard via `ExportsStatRow` (**Card / Stat Row – Exports**, 387:3601), PageHeader, FilterField, `FilterMenu` (MenuDropdown + MenuItem), TableCell (Two Line, Status + Date), Tag, RowActionsMenu + MenuItem, Pagination, ModalDialog (Medium), Spinner, DescriptionList, FilterSummary, ModalConfirm (Destructive), Toast. Story-level organisms in `src/patterns/overview/`: `StatRows.tsx` (`ExportsStatRow`, and `AnnouncementsStatRow`, **Card / Stat Row – Announcements** 389:163, used by pattern 14), `ExportsTable`, `ExportDetailsDialog`, `FilterMenu`.
+**Components:** StatRow + StatCard via `ExportsStatRow` (**Card / Stat Row – Exports**, 387:3601), PageHeader, FilterField, FilterSelect, TableCell (Two Line, Status + Date), Tag, RowActionsMenu + MenuItem, Pagination, ModalDialog (Medium), Spinner, DescriptionList, FilterSummary, ModalConfirm (Destructive), Toast. Story-level organisms in `src/patterns/overview/`: `StatRows.tsx` (`ExportsStatRow`, and `AnnouncementsStatRow`, **Card / Stat Row – Announcements** 389:163, used by pattern 14), `ExportsTable`, `ExportDetailsDialog`.
 
 **Flow the stories show:**
 - *Stats, filters and pages* (Step 1): the group "Export totals" (Total Exports 6003, Completed 5665, Processing 0, Failed 338) sits between the page header and the filter bar. The table shows pattern 13's columns, four rows a page. Page 2 shows the next four. Choosing Type Excel from the keyboard goes back to page 1. Adding Status Failed finds nothing: the Compact "No items." appears in the table and the filters stay. Searching "09-24" narrows by name. The totals never change, because they count the whole collection.
@@ -473,7 +472,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - *Retry and delete*: a failed export offers Retry, View Details and Delete. Retry sets it to Processing, moves the totals (Failed 337, Processing 1) and raises the Info toast "Export started. It will appear in Exports when it’s ready.". Delete opens Modal / Confirm ("Delete export?", "“…” will be permanently deleted. This can’t be undone.", with focus on Cancel). Confirming removes the row, updates the totals and raises "Export deleted.", and focus moves to the next row's •••.
 - *Details open*: the dialog, loaded. *Dark*: the overview.
 
-**What Figma draws that the stories don't:** the pattern's own sample rows ("costs-2026-10-07-91822", CSV, 18 KB) and totals (5981 / 5648 / 0 / 333). The stories use the Admin Exports screen's data from the shared fixtures, so every pattern draws from one data set. The pagination "1 … 25" becomes two pages of the eight sample rows. The dropdown filters' open menu isn't drawn in Figma, so FilterMenu stands in.
+**What Figma draws that the stories don't:** the pattern's own sample rows ("costs-2026-10-07-91822", CSV, 18 KB) and totals (5981 / 5648 / 0 / 333). The stories use the Admin Exports screen's data from the shared fixtures, so every pattern draws from one data set. The pagination "1 … 25" becomes two pages of the eight sample rows. The dropdown filters' open menu isn't drawn in pattern 13; FilterSelect draws Filter / Field – Select's.
 
 **Design questions:** the pattern's table vs the Admin screen's (columns, title "Export Management"). The totals that differ. Which filters Current Filters lists. Showing Download and Retry only where they apply. The footer "Close", which has the same name as the header's X. A selected state for filter options.
 
@@ -481,7 +480,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Solves:** admins publish release notes as announcements for an audience. Users see the newest one once, in a "what's new" dialog after sign-in, and can read every release on the Changelog page.
 
-**Components:** PageHeader, `AnnouncementsStatRow` (389:163), AnnouncementsTable (Tag, RowActionsMenu), ModalDialog (Large) with TextField, DateField, RadioGroup, RepeatableField, ToggleField and Alert, **ChangelogModal** (Modal / Changelog 391:174, the DS component) with BulletItem, ChangelogEntry, AppHeader (Header – User) with NavLink, Tabs, CostsTable, ModalConfirm, Toast. Story-level organisms in `src/patterns/announcements/`: `AnnouncementsTable` and `CreateAnnouncementDialog`.
+**Components:** PageHeader, `AnnouncementsStatRow` (389:163), AnnouncementsTable (Tag, RowActionsMenu), ModalDialog (Large) with TextField, DateField, RadioGroup, RepeatableField (with its error state) and ToggleField, **ChangelogModal** (Modal / Changelog 391:174, the DS component) with BulletItem, ChangelogEntry, AppHeader (Header – User) with NavLink, Tabs, CostsTable, ModalConfirm, Toast. Story-level organisms in `src/patterns/announcements/`: `AnnouncementsTable` and `CreateAnnouncementDialog`.
 
 **Flow the stories show:**
 - *Admin publishes* (Step 1): the totals read 7, 2.5.6 and Aug 10, 2026. Add New opens Create Announcement. Create with nothing filled in shows "Enter a title.", "Enter a version, like 2.5.6.", "Choose a release date." and the features error, and focuses Title. Each error clears as its value becomes valid ("2.6" stays wrong; "2.6.0" is fine). The release date is picked from the calendar, the audience is User, and there are two features; Active is on by default. Create submits with FormData. The dialog closes, focus returns to Add New, the announcement is first in the list (v2.6.0, User, Active), the totals become 8, 2.6.0 and Nov 2, 2026, and "Announcement created." appears.
@@ -493,7 +492,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What Figma draws that the stories don't:** Step 1 draws no table under the totals (a Spacer); the stories add `AnnouncementsTable` with pattern 11's columns. Step 2's Costs table repeats one row; the stories show QA Test's own costs. Whether the user has seen a release is kept in story state; the app stores it per user. The Changelog isn't in the nav, so on that page no link is active, as U07 says.
 
-**Design questions:** the dialog's title vs the Changelog's for v2.5.6. The Changelog's releases (2.5.0, 2.4.0) that aren't announcements. Latest by date or by version. "Add New" vs "New Announcement", and the column sets. A status for inactive announcements. What View Change Log does in an admin preview. A Changelog item in the account menu (U07 guidance). RepeatableField has no error state.
+**Design questions:** the dialog's title vs the Changelog's for v2.5.6. The Changelog's releases (2.5.0, 2.4.0) that aren't announcements. Latest by date or by version. "Add New" vs "New Announcement", and the column sets. A status for inactive announcements. What View Change Log does in an admin preview. A Changelog item in the account menu (U07 guidance). ~~RepeatableField has no error state~~ (added 2 Nov 2026).
 
 ### 15 / U08 · App shell & navigation (Figma 530:7799, U08 545:26643)
 
@@ -593,7 +592,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (no Divider component). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
 
-**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. Starts At is a Text field or a Date field. U04’s form isn’t the same as pattern 06’s. The “recur every” line has no component. Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
+**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. Starts At is a Text field or a Date field. U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
 
 ### U06 · Account, settings & currencies (Figma 545:23189)
 
@@ -686,7 +685,7 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 **Built from.**
 - ExportsStatRow, ExportsTable and ExportDetailsDialog (pattern 13).
 - AnnouncementsStatRow, AnnouncementsTable and CreateAnnouncementDialog (patterns 11 and 14), plus ChangelogModal for Preview.
-- FilterBar, FilterMenu and FilterDateRange (pattern 02), PageHeader, Pagination and EmptyState.
+- FilterBar (pattern 02), FilterSelect and FilterDateRange, PageHeader, Pagination and EmptyState.
 - Composed in `ExportsScreen` and `AnnouncementsScreen`.
 
 **Stories.**
@@ -786,16 +785,16 @@ components (or left out) until the library and code have it.
 - ~~**Status Pill Approved, Paid and Rejected**~~ and ~~**Inactive / Stopped**~~: added to Status Pill on 2 Nov 2026; the costs, recurring costs and announcements tables use them.
 
 **Filters**
-- **Filter / Field – Select**: a Filter / Field Dropdown (95:10) that opens Select / Menu (456:631) with the chosen option checked and the listbox keyboard (used by every dropdown filter: 529:6175, 528:5796, U04 545:18882). Stand-ins: `FilterMenu` (in `filters/CostsFilterBar.tsx` and in `overview/`), a FilterField that opens MenuDropdown + MenuItem, which has no selected mark.
-- **Filter / Field – Date range**: a Filter / Field Dropdown that opens Date Picker / Range (463:11925). Stand-in: `FilterDateRange`, a Popover + RangeCalendar. Popover has no bare panel option, so the pattern strips its surface with DateInput's own classes (the one place a pattern sets non-layout classes on a DS component).
-- **A single-date Filter / Field** (Announcements' Filter Date, 2102:6641). Stand-in: `FilterDateRange`.
+- ~~**Filter / Field – Select**~~ Added on 2 Nov 2026 (`FilterSelect`); every dropdown filter uses it (the two `FilterMenu` stand-ins and U04's inline one are gone).
+- ~~**Filter / Field – Date range**~~ Added on 2 Nov 2026 (`FilterDateRange`); the Costs bar and Announcements use it.
+- ~~**A single-date Filter / Field**~~ Not needed: a range is right (decision); Announcements' Filter Date is a `FilterDateRange`.
 - **A Clear Filters control**: the screens draw it as a Filter / Field Type=Search instance with ArrowsClockwise (2102:6045, 2102:6642, 545:18585). No button variant matches; the templates use an Outlined Button.
 - **A removable active-filter chip**, only if design answers the Filter / Summary question that way. Nothing in the library today.
 
 **Forms and feedback**
-- **Form hint / inline note**: an Info 16 glyph and a line of text under fields (U04 545:19043, U02 545:18256, "This will recur every 3 weeks"). Stand-in: a compact Info Alert.
+- ~~**Form hint / inline note**~~ Added on 2 Nov 2026 (`FormHint`); U02 and U04's recurrence summary uses it.
 - **Alert action**: Alert has no action slot for Retry on a failed load (pattern 11). Stand-in: a small outlined Button under the Alert.
-- **RepeatableField error / helper**: a required list can't show an error under itself (Form / Repeatable Field 463:780, used in 529:7050). Stand-in: a compact Error Alert under the field.
+- ~~**RepeatableField error / helper**~~ Added on 2 Nov 2026 (`helper`, `error`); Create Announcement's Features uses it.
 - **Button as a link** (`href` or `asChild`) for navigation actions such as "Go back home" (528:6013). Stand-in: a Button with `onClick`.
 - **Modal Header actions**: Audit Logs' refresh icon beside Close (2102:5857). ModalDialog takes only a title and Close.
 

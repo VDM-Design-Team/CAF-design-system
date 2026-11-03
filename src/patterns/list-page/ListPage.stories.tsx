@@ -4,6 +4,7 @@ import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
+import { FilterSelect } from '../../components/filter-select';
 import { Icon } from '../../components/icon';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
@@ -13,7 +14,7 @@ import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { ToastProvider } from '../../components/toast';
 import { sortCosts } from '../costs/CostsTable';
-import { FILTER_SLOT, FilterBar, FilterMenu } from '../filters/CostsFilterBar';
+import { FILTER_SLOT, FilterBar } from '../filters/CostsFilterBar';
 import { costCentres, costs, exportMenuItems, LIST_TODAY } from '../fixtures';
 import { PageHeader } from '../../components/page-header';
 import { CostsListPage, EXPORT_STARTED } from './CostsListPage';
@@ -76,13 +77,13 @@ function CostCentersPage() {
             }}
           />
         </div>
-        <FilterMenu
+        <FilterSelect
+          className={FILTER_SLOT}
           label="Cost center"
           allLabel="All Cost Centers"
-          placeholder="Filter by Cost Center"
           options={CENTRE_NAMES}
           value={centre}
-          onChange={(next) => {
+          onValueChange={(next) => {
             setCentre(next);
             setPage(1);
           }}
@@ -270,15 +271,19 @@ export const CostCenters: Story = {
     await expect(rowIds(table)).toEqual(['cc-4', 'cc-11']);
     await expect(pagination(canvasElement).getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page');
 
-    // The cost center filter, from the keyboard: ↓ opens its menu, Enter picks. Nothing is both.
-    const filter = canvas.getByRole('button', { name: 'Cost center: Filter by Cost Center' });
+    // The cost center filter (FilterSelect), from the keyboard: ↓ opens its list on the checked All Cost
+    // Centers, Enter picks. Nothing is both.
+    const filter = canvas.getByRole('combobox', { name: 'Cost center' });
+    await expect(filter).toHaveTextContent('All Cost Centers');
     filter.focus();
     await userEvent.keyboard('{ArrowDown}');
-    const menu = canvas.getByRole('menu');
-    await waitFor(() => expect(within(menu).getByRole('menuitem', { name: 'All Cost Centers' })).toHaveFocus());
+    const list = canvas.getByRole('listbox', { name: 'Cost center' });
+    const all = within(list).getByRole('option', { name: 'All Cost Centers' });
+    await expect(all).toHaveAttribute('aria-selected', 'true');
+    await expect(filter).toHaveAttribute('aria-activedescendant', all.id);
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Enter}');
     await expect(filter).toHaveFocus();
-    await expect(filter).toHaveAccessibleName('Cost center: IT Expenses');
+    await expect(filter).toHaveTextContent('IT Expenses');
     await expect(within(table).getByText('No items.')).toBeVisible();
     await expect(canvas.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument();
 
@@ -287,7 +292,7 @@ export const CostCenters: Story = {
     await expect(rowIds(table)).toEqual(['cc-1', 'cc-2', 'cc-3', 'cc-4', 'cc-5']);
     await expect(canvas.getByRole('searchbox', { name: 'Search cost centers' })).toHaveFocus();
     await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
-    await expect(canvas.getByRole('button', { name: 'Cost center: Filter by Cost Center' })).toBeVisible();
+    await expect(canvas.getByRole('combobox', { name: 'Cost center' })).toHaveTextContent('All Cost Centers');
   },
 };
 
