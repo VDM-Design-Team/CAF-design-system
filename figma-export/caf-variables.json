@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-02",
+  "exportedAt": "2026-11-03",
   "file": "WhVkTrQRI9bDTfOeAJXTrR",
   "collections": [
     { "name": "Brand Primitives", "modes": ["Default"], "variables": [
@@ -50,7 +50,7 @@
       {"n":"colors/surface/base","t":"C","v":[{"alias":"colors/monochrome/white","lib":"Primitives"},{"alias":"colors/slate/800","lib":"Primitives"}],"d":"Main Panels (e.g., side navbar)","s":["FRAME_FILL","SHAPE_FILL"]},
       {"n":"colors/surface/elevated","t":"C","v":[{"alias":"colors/monochrome/white","lib":"Primitives"},{"alias":"colors/slate/800","lib":"Primitives"}],"d":"Cards, Widgets, Popovers","s":["FRAME_FILL","SHAPE_FILL"]},
       {"n":"colors/surface/elevated secondary","t":"C","v":[{"alias":"colors/monochrome/white","lib":"Primitives"},{"alias":"colors/slate/900","lib":"Primitives"}],"d":"Modals, inputs","s":["FRAME_FILL","SHAPE_FILL"]},
-      {"n":"colors/surface/overlay","t":"C","v":["#e2e8f0bf","#1e293bbf"],"d":"Colour beneath e.g., modals","s":["FRAME_FILL","SHAPE_FILL"]},
+      {"n":"colors/surface/overlay","t":"C","v":["#e2e8f0bf","#020617bf"],"d":"Colour beneath e.g., modals","s":["FRAME_FILL","SHAPE_FILL"]},
       {"n":"colors/surface/neutral/base","t":"C","v":[{"alias":"colors/monochrome/white","lib":"Primitives"},{"alias":"colors/slate/950","lib":"Primitives"}],"d":"Surface/background colour: surface › neutral › base.","s":["FRAME_FILL","SHAPE_FILL"]},
       {"n":"colors/surface/neutral/faint","t":"C","v":[{"alias":"colors/slate/50","lib":"Primitives"},{"alias":"colors/slate/900","lib":"Primitives"}],"d":"Surface/background colour: surface › neutral › faint.","s":["FRAME_FILL","SHAPE_FILL"]},
       {"n":"colors/surface/neutral/subtle","t":"C","v":[{"alias":"colors/slate/100","lib":"Primitives"},{"alias":"colors/slate/700","lib":"Primitives"}],"d":"Surface/background colour: surface › neutral › subtle.","s":["FRAME_FILL","SHAPE_FILL"]},

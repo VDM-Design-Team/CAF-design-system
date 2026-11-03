@@ -59,18 +59,24 @@ Radio Deselected, Checkbox's unchecked border, and Toggle's off track.
 CI runs `npm run import:figma` and fails if `tokens/` changes. So `tokens/`
 can only move together with the snapshot.
 
-## Open Figma housekeeping (snapshot of 20 Oct 2026)
+## Open Figma housekeeping (snapshot of 3 Nov 2026)
 
-`npm run import:figma` lists these. None of them changes a value:
+Fixed in Figma on 3 Nov 2026 (no value changed): Heading/md-bold and the
+Title/sm-* styles bind GDL's `font/size/…`; the Label/md-* styles bind
+`font/size/label-md`; Label/sm-bold binds `font/size/label-sm`;
+Heading/lg-regular binds `font/family/inter`. `npm run import:figma` no
+longer lists any of them.
 
-- Heading/md-bold and the four Title/sm-* styles bind their size to
-  `Font/Size/…`, a capitalised variable that isn't GDL's `font/size/…`.
-- The three Label/md-* styles have no size variable bound.
-- Label/sm-bold's size is bound to `font/size/body-sm`. It is the same
-  14px, but the wrong tier.
-- Heading/lg-regular has no family variable bound.
+Still open:
+
 - `text.link.*` and `surface.overlay` are raw colours, not aliases. The
-  contract check reports them as warnings.
+  contract check reports them as warnings. `surface.overlay` Dark is
+  `#020617bf` since 3 Nov (GDL slate 950 at 75%, decision dark-modal-edge;
+  it stays a CAF value, decision fc-modals-overlay-gdl).
+- Caption/md-medium's 16px line height and 0.3px letter spacing are typed
+  on the style, not bound: GDL's Figma has no line-height or
+  letter-spacing variables yet (a GDL change). The other styles keep AUTO
+  and 0%; code takes every metric from GDL.
 
 ## Components
 
