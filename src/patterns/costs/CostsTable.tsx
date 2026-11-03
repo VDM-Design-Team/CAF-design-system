@@ -10,6 +10,7 @@ import { TableHeaderCell, type TableSort } from '../../components/table-header-c
 import { TableHeaderRow } from '../../components/table-header-row';
 import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
+import { Tag } from '../../components/tag';
 import {
   accountLine,
   costStatusLabel,
@@ -37,8 +38,9 @@ import {
  *   given.
  * - Row: TableExpandButton (in a Custom cell, as Figma's Header Row example
  *   places it), Checkbox, TableAccountDetails in a Custom cell (ID,
- *   applicant, beneficiary, account; a "Recurring" StatusPill on a recurring
- *   cost), text cells, the status's StatusPill, and the RowActionsMenu.
+ *   applicant, beneficiary, account, each a Detail Label's Label and Value;
+ *   a "Recurring" Tag Info, without its icon, on a recurring cost), text
+ *   cells, the status's StatusPill, and the RowActionsMenu.
  * - Expanded: a row under it with the cost's breakdown (Figma's Breakdown
  *   Table, 121:2957), or whatever `renderDetails` returns.
  *
@@ -262,12 +264,18 @@ export const CostsTable = React.forwardRef<HTMLTableElement, CostsTableProps>(fu
               {/* Table / Account Details, in Table / Cell Type=Custom. */}
               <TableCell type="custom">
                 <TableAccountDetails
-                  categoryTag={cost.type === 'recurring' ? <StatusPill status="pending">Recurring</StatusPill> : undefined}
+                  categoryTag={
+                    cost.type === 'recurring' ? (
+                      <Tag status="info" showIcon={false}>
+                        Recurring
+                      </Tag>
+                    ) : undefined
+                  }
                 >
-                  <TableDetailLabel>ID: {cost.id}</TableDetailLabel>
-                  <TableDetailLabel>Applicant: {cost.applicant.name}</TableDetailLabel>
-                  <TableDetailLabel>Beneficiary name: {cost.partner}</TableDetailLabel>
-                  <TableDetailLabel>{accountLine(cost)}</TableDetailLabel>
+                  <TableDetailLabel label="ID:" value={cost.id} />
+                  <TableDetailLabel label="Applicant:" value={cost.applicant.name} />
+                  <TableDetailLabel label="Beneficiary name:" value={cost.partner} />
+                  <TableDetailLabel {...accountLine(cost)} />
                 </TableAccountDetails>
               </TableCell>
               <TableCell>{cost.invoiceNumber}</TableCell>

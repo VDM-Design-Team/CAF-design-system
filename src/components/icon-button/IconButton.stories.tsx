@@ -12,7 +12,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Buttons** (`Button / Icon`): the icon-only button for refresh, close, ' +
           'theme, trash and the table row’s •••. `size` is 32 (default) or 40; `tone` is `ghost` (default), `tonal` or ' +
-          '`destructive`; Hover is `:hover`. `icon` is an Icon name. `label` is required: it is the accessible name.',
+          '`destructive`; Hover is `:hover` and Disabled is `disabled` (the glyph in text/disabled, no hover). `icon` is an ' +
+          'Icon name. `label` is required: it is the accessible name.',
       },
     },
   },
@@ -49,13 +50,27 @@ export const InUse: Story = {
   parameters: { controls: { disable: true } },
 };
 
+/** Disabled: the glyph in text/disabled, and a click does nothing. */
+export const Disabled: Story = {
+  args: { disabled: true },
+  play: async ({ args, canvas }) => {
+    const button = canvas.getByRole('button', { name: 'Row actions' });
+    await expect(button).toBeDisabled();
+    await userEvent.click(button, { pointerEventsCheck: 0 });
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+};
+
 /* ── Every Size × Tone × State, in Light and Dark ──────────────────────────
    The same grid as the Figma component set. Hover is forced with
-   storybook-addon-pseudo-states and checked against Figma's bindings. */
+   storybook-addon-pseudo-states and checked against Figma's bindings. The
+   Disabled cells are hovered too: a disabled button shows no hover. */
 
-const STATES = ['default', 'hover'] as const;
+const STATES = ['default', 'hover', 'disabled'] as const;
+const STATE_LABEL = { default: 'Default', hover: 'Hover', disabled: 'Disabled' } as const;
 
-/* Figma's bindings per tone: [fill at rest, fill on hover, glyph]. `null` is no fill. */
+/* Figma's bindings per tone: [fill at rest, fill on hover, glyph]. `null` is no fill.
+   Disabled keeps the fill at rest and draws the glyph in text/disabled. */
 const BOUND = {
   ghost: [null, 'neutral-tonal-surface-default', 'text-secondary'],
   tonal: ['surface-base', 'neutral-tonal-surface-default', 'text-primary'],
@@ -85,7 +100,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           {ICON_BUTTON_TONES.flatMap((tone) =>
             STATES.map((state) => (
               <th key={`${tone}-${state}`} scope="col" className="text-caption-md-medium text-text-secondary">
-                {tone[0].toUpperCase() + tone.slice(1)}, {state === 'default' ? 'Default' : 'Hover'}
+                {tone[0].toUpperCase() + tone.slice(1)}, {STATE_LABEL[state]}
               </th>
             )),
           )}
@@ -107,6 +122,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
                     tone={tone}
                     data-tone={tone}
                     data-pseudo={state}
+                    disabled={state === 'disabled'}
                     // No colour transition in the grid, so the check reads the end colour, not a frame of the fade.
                     className="transition-none"
                   />
@@ -122,7 +138,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'] },
+    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]', '[data-pseudo="disabled"]'] },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -130,6 +146,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const none = 'rgba(0, 0, 0, 0)';
+    const disabledGlyph = tokenColour('text-disabled');
     const want = Object.fromEntries(
       Object.entries(BOUND).map(([tone, [rest, hover, glyph]]) => [
         tone,
@@ -141,8 +158,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
         for (const button of canvasElement.querySelectorAll<HTMLElement>('button[data-tone]')) {
           const [rest, hover, glyph] = want[button.dataset.tone!];
           const style = getComputedStyle(button);
-          expect(style.backgroundColor).toBe(button.dataset.pseudo === 'hover' ? hover : rest);
-          expect(getComputedStyle(button.querySelector('svg')!).color).toBe(glyph);
+          const state = button.dataset.pseudo;
+          expect(style.backgroundColor).toBe(state === 'hover' ? hover : rest);
+          expect(getComputedStyle(button.querySelector('svg')!).color).toBe(state === 'disabled' ? disabledGlyph : glyph);
           // Size 32 → 16px glyph, 40 → 20px.
           const box = button.getBoundingClientRect().width;
           expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(box === 40 ? 20 : 16);

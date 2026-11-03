@@ -284,8 +284,8 @@ const STATES = [
   {
     state: 'Disabled',
     props: { disabled: true, defaultValue: '2026-09-01' },
-    text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    text: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
   },
   {
     state: 'Required',
@@ -335,18 +335,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const marker = tokenColour('accent-critical-tonal-content-default');
     const helper = tokenColour('text-subtle');
     const fill = tokenColour('surface-elevated-secondary');
+    const disabledFill = tokenColour('neutral-tonal-surface-disabled');
+    const critical = tokenColour('accent-critical-tonal-content-default');
     const icon = tokenColour('text-subtle');
+    const disabledIcon = tokenColour('text-disabled');
     const want = STATES.map(({ state, props, text, stroke: [token, width] }) => ({
       state,
       required: 'required' in props,
       message: 'error' in props || 'helper' in props,
+      error: 'error' in props,
       open: 'defaultOpen' in props,
       text: tokenColour(text),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, required, message, open, text, stroke } of want) {
+        for (const { state, required, message, error, open, text, stroke } of want) {
           const cell = canvasElement.querySelector<HTMLElement>(`[data-cell="${state}"]`)!;
           const field = cell.querySelector<HTMLButtonElement>('[role="combobox"]')!;
           const labelNode = cell.querySelector('label')!;
@@ -360,25 +364,28 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(field.getBoundingClientRect().top - labelNode.getBoundingClientRect().bottom).toBe(20);
           // The field: the _Date Input bindings for this state.
           const style = getComputedStyle(field);
-          expect(style.backgroundColor).toBe(fill);
-          // Disabled: the whole field at Figma's 50% layer opacity.
-          expect(style.opacity).toBe(state === 'Disabled' ? '0.5' : '1');
+          expect(style.backgroundColor).toBe(state === 'Disabled' ? disabledFill : fill);
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(getComputedStyle(field.querySelector('span')!).color).toBe(text);
-          expect(getComputedStyle(field.querySelector('svg')!).color).toBe(icon);
+          expect(getComputedStyle(field.querySelector('svg')!).color).toBe(state === 'Disabled' ? disabledIcon : icon);
+          // Show Clear: the optional Filled and Focus cells have a date, so they have the clear button.
+          expect(cell.querySelector('button[aria-label="Clear date"]') !== null).toBe(state === 'Filled' || state === 'Focus');
           expect(field.getBoundingClientRect().height).toBe(40);
           expect(cell.querySelector('[role="dialog"]') !== null).toBe(open);
           // Open: the calendar under the field, where the room was kept for it.
           if (open) expect(cell.querySelector('[role="dialog"]')!.getAttribute('data-placement')).toBe('bottom');
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, right under the field.
+          // The Helper (text.subtle) or the Error Text in its place (accent.critical.tonal.content.default):
+          // Caption/md-regular, space.8 under the field.
           const note = cell.querySelector('p');
           if (!message) {
             expect(note).toBeNull();
             continue;
           }
-          expect(getComputedStyle(note!).color).toBe(helper);
+          expect(getComputedStyle(note!).color).toBe(error ? critical : helper);
           expect(getComputedStyle(note!).fontSize).toBe('12px');
-          expect(note!.getBoundingClientRect().top).toBe(field.getBoundingClientRect().bottom);
+          expect(note!.getBoundingClientRect().top).toBe(field.getBoundingClientRect().bottom + 8);
         }
       },
       { timeout: 3000 },

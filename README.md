@@ -140,9 +140,9 @@ names. A component that a second brand needs moves up to GDL.
 | `BreakdownItem` | Cards → `Card / Breakdown Item` | Components/BreakdownItem |
 | `ChangeDiff` | Table → `Table / Change Diff` | Components/ChangeDiff |
 | `ChangeDiffRow` | Table → `Table / Change Diff Row` | Components/ChangeDiff |
-| `PaymentRow` | Modals → `Modal / Payment Row` (with its `Modal / Status Icon` and `Modal / Status Badge`) | Components/PaymentRow |
+| `PaymentRow` | Modals → `Modal / Payment Row` (with its `Modal / Status Icon`; the status is a `Tag`) | Components/PaymentRow |
 | `PaymentSchedules` | Modals → `Modal / Payment Schedules` (Modal / Header + Payment Rows, on Overlay) | Components/PaymentSchedules |
-| `VersionBadge` | Modals → `Modal / Version Badge` | Components/VersionBadge |
+| `VersionBadge` (deprecated: use `Tag status="info"`) | Modals → `Modal / Version Badge` (deprecated) | Components/VersionBadge |
 | `BulletItem` | Modals → `Modal / Bullet Item` | Components/BulletItem |
 | `ReleaseNotes` | Modals → `Modal / Release Notes` | Components/ReleaseNotes |
 | `ChangelogHeader` | Modals → `Modal / Changelog Header` (with `Modal / Changelog Icon`) | Components/ChangelogHeader |
@@ -240,9 +240,9 @@ names. A component that a second brand needs moves up to GDL.
     <TableExpandButton label="Show details for cost 32430" expanded={open} aria-controls="cost-32430" onClick={toggle} />
   </TableCell>
   <TableCell type="custom">
-    <TableAccountDetails categoryTag={<StatusPill>Recurring</StatusPill>}>
-      <TableDetailLabel>ID: 32430</TableDetailLabel>                // "Label: Value"
-      <TableDetailLabel>Applicant: QA Test Bryan</TableDetailLabel>
+    <TableAccountDetails categoryTag={<Tag status="info" showIcon={false}>Recurring</Tag>}>  // Figma's default
+      <TableDetailLabel label="ID:" value="32430" />               // Label, Value (truncates)
+      <TableDetailLabel label="Applicant:" value="QA Test Bryan" />
     </TableAccountDetails>
   </TableCell>
 </TableRow>
@@ -318,6 +318,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   title="No announcements yet"
   description="Create an announcement to tell users what’s new."
   action={<Button leftIcon={<Plus />}>Add New</Button>}          // Show Action
+  icon="bell"                                                    // Icon swap (default "tray"); Size=Default only
 />
 <td colSpan={4}><EmptyState size="compact" title="No items found" /></td>
 
@@ -359,6 +360,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 
 <CheckboxField bordered name="restrictedUser" label="Restricted User"
                description="Users with this role can only see their own costs." />  // Bordered
+<CheckboxField name="terms" required label="I accept the terms"
+               error="Select this to continue." />                // State=Error
 
 <RadioGroup label="Target Audience" name="audience" required
             options={[{ value: 'all', label: 'All' }, { value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }]}
@@ -411,13 +414,14 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 </ul>
 
 <ChangeDiff aria-label="Changes to cost #32430">                   // Table / Change Diff: Field / Before / After
-  <ChangeDiffRow field="Status" before="Unknown" after="Pending" /> // <del> tinted red, <ins> tinted green
+  <ChangeDiffRow field="Status" before="Unknown" after="Pending" /> // <del> tinted red and struck, <ins> tinted green
+  <ChangeDiffRow field="Amount" after="GBP 2400" />                 // Show Before off (a Created entry): Before stays empty
 </ChangeDiff>
 
-<PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />  // Status=Upcoming
+<PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" amount="USD 900" />  // Status=Upcoming; Amount
 <PaymentSchedules open={open} onClose={close}>                      // Modal / Header + rows, in a portal
-  <PaymentRow date="September 1, 2026" subtitle="Processed on Sep 1, 2026" />   // Status=Done
-  <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />
+  <PaymentRow date="September 1, 2026" subtitle="Processed on Sep 1, 2026" amount="USD 900" />   // Status=Done
+  <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" amount="USD 900" />
 </PaymentSchedules>
 
 <ChangelogModal open={open} onClose={markSeen} onViewChangeLog={openChangelog}   // Modal / Changelog; Got It, Escape, backdrop → onClose
@@ -425,13 +429,13 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   <BulletItem>new update for CAF</BulletItem>                                    // What's new in this release:
 </ChangelogModal>
 
-<ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026">  // Show New
+<ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026" showNew>  // Show New
   <BulletItem>new update for CAF</BulletItem>
   <BulletItem>Improved export performance</BulletItem>
 </ChangelogEntry>
-<ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026" showNew={false}>…</ChangelogEntry>
+<ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026">…</ChangelogEntry>  // no New (default)
 
-<VersionBadge>v2.5.6</VersionBadge>                                               // Modal / Version Badge
+<Tag status="info" showIcon={false}>v2.5.6</Tag>                                 // a release version (VersionBadge is deprecated)
 
 <Logo />                                                          // 123 × 48, role="img" named "CAF"
 <a href="/"><Logo className="h-9" /></a>                          // the Mobile Header's 92 × 36; the link is named "CAF"
@@ -479,7 +483,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `tonal`, `success`. `size` is `big`, `normal` or `small`.
 - `leftIcon` / `rightIcon` are Show Icons. The icon takes the button's
   colour and Figma's icon size (24 / 20 / 16).
-- Hover, Pressed and Disabled are the element's own states.
+- Hover, Pressed, Focus (`:focus-visible`) and Disabled are the element's
+  own states.
 - `Pagination` takes the current `page` and `pageCount` and calls
   `onPageChange` with the page to show. Its items are `PaginationItem`s
   (Figma's Pagination / Item: `selected`, `disabled`).
@@ -488,9 +493,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `npm run icons`.
 - `IconButton` is Figma's Button / Icon: `size` 32 or 40, `tone` ghost,
   tonal or destructive, and a required `label` (its accessible name).
+  Disabled is `disabled`.
 - `Checkbox` is a native checkbox: `size` is `16` or `20`, and Figma's
-  Selected and Mixed-State are `checked` and `indeterminate`. Label it with
-  a `<label>` or `aria-label`.
+  Selected and Mixed-State are `checked` and `indeterminate`; Disabled and
+  Disabled Selected are `disabled`. Label it with a `<label>` or
+  `aria-label`.
 - `TableHeaderCell` is Figma's Header Cell: `sortable` makes the label a
   button that calls `onSort` (the table owns the order), and `sort` is
   `none`, `ascending` or `descending`. A sorted column sets `aria-sort`.
@@ -534,9 +541,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   It is a `role="menu"` named by its trigger. Enter, Space or ↓ opens it on
   the first item and ↑ on the last; ↓ / ↑ move and wrap; Home / End; Enter
   or Space chooses; Escape and Tab close. Focus goes back to the trigger.
-- `MenuItem` is Figma's Menu / Item: `destructive` is Type=Destructive and
-  Hover is `:hover`. It has no `disabled`: leave out an action the user
-  can't take.
+- `MenuItem` is Figma's Menu / Item: `destructive` is Type=Destructive, and
+  Hover and Destructive Hover are `:hover`. The item the keyboard is on
+  takes the Hover look too. It has no `disabled`: leave out an action the
+  user can't take.
 - `RowActionsMenu` is the table row's •••: an `IconButton` (`dots-three`)
   that opens a MenuDropdown below it, flush right. `label` names the button
   and the menu ("Row actions" by default; name the record when a table has
@@ -562,14 +570,16 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   pass `aria-controls` with the list's id too). It is a
   `<button role="combobox">`, named by its label, not its text. Select
   opens its list from it.
-- `TableExpandButton` is Figma's Expand Button: `expanded` swaps
-  CaretDown for CaretUp and sets `aria-expanded`. Point `aria-controls` at
-  what it opens. The row owns the state. `label` is required: it's the
-  accessible name.
+- `TableExpandButton` is Figma's Expand Button (Expanded × State):
+  `expanded` swaps CaretDown for CaretUp and sets `aria-expanded`; Hover and
+  Focus are the button's own. Point `aria-controls` at what it opens. The
+  row owns the state. `label` is required: it's the accessible name.
 - `TableAccountDetails` is Figma's Account Details: its lines are
-  `TableDetailLabel`s (one "Label: Value" line each, the text is
-  `children`), and `categoryTag` is the Category Tag below them: a
-  `StatusPill`, as in Figma, or a `Tag`. Put it in a `TableCell`.
+  `TableDetailLabel`s (one line each: `label`, with its colon, and `value`,
+  which ends in … when the line is too narrow; the whole line as `children`
+  still works but is deprecated), and `categoryTag` is the Category Tag
+  below them: `<Tag status="info" showIcon={false}>`, as in Figma, or a Tag
+  Neutral. Put it in a `TableCell`.
 - `Tabs` is Figma's segmented tabs (Tabs / Cost Type, made generic). Put
   `TabItem`s in it: each has a `value`, and its label is `children`.
   `selected` is Figma's Selected, the selected tab's value
@@ -680,9 +690,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `role="status"` region. `label` (visually hidden, default "Loading")
   says what is loading. It stands still under reduced motion.
 - `EmptyState` is Figma's Empty State: `size` is `default` (page level:
-  icon tile, `title`, `description` and an optional `action` Button) or
-  `compact` (a small icon and the `title`, inside a table body). It
-  centres itself in the page or in a `<td colSpan>`.
+  icon tile, `title`, `description`, an optional `action` Button and
+  `icon`, the tile's glyph, default `tray`) or `compact` (a fixed small
+  Tray and the `title`, inside a table body). It centres itself in the page
+  or in a `<td colSpan>`.
 - `TextField` and `SelectField` are Figma's Form / Field – Text and
   – Dropdown: a `_Form Label` (`label`, `required`) over a TextInput or a
   Select, with the Helper (`helper`) under it. `error` is the control's
@@ -733,18 +744,20 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - Every form field's Disabled is Figma's: the whole field at 50% opacity,
   with the value in `text.subtle`.
 - `Toggle` is Figma's Toggle, a native `<input type="checkbox" role="switch">`.
-  Checked is `checked` / `defaultChecked` and Disabled is `disabled`. Space
-  flips it, and while it's on it submits `name` = `value` ("on"). Name it
-  with a `<label>`, `aria-labelledby` or `aria-label`.
+  Checked is `checked` / `defaultChecked` and Disabled is `disabled` (its
+  own disabled colours, not opacity). Space flips it, and while it's on it
+  submits `name` = `value` ("on"). Name it with a `<label>`,
+  `aria-labelledby` or `aria-label`.
 - `Radio` is Figma's Radio, a native radio. Selected is `checked`, Hover is
-  `:hover` and Disabled is `disabled`. Radios that share a `name` form one
-  group. `RadioOption` is Radio Option: a `<label>` that puts `label` beside
-  the radio. Its other props and the ref go to the radio.
+  `:hover`, Error is `aria-invalid` and Disabled is `disabled`. Radios that
+  share a `name` form one group. `RadioOption` is Radio Option: a `<label>`
+  that puts `label` beside the radio. Its other props (`aria-invalid` for
+  Error=true) and the ref go to the radio.
 - `RadioGroup` is Form / Radio Group. It takes `label`, `options` (strings or
   `{ value, label, disabled }`), `value` / `onValueChange` (or
-  `defaultValue`) and `helper`. Code adds `required` (_Form Label's marker
-  plus native `required`), `error` (the message where the Helper goes) and
-  `disabled`. It is a `<fieldset role="radiogroup">` of native radios that
+  `defaultValue`), `helper`, `required` (_Form Label's marker plus native
+  `required`) and `error` (State=Error: the message where the Helper goes,
+  and every radio `aria-invalid`). Code adds `disabled`. It is a `<fieldset role="radiogroup">` of native radios that
   share `name`. The group is one tab stop, the arrow keys move and choose,
   and the chosen `value` is submitted under `name`.
 - `CheckboxField` and `ToggleField` are Form / Checkbox Field and Form /
@@ -752,8 +765,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   beside a 16px Checkbox (`bordered` adds Figma's card) or before a Toggle
   at the end of the row. The whole field is a `<label>`. The label names the
   control and the description describes it. Every other prop and the ref go
-  to the native input, `id` included. `required` also shows _Form Label's
-  marker.
+  to the native input, `id` included. `required` also shows the Required
+  marker. `error` is State=Error: the message under the description and
+  the control `aria-invalid` (CheckboxField's box, or its card, turns
+  critical). `disabled` is State=Disabled: the control's disabled look
+  and the text in `text.disabled`.
 - `FileUploadField` is Figma's Form / Field – File Upload, with a File
   Chip for each file under it, as pattern 10 shows. It takes `label`,
   `required`, `helper`, `error`, and `title` and `hint` (the zone's text).
@@ -789,10 +805,11 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   and ref go to the `<input>`) and a destructive trash IconButton
   (`showRemove`, `removeLabel`, `onRemove`).
 - `StatCard` is Figma's Card / Stat: a `label`, a `value` and the Status
-  Indicator tile, which is `icon` (a Phosphor name) and `tone` (`info`,
-  `success`, `pending` or `critical`). Each of Figma's seven `_Stat Icon`
-  Types is one icon and one tone (Completed is `check-circle`, `success`).
-  The card is an `article` named by its label; the value is not a heading.
+  Indicator tile, Figma's `_Stat Icon` Tone × Icon: `tone` (`info`,
+  `success`, `pending` or `critical`) and `icon` (a Phosphor name;
+  Completed is `check-circle`, `success`). The card is an `article` named
+  by its label, with a decorative `stroke.subtle` edge; the value is not a
+  heading.
 - `StatRow` lays out StatCards the way Figma's stat rows do: they share the
   row equally, 16px apart, and wrap when a card would be narrower than
   256px, stacking on a phone. Fragments and components that return several
@@ -802,15 +819,19 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   any content). Long values wrap.
 - `FilterSummary` is Figma's Filter / Summary: a `title` (default "Current
   Filters") over a box of `filters`, one `{ key, value }` line each
-  ("Status: Completed"). Pass the filter's name as `key`; the colon is
-  added. It is read-only, a group named by its title.
+  ("Status: Completed"), with a decorative `stroke.subtle` edge. Pass the
+  filter's name as `key`; the colon is added. It is read-only, a group
+  named by its title.
 - `BreakdownItem` is one breakdown line of a cost: title, meta, period and
   amount. Give it `actions` (MenuItems) for the ••• menu.
 - `ChangeDiff` is a real `<table>` (Field / Before / After) of
-  `ChangeDiffRow`s. Old values are `<del>` and new ones `<ins>`, each with
-  hidden "Removed:" / "Added:" text, so colour is never the only cue.
-- `PaymentRow` is one payment: Done or Upcoming, date and subtitle. Its
-  status icon and badge are part of it.
+  `ChangeDiffRow`s. Old values are `<del>`, struck through, and new ones
+  `<ins>`, each with hidden "Removed:" / "Added:" text, so colour is never
+  the only cue. Leave `before` out for a Created entry (Figma's Show Before
+  off): its Before cell stays empty.
+- `PaymentRow` is one payment: Done or Upcoming, date, subtitle and
+  `amount` ("USD 900"). Its status icon is part of it; the status is a
+  `Tag` (Completed "Done" or Warning "Upcoming", no icon).
 - `PaymentSchedules` is the View Schedules modal: a ModalHeader over a list
   of PaymentRows, on Overlay (focus trap, Escape, focus return).
 - `ChangelogModal` is Figma's Modal / Changelog, the what's-new dialog shown
@@ -823,16 +844,16 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `ChangelogEntry` is Card / Changelog Entry, one release on the Changelog
   page. It takes `title` (an `<h2>`; `headingLevel` changes the level
   without changing the look), `meta` ("Version 2.5.6 • August 10, 2026"),
-  `showNew` (the Info Tag "New", default true as in Figma; set it on the
+  `showNew` (the Info Tag "New", default false as in Figma; set it on the
   latest release only) and `BulletItem` children. It's an `<article>` named
   by its title.
-- `ChangelogHeader` (rocket, title, date, VersionBadge) and `ReleaseNotes`
+- `ChangelogHeader` (rocket, title, date, the version as Tag Info) and `ReleaseNotes`
   (a section title naming a `<ul>` of BulletItems) are the dialog's two
   parts, for building a variant of it on `Overlay`.
 - `BulletItem` is Modal / Bullet Item, an `<li>` with a green dot that stays
-  on the first line when the text wraps. `VersionBadge` is Modal / Version
-  Badge, the `surface.base` pill for "v2.5.6". The tinted version Tag in the
-  Announcements table is a `Tag status="info"`.
+  on the first line when the text wraps. A release version ("v2.5.6") is a
+  `Tag status="info" showIcon={false}`, in the dialog and the Announcements
+  table. `VersionBadge` (Modal / Version Badge) is deprecated.
 - `Logo` is Figma's Navigation / Logo, an `<svg role="img">` named "CAF".
   The mark is CAF's brand ramp (`caf-blue` 600 / 300 / 400) in both
   themes, and the wordmark is `text/primary`. It is 48 high; set another

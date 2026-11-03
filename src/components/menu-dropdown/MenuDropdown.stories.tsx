@@ -167,7 +167,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       label: tokenColour('text-primary'),
       destructive: tokenColour('accent-critical-tonal-content-default'),
     };

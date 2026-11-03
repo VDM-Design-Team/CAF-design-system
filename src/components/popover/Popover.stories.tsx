@@ -102,7 +102,7 @@ export const KeyboardAndFocus: Story = {
 };
 
 /* ── The surface, in Light and Dark ────────────────────────────────────────
-   Menu / Dropdown's bindings: surface.neutral.faint fill, 1px inside
+   Menu / Dropdown's bindings: surface.elevated fill, 1px inside
    stroke.subtle, radius 8, Elevation 3, padding 6. Checked against the tokens. */
 
 /* A token's computed value in the current theme. Measure before waitFor, never inside it:
@@ -141,7 +141,7 @@ const surface = (theme: 'light' | 'dark', portal = false): Story => ({
   tags: theme === 'dark' || portal ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       text: tokenColour('text-primary'),
       shadow: utilityShadow('shadow-elevation-3 inset-ring inset-ring-stroke-subtle'),
@@ -301,18 +301,22 @@ export const Flip: Story = {
   // Fixed to the viewport's corners: on the docs page they'd cover other stories.
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
-    const width = document.documentElement.clientWidth;
-    const height = document.documentElement.clientHeight;
+    // In a waitFor, looked up afresh: when stories are switched, the frame can still be settling its
+    // size as the panels first measure, and they re-place on the resize that follows. No DOM writes inside.
     for (const { name, placement, align } of CORNERS) {
-      const wrapper = canvasElement.querySelector<HTMLElement>(`[data-corner="${name}"]`)!;
-      const panel = wrapper.querySelector<HTMLElement>('[data-placement]')!;
-      await expect(panel).toHaveAttribute('data-placement', placement);
-      await expect(panel).toHaveAttribute('data-align', align);
-      const box = panel.getBoundingClientRect();
-      await expect(box.left).toBeGreaterThanOrEqual(0);
-      await expect(box.top).toBeGreaterThanOrEqual(0);
-      await expect(box.right).toBeLessThanOrEqual(width);
-      await expect(box.bottom).toBeLessThanOrEqual(height);
+      await waitFor(() => {
+        const width = document.documentElement.clientWidth;
+        const height = document.documentElement.clientHeight;
+        const wrapper = canvasElement.querySelector<HTMLElement>(`[data-corner="${name}"]`)!;
+        const panel = wrapper.querySelector<HTMLElement>('[data-placement]')!;
+        expect(panel).toHaveAttribute('data-placement', placement);
+        expect(panel).toHaveAttribute('data-align', align);
+        const box = panel.getBoundingClientRect();
+        expect(box.left).toBeGreaterThanOrEqual(0);
+        expect(box.top).toBeGreaterThanOrEqual(0);
+        expect(box.right).toBeLessThanOrEqual(width);
+        expect(box.bottom).toBeLessThanOrEqual(height);
+      });
     }
   },
 };

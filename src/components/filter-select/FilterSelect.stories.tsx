@@ -243,10 +243,10 @@ const states = (theme: 'light' | 'dark'): Story => ({
       stroke: tokenColour('stroke-field'),
       primary: tokenColour('text-primary'),
       subtle: tokenColour('text-subtle'),
-      menu: tokenColour('surface-neutral-faint'),
+      menu: tokenColour('surface-elevated'),
       menuStroke: tokenColour('stroke-subtle'),
-      selected: tokenColour('surface-base'),
-      check: tokenColour('action-primary-surface-default'),
+      selected: tokenColour('neutral-tonal-surface-default'),
+      check: tokenColour('text-primary'),
     };
     const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(0.6);
 
@@ -277,7 +277,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
         continue;
       }
 
-      // Menu: Select / Menu — surface.neutral.faint, 1px stroke.subtle inside, radius 8, 6 padding, 2 between options;
+      // Menu: Select / Menu — surface.elevated (the overlay surface, since 3 Nov 2026), 1px stroke.subtle inside, radius 8, 6 padding, 2 between options;
       // space.4 under the field, flush left, as wide as the field (Fill).
       const list = within(cell).getByRole('listbox', { name: 'Status' });
       const l = list.getBoundingClientRect();
@@ -293,7 +293,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
       await expect(field).not.toHaveFocus();
       await expect(list.querySelector('[data-focus-visible]')).toBeNull();
 
-      // Options: Select / Option — 36 high, Body/sm-regular in text.primary; Pending is Selected (surface.base + check).
+      // Options: Select / Option — 36 high, Body/sm-regular in text.primary; Pending is Selected (neutral.tonal.surface.default + the text.primary check).
       const options = within(list).getAllByRole('option');
       await expect(options.map((o) => o.textContent)).toEqual(['All Status', 'Pending', 'Approved', 'Paid', 'Rejected']);
       near(options[1].getBoundingClientRect().top - options[0].getBoundingClientRect().bottom, 2);

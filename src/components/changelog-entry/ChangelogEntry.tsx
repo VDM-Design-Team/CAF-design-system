@@ -23,8 +23,8 @@ import { Tag } from '../tag';
  *     - Meta → `meta`: Caption/md-regular, `text.subtle`, e.g. "Version 2.5.6 •
  *       August 10, 2026".
  *   - New Badge, a `Tag` Status=Info, Show Icon off, "New" → Show New →
- *     `showNew` (default true, as in Figma). The Changelog shows it on the
- *     latest release only.
+ *     `showNew` (default false, as in Figma). Set it on the latest release
+ *     only, as the Changelog does.
  * - Notes: vertical, 16px top and bottom, 20px sides, 6px gap (Figma: raw) →
  *   a `<ul>` with `py-4 px-5 gap-1.5`; its `Modal / Bullet Item` instances →
  *   `children`, BulletItems.
@@ -38,7 +38,7 @@ export interface ChangelogEntryProps extends Omit<React.HTMLAttributes<HTMLEleme
   title: React.ReactNode;
   /** Figma Meta: the version and date, e.g. "Version 2.5.6 • August 10, 2026". */
   meta?: React.ReactNode;
-  /** Figma Show New: the "New" tag. Default true, as in Figma; set it on the latest release only. */
+  /** Figma Show New: the "New" tag. Default false, as in Figma; set it on the latest release only. */
   showNew?: boolean;
   /** The title's heading level. Default 2. It doesn't change the look. */
   headingLevel?: 2 | 3 | 4;
@@ -47,7 +47,7 @@ export interface ChangelogEntryProps extends Omit<React.HTMLAttributes<HTMLEleme
 }
 
 export const ChangelogEntry = React.forwardRef<HTMLElement, ChangelogEntryProps>(
-  ({ title, meta, showNew = true, headingLevel = 2, className, children, ...props }, ref) => {
+  ({ title, meta, showNew = false, headingLevel = 2, className, children, ...props }, ref) => {
     const titleId = `${React.useId()}-title`;
     const Heading = `h${headingLevel}` as const;
     const hasMeta = meta !== undefined && meta !== null && meta !== false && meta !== '';

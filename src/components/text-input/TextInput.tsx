@@ -13,7 +13,7 @@ import { useFormFieldControl } from '../form-field';
  * - State=Filled   → a value (`value` or `defaultValue`), in text/primary.
  * - State=Focus    → `:focus`: a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border.
- * - State=Disabled → the native `disabled` attribute.
+ * - State=Disabled → the native `disabled` attribute: the disabled fill and stroke, the text in text/disabled.
  * - Value          → `placeholder` while empty, the value once filled.
  *
  * It fills its container's width, as the fields place it. Give it a name: a
@@ -38,9 +38,11 @@ const textInputClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour while
      focused (Focus's 2px width), so the error stays visible as you type. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
-     whole field at 50% opacity (Figma's layer opacity, raw 0.5). */
-  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
+  /* State=Disabled: the neutral.tonal disabled fill, a 1px
+     neutral.outline.border.disabled stroke, and the value and the placeholder
+     in text.disabled. No opacity. */
+  'disabled:cursor-not-allowed disabled:bg-neutral-tonal-surface-disabled disabled:inset-ring-neutral-outline-border-disabled',
+  'disabled:text-text-disabled disabled:placeholder:text-text-disabled',
 ];
 
 export type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { ICON_NAMES } from '../icon';
+import { ICON_PATHS } from '../icon/icons';
 import { IconButton } from '../icon-button';
 import { ModalHeader } from './ModalHeader';
 
@@ -62,6 +63,21 @@ export const WithActions: Story = {
     await expect(refresh).toHaveAccessibleName('Refresh');
     await expect(close).toHaveAccessibleName('Close');
     await expect(close.getBoundingClientRect().left - refresh.getBoundingClientRect().right).toBe(4);
+  },
+};
+
+/**
+ * Figma's Icon swap (exposed from Modal / Header Icon since 3 Nov 2026): `icon`
+ * goes through to the tile, whose glyph keeps its content colour.
+ */
+export const IconSwap: Story = {
+  args: { icon: 'info' },
+  play: async ({ canvasElement }) => {
+    const colour = tokenColour('accent-info-tonal-content-default');
+    const glyph = canvasElement.querySelector<SVGElement>('span[aria-hidden="true"] > svg')!;
+    await expect(glyph.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.info);
+    await expect(glyph.getBoundingClientRect().width).toBe(24);
+    await expect(getComputedStyle(glyph).color).toBe(colour);
   },
 };
 

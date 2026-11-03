@@ -76,8 +76,8 @@ function tokenColour(token: string) {
   return value;
 }
 
-/* The utility's box-shadow (Tailwind inlines a theme shadow, so it's GDL's Light
-   Elevation 2 in both themes; see docs/figma-sync.md, "ChangelogModal"). */
+/* The utilities' box-shadow (Tailwind inlines a theme shadow, so it's GDL's Light
+   Elevation 4 in both themes; see docs/figma-sync.md, "ChangelogModal"). */
 function utilityShadow(className: string) {
   const probe = document.createElement('div');
   probe.className = className;
@@ -104,19 +104,20 @@ const opened = (theme: 'light' | 'dark'): Story => ({
   play: async () => {
     const want = {
       scrim: tokenColour('surface-overlay'),
-      surface: tokenColour('surface-canvas'),
-      icon: tokenColour('accent-red-medium'),
+      surface: tokenColour('surface-base'),
+      stroke: tokenColour('stroke-subtle'),
+      icon: tokenColour('accent-critical-tonal-content-default'),
       title: tokenColour('text-primary'),
       date: tokenColour('text-secondary'),
-      badgeFill: tokenColour('surface-base'),
-      badgeText: tokenColour('accent-info-tonal-content-default'),
+      tagFill: tokenColour('accent-info-tonal-surface-default'),
+      tagText: tokenColour('accent-info-tonal-content-default'),
       sectionTitle: tokenColour('text-primary'),
       note: tokenColour('text-primary'),
       dot: tokenColour('accent-success-tonal-content-default'),
       primary: tokenColour('action-primary-surface-default'),
       primaryText: tokenColour('action-primary-content-default'),
       outlinedText: tokenColour('action-secondary-content-default'),
-      shadow: utilityShadow('shadow-elevation-2'),
+      shadow: utilityShadow('shadow-elevation-4 inset-ring inset-ring-stroke-subtle'),
     };
     // The dialog is named by the header's title, and it's modal.
     const dialog = await screen.findByRole('dialog', { name: TITLE });
@@ -125,7 +126,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     const title = scope.getByRole('heading', { level: 2, name: TITLE });
     const icon = dialog.querySelector<SVGElement>('[data-part="icon"]')!;
     const date = scope.getByText('August 10, 2026');
-    const badge = scope.getByText('v2.5.6');
+    const tag = scope.getByText('v2.5.6');
     const notes = scope.getByRole('list', { name: "What's new in this release:" });
     const sectionTitle = scope.getByText("What's new in this release:");
     const note = within(notes).getByRole('listitem');
@@ -137,25 +138,27 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     await waitFor(() => {
       // The scrim: surface.overlay.
       expect(getComputedStyle(dialog.parentElement!).backgroundColor).toBe(want.scrim);
-      // The panel: surface.canvas, radius 16, 32px padding, 24px gap, Elevation 2, no border, at most 512 wide.
+      // The panel (Modal / Dialog's surface): surface.base, radius 12, a 1px stroke.subtle inside
+      // (an inset ring, so the content stays 32px in), Elevation 4; 32px padding, 24px gap, at most 512 wide.
       const panel = getComputedStyle(dialog);
       expect(panel.backgroundColor).toBe(want.surface);
-      expect(panel.borderTopLeftRadius).toBe('16px');
+      expect(panel.borderTopLeftRadius).toBe('12px');
       expect(panel.padding).toBe('32px');
       expect(panel.rowGap).toBe('24px');
+      expect(panel.boxShadow).toContain(`${want.stroke} 0px 0px 0px 1px inset`);
       expect(panel.boxShadow).toBe(want.shadow);
       expect(panel.borderTopWidth).toBe('0px');
       expect(panel.maxWidth).toBe('512px');
-      // Header: the rocket (48px, accent.red.medium), Title/md-bold in text.primary,
-      // the date in text.secondary (the dialog's override), the VersionBadge.
+      // Header: the rocket (48px, accent.critical.tonal.content.default), Title/md-bold in text.primary,
+      // the date in text.secondary, the version as Tag Info.
       expect(icon.getBoundingClientRect().width).toBe(48);
       expect(getComputedStyle(icon).color).toBe(want.icon);
       expect(getComputedStyle(title).color).toBe(want.title);
       expect([getComputedStyle(title).fontSize, getComputedStyle(title).fontWeight]).toEqual(['20px', '700']);
       expect(getComputedStyle(date).color).toBe(want.date);
       expect(getComputedStyle(date).fontSize).toBe('14px');
-      expect(getComputedStyle(badge).backgroundColor).toBe(want.badgeFill);
-      expect(getComputedStyle(badge).color).toBe(want.badgeText);
+      expect(getComputedStyle(tag).backgroundColor).toBe(want.tagFill);
+      expect(getComputedStyle(tag).color).toBe(want.tagText);
       // Release Notes: the section title and the note in text.primary, the dot in accent.success.tonal.content.
       expect(getComputedStyle(sectionTitle).color).toBe(want.sectionTitle);
       expect(getComputedStyle(note).color).toBe(want.note);

@@ -9,11 +9,17 @@ import { cn } from '../../lib/cn';
  * which moves focus between items and closes when one is chosen.
  *
  * Figma → code:
- * - Type=Default     → the item as it is.
- * - Type=Hover       → `:hover` (a state, not a prop).
- * - Type=Destructive → `destructive`: an action that deletes or stops
+ * - Type=Default           → the item as it is.
+ * - Type=Hover             → `:hover` (a state, not a prop):
+ *   `neutral.tonal.surface.default` fill, `text.primary` label.
+ * - Type=Destructive       → `destructive`: an action that deletes or stops
  *   something. The row actions pattern puts it last.
- * - Label            → `children`.
+ * - Type=Destructive Hover → `destructive` on `:hover`: Hover's fill, the
+ *   label in `accent.critical.tonal.content.hover`.
+ * - Label                  → `children`.
+ *
+ * An item the keyboard is on (`:focus-visible`) takes the Hover look too, as
+ * the weak-fills decision asks, plus the focus ring.
  *
  * Items aren't in the tab order (`tabIndex={-1}`): the menu moves focus with
  * the arrow keys. Figma has no Disabled item, so there is no `disabled`:
@@ -27,8 +33,8 @@ const menuItem = cva(
     /* Auto layout: 8 / 12 padding, radius 6 (raw in Figma), fills the menu's width. Label: Body/sm-regular. */
     'flex w-full cursor-pointer items-center whitespace-nowrap rounded-6 px-3 py-2 text-left text-body-sm-regular',
     'transition-colors',
-    /* Type=Hover — surface.base fill. Figma has no Destructive + Hover; a destructive item takes the same fill. */
-    'enabled:hover:bg-surface-base',
+    /* Type=Hover and Destructive Hover — neutral.tonal.surface.default fill. The keyboard's item takes it too. */
+    'enabled:hover:bg-neutral-tonal-surface-default focus-visible:bg-neutral-tonal-surface-default',
     // Figma has no Focus state; the ring is stroke.focused, as on Button.
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
   ],
@@ -37,8 +43,12 @@ const menuItem = cva(
       destructive: {
         /* Type=Default (and Hover) — text.primary label. */
         false: 'text-text-primary',
-        /* Type=Destructive — accent.critical.tonal.content.default label. */
-        true: 'text-accent-critical-tonal-content-default',
+        /* Type=Destructive — accent.critical.tonal.content.default label; Destructive Hover (and the
+           keyboard's item) — accent.critical.tonal.content.hover, which passes on Hover's fill in Dark. */
+        true: [
+          'text-accent-critical-tonal-content-default',
+          'enabled:hover:text-accent-critical-tonal-content-hover focus-visible:text-accent-critical-tonal-content-hover',
+        ],
       },
     },
     defaultVariants: { destructive: false },
@@ -65,5 +75,5 @@ export const MenuItem = React.forwardRef<HTMLButtonElement, MenuItemProps>(
 );
 MenuItem.displayName = 'MenuItem';
 
-/** Figma's Type values that are props. Hover is `:hover`. */
+/** Figma's Type values that are props. Hover and Destructive Hover are `:hover`. */
 export const MENU_ITEM_TYPES = ['default', 'destructive'] as const;

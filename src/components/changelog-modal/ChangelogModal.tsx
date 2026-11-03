@@ -11,15 +11,16 @@ import { ReleaseNotes } from '../release-notes';
  * with the newest release for the user's audience (patterns 14 and U07).
  *
  * Figma → code:
- * - The panel: auto layout, vertical, 32px padding, 24px gap (Figma: raw
- *   values on GDL's scale) → `p-8 gap-6`; radius 16 (Figma: raw 16) →
- *   `rounded-16`; `surface.canvas` fill; the Elevation Dark/2 style →
- *   `shadow-elevation-2`. No stroke. Figma's fixed 500 width → capped at 512
+ * - The panel: auto layout, vertical, `space/32` padding, `space/24` gap →
+ *   `p-8 gap-6`. Since 3 Nov 2026 (decision overlay-surfaces) it has Modal /
+ *   Dialog's surface: `surface.base` fill, `radius/12` → `rounded-12`, a 1px
+ *   inside `stroke.subtle` stroke (not in the layout, so an `inset-ring`:
+ *   the content stays 32px in) and the Elevation Dark/4 style →
+ *   `shadow-elevation-4`. Figma's fixed 500 width → capped at 512
  *   (`max-w-lg`, the nearest container width), narrower on a small screen.
  * - The `Modal / Changelog Header` instance → ChangelogHeader, with `title`,
- *   `date` and `version`. The dialog's instance overrides the Date's fill to
- *   `text.secondary` (the header itself binds `text.subtle`); code copies the
- *   override.
+ *   `date` and `version`. The instance has no overrides: the Date is the
+ *   header's own `text.secondary`.
  * - The `Modal / Release Notes` instance → ReleaseNotes: `sectionTitle`
  *   (default "What's new in this release:") and the notes as `children`
  *   (BulletItems).
@@ -49,7 +50,7 @@ export interface ChangelogModalProps
   title: React.ReactNode;
   /** The header's Date, e.g. "August 10, 2026". */
   date?: React.ReactNode;
-  /** The header's Version Badge, e.g. "v2.5.6". */
+  /** The header's Version Tag, e.g. "v2.5.6". */
   version?: React.ReactNode;
   /** The Release Notes' Section Title. Default "What's new in this release:". */
   sectionTitle?: React.ReactNode;
@@ -76,18 +77,12 @@ export const ChangelogModal = React.forwardRef<HTMLDivElement, ChangelogModalPro
       initialFocusRef={initialFocusRef}
       aria-labelledby={titleId}
       className={cn(
-        '@container flex max-h-full w-full max-w-lg flex-col gap-6 overflow-y-auto rounded-16 p-8',
-        'bg-surface-canvas text-text-primary shadow-elevation-2',
+        '@container flex max-h-full w-full max-w-lg flex-col gap-6 overflow-y-auto rounded-12 p-8',
+        'bg-surface-base text-text-primary shadow-elevation-4 inset-ring inset-ring-stroke-subtle',
         className,
       )}
     >
-      <ChangelogHeader
-        title={title}
-        titleId={titleId}
-        /* Figma's instance overrides the Date to text.secondary. */
-        date={hasDate ? <span className="text-text-secondary">{date}</span> : undefined}
-        version={version}
-      />
+      <ChangelogHeader title={title} titleId={titleId} date={hasDate ? date : undefined} version={version} />
       <ReleaseNotes sectionTitle={sectionTitle}>{children}</ReleaseNotes>
       <div data-part="actions" className="grid gap-4 @sm:grid-cols-2">
         <Button className="w-full" onClick={onViewChangeLog}>

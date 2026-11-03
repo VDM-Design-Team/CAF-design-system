@@ -262,8 +262,8 @@ const STATES = [
   {
     state: 'Disabled',
     props: { disabled: true, defaultValue: 'Card' },
-    text: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    text: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
   },
   { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-field', 1] },
   { state: 'Helper', props: { helper: 'Used for every payment.' }, text: 'text-subtle', stroke: ['stroke-field', 1] },
@@ -312,17 +312,20 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const helper = tokenColour('text-subtle');
     const link = tokenColour('text-link-default');
     const fill = tokenColour('surface-elevated-secondary');
+    const disabledFill = tokenColour('neutral-tonal-surface-disabled');
+    const critical = tokenColour('accent-critical-tonal-content-default');
     const want = STATES.map(({ state, props, text, stroke: [token, width] }) => ({
       state,
       required: 'required' in props,
       message: 'error' in props || 'helper' in props,
+      error: 'error' in props,
       edit: 'edit' in props,
       text: tokenColour(text),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, required, message, edit, text, stroke } of want) {
+        for (const { state, required, message, error, edit, text, stroke } of want) {
           const field = canvasElement.querySelector<HTMLElement>(`[data-cell="${state}"]`)!;
           const trigger = field.querySelector<HTMLButtonElement>('[role="combobox"]')!;
           const labelNode = field.querySelector('label')!;
@@ -339,19 +342,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(trigger.getBoundingClientRect().top - labelNode.getBoundingClientRect().bottom).toBe(20);
           // The trigger: the _Dropdown Input bindings for this state.
           const style = getComputedStyle(trigger);
-          expect(style.backgroundColor).toBe(fill);
+          expect(style.backgroundColor).toBe(state === 'Disabled' ? disabledFill : fill);
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(getComputedStyle(trigger.querySelector('span')!).color).toBe(text);
           expect(trigger.getBoundingClientRect().height).toBe(40);
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, right under the trigger.
+          // The Helper (text.subtle) or the Error Text in its place (accent.critical.tonal.content.default):
+          // Caption/md-regular, space.8 under the trigger.
           const note = field.querySelector('p');
           if (!message) {
             expect(note).toBeNull();
             continue;
           }
-          expect(getComputedStyle(note!).color).toBe(helper);
+          expect(getComputedStyle(note!).color).toBe(error ? critical : helper);
           expect(getComputedStyle(note!).fontSize).toBe('12px');
-          expect(note!.getBoundingClientRect().top).toBe(trigger.getBoundingClientRect().bottom);
+          expect(note!.getBoundingClientRect().top).toBe(trigger.getBoundingClientRect().bottom + 8);
         }
       },
       { timeout: 3000 },

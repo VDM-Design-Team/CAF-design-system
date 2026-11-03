@@ -11,12 +11,14 @@ import { Radio, type RadioProps } from '../radio';
  * - Label    → `label`: Body/sm-regular in text/primary, 8px after the radio
  *   (Figma: raw 8 → space/8), centred on it.
  * - Selected → the radio's `checked` (or `defaultChecked`).
+ * - Error=true → `aria-invalid` on the radio (RadioGroup's `error` sets it):
+ *   Radio's Error stroke.
  * - The Radio's other states (Hover, Disabled) are the radio's own: see Radio.
  *
  * It is a `<label>` around a native radio, so a click on the text checks it
  * and the text is the radio's accessible name. `className` styles the label;
  * every other prop, and the ref, go to the `<input>`: `name`, `value`,
- * `checked` / `defaultChecked`, `onChange`, `disabled`.
+ * `checked` / `defaultChecked`, `onChange`, `disabled`, `aria-invalid`.
  *
  * Every colour is the semantic variable the Figma layer is bound to. Where
  * code departs from Figma, the reason is in docs/figma-sync.md ("RadioOption").

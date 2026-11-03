@@ -15,15 +15,14 @@ import { cn } from '../../lib/cn';
  * - Label  → `children`.
  *
  * It is plain text, not a control: it has no states. Every colour is the
- * semantic variable the Figma layer is bound to, including Pending's label,
- * which Figma binds to accent.warning (see docs/figma-sync.md). Where code
- * departs from Figma, the reason is in docs/figma-sync.md ("StatusPill").
+ * semantic variable the Figma layer is bound to. Where code departs from
+ * Figma, the reason is in docs/figma-sync.md ("StatusPill").
  */
 const pill = cva('inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-3 py-1 text-caption-md-semibold', {
   variants: {
     status: {
-      /* Status=Pending — accent.pending filled surface; the label is bound to accent.warning's content. */
-      pending: 'bg-accent-pending-filled-surface-default text-accent-warning-filled-content-default',
+      /* Status=Pending — accent.pending's filled pair. */
+      pending: 'bg-accent-pending-filled-surface-default text-accent-pending-filled-content-default',
       /* Status=Active — action.primary, as on the Default button. */
       active: 'bg-action-primary-surface-default text-action-primary-content-default',
       /* Status=Approved, Paid, Rejected — the accent's filled pair: info (blue), success (green), critical (red). */

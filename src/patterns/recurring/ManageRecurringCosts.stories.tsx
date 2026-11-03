@@ -14,7 +14,14 @@ import { PaymentSchedules } from '../../components/payment-schedules';
 import { SideSheet } from '../../components/side-sheet';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { ToastProvider, useToast } from '../../components/toast';
-import { formatDate, formatShortDate, recurringCosts, rowActionLabels, type RecurringCost } from '../fixtures';
+import {
+  formatDate,
+  formatPaymentAmount,
+  formatShortDate,
+  recurringCosts,
+  rowActionLabels,
+  type RecurringCost,
+} from '../fixtures';
 import { PageHeader } from '../../components/page-header';
 import { EditRecurringCostForm, type RecurringCostUpdate } from './EditRecurringCostForm';
 import { RecurringCostsTable, sortRecurringCosts, type RecurringSort } from './RecurringCostsTable';
@@ -208,6 +215,7 @@ function ManageRecurringCostsPage({ theme: initialTheme = 'light', schedulesFor:
             status={p.status}
             date={formatDate(p.date)}
             subtitle={p.status === 'done' ? `Processed on ${formatShortDate(p.date)}` : 'Scheduled'}
+            amount={formatPaymentAmount(scheduleCost)}
           />
         ))}
       </PaymentSchedules>

@@ -10,9 +10,9 @@ import { MenuItem } from '../menu-item';
  * (patterns 15 and U06).
  *
  * Figma → code:
- * - The panel (fill `surface.neutral.faint`, 1px inside `stroke.subtle`,
- *   radius 8, Elevation 3, padding 6, 2px between rows) → MenuDropdown, whose
- *   surface is Menu / Dropdown's: the same bindings.
+ * - The panel (fill `surface.elevated` since 3 Nov 2026, 1px inside
+ *   `stroke.subtle`, radius 8, Elevation Light/3, padding 6, 2px between rows)
+ *   → MenuDropdown, whose surface is Menu / Dropdown's: the same bindings.
  * - Fixed width 220 (raw) → MenuDropdown's minimum, 256 (`space.256`).
  * - Item / Manage Currencies, Item / Settings, Item / Logout (Menu / Item,
  *   Type=Default) → three MenuItems, in Figma's order and words. Logout is

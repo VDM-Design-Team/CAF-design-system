@@ -4,6 +4,7 @@ import { Calendar } from '../calendar';
 import { dayKey, parseDayKey } from '../calendar/dates';
 import { useFormField, useFormFieldControl } from '../form-field';
 import { Icon } from '../icon';
+import { IconButton } from '../icon-button';
 import { Popover } from '../popover';
 
 /**
@@ -19,12 +20,18 @@ import { Popover } from '../popover';
  * - State=Filled   → a `value`, in text/primary.
  * - State=Focus    → `:focus-visible`: a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border.
- * - State=Disabled → the native `disabled` attribute: Default's look at
- *   Figma's 50% layer opacity.
+ * - State=Disabled → the native `disabled` attribute: the disabled fill and
+ *   stroke, the placeholder and the icon in text/disabled.
  * - State=Open     → the calendar showing (`open`, `aria-expanded`): Focus's 2px stroke.
  * - Value          → the chosen date as `yyyy-mm-dd`, the format every Figma
  *   placement shows (2026-09-01, 2026-11-30, 2026-08-10).
  * - Icon / Calendar → Icon `calendar-blank`, 20px, text/subtle.
+ * - Show Clear + Clear Button → on by itself for an optional field (not
+ *   `required`) with a date, while the calendar is closed and the field is
+ *   enabled, as Figma draws it (Filled, Focus, Error). An IconButton (ghost,
+ *   32, `x`, "Clear date") before the icon, space.8 from it and from the
+ *   value. It clears the date (`onValueChange('')`), the placeholder comes
+ *   back, and focus goes back to the field.
  *
  * Dates are ISO `yyyy-mm-dd` strings, as `<input type="date">` takes them:
  * `value` / `defaultValue`, `onValueChange`, and what the form submits. They
@@ -34,7 +41,9 @@ import { Popover } from '../popover';
  * The date is picked in the calendar, not typed: Figma draws a picker
  * ("Select date", like the dropdown), and every CAF date is near today.
  * The calendar's keys reach a far date quickly (Page Up / Page Down a
- * month, with Shift a year).
+ * month, with Shift a year). Figma's description (3 Nov 2026) also says a
+ * typed or pasted yyyy-mm-dd works; code doesn't do that yet (see
+ * docs/figma-sync.md, "DateInput").
  *
  * It is a `<button role="combobox" aria-haspopup="dialog">`, like
  * SelectTrigger, whose look it shares. The calendar is a non-modal dialog.
@@ -54,8 +63,8 @@ import { Popover } from '../popover';
  * `required` becomes `aria-required`.
  *
  * It fills its container's width, as the field places it; `className` styles
- * the wrapper that holds the field and its calendar (a width, say). Every
- * other prop goes to the button, and so does the ref.
+ * the wrapper that holds the field, its clear button and its calendar (a
+ * width, say). Every other prop goes to the button, and so does the ref.
  *
  * In a form: with a `name`, the chosen date is submitted under it as
  * `yyyy-mm-dd` (a hidden input; "" while none is chosen), so FormData picks it
@@ -84,9 +93,11 @@ const dateInputClasses = [
   /* State=Error: the accent.critical.outline border. It keeps that colour when
      focused or open (at their 2px width), so the error stays visible. */
   'aria-invalid:inset-ring-accent-critical-outline-border-default',
-  /* State=Disabled: the value, like the placeholder, in text.subtle, and the
-     whole field at 50% opacity (Figma's layer opacity, raw 0.5). */
-  'disabled:cursor-not-allowed disabled:text-text-subtle disabled:opacity-50 disabled:inset-ring-stroke-subtle',
+  /* State=Disabled: the neutral.tonal disabled fill, a 1px
+     neutral.outline.border.disabled stroke, and the value or the placeholder
+     in text.disabled (the icon too, below). No opacity. */
+  'disabled:cursor-not-allowed disabled:bg-neutral-tonal-surface-disabled disabled:inset-ring-neutral-outline-border-disabled',
+  'disabled:text-text-disabled disabled:data-placeholder:text-text-disabled',
 ];
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -106,7 +117,7 @@ export interface DateInputProps extends Omit<
   value?: string | null;
   /** Uncontrolled: the date chosen at first, as `yyyy-mm-dd`. */
   defaultValue?: string | null;
-  /** Called with the day the user chose, as `yyyy-mm-dd`, when it differs from the current one. */
+  /** Called with the day the user chose, as `yyyy-mm-dd`, when it differs from the current one, and with `''` when the user clears it. */
   onValueChange?: (value: string) => void;
   /** The text shown while there is no date. Default "Select date", as in Figma. */
   placeholder?: string;
@@ -193,6 +204,15 @@ export const DateInput = React.forwardRef<HTMLButtonElement, DateInputProps>(fun
     setOpen(false);
   };
 
+  /* Figma's Show Clear: an optional field with a date, closed and enabled. */
+  const clearable = !required && !disabled && !isOpen && iso !== '';
+  const clear = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (value === undefined) setUncontrolledValue(null);
+    onValueChange?.('');
+    /* The button goes with the date: focus goes back to the field. */
+    event.currentTarget.parentElement?.querySelector<HTMLElement>('[role="combobox"]')?.focus();
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     onKeyDown?.(event);
     if (event.defaultPrevented || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return;
@@ -204,7 +224,7 @@ export const DateInput = React.forwardRef<HTMLButtonElement, DateInputProps>(fun
 
   const popover = (
     <Popover
-      className={cn('flex w-full', className)}
+      className="flex w-full"
       trigger={
         <button
           {...props}
@@ -221,7 +241,10 @@ export const DateInput = React.forwardRef<HTMLButtonElement, DateInputProps>(fun
           className={cn(dateInputClasses)}
         >
           <span className="min-w-0 flex-1 truncate">{iso || placeholder}</span>
-          <Icon name="calendar-blank" size={20} className="text-text-subtle" />
+          {/* The Clear Button's place in the row, space.8 from the value and the icon. The button
+              itself sits over it, outside this button (a button can't hold one). */}
+          {clearable && <span aria-hidden className="size-8 shrink-0" />}
+          <Icon name="calendar-blank" size={20} className={disabled ? 'text-text-disabled' : 'text-text-subtle'} />
         </button>
       }
       open={isOpen}
@@ -238,13 +261,16 @@ export const DateInput = React.forwardRef<HTMLButtonElement, DateInputProps>(fun
     </Popover>
   );
 
-  if (name === undefined) return popover;
   return (
-    <>
+    <div className={cn('relative flex w-full', className)}>
       {popover}
+      {/* Clear Button: Button / Icon, Size=32, Tone=Ghost, glyph X 16, 12 + 20 + 8 from the right edge, centred. */}
+      {clearable && (
+        <IconButton icon="x" label="Clear date" className="absolute inset-y-0 right-10 my-auto" onClick={clear} />
+      )}
       {/* What a form submits: the chosen date, under `name`. Disabled, like the field, so a disabled date input submits nothing. */}
-      <input type="hidden" name={name} form={form} value={iso} disabled={disabled} />
-    </>
+      {name !== undefined && <input type="hidden" name={name} form={form} value={iso} disabled={disabled} />}
+    </div>
   );
 });
 DateInput.displayName = 'DateInput';

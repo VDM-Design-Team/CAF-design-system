@@ -240,8 +240,9 @@ export const SubmitsWithForm: Story = {
 };
 
 /* ── Every state, in Light and Dark ────────────────────────────────────────
-   The group as Figma places it (Selected on All), then with code's Required,
-   Error and Disabled. Hover is forced on Admin with storybook-addon-pseudo-states. */
+   The group as Figma places it (Selected on All), then with Required, Error
+   (Figma's State=Error) and code's Disabled. Hover is forced on Admin with
+   storybook-addon-pseudo-states. */
 
 const STATES = [
   { state: 'Default', props: {}, message: 'helper' },
@@ -286,9 +287,12 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const helper = tokenColour('text-subtle');
     const selected = insetStroke(tokenColour('action-primary-surface-default'), 2);
     const resting = insetStroke(tokenColour('stroke-field'), 1);
-    // Disabled keeps Figma's stroke/strong (at 50%).
-    const restingDisabled = insetStroke(tokenColour('stroke-strong'), 1);
     const hover = insetStroke(tokenColour('stroke-focused'), 1);
+    // Error: Radio's critical stroke on every unchecked radio (Radio Option Error=true).
+    const invalid = insetStroke(tokenColour('accent-critical-outline-border-default'), 1);
+    // Disabled: Radio's disabled stroke; the chosen one, surface.brand.medium (code's Disabled Selected).
+    const restingDisabled = insetStroke(tokenColour('neutral-outline-border-disabled'), 1);
+    const selectedDisabled = insetStroke(tokenColour('surface-brand-medium'), 2);
     await waitFor(
       () => {
         for (const { state, props, message } of STATES) {
@@ -309,12 +313,12 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           for (let i = 1; i < options.length; i++)
             expect(options[i].getBoundingClientRect().left - options[i - 1].getBoundingClientRect().right).toBe(24);
           expect(options.map((o) => getComputedStyle(o).color)).toEqual(options.map(() => option));
-          // The radios: All is Selected; Admin is Hover in the first group; Disabled is 50%.
-          expect(getComputedStyle(radios[0]).boxShadow).toContain(selected);
-          expect(getComputedStyle(radios[1]).boxShadow).toContain(state === 'Default' ? hover : state === 'Disabled' ? restingDisabled : resting);
-          expect(getComputedStyle(radios[2]).boxShadow).toContain(state === 'Disabled' ? restingDisabled : resting);
-          for (const radio of radios)
-            expect(getComputedStyle(radio.parentElement!).opacity).toBe(state === 'Disabled' ? '0.5' : '1');
+          // The radios: All is Selected; Admin is Hover in the first group; Error and Disabled are Radio's.
+          const rest = state === 'Disabled' ? restingDisabled : state === 'Error' ? invalid : resting;
+          expect(getComputedStyle(radios[0]).boxShadow).toContain(state === 'Disabled' ? selectedDisabled : selected);
+          expect(getComputedStyle(radios[1]).boxShadow).toContain(state === 'Default' ? hover : rest);
+          expect(getComputedStyle(radios[2]).boxShadow).toContain(rest);
+          for (const radio of radios) expect(getComputedStyle(radio.parentElement!).opacity).toBe('1');
           // The Helper (or the error in its place): Caption/md-regular, text.subtle, 8px under the options.
           if (!message) {
             expect(note).toBeNull();

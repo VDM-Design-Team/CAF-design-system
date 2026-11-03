@@ -41,9 +41,9 @@ const ROWS = [
   { status: 'inactive', label: 'Inactive' },
 ] as const;
 
-/* Figma's bindings: [fill, label]. Pending's label is bound to accent.warning, not accent.pending. */
+/* Figma's bindings: [fill, label]. */
 const BOUND = {
-  pending: ['accent-pending-filled-surface-default', 'accent-warning-filled-content-default'],
+  pending: ['accent-pending-filled-surface-default', 'accent-pending-filled-content-default'],
   active: ['action-primary-surface-default', 'action-primary-content-default'],
   approved: ['accent-info-filled-surface-default', 'accent-info-filled-content-default'],
   paid: ['accent-success-filled-surface-default', 'accent-success-filled-content-default'],

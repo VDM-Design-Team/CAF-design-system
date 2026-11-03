@@ -238,7 +238,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
-    const want = { fill: tokenColour('surface-neutral-faint'), label: tokenColour('text-primary') };
+    const want = { fill: tokenColour('surface-elevated'), label: tokenColour('text-primary') };
     const canvas = within(canvasElement);
     const account = canvas.getByRole('button', { name: 'Account' });
     await userEvent.click(account);
