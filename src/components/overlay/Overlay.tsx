@@ -136,26 +136,6 @@ function tabbable(root: HTMLElement): HTMLElement[] {
   });
 }
 
-/**
- * A scrolling region must be reachable from the keyboard (WCAG 2.1.1, axe's
- * scrollable-region-focusable). Returns a tab index for the region: 0 while
- * its content overflows, none while it doesn't (a stop that does nothing).
- */
-export function useScrollableTabStop(ref: React.RefObject<HTMLElement | null>, active: boolean) {
-  const [scrollable, setScrollable] = React.useState(false);
-  React.useEffect(() => {
-    const el = ref.current;
-    if (!active || !el) return;
-    const measure = () => setScrollable(el.scrollHeight > el.clientHeight + 1);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    for (const child of Array.from(el.children)) observer.observe(child);
-    return () => observer.disconnect();
-  });
-  return scrollable ? 0 : undefined;
-}
-
 type OverlayNameProps =
   /** The id of the visible title. The usual way to name the dialog. */
   | { 'aria-labelledby': string; 'aria-label'?: undefined }

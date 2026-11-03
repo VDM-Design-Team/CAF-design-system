@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn';
 import { type IconName } from '../icon';
 import { ModalHeader } from '../modal-header';
 import { Overlay } from '../overlay';
-import { useScrollableTabStop } from '../overlay/Overlay';
+import { useScrollableTabStop } from '../../lib/useScrollableTabStop';
 
 /**
  * PaymentSchedules — built from the CAF Figma library, page "Modals":
