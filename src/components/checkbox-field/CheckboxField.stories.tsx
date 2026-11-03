@@ -258,8 +258,10 @@ const STATES: Array<{ state: string; props: FieldProps }> = [
 
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  // pointer-events-none: the grid checks resting colours, so a pointer left where the previous story
+  // clicked mustn't hover a cell (on CI's wider Linux text, a box lands under it).
   render: () => (
-    <div className="flex flex-col gap-6">
+    <div className="pointer-events-none flex flex-col gap-6">
       {STATES.map(({ state, props }) => (
         <CheckboxField
           key={state}
