@@ -23,7 +23,10 @@ Figma first.
   `text.primary`), in the desktop header and below 768px, Light and Dark.
 - **`MobileMenu`**: the Account Row is now a button, AccountMenu's trigger.
   It opens the Account Menu below it, 16px in, on `document.body` (so the
-  menu's scroll can't cut it off), and `onAccountSelect` gets the item chosen.
-  It looks as before, with a focus ring on keyboard focus, and it is the last
-  Tab stop in the menu. No prop changes; the row's element changes from `<p>`
-  to `<button>`.
+  menu's scroll can't cut it off). It looks as before, with a focus ring on
+  keyboard focus, and it is the last Tab stop in the menu. Choosing an
+  account item, from the row or from the header's account icon in the open
+  menu, closes the Account Menu and the Mobile Menu, returns focus to ☰ and
+  then calls `onAccountSelect`, so the app can move focus into the dialog it
+  opens. Escape and a tap outside close only the Account Menu. No prop
+  changes; the row's element changes from `<p>` to `<button>`.

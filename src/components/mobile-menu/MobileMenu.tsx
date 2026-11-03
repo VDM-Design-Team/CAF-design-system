@@ -29,17 +29,23 @@ import type { ThemeToggleTheme } from '../theme-toggle';
  *   → AccountMenu's trigger: a full-width button with the glyph and
  *   `username`. It opens Navigation / Account Menu below it, its left edge
  *   16 in, under the glyph (pattern 15 step 3: "The account row opens the
- *   Account Menu"), and `onAccountSelect` gets the item chosen. The row looks
- *   as Figma draws it, with no caret and no open look. The menu is portalled
- *   on `document.body`, so the panel's scroll doesn't cut it off.
+ *   Account Menu"). The row looks as Figma draws it, with no caret and no
+ *   open look. The menu is portalled on `document.body`, so the panel's
+ *   scroll doesn't cut it off.
+ *
+ * Choosing an account item, from the Account Row or from the header's
+ * account icon, closes the Account Menu and asks `onClose`; once both have
+ * closed and focus is back on ☰, `onAccountSelect` gets the item. So the
+ * app's handler can move focus on, into a dialog it opens. Escape and a tap
+ * outside the Account Menu close only the Account Menu.
  *
  * Behaviour, hand-built on Overlay (as SideSheet is): the panel is a modal
  * dialog named "Menu" (`aria-label`), in a portal over the page's scrim. It
  * opens with focus on ✕, where ☰ was; Tab and Shift+Tab wrap inside it; the
- * page behind is inert and doesn't scroll. Escape, ✕, a tap on the scrim and
- * choosing a link ask `onClose` (pattern 15: "Choosing a link or tapping ✕
- * closes it"); the owner sets `open`, and focus goes back to ☰. The panel
- * scrolls when the screen is shorter than the menu.
+ * page behind is inert and doesn't scroll. Escape, ✕, a tap on the scrim,
+ * choosing a link (pattern 15: "Choosing a link or tapping ✕ closes it") and
+ * choosing an account item ask `onClose`; the owner sets `open`, and focus
+ * goes back to ☰. The panel scrolls when the screen is shorter than the menu.
  *
  * Where code departs from Figma, the reason is in docs/figma-sync.md
  * ("MobileMenu").
@@ -51,7 +57,7 @@ export interface MobileMenuProps
   > {
   /** Whether it is open. Nothing is rendered while `false`. */
   open: boolean;
-  /** Asked to close: ✕, Escape, a tap on the scrim, or a link chosen. Set `open` to false. */
+  /** Asked to close: ✕, Escape, a tap on the scrim, a link chosen, or an account item chosen. Set `open` to false. */
   onClose: () => void;
   /** The navigation, in order: Figma's link labels, each with its `href`. */
   links: readonly AppHeaderLink[];
@@ -65,7 +71,7 @@ export interface MobileMenuProps
   theme: ThemeToggleTheme;
   /** Called with the theme the user asked for. Switch it here. */
   onThemeChange?: (theme: ThemeToggleTheme) => void;
-  /** Called with the account menu item the user chose. */
+  /** Called with the account menu item the user chose, after the Account Menu and this menu have closed. */
   onAccountSelect?: (item: AccountMenuItem) => void;
   /** Names the dialog. Default "Menu". */
   'aria-label'?: string;
@@ -98,6 +104,22 @@ export const MobileMenu = React.forwardRef<HTMLDivElement, MobileMenuProps>(func
   /* ✕ takes focus on open: it sits where ☰ was, and Enter closes again. */
   const closeRef = React.useRef<HTMLButtonElement | null>(null);
 
+  /* An account item closes both menus first, then goes to onAccountSelect. The item is passed on in an
+     effect: it runs after the commit that closed the menu, whose Overlay cleanup has given focus back to ☰,
+     so focus the app's handler moves (into a dialog it opens) stays where it put it. */
+  const [chosen, setChosen] = React.useState<{ item: AccountMenuItem } | null>(null);
+  const onAccountSelectRef = React.useRef(onAccountSelect);
+  React.useEffect(() => {
+    onAccountSelectRef.current = onAccountSelect;
+  });
+  React.useEffect(() => {
+    if (chosen) onAccountSelectRef.current?.(chosen.item);
+  }, [chosen]);
+  const chooseAccount = (item: AccountMenuItem) => {
+    setChosen({ item });
+    onClose();
+  };
+
   return (
     <Overlay
       {...props}
@@ -124,7 +146,7 @@ export const MobileMenu = React.forwardRef<HTMLDivElement, MobileMenuProps>(func
         menuButtonRef={closeRef}
         theme={theme}
         onThemeChange={onThemeChange}
-        onAccountSelect={onAccountSelect}
+        onAccountSelect={chooseAccount}
         className="shrink-0"
       />
       <nav
@@ -148,7 +170,7 @@ export const MobileMenu = React.forwardRef<HTMLDivElement, MobileMenuProps>(func
       </nav>
       {/* Account Row: AccountMenu's trigger. The menu opens below it, 16 in (under the glyph), on <body>. */}
       <AccountMenu
-        onSelect={onAccountSelect}
+        onSelect={chooseAccount}
         label="Account"
         align="left"
         portal

@@ -37,8 +37,8 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
  * - Below 768px (`md:`), the two rows give way to MobileHeader. Its ☰ opens
  *   MobileMenu with the same links (`aria-expanded`, `aria-controls`). The
  *   menu's state is `menuOpen` (Mobile Header's Menu Open), uncontrolled by
- *   default; it closes when a link is chosen, and when the screen widens past
- *   768px.
+ *   default; it closes when a link or an account item is chosen, and when the
+ *   screen widens past 768px.
  *
  * Routing isn't wired in: each link is an `<a href>`, and `renderLink` swaps
  * in a router's link. The theme is controlled (`theme`, `onThemeChange`):
@@ -66,7 +66,7 @@ export interface AppHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   menuOpen?: boolean;
   /** Whether the mobile menu starts open, when `menuOpen` is left out. Default false. */
   defaultMenuOpen?: boolean;
-  /** Called with the menu state asked for: ☰, ✕, Escape, a link chosen, or the screen widening past 768px. */
+  /** Called with the menu state asked for: ☰, ✕, Escape, a link or account item chosen, or the screen widening past 768px. */
   onMenuOpenChange?: (open: boolean) => void;
 }
 

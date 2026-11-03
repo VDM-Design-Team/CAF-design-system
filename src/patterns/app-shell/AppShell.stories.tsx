@@ -305,9 +305,9 @@ export const Mobile: Story = {
 
 /**
  * Pattern 15, step 3, below 768px: "The account row opens the Account Menu".
- * The menu opens over the scrim, under the row (or above it on a short screen);
- * choosing Settings passes it on and leaves the mobile menu open. Left open for
- * the snapshot.
+ * The menu opens over the scrim, under the row (or above it on a short screen).
+ * Choosing Settings closes both menus, focus goes back to ☰, and then
+ * onAccountSelect gets it. Opened again for the snapshot.
  */
 export const MobileAccountMenu: Story = {
   name: 'Mobile, account menu open',
@@ -329,15 +329,19 @@ export const MobileAccountMenu: Story = {
     await expect(items.map((item) => item.textContent)).toEqual(ACCOUNT_MENU_ITEMS.map((item) => item.label));
     await waitFor(() => expect(items[0]).toHaveFocus());
     await userEvent.click(items[1]);
-    await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
-    await expect(row).toHaveFocus();
-    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(screen.queryByRole('menu')).toBeNull();
+    await waitFor(() => expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings'));
+    const opener = within(canvasElement).getByRole('button', { name: 'Open menu' });
+    await expect(opener).toHaveFocus();
 
-    // Open again for the snapshot: 16 in, under the row's glyph, over the scrim.
-    await userEvent.click(row);
+    // Open both again for the snapshot: 16 in, under the row's glyph, over the scrim.
+    await userEvent.click(opener);
+    const again = await screen.findByRole('dialog', { name: 'Menu' });
+    const reopened = within(again).getByRole('button', { name: signedInAccounts.admin.name });
+    await userEvent.click(reopened);
     const open = await screen.findByRole('menu', { name: 'Account' });
-    await expect(open.getBoundingClientRect().left).toBeCloseTo(row.querySelector('svg')!.getBoundingClientRect().left, 0);
+    await expect(open.getBoundingClientRect().left).toBeCloseTo(reopened.querySelector('svg')!.getBoundingClientRect().left, 0);
   },
 };
 

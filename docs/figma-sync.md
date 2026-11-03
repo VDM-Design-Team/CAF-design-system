@@ -4785,7 +4785,7 @@ How Figma maps:
 - Page → `page`, the current link's label. Its NavLink is State=Active and gets `aria-current="page"`.
 - The links are `<a href>`. `renderLink` swaps in a router's link: `({ href, ...props }) => <NavLink {...props} as={RouterLink} to={href} />`.
 - Below 768px (`md:`), MobileHeader replaces the two rows. Its ☰ opens MobileMenu with the same `links` and `page`. Mobile Header's Menu Open → `menuOpen` / `defaultMenuOpen` / `onMenuOpenChange`. It is uncontrolled by default.
-- The menu closes when a link is chosen, and when the screen widens past 768px.
+- The menu closes when a link or an account item is chosen, and when the screen widens past 768px.
 - `navLabel` names the `<nav>` (default "Main").
 - `username`, `theme`, `onThemeChange` and `onAccountSelect` go to TopBar and MobileHeader / MobileMenu. The theme is controlled; nothing here changes the document.
 
@@ -4906,11 +4906,13 @@ How Figma maps:
 - Mobile Header (Menu Open=true) → MobileHeader `menuOpen`, with ✕ asking `onClose`.
 - Links → `links` and `page` (the Active link), as on AppHeader, rendered as NavLink `orientation="vertical"` (or by `renderLink`).
 - Account Row → AccountMenu's `trigger`: a full-width `<button>` with the User glyph and `username`, which opens Navigation / Account Menu below it (`onAccountSelect`), as pattern 15 step 3 draws it.
-- Its open state → `open`. It asks `onClose` on ✕, Escape, a tap on the scrim, or a chosen link (pattern 15: "Choosing a link or tapping ✕ closes it").
+- Its open state → `open`. It asks `onClose` on ✕, Escape, a tap on the scrim, a chosen link (pattern 15: "Choosing a link or tapping ✕ closes it") or a chosen account item.
 
 It is a modal dialog on Overlay (as SideSheet is): portal, `aria-modal`, named "Menu" (`aria-label`). Focus opens on ✕, where ☰ was, and Tab / Shift+Tab wrap inside; the Account Row is the last stop. The page behind is inert and its scroll is locked. Escape closes an open account menu first. Focus returns to ☰.
 
-The Account Row's menu is AccountMenu with `portal`, `align="left"` and `label="Account"`: it renders on `document.body`, so the panel's own scroll (`overflow-y-auto`) doesn't cut it off, and it sits over the scrim. Its left edge is 16 in from the row's (`ml-4`), under the glyph, as pattern 15 places it; it opens `space/4` below the row, as every Popover, and flips above on a screen too short for it (320 × 568). Its keyboard is MenuDropdown's; Tab or Escape closes it and returns focus to the row, inside the dialog. Choosing an item calls `onAccountSelect` and leaves the mobile menu open, as the header's account icon does. The stories check the row (a button named by `username`, `aria-haspopup="menu"`), its focus ring, the menu's place and items, choosing, Tab, Escape and a tap outside, in Light and Dark.
+The Account Row's menu is AccountMenu with `portal`, `align="left"` and `label="Account"`: it renders on `document.body`, so the panel's own scroll (`overflow-y-auto`) doesn't cut it off, and it sits over the scrim. Its left edge is 16 in from the row's (`ml-4`), under the glyph, as pattern 15 places it; it opens `space/4` below the row, as every Popover, and flips above on a screen too short for it (320 × 568). Its keyboard is MenuDropdown's; Tab, Escape or a tap outside closes only the Account Menu and returns focus to the row, inside the dialog.
+
+**Choosing an account item closes both menus** (decided by you on 3 Nov, after PR #41), from the Account Row and from the header's account icon in the open menu alike. The Account Menu closes, MobileMenu asks `onClose`, focus goes back to ☰, and then `onAccountSelect` gets the item. The call waits for the commit that closed the menu, so a handler that moves focus on (into the dialog it opens, such as Manage Currencies) keeps it there. The stories check the row (a button named by `username`, `aria-haspopup="menu"`), its focus ring, the menu's place and items, Tab, Escape and a tap outside (the Mobile Menu stays open), and choosing (both close, focus on ☰, then `onAccountSelect`; or focus where the handler put it), in Light and Dark.
 
 | Layer | Figma | Code |
 |---|---|---|

@@ -6,7 +6,7 @@ import { ICON_PATHS } from '../icon/icons';
 import { MobileHeader } from '../mobile-header';
 import { NavLink } from '../nav-link';
 import type { ThemeToggleTheme } from '../theme-toggle';
-import { MobileMenu } from './MobileMenu';
+import { MobileMenu, type MobileMenuProps } from './MobileMenu';
 
 /* Storybook's own "Small mobile" viewport (320 × 568), from its default list. The menu is
    fixed to the viewport's top and full width, with no breakpoint of its own, so it renders
@@ -231,10 +231,20 @@ export const User: Story = {
 
 /* The page's Mobile Header and the menu it opens, wired as AppHeader wires them:
    ☰ opens, the menu asks to close, a chosen link becomes the current page. */
-function MobileShell({ initialPage = 'Users' }: { initialPage?: string }) {
+function MobileShell({
+  initialPage = 'Users',
+  initialTheme = 'light',
+  onAccountSelect,
+  children,
+}: {
+  initialPage?: string;
+  initialTheme?: ThemeToggleTheme;
+  onAccountSelect?: MobileMenuProps['onAccountSelect'];
+  children?: React.ReactNode;
+}) {
   const [open, setOpen] = React.useState(false);
   const [page, setPage] = React.useState(initialPage);
-  const [theme, setTheme] = React.useState<ThemeToggleTheme>('light');
+  const [theme, setTheme] = React.useState<ThemeToggleTheme>(initialTheme);
   const id = `${React.useId()}-menu`;
   return (
     <Page>
@@ -258,7 +268,9 @@ function MobileShell({ initialPage = 'Users' }: { initialPage?: string }) {
         username="Admin Account"
         theme={theme}
         onThemeChange={setTheme}
+        onAccountSelect={onAccountSelect}
       />
+      {children}
     </Page>
   );
 }
@@ -390,20 +402,20 @@ export const EscapeClosesTheAccountMenuFirst: Story = {
 /* ── The Account Row opens the Account Menu, in Light and Dark ──────────────
    Pattern 15 step 3: "The account row opens the Account Menu". The menu opens
    on <body> (it isn't cut off by the panel's scroll), under the row, its left
-   edge 16 in, under the glyph; space.4 below the row, as every Popover. */
+   edge 16 in, under the glyph; space.4 below the row, as every Popover.
+   Choosing an item closes the Account Menu and the Mobile Menu, focus goes
+   back to ☰, and then onAccountSelect gets the item (decided 3 Nov). */
 const accountRow = (theme: 'light' | 'dark'): Story => ({
   name: `Account Row opens the Account Menu — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  render: (args) => (
-    <Page>
-      <MobileMenu {...args} theme={theme} />
-    </Page>
-  ),
+  render: (args) => <MobileShell initialTheme={theme} onAccountSelect={args.onAccountSelect} />,
   globals: { theme, viewport: MOBILE },
   parameters: { controls: { disable: true } },
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ args, canvasElement }) => {
     const want = { ring: tokenColour('stroke-focused'), secondary: tokenColour('text-secondary') };
+    const opener = within(canvasElement).getByRole('button', { name: 'Open menu' });
+    await userEvent.click(opener);
     const dialog = await screen.findByRole('dialog', { name: 'Menu' });
     const row = within(dialog).getByRole('button', { name: 'Admin Account' });
     await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Close menu' })).toHaveFocus());
@@ -448,33 +460,33 @@ const accountRow = (theme: 'light' | 'dark'): Story => ({
     // The row looks the same open: no fill, text.secondary.
     await expect(getComputedStyle(row).color).toBe(want.secondary);
 
-    // ↓ moves; Enter chooses. The item goes to onAccountSelect, the menu closes, focus is back on the row.
-    await userEvent.keyboard('{ArrowDown}{Enter}');
-    await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
-    await expect(row).toHaveFocus();
-    await expect(row).toHaveAttribute('aria-expanded', 'false');
-    // The mobile menu stays open, as it does for the header's account icon.
-    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
-
-    // Enter opens it again; Tab closes it and goes back to the row, still inside the dialog.
-    await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(within(screen.getByRole('menu', { name: 'Account' })).getAllByRole('menuitem')[0]).toHaveFocus());
+    // Tab closes the Account Menu only: focus back on the row, still inside the open Mobile Menu.
     await userEvent.tab();
     await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
     await expect(row).toHaveFocus();
+    await expect(screen.getByRole('dialog', { name: 'Menu' })).toBe(dialog);
     await expect(bodyChildOf(canvasElement)).toHaveAttribute('inert');
+    await expect(args.onAccountSelect).not.toHaveBeenCalled();
 
-    // Open again for the snapshot, as pattern 15 step 3 draws it.
-    await userEvent.click(row);
-    await screen.findByRole('menu', { name: 'Account' });
+    // Enter opens it again; ↓ and Enter choose Settings. Both menus close, focus is back on ☰,
+    // and then onAccountSelect gets the item.
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(within(screen.getByRole('menu', { name: 'Account' })).getAllByRole('menuitem')[0]).toHaveFocus());
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(screen.queryByRole('menu')).toBeNull();
+    await waitFor(() => expect(args.onAccountSelect).toHaveBeenCalledTimes(1));
+    await expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings');
+    await expect(opener).toHaveFocus();
+    await expect(opener).toHaveAttribute('aria-expanded', 'false');
+    await expect(bodyChildOf(canvasElement)).not.toHaveAttribute('inert');
   },
 });
 
 export const AccountRowLight = accountRow('light');
 export const AccountRowDark = accountRow('dark');
 
-/** A tap on a menu item chooses it; a tap outside the Account Menu closes it and leaves the mobile menu open. Escape closes it first, then the mobile menu. */
+/** A tap outside the Account Menu closes it and leaves the mobile menu open. Escape closes it first, then the mobile menu. */
 export const AccountRowEscapeAndOutsideTap: Story = {
   render: () => <MobileShell />,
   globals: { viewport: MOBILE },
@@ -504,5 +516,50 @@ export const AccountRowEscapeAndOutsideTap: Story = {
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await expect(opener).toHaveFocus();
+  },
+};
+
+/**
+ * Choosing an account item from the header's account icon in the open menu closes both menus too, and focus
+ * goes back to ☰. Unless the app's handler moves it: here Manage Currencies focuses the page's own control,
+ * as an app opening its dialog would, and focus stays there.
+ */
+export const ChoosingAnAccountItemClosesBoth: Story = {
+  render: (args) => (
+    <MobileShell
+      onAccountSelect={(item) => {
+        args.onAccountSelect?.(item);
+        if (item === 'manage-currencies') document.querySelector<HTMLElement>('[data-currencies]')?.focus();
+      }}
+    >
+      <button type="button" data-currencies="" className="self-start px-4 text-body-sm-regular text-text-primary">
+        Currencies
+      </button>
+    </MobileShell>
+  ),
+  globals: { viewport: MOBILE },
+  parameters: { controls: { disable: true } },
+  tags: ['!autodocs'],
+  play: async ({ args, canvasElement }) => {
+    const opener = within(canvasElement).getByRole('button', { name: 'Open menu' });
+
+    // The header's account icon, inside the open menu: Settings closes both, focus back on ☰.
+    await userEvent.click(opener);
+    let dialog = await screen.findByRole('dialog', { name: 'Menu' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Account' }));
+    await userEvent.click(await within(dialog).findByRole('menuitem', { name: 'Settings' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(args.onAccountSelect).toHaveBeenLastCalledWith('settings'));
+    await expect(opener).toHaveFocus();
+
+    // The Account Row: Manage Currencies closes both, and the handler's focus move wins over ☰.
+    await userEvent.click(opener);
+    dialog = await screen.findByRole('dialog', { name: 'Menu' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Admin Account' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Manage Currencies' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(args.onAccountSelect).toHaveBeenLastCalledWith('manage-currencies'));
+    await expect(within(canvasElement).getByRole('button', { name: 'Currencies' })).toHaveFocus();
+    await expect(args.onAccountSelect).toHaveBeenCalledTimes(2);
   },
 };
