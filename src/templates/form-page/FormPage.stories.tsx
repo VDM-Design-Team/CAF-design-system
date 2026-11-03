@@ -3,6 +3,7 @@ import { expect, fn, within } from 'storybook/test';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import type { ShellApp } from '../../patterns/app-shell/AppShell';
 import { currentUser, type CostType } from '../../patterns/fixtures';
+import { expectDividers, expectFormInCard } from '../../patterns/forms/checks';
 import { expectFrame, expectInOrder, expectNoSidewaysScroll, isDesktop, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
 import { BulkUploadScreen, CreateCostScreen } from '../screens';
 import { TemplateFrame } from '../TemplateFrame';
@@ -46,8 +47,10 @@ const meta = {
     docs: {
       description: {
         component:
-          'A page that is one form: the form centred in the page container, its heading at the top, its sections in ' +
-          'one column, and its actions at the end. The screens it covers: **User / Create Cost** — Single Cost ' +
+          'A page that is one form: the page’s heading (PageHeader), then the form alone in a **PanelCard** (Card / ' +
+          'Panel), centred in the page container at the form cards’ width (`max-w-xl`, 576; Figma 578). The form’s ' +
+          'sections run in one column, with a **Divider** where Figma draws a rule, and its actions at the end. The ' +
+          'screens it covers: **User / Create Cost** — Single Cost ' +
           '(2102:1154) and Recurring Cost (2102:1159), Form / New Cost — and **Bulk Upload** (Admin 2102:6027, User ' +
           '2102:1223), Form / Bulk Upload. Built from NewCostForm and BulkUploadForm (patterns 09, 10, U02, U05), which ' +
           'check their fields and hand over the FormData; the page confirms with a toast.',
@@ -74,25 +77,31 @@ type Story = StoryObj<typeof meta>;
 
 /* ── Checks ─────────────────────────────────────────────────────────────── */
 
-/** The form is centred in the page container (from 768px; on a phone it fills it). */
-async function expectCentred(form: HTMLElement, main: HTMLElement) {
+/** The heading and the card's column is centred in the page container (from 768px; on a phone it fills it). */
+async function expectCentred(column: HTMLElement, main: HTMLElement) {
   const style = getComputedStyle(main);
   const box = main.getBoundingClientRect();
   const left = box.left + parseFloat(style.paddingLeft);
   const right = box.right - parseFloat(style.paddingRight);
-  const { left: formLeft, right: formRight } = form.getBoundingClientRect();
-  await expect(formLeft).toBeGreaterThanOrEqual(left - 1);
-  await expect(formRight).toBeLessThanOrEqual(right + 1);
-  if (isDesktop()) await expect(Math.abs(formLeft - left - (right - formRight))).toBeLessThan(1);
+  const { left: columnLeft, right: columnRight } = column.getBoundingClientRect();
+  await expect(columnLeft).toBeGreaterThanOrEqual(left - 1);
+  await expect(columnRight).toBeLessThanOrEqual(right + 1);
+  // The form cards' width (max-w-xl, 576), or the container's where that is narrower (a phone).
+  await expect(columnRight - columnLeft).toBeCloseTo(Math.min(576, right - left), 0);
+  if (isDesktop()) await expect(Math.abs(columnLeft - left - (right - columnRight))).toBeLessThan(1);
   else await expectNoSidewaysScroll();
 }
 
-/** Create Cost: heading, Single | Recurring tabs, the sections in order, Save to Drafts and Save at the end. */
+/**
+ * Create Cost: the heading above the form's card; in the card, Single | Recurring
+ * tabs, the sections in order with Figma's two Dividers, Save to Drafts and Save at the end.
+ */
 async function expectCreateCost(canvasElement: HTMLElement, type: CostType) {
   const { main, heading } = await expectFrame(canvasElement, 'New Cost');
   const page = within(main);
   const form = main.querySelector('form')!;
-  await expect(form).toContainElement(heading);
+  const { column } = await expectFormInCard(form, heading);
+  await expectDividers(form, 24, ['Beneficiary Information', 'Breakdowns']);
   const tabs = page.getByRole('tablist', { name: 'Cost type' });
   const selected = type === 'single' ? 'Single Cost' : 'Recurring Cost';
   await expect(within(tabs).getByRole('tab', { name: selected })).toHaveAttribute('aria-selected', 'true');
@@ -108,15 +117,22 @@ async function expectCreateCost(canvasElement: HTMLElement, type: CostType) {
   const save = page.getByRole('button', { name: 'Save' });
   await expect(save).toHaveAttribute('type', 'submit');
   await expectInOrder([heading, tabs, panel, saveDraft]);
-  await expect(save.getBoundingClientRect().left).toBeGreaterThan(saveDraft.getBoundingClientRect().left);
-  await expectCentred(form, main);
+  // Side by side from sm; stacked on a phone, where the card leaves too little width for both.
+  const [draftBox, saveBox] = [saveDraft.getBoundingClientRect(), save.getBoundingClientRect()];
+  if (window.matchMedia('(min-width: 40rem)').matches) await expect(saveBox.left).toBeGreaterThan(draftBox.left);
+  else await expect(saveBox.top).toBeGreaterThanOrEqual(draftBox.bottom);
+  // Each label fits its button.
+  for (const button of [saveDraft, save]) await expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
+  await expectCentred(column, main);
 }
 
-/** Bulk Upload: heading, Payment Method, the CSV upload, Download CSV Template, Upload. */
+/** Bulk Upload: the heading above the form's card; in it Payment Method, the CSV upload, a Divider, Download CSV Template, Upload. */
 async function expectBulkUpload(canvasElement: HTMLElement) {
   const { main, heading } = await expectFrame(canvasElement, 'Bulk Upload');
   const page = within(main);
   const form = main.querySelector('form')!;
+  const { column } = await expectFormInCard(form, heading);
+  await expectDividers(form, 12, ['Download CSV Template']);
   const method = page.getByRole('combobox', { name: /^Payment Method/ });
   const file = page.getByLabelText<HTMLInputElement>(/^Upload CSV File/);
   await expect(file).toHaveAttribute('type', 'file');
@@ -124,7 +140,7 @@ async function expectBulkUpload(canvasElement: HTMLElement) {
   const upload = page.getByRole('button', { name: 'Upload' });
   await expect(upload).toHaveAttribute('type', 'submit');
   await expectInOrder([heading, method, download, upload]);
-  await expectCentred(form, main);
+  await expectCentred(column, main);
 }
 
 /* ── Create Cost ────────────────────────────────────────────────────────── */
@@ -150,7 +166,7 @@ export const CreateCostDark: Story = {
   play: ({ canvasElement }) => expectCreateCost(canvasElement, 'single'),
 };
 
-/** Below 768px the form fills the page container, and nothing scrolls sideways. */
+/** Below 768px the heading and the card fill the page container, and nothing scrolls sideways. */
 export const CreateCostMobile: Story = {
   name: 'Create cost, mobile',
   args: { type: 'recurring' },

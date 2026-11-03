@@ -11,6 +11,7 @@ import {
   type Draft,
   type FrequencyUnit,
 } from '../fixtures';
+import { expectFormInCard } from '../forms/checks';
 import { NewCostForm, type NewCostField, type NewCostValues } from '../forms/NewCostForm';
 import { DraftsList } from './DraftsList';
 
@@ -258,9 +259,15 @@ export const SaveAndResume: Story = {
       '',
     ]);
 
-    // Step 3: Edit loads it back.
+    // Step 3: Edit loads it back, named in the page's header above the form's card.
     await editDraft(canvasElement, '36742');
-    await expect(canvas.getByText('Draft #36742')).toBeVisible();
+    const draftName = canvas.getByText('Draft #36742');
+    await expect(draftName).toBeVisible();
+    const { card } = await expectFormInCard(
+      canvasElement.querySelector('form')!,
+      canvas.getByRole('heading', { level: 1, name: 'New Cost' }),
+    );
+    await expect(card).not.toContainElement(draftName);
     await expect(canvas.getByRole('tab', { name: 'Single Cost' })).toHaveAttribute('aria-selected', 'true');
     await expect(canvas.getByRole('textbox', { name: /^Invoice number/ })).toHaveValue('INV-2026-0512');
     await expect(canvas.getByRole('combobox', { name: /^Select Partner/ })).toHaveTextContent('Jane Doe');

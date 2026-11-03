@@ -7,11 +7,13 @@ import { FileChip, formatFileSize } from '../../components/file-chip';
 import { FileUploadField } from '../../components/file-upload-field';
 import { MenuItem } from '../../components/menu-item';
 import { ModalDialog } from '../../components/modal-dialog';
+import { PageHeader } from '../../components/page-header';
+import { PanelCard } from '../../components/panel-card';
 import { ToastProvider, useToast } from '../../components/toast';
 import { CostsTable } from '../costs/CostsTable';
 import { bulkUploadRejections, costInvoices, costs, invoiceRules } from '../fixtures';
-import { PageHeader } from '../../components/page-header';
 import { BulkUploadForm } from './BulkUploadForm';
+import { expectDividers, expectFormInCard } from './checks';
 import { validateInvoice } from './NewCostForm';
 
 /** The spies each story reports to. */
@@ -46,7 +48,9 @@ const meta = {
           'invoices open from the Costs row menu (••• → View invoices) in a small dialog, each with **Download**. ' +
           '**Bulk Upload** (`src/patterns/forms/BulkUploadForm.tsx`, Form / Bulk Upload): pick the payment method, ' +
           'download its CSV template, upload the filled file, then click Upload; a Toast gives the result, and names the ' +
-          'rows that failed. Built from FileUploadField, FileChip, ModalDialog, SelectField, Button and ToastProvider.',
+          'rows that failed. The forms sit in a **PanelCard** under the page’s **PageHeader**, and a **Divider** sets ' +
+          'off Bulk Upload’s template row. Built from FileUploadField, FileChip, ModalDialog, SelectField, Button, ' +
+          'PageHeader, PanelCard, Divider and ToastProvider.',
       },
     },
   },
@@ -79,30 +83,34 @@ const notifications = (canvasElement: HTMLElement) =>
 
 /* ── Steps 1–3: attach invoices ──────────────────────────────────────────── */
 
-/** Attach invoice as Form / New Cost places it, with the form's Save. */
+/** Attach invoice as Form / New Cost places it, with the form's Save: a form page, the form in a PanelCard under the heading. */
 function AttachInvoices({ onSave }: Pick<PatternArgs, 'onSave'>) {
   return (
     <main className="p-8">
-      <form
-        noValidate
-        className="mx-auto flex w-full max-w-xl flex-col gap-6"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSave(new FormData(event.currentTarget));
-        }}
-      >
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
         <PageHeader title="Attach invoice" />
-        <FileUploadField
-          label="Attach invoice"
-          name="invoices"
-          required
-          multiple
-          accept={invoiceRules.accept}
-          hint={invoiceRules.hint}
-          validate={validateInvoice}
-        />
-        <Button type="submit">Save</Button>
-      </form>
+        <PanelCard>
+          <form
+            noValidate
+            className="flex flex-col gap-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onSave(new FormData(event.currentTarget));
+            }}
+          >
+            <FileUploadField
+              label="Attach invoice"
+              name="invoices"
+              required
+              multiple
+              accept={invoiceRules.accept}
+              hint={invoiceRules.hint}
+              validate={validateInvoice}
+            />
+            <Button type="submit">Save</Button>
+          </form>
+        </PanelCard>
+      </div>
     </main>
   );
 }
@@ -118,6 +126,9 @@ export const AttachAndRemove: Story = {
   render: (args) => <AttachInvoices onSave={args.onSave} />,
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
+    // The form in its card, under the page's heading.
+    const heading = canvas.getByRole('heading', { level: 1, name: 'Attach invoice' });
+    await expectFormInCard(canvasElement.querySelector('form')!, heading);
     const input = canvas.getByLabelText<HTMLInputElement>(/^Attach invoice/);
     // Step 1: the zone says what it takes.
     await expect(input).toHaveAccessibleDescription(invoiceRules.hint);
@@ -290,7 +301,12 @@ export const BulkUpload: Story = {
   render: bulk,
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('heading', { level: 1, name: 'Bulk Upload' })).toBeVisible();
+    const heading = canvas.getByRole('heading', { level: 1, name: 'Bulk Upload' });
+    await expect(heading).toBeVisible();
+    // Form / Bulk Upload in its card under the heading, and its Divider (191:459) between the upload and the template row.
+    const form = canvasElement.querySelector('form')!;
+    await expectFormInCard(form, heading);
+    await expectDividers(form, 12, ['Download CSV Template']);
     const method = canvas.getByRole('combobox', { name: /^Payment Method/ });
     const download = canvas.getByRole('button', { name: 'Download' });
     await expect(download).toHaveAccessibleDescription('Download CSV Template');
@@ -355,6 +371,11 @@ export const Dark: Story = {
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByText('costs-november.csv')).toBeVisible();
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('costs-november.csv')).toBeVisible();
+    // The card in Dark: surface.base and its stroke.subtle edge.
+    const form = canvasElement.querySelector('form')!;
+    await expectFormInCard(form, canvas.getByRole('heading', { level: 1, name: 'Bulk Upload' }));
+    await expectDividers(form, 12, ['Download CSV Template']);
   },
 };
