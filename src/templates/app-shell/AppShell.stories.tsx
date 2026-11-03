@@ -109,7 +109,7 @@ export const User: Story = {
   },
 };
 
-/* The mobile stories open on a page that fits a phone: the list pages' tables are wider than 320 (docs/patterns.md). */
+/* The mobile stories open on form pages. The list pages' tables are wider than 320 and scroll in their own region (the List page template's mobile stories). */
 
 /**
  * Admin below 768px: the Mobile Header over Bulk Upload. The page keeps 16 at

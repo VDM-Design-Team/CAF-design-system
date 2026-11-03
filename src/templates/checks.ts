@@ -78,6 +78,27 @@ export async function expectNoSidewaysScroll() {
 }
 
 /**
+ * A list's table scrolls sideways in its own region when its columns need more
+ * than the page's width (a phone; the Costs table at 1024), so the page never
+ * does (decision add-phone-table-layout). While it scrolls, the region is a tab
+ * stop named like the table; while the table fits, it is a plain box.
+ */
+export async function expectTableInItsRegion(table: HTMLTableElement) {
+  const region = table.parentElement!;
+  await expect(region).toHaveAttribute('data-part', 'scroll-region');
+  await expectNoSidewaysScroll();
+  await expect(region.getBoundingClientRect().right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+  // A waitFor, as a font loading late can change the widths; no DOM writes inside it.
+  await waitFor(() => {
+    const scrolls = region.scrollWidth > region.clientWidth + 1;
+    expect(region.getAttribute('tabindex')).toBe(scrolls ? '0' : null);
+    expect(region.getAttribute('role')).toBe(scrolls ? 'region' : null);
+    if (scrolls) expect(region).toHaveAccessibleName(table.getAttribute('aria-label')!);
+  });
+  return region;
+}
+
+/**
  * Moves to another page the way the width allows: a Nav Bar link from 768px,
  * the Mobile Menu below (☰, then the link; the menu closes).
  */

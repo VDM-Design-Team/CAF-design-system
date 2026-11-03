@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, within } from 'storybook/test';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
 import { announcements, exportStats } from '../../patterns/fixtures';
-import { expectFrame, expectInOrder, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
+import { expectFrame, expectInOrder, expectTableInItsRegion, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
 import { AnnouncementsScreen, ExportsScreen } from '../screens';
 import { TemplateFrame } from '../TemplateFrame';
 
@@ -77,6 +77,7 @@ async function expectExports(canvasElement: HTMLElement) {
   await expect(table.tBodies[0].rows).toHaveLength(4);
   const pagination = page.getByRole('navigation', { name: 'Pagination' });
   await expectInOrder([heading, stats, bar, table, pagination]);
+  await expectTableInItsRegion(table);
 }
 
 /** Announcements: title and description, Stat Row (three totals), actions, filter bar, table. */
@@ -95,6 +96,7 @@ async function expectAnnouncements(canvasElement: HTMLElement) {
   await expect(table.tBodies[0].rows).toHaveLength(announcements.length);
   // The screen's order: the actions sit between the totals and the filter bar.
   await expectInOrder([heading, stats, create, bar, table]);
+  await expectTableInItsRegion(table);
 }
 
 /* ── Exports ────────────────────────────────────────────────────────────── */
@@ -112,7 +114,7 @@ export const ExportsDark: Story = {
   play: ({ canvasElement }) => expectExports(canvasElement),
 };
 
-/** Below 768px the stat cards and filters stack; the table is wider than a phone (docs/patterns.md). */
+/** Below 768px the stat cards and filters stack; the table is wider than a phone and scrolls in its own region, not the page. */
 export const ExportsMobile: Story = {
   name: 'Exports, mobile',
   globals: { viewport: MOBILE_VIEWPORT },
