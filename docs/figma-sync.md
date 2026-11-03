@@ -313,7 +313,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Padding and gap | Raw 6px, unbound | 6px (`space/6`) | Bind to `space/6` |
+| Padding and gap | Raw 6px, unbound | 6px (`space/6`). Inside a TableHeaderRow, `space/16` sides and `space/12` top and bottom, as the Header Row overrides it (since 2 Nov 2026) | Bind to `space/6` |
 | Height | Hugs Inter's auto line height: 32 with the arrows, 29 without | 32 for both, on GDL's 20px Body/sm line height | Bind the text style's line height to the ramp |
 | Letter spacing | 0 | GDL's Body/sm-regular, 0.4px, so a label is about 2px wider | As above |
 | Sort control | Part of the cell, with no states | A `<button>` around the label and arrows that calls `onSort`, with a 2px `stroke.focused` focus ring. A sorted column sets `aria-sort` on the `<th>` | Add Hover and Focus states for the sort control |
@@ -366,6 +366,13 @@ Code departs from Figma here:
 |---|---|---|---|
 | Selected + Hover | No such state | A selected row keeps its Selected fill under the pointer | None needed |
 | Selected, for assistive tech | The checkbox is checked | The same: put a checked `Checkbox` in the row. A plain table row can't carry `aria-selected`, so the checkbox is what screen readers announce | None needed |
+
+**Read back on 2 Nov 2026:** State=Selected (`460:943`) is still
+`action/primary/surface/default` at 16% opacity (0.16), and so are both
+placed instances in the Header Row example (`771:1405` Light, `771:1556`
+Dark); Figma's own render shows the light tint. The 100% seen while
+drafting came from the plugin API's `node.screenshot()`, which renders an
+instance without its frame's explicit Light mode. Code keeps the 16% tint.
 
 Not built: the older `Table / Row – Cost`, `Table / Row – Cost
 (Selectable)` and `Table / Row – Recurring Cost`. Their Selected state is
@@ -4877,3 +4884,89 @@ Source: page **Layout**, component `Card / Panel` (`765:15457`): the Settings Ca
 | Width | Fixed 578 (the form cards') | Its container's width; pages set a max width | None needed |
 
 In Light the card's fill is the same white as `surface/base` pages, so its edge is the 1.23:1 stroke only: an open design question (the review notes, "stroke/subtle under 3:1").
+
+### TableHeaderRow (2 Nov 2026)
+
+Source: page **Table** (`3:1823`), set `Table / Header Row` (`767:1082`, in section `767:829`): Columns 2–8 (`767:830` … `767:1028`) × Show Expand (default off), Show Checkbox (default on) and Show Actions (default on). Drafted from the design decision add-table-header-row ("one cell per control and the rows' padding") and published on 2 Nov 2026. Example `771:1342`. Code: `src/components/table-header-row/`, a `<tr>` for a table's `<thead>`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | horizontal, gap 0, no padding, no fill; bottom stroke `stroke/1` in `colors/stroke/subtle`, inside (included in layout) | `<tr>`, `border-b border-stroke-subtle` |
+| Expand (`Show Expand`) | 60 wide, empty; padding `space/12` top and bottom, `space/16` sides | `showExpand`: a `<th scope="col">` named "Details" (visually hidden), `w-1 px-4 py-3` |
+| Checkbox (`Show Checkbox`) | 56 wide, padding as above, centred; Checkbox 16px Deselected (Mixed and Selected set per instance) | `showCheckbox`: a `<th>` with a centred 16px `Checkbox`; `checkboxProps` go to it (`aria-label`, `checked`, `indeterminate`, `disabled`, `onChange`) |
+| Column 1 … N (`Columns`) | Table / Header Cell instances, 200 wide, their padding overridden to `space/12` / `space/16`, gap 6 | `children`: TableHeaderCells. In the row they take `px-4 py-3` (TableHeaderCell reads the row's context), so the labels sit 16 in, at the same x as the cells' text |
+| Actions (`Show Actions`) | 56 wide, empty, padding as above | `showActions`: a `<th>` named "Actions" (visually hidden) |
+| Height | 45: 44 (12 + the label + 12) and the 1px stroke | The same: 44 inside the line on GDL's 20px Body/sm line height, plus the 1px line |
+
+The order is Figma's: Expand, Checkbox, the columns, Actions, each its own column, as on Table / Row.
+
+**API: cells as children.** The header's data columns are TableHeaderCells passed as `children`, because that is how TableRow takes its TableCells today, and how every pattern composes its rows. A header cell keeps its own props in place (`sortable`, `sort`, `onSort`, a width in `className`), so a sortable Costs header and a plain Cost Centers header read the same way. A `columns` array would have to restate those props, and the cells would no longer match how their rows are written. The control columns are Figma's booleans, because their content is fixed: an empty header over the expand buttons, a select-all box, an empty header over the ••• menus.
+
+Contrast: the row has no fill, so it sits on the page or dialog.
+
+| Colour | Light, `surface/base` / `canvas` | Dark, `surface/base` / `canvas` |
+|---|---|---|
+| Labels, `text/secondary` (TableHeaderCell) | 10.35 / 9.90 | 11.87 / 14.48 |
+| Select-all box border, `stroke/field` | 4.76 / 4.55 | 5.71 / 6.96 |
+| Bottom line, `stroke/subtle` | 1.23 / 1.18 | 1.41 / 1.95 |
+
+The bottom line is decorative, as Divider's: it separates the header from rows that are already apart, so WCAG 1.4.11's 3:1 doesn't apply.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Columns | A variant, 2 to 8 | The number of TableHeaderCell `children`: any number | None needed |
+| Control column widths | Expand 60, Checkbox and Actions 56, fixed | As narrow as their content (`w-1`): the rows' expand button, checkbox and ••• set them (60, 48 and 64 with padding). 56 and 60 aren't on GDL's space scale | Hug the content, or use a width on the scale |
+| Defaults | Show Checkbox and Show Actions on | All three off unless set: a select-all box needs a label and a handler, and an Actions column needs row menus | None needed |
+| Control column names | Empty frames | Visually hidden "Details" and "Actions", so screen readers can name every column | None needed |
+| Header Cell padding | Each instance in the row overrides the Header Cell's raw 6px to `space/12` / `space/16` | TableHeaderCell keeps `p-1.5` (6px) on its own and takes `px-4 py-3` inside a TableHeaderRow | None needed |
+
+Figma gaps the code doesn't copy:
+
+- **The draft note is still in the descriptions.** Table / Header Row, Table / List and Table / Cell begin "Draft 2 Nov 2026 (Claude …) — review before publishing", though they are published. Remove the note.
+- **Sorted Header Cells don't use Label** (`464:868`, `464:876`; see TableHeaderCell), so a sorted column in the Header Row shows "Column" until it is overridden by hand.
+- **The rows' padding at the table edges** is 16, as drawn and as Table / Row's cells; the decision mentions 24. Open in the review notes (header inset, 16 or 24).
+
+### TableCell type="custom" (2 Nov 2026)
+
+Source: set `Table / Cell` (`460:900`), new variant **Type=Custom** (`766:1480`) with a native slot, Content (`Content#766:6`; preferred: Table / Account Details, Toggle, Table / Expand Button, Checkbox). Drafted from the design decision add-table-cell-custom ("a Custom/Content type; Manage Currencies rebuilt from Table / Row") and published on 2 Nov 2026. Example `772:1406`. Code: `type="custom"` in `src/components/table-cell/`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | vertical, gap 0; padding `space/16` sides, `space/12` top and bottom; content centred vertically, at the start | `px-4 py-3 align-middle text-left` |
+| Content (a slot) | fills the width, hugs its content; vertical, gap 0, at the start; the placed content keeps its own size | `children`, in `flex flex-col items-start` |
+
+Contrast: the cell has no colours of its own; its content brings them.
+
+Where the patterns use it: Account Details in the Costs rows, the expand button (as in the Header Row example), Manage Currencies' Enabled Toggle, the Empty State row of every list, the expanded Costs and Audit Logs rows, and SkeletonTableRow's lines. Each was a `type="tag"` (or `type="actions"`) stand-in.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Height | Fixed 44 (instances resize: 127 with Account Details) | Hugs its content: 44 with a Toggle, 40 with a Checkbox | None needed |
+| `_Slot` placeholder | A dashed "Content slot" placeholder until content is placed | Nothing: `children` is the content | None needed |
+
+Type=Custom is the first Table / Cell type with its vertical padding bound to `space/12`; the other types still have a raw 14 (see TableCell, and the review notes).
+
+### TableList (2 Nov 2026)
+
+Source: page **Table**, component `Table / List` (`768:1009`): a Table / Header Row instance (Columns=5, Show Checkbox and Show Actions on) over a native slot, Rows (`Rows#768:0`, preferred: Table / Row), with no fill and no outer border. Drafted from the design decision add-plain-list-table and published on 2 Nov 2026. Example `773:1468` (Cost Centers: Columns=3, Show Actions, Sortable=false). Code: `src/components/table-list/`. It replaces the patterns' `RecordsTable`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root | vertical, gap 0, no padding, no fill, no stroke; 1112 wide, hugs its rows | `<table>`, `w-full border-collapse` |
+| Header Row (nested instance) | fills the width | `header`: a `<TableHeaderRow>`, in the `<thead>` |
+| Rows (a slot of Table / Rows) | fills the width, vertical, gap 0 | `children`: `<TableRow>`s, in the `<tbody>` |
+
+Contrast: no colours of its own (the header row's and rows' lines are theirs).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Width | Fixed 1112 (the sample's) | Its container's width; the columns share it by content unless the header sets widths | None needed |
+| Clipping | The Rows slot clips its content | No clipping, so the rows' ••• menus can open below the table | Turn off Clip content |
+| No rows | Not drawn | One TableRow whose TableCell `type="custom"` spans every column and holds an EmptyState (the patterns' "No items.") | Draw the empty list |
+| Name | (visual only) | Give the table an `aria-label` | None needed |

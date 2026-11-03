@@ -10,13 +10,17 @@ import { cn } from '../../lib/cn';
  *
  * Figma → code:
  * - Type → `type`: text (default), two-line, tag, checkbox, actions, list,
- *   status-date. List (Collapsed) and List (Expanded) are one `list` cell
- *   whose toggle switches between them (`defaultExpanded` sets the start).
+ *   status-date, custom. List (Collapsed) and List (Expanded) are one `list`
+ *   cell whose toggle switches between them (`defaultExpanded` sets the start).
  * - Text properties: Value → `children`, Primary / Secondary → `primary` /
  *   `secondary`, Date → `date`.
  * - Nested components are passed in as `children`: Type=Checkbox takes
- *   `<Checkbox>`, Type=Tag takes `<StatusPill>` and Status + Date takes
- *   `<Tag>`; Actions takes the row actions button, which isn't built yet.
+ *   `<Checkbox>`, Type=Tag takes `<StatusPill>`, Status + Date takes `<Tag>`
+ *   and Actions takes `<RowActionsMenu>`.
+ * - Type=Custom's Content slot → `children`: any content or control, at its
+ *   own size (TableAccountDetails, a Toggle, TableExpandButton, a Checkbox,
+ *   an EmptyState across the row). Vertically centred, at the start, with
+ *   the other types' padding.
  * - Figma sets the width per column; so does the table (`className`).
  *
  * Every colour and type style is the one the Figma layer is bound to. The
@@ -38,6 +42,8 @@ const cell = cva('px-4 py-3', {
       /* List, Status + Date: top-left */
       list: 'align-top text-left',
       'status-date': 'align-top text-left',
+      /* Custom: the Content slot, vertically centred, at the start */
+      custom: 'align-middle text-left',
     },
   },
   defaultVariants: { type: 'text' },
@@ -53,6 +59,8 @@ const stack = cva('flex flex-col', {
       actions: 'items-center gap-0.5',
       list: 'items-start gap-0.5',
       'status-date': 'items-start gap-1',
+      /* Custom: the slot stacks its content with no gap; each item keeps its own size. */
+      custom: 'items-start',
     },
   },
   defaultVariants: { type: 'text' },
@@ -77,8 +85,8 @@ export type TableCellProps = Td &
     | { /** Figma Type=Text: Value. */ type?: 'text'; children: React.ReactNode }
     | { type: 'two-line'; primary: React.ReactNode; secondary: React.ReactNode }
     | {
-        /** Tag: a Status Pill. Checkbox: a `<Checkbox>`. Actions: the row actions button. */
-        type: 'tag' | 'checkbox' | 'actions';
+        /** Tag: a Status Pill. Checkbox: a `<Checkbox>`. Actions: the row actions button. Custom: any content or control. */
+        type: 'tag' | 'checkbox' | 'actions' | 'custom';
         children: React.ReactNode;
       }
     | { type: 'list'; items: React.ReactNode[]; defaultExpanded?: boolean }
@@ -108,7 +116,7 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
             <span className={subtle}>{secondary}</span>
           </>
         )}
-        {(type === 'tag' || type === 'checkbox' || type === 'actions') && children}
+        {(type === 'tag' || type === 'checkbox' || type === 'actions' || type === 'custom') && children}
         {type === 'list' && <ListCell items={items ?? []} defaultExpanded={defaultExpanded ?? false} />}
         {type === 'status-date' && (
           <>
@@ -159,4 +167,4 @@ function ListCell({ items, defaultExpanded }: { items: React.ReactNode[]; defaul
   );
 }
 
-export const TABLE_CELL_TYPES = ['text', 'two-line', 'tag', 'checkbox', 'actions', 'list', 'status-date'] as const;
+export const TABLE_CELL_TYPES = ['text', 'two-line', 'tag', 'checkbox', 'actions', 'list', 'status-date', 'custom'] as const;

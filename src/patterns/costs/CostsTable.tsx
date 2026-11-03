@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Checkbox } from '../../components/checkbox';
-import { cn } from '../../lib/cn';
 import { RowActionsMenu } from '../../components/row-actions-menu';
 import { StatusPill } from '../../components/status-pill';
 import { TableAccountDetails } from '../../components/table-account-details';
@@ -8,6 +7,8 @@ import { TableCell } from '../../components/table-cell';
 import { TableDetailLabel } from '../../components/table-detail-label';
 import { TableExpandButton } from '../../components/table-expand-button';
 import { TableHeaderCell, type TableSort } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import {
   accountLine,
@@ -27,12 +28,17 @@ import {
  * false / true / Mixed) and `Table / Row – Cost` (121:2782, Expanded; with
  * `Table / Row – Cost (Selectable)` 121:5197), page "Table".
  *
- * - Header: TableHeaderCells (Account, Invoice #, Amount, Payment Method,
- *   Status, Date Submitted), sortable when `onSortChange` is given; a
- *   Checkbox that selects every row shown (Mixed when some are).
- * - Row: TableExpandButton, Checkbox, TableAccountDetails (ID, applicant,
- *   beneficiary, account; a "Recurring" StatusPill on a recurring cost),
- *   text cells, the status's StatusPill, and the RowActionsMenu.
+ * - The table is a TableList: a TableHeaderRow over TableRows.
+ * - Header: a TableHeaderRow (Table / Header Row, which replaces Header –
+ *   Costs' one 68px cell with a column per control) with Show Expand, Show
+ *   Checkbox (selects every row shown; Mixed when some are) and Show Actions
+ *   as the table has them, and TableHeaderCells (Account, Invoice #, Amount,
+ *   Payment Method, Status, Date Submitted), sortable when `onSortChange` is
+ *   given.
+ * - Row: TableExpandButton (in a Custom cell, as Figma's Header Row example
+ *   places it), Checkbox, TableAccountDetails in a Custom cell (ID,
+ *   applicant, beneficiary, account; a "Recurring" StatusPill on a recurring
+ *   cost), text cells, the status's StatusPill, and the RowActionsMenu.
  * - Expanded: a row under it with the cost's breakdown (Figma's Breakdown
  *   Table, 121:2957), or whatever `renderDetails` returns.
  *
@@ -93,34 +99,32 @@ export function CostStatusBadge({ status }: { status: CostStatus }) {
 /**
  * The expanded row's breakdown: Figma's Breakdown Table (121:2957) — Title,
  * Amount, Nature of Service, Cost Center, Location, Period. Figma draws it
- * as a frame, not a library component, so here it is a table of the DS's
- * header cells, rows and cells.
+ * as a frame, not a library component; the decision (Table / Breakdown) is
+ * to build it from the generic parts, so here it is a TableList.
  */
 export function CostBreakdownTable({ cost }: { cost: Cost }) {
   return (
-    <table className="w-full border-collapse" aria-label={`Breakdown of cost ${cost.id}`}>
-      <thead>
-        <tr className="border-b border-stroke-subtle">
+    <TableList
+      aria-label={`Breakdown of cost ${cost.id}`}
+      header={
+        <TableHeaderRow>
           {['Title', 'Amount', 'Nature of Service', 'Cost Center', 'Location', 'Period'].map((h) => (
-            <TableHeaderCell key={h} className="px-4">
-              {h}
-            </TableHeaderCell>
+            <TableHeaderCell key={h}>{h}</TableHeaderCell>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        {cost.breakdowns.map((line, i) => (
-          <TableRow key={i}>
-            <TableCell>{line.title}</TableCell>
-            <TableCell>{formatAmount(cost.currency, line.amount)}</TableCell>
-            <TableCell>{line.natureOfService}</TableCell>
-            <TableCell>{line.costCentre}</TableCell>
-            <TableCell>{line.location}</TableCell>
-            <TableCell>{formatPeriod(line.periodFrom, line.periodTo)}</TableCell>
-          </TableRow>
-        ))}
-      </tbody>
-    </table>
+        </TableHeaderRow>
+      }
+    >
+      {cost.breakdowns.map((line, i) => (
+        <TableRow key={i}>
+          <TableCell>{line.title}</TableCell>
+          <TableCell>{formatAmount(cost.currency, line.amount)}</TableCell>
+          <TableCell>{line.natureOfService}</TableCell>
+          <TableCell>{line.costCentre}</TableCell>
+          <TableCell>{line.location}</TableCell>
+          <TableCell>{formatPeriod(line.periodFrom, line.periodTo)}</TableCell>
+        </TableRow>
+      ))}
+    </TableList>
   );
 }
 
@@ -190,30 +194,28 @@ export const CostsTable = React.forwardRef<HTMLTableElement, CostsTableProps>(fu
   const toggle = (ids: readonly string[], id: string) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
 
   return (
-    <table ref={ref} aria-label={ariaLabel} className={cn('w-full border-collapse', className)} {...table}>
-      <thead>
-        {/* Table / Header – Costs: no fill, a stroke.subtle line under it. */}
-        <tr className="border-b border-stroke-subtle">
-          {expandable && (
-            <TableHeaderCell className="w-1 px-4">
-              <span className="sr-only">Details</span>
-            </TableHeaderCell>
-          )}
-          {selectable && (
-            <TableHeaderCell className="w-1 px-4 text-center">
-              <Checkbox
-                aria-label="Select all costs"
-                checked={all}
-                indeterminate={some}
-                disabled={shown.length === 0}
-                onChange={toggleAll}
-              />
-            </TableHeaderCell>
-          )}
+    <TableList
+      ref={ref}
+      aria-label={ariaLabel}
+      className={className}
+      {...table}
+      header={
+        /* Table / Header Row: a column per control, then the labels; no fill, a stroke.subtle line under it. */
+        <TableHeaderRow
+          showExpand={expandable}
+          showCheckbox={selectable}
+          checkboxProps={{
+            'aria-label': 'Select all costs',
+            checked: all,
+            indeterminate: some,
+            disabled: shown.length === 0,
+            onChange: toggleAll,
+          }}
+          showActions={!!rowActions}
+        >
           {COSTS_COLUMNS.map(({ key, label }) => (
             <TableHeaderCell
               key={key}
-              className="px-4"
               sortable={!!onSortChange}
               sort={sort?.column === key ? sort.direction : 'none'}
               onSort={() => onSortChange?.(nextCostSort(sort, key))}
@@ -221,83 +223,77 @@ export const CostsTable = React.forwardRef<HTMLTableElement, CostsTableProps>(fu
               {label}
             </TableHeaderCell>
           ))}
-          {rowActions && (
-            <TableHeaderCell className="w-1 px-4">
-              <span className="sr-only">Actions</span>
-            </TableHeaderCell>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 && empty && (
-          <TableRow>
-            <TableCell type="tag" colSpan={columnCount}>
-              {empty}
-            </TableCell>
-          </TableRow>
-        )}
-        {rows.map((cost) => {
-          const isSelected = selected.has(cost.id);
-          const isExpanded = expandable && expanded.has(cost.id);
-          const detailsId = `${baseId}-details-${cost.id}`;
-          return (
-            <React.Fragment key={cost.id}>
-              <TableRow selected={isSelected} data-id={cost.id}>
-                {expandable && (
-                  <TableCell type="actions" className="w-1">
-                    <TableExpandButton
-                      label={`Show details for cost ${cost.id}`}
-                      expanded={isExpanded}
-                      aria-controls={isExpanded ? detailsId : undefined}
-                      onClick={() => onExpandedChange?.(toggle(expandedIds, cost.id))}
-                    />
-                  </TableCell>
-                )}
-                {selectable && (
-                  <TableCell type="checkbox" className="w-1">
-                    <Checkbox
-                      aria-label={`Select cost ${cost.id}`}
-                      checked={isSelected}
-                      onChange={() => onSelectionChange?.(toggle(selectedIds, cost.id))}
-                    />
-                  </TableCell>
-                )}
-                {/* Table / Account Details. Table / Cell has no type for a nested block; Tag's cell holds it as is. */}
-                <TableCell type="tag">
-                  <TableAccountDetails
-                    categoryTag={cost.type === 'recurring' ? <StatusPill status="pending">Recurring</StatusPill> : undefined}
-                  >
-                    <TableDetailLabel>ID: {cost.id}</TableDetailLabel>
-                    <TableDetailLabel>Applicant: {cost.applicant.name}</TableDetailLabel>
-                    <TableDetailLabel>Beneficiary name: {cost.partner}</TableDetailLabel>
-                    <TableDetailLabel>{accountLine(cost)}</TableDetailLabel>
-                  </TableAccountDetails>
+        </TableHeaderRow>
+      }
+    >
+      {rows.length === 0 && empty && (
+        <TableRow>
+          <TableCell type="custom" colSpan={columnCount}>
+            {empty}
+          </TableCell>
+        </TableRow>
+      )}
+      {rows.map((cost) => {
+        const isSelected = selected.has(cost.id);
+        const isExpanded = expandable && expanded.has(cost.id);
+        const detailsId = `${baseId}-details-${cost.id}`;
+        return (
+          <React.Fragment key={cost.id}>
+            <TableRow selected={isSelected} data-id={cost.id}>
+              {expandable && (
+                <TableCell type="custom" className="w-1">
+                  <TableExpandButton
+                    label={`Show details for cost ${cost.id}`}
+                    expanded={isExpanded}
+                    aria-controls={isExpanded ? detailsId : undefined}
+                    onClick={() => onExpandedChange?.(toggle(expandedIds, cost.id))}
+                  />
                 </TableCell>
-                <TableCell>{cost.invoiceNumber}</TableCell>
-                <TableCell>{formatAmount(cost.currency, cost.amount)}</TableCell>
-                <TableCell>{cost.paymentMethod}</TableCell>
-                <TableCell type="tag">
-                  <CostStatusBadge status={cost.status} />
-                </TableCell>
-                <TableCell>{formatDate(cost.submittedAt)}</TableCell>
-                {rowActions && (
-                  <TableCell type="actions" className="w-1">
-                    <RowActionsMenu label={`Actions for cost ${cost.id}`}>{rowActions(cost)}</RowActionsMenu>
-                  </TableCell>
-                )}
-              </TableRow>
-              {isExpanded && (
-                <TableRow id={detailsId} selected={isSelected} data-details-for={cost.id}>
-                  <TableCell type="tag" colSpan={columnCount}>
-                    {renderDetails ? renderDetails(cost) : <CostBreakdownTable cost={cost} />}
-                  </TableCell>
-                </TableRow>
               )}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+              {selectable && (
+                <TableCell type="checkbox" className="w-1">
+                  <Checkbox
+                    aria-label={`Select cost ${cost.id}`}
+                    checked={isSelected}
+                    onChange={() => onSelectionChange?.(toggle(selectedIds, cost.id))}
+                  />
+                </TableCell>
+              )}
+              {/* Table / Account Details, in Table / Cell Type=Custom. */}
+              <TableCell type="custom">
+                <TableAccountDetails
+                  categoryTag={cost.type === 'recurring' ? <StatusPill status="pending">Recurring</StatusPill> : undefined}
+                >
+                  <TableDetailLabel>ID: {cost.id}</TableDetailLabel>
+                  <TableDetailLabel>Applicant: {cost.applicant.name}</TableDetailLabel>
+                  <TableDetailLabel>Beneficiary name: {cost.partner}</TableDetailLabel>
+                  <TableDetailLabel>{accountLine(cost)}</TableDetailLabel>
+                </TableAccountDetails>
+              </TableCell>
+              <TableCell>{cost.invoiceNumber}</TableCell>
+              <TableCell>{formatAmount(cost.currency, cost.amount)}</TableCell>
+              <TableCell>{cost.paymentMethod}</TableCell>
+              <TableCell type="tag">
+                <CostStatusBadge status={cost.status} />
+              </TableCell>
+              <TableCell>{formatDate(cost.submittedAt)}</TableCell>
+              {rowActions && (
+                <TableCell type="actions" className="w-1">
+                  <RowActionsMenu label={`Actions for cost ${cost.id}`}>{rowActions(cost)}</RowActionsMenu>
+                </TableCell>
+              )}
+            </TableRow>
+            {isExpanded && (
+              <TableRow id={detailsId} selected={isSelected} data-details-for={cost.id}>
+                <TableCell type="custom" colSpan={columnCount}>
+                  {renderDetails ? renderDetails(cost) : <CostBreakdownTable cost={cost} />}
+                </TableCell>
+              </TableRow>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </TableList>
   );
 });
 CostsTable.displayName = 'CostsTable';

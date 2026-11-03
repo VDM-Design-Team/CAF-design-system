@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { cn } from '../../lib/cn';
 import { Alert } from '../../components/alert';
 import { Button } from '../../components/button';
 import { ChangeDiff, ChangeDiffRow } from '../../components/change-diff';
@@ -7,6 +6,8 @@ import { ModalDialog } from '../../components/modal-dialog';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
 import { TableHeaderCell } from '../../components/table-header-cell';
+import { TableHeaderRow } from '../../components/table-header-row';
+import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { Tag } from '../../components/tag';
 import { auditActivityTag, formatTimestamp, type AuditLogEntry } from '../fixtures';
@@ -18,8 +19,9 @@ import { auditActivityTag, formatTimestamp, type AuditLogEntry } from '../fixtur
  * a `Modal / Dialog` (Size=Large, 526:4980).
  *
  * AuditLogTable, Figma → code:
- * - Header Row: Table / Header Cells, not sortable: Cost ID, User, Timestamp,
- *   Activity, and an empty Actions column.
+ * - Header Row: a TableHeaderRow (Table / Header Row, Show Actions) of Table /
+ *   Header Cells, not sortable: Cost ID, User, Timestamp, Activity, and the
+ *   empty Actions column; the table is a TableList.
  * - Row: Table / Cell Text ("#32430"), Table / Cell Two Line (name over
  *   email), Text (the timestamp), a Tag (Activity: Created, Updated, Deleted;
  *   `auditActivityTag`), and a Button / Small (Text): "View Changes", which
@@ -53,68 +55,66 @@ export const AuditLogTable = React.forwardRef<HTMLTableElement, AuditLogTablePro
   const toggle = (id: string) => onOpenChange?.(open.has(id) ? openIds.filter((x) => x !== id) : [...openIds, id]);
 
   return (
-    <table ref={ref} aria-label={ariaLabel} className={cn('w-full border-collapse', className)} {...table}>
-      <thead>
-        <tr className="border-b border-stroke-subtle">
+    <TableList
+      ref={ref}
+      aria-label={ariaLabel}
+      className={className}
+      {...table}
+      header={
+        <TableHeaderRow showActions>
           {['Cost ID', 'User', 'Timestamp', 'Activity'].map((label) => (
-            <TableHeaderCell key={label} className="px-4">
-              {label}
-            </TableHeaderCell>
+            <TableHeaderCell key={label}>{label}</TableHeaderCell>
           ))}
-          <TableHeaderCell className="w-1 px-4">
-            <span className="sr-only">Actions</span>
-          </TableHeaderCell>
-        </tr>
-      </thead>
-      <tbody>
-        {entries.map((entry) => {
-          const isOpen = open.has(entry.id);
-          const detailsId = `${baseId}-changes-${entry.id}`;
-          const activity = auditActivityTag[entry.activity];
-          const when = formatTimestamp(entry.at);
-          const label = isOpen ? 'Hide Changes' : 'View Changes';
-          return (
-            <React.Fragment key={entry.id}>
-              <TableRow data-id={entry.id}>
-                <TableCell>#{entry.costId}</TableCell>
-                <TableCell type="two-line" primary={entry.user.name} secondary={entry.user.email} />
-                <TableCell>{when}</TableCell>
-                <TableCell type="tag">
-                  <Tag status={activity.status}>{activity.label}</Tag>
-                </TableCell>
-                <TableCell type="actions" className="w-1 whitespace-nowrap">
-                  <Button
-                    variant="text"
-                    size="small"
-                    aria-label={`${label} for #${entry.costId}, ${activity.label}, ${when}`}
-                    aria-expanded={isOpen}
-                    aria-controls={isOpen ? detailsId : undefined}
-                    onClick={() => toggle(entry.id)}
-                  >
-                    {label}
-                  </Button>
+        </TableHeaderRow>
+      }
+    >
+      {entries.map((entry) => {
+        const isOpen = open.has(entry.id);
+        const detailsId = `${baseId}-changes-${entry.id}`;
+        const activity = auditActivityTag[entry.activity];
+        const when = formatTimestamp(entry.at);
+        const label = isOpen ? 'Hide Changes' : 'View Changes';
+        return (
+          <React.Fragment key={entry.id}>
+            <TableRow data-id={entry.id}>
+              <TableCell>#{entry.costId}</TableCell>
+              <TableCell type="two-line" primary={entry.user.name} secondary={entry.user.email} />
+              <TableCell>{when}</TableCell>
+              <TableCell type="tag">
+                <Tag status={activity.status}>{activity.label}</Tag>
+              </TableCell>
+              <TableCell type="actions" className="w-1 whitespace-nowrap">
+                <Button
+                  variant="text"
+                  size="small"
+                  aria-label={`${label} for #${entry.costId}, ${activity.label}, ${when}`}
+                  aria-expanded={isOpen}
+                  aria-controls={isOpen ? detailsId : undefined}
+                  onClick={() => toggle(entry.id)}
+                >
+                  {label}
+                </Button>
+              </TableCell>
+            </TableRow>
+            {isOpen && (
+              <TableRow id={detailsId} data-details-for={entry.id}>
+                <TableCell type="custom" colSpan={5}>
+                  {entry.activity === 'deleted' ? (
+                    <Alert type="error" size="compact" message="This cost was deleted" />
+                  ) : (
+                    <ChangeDiff aria-label={`Changes to cost #${entry.costId}`}>
+                      {entry.changes.map((change) => (
+                        <ChangeDiffRow key={change.field} field={change.field} before={change.before} after={change.after} />
+                      ))}
+                    </ChangeDiff>
+                  )}
                 </TableCell>
               </TableRow>
-              {isOpen && (
-                <TableRow id={detailsId} data-details-for={entry.id}>
-                  <TableCell type="tag" colSpan={5}>
-                    {entry.activity === 'deleted' ? (
-                      <Alert type="error" size="compact" message="This cost was deleted" />
-                    ) : (
-                      <ChangeDiff aria-label={`Changes to cost #${entry.costId}`}>
-                        {entry.changes.map((change) => (
-                          <ChangeDiffRow key={change.field} field={change.field} before={change.before} after={change.after} />
-                        ))}
-                      </ChangeDiff>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </TableList>
   );
 });
 AuditLogTable.displayName = 'AuditLogTable';

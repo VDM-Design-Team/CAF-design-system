@@ -184,7 +184,7 @@ const meta = {
           'every draft, newest first: ID, Created By, Frequency (Single or the interval), Applicant Name, Email, Date ' +
           'Created. ••• → **Edit** reopens New Cost with the draft loaded, on the tab that matches its frequency; ••• → ' +
           '**Delete** asks first (pattern 04). With no drafts, an **Empty State** offers Create Cost. Built from ' +
-          'NewCostForm, FilterField, the list table (TableHeaderCell, TableRow, TableCell, RowActionsMenu), Pagination, ' +
+          'NewCostForm, FilterField, the list table (TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell, RowActionsMenu), Pagination, ' +
           'ModalConfirm, EmptyState and ToastProvider (`src/patterns/drafts/DraftsList.tsx`).',
       },
     },
