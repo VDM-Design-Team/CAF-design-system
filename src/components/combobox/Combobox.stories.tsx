@@ -417,15 +417,28 @@ export const ErrorOpen: Story = {
   parameters: { controls: { disable: true } },
   play: async ({ canvasElement }) => {
     const input = within(canvasElement).getByRole('combobox', { name: 'Location' });
+    const caret = within(canvasElement).getByRole('button', { name: 'Show options' });
     await expect(input).toHaveAttribute('aria-expanded', 'true');
+    await expect(caret).toHaveAttribute('aria-expanded', 'true');
     await expect(getComputedStyle(input).boxShadow).toContain(
       insetStroke(tokenColour('accent-critical-outline-border-default'), 2),
     );
+    await expect(getComputedStyle(caret).color).toBe(tokenColour('text-secondary'));
   },
 };
 
+/** State=Error + Open in Dark. */
+export const ErrorOpenDark: Story = {
+  ...ErrorOpen,
+  name: 'Error, open — Dark',
+  globals: { theme: 'dark' },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: ['!autodocs'],
+};
+
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The eight states of the Figma component set. Focus is forced with
+   The states of the Figma component set (Error + Open: the "Error, open"
+   stories). Focus is forced with
    storybook-addon-pseudo-states, and each cell is checked against the
    variables Figma binds in that state: fill, stroke colour and width, the
    value or placeholder colour, the search icon (20px, 12px from the left),
@@ -483,15 +496,7 @@ const STATES = [
     icon: 'text-disabled',
     stroke: ['neutral-outline-border-disabled', 1],
   },
-  // Last, so their lists open over nothing (Error + Open's over Open's room).
-  {
-    state: 'Error + Open',
-    props: { defaultOpen: true, 'aria-invalid': true },
-    text: 'text-subtle',
-    fill: FIELD,
-    icon: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 2],
-  },
+  // Last, so its list opens over nothing. Error + Open is the "Error, open" stories above.
   {
     state: 'Open',
     props: { defaultOpen: true },
@@ -507,7 +512,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   render: () => (
     <div className="flex w-96 flex-col gap-4 pb-64">
       {STATES.map(({ state, props }) => (
-        <div key={state} className={state === 'Error + Open' ? 'flex flex-col gap-2 pb-64' : 'flex flex-col gap-2'} data-cell={state}>
+        <div key={state} className="flex flex-col gap-2" data-cell={state}>
           <span className="text-caption-md-medium text-text-secondary">{state}</span>
           <Combobox
             {...props}

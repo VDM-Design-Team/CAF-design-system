@@ -467,12 +467,48 @@ const open = (theme: 'light' | 'dark'): Story => ({
 export const OpenLight = open('light');
 export const OpenDark = open('dark');
 
+/* State=Error + Open: Open's look with the critical stroke at 2px, the calendar under the field.
+   An optional field with a date, but no Clear Button while open (Figma draws none). */
+const errorOpen = (theme: 'light' | 'dark'): Story => ({
+  name: `Error + Open — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  args: { defaultOpen: true, defaultValue: '2026-09-19', 'aria-invalid': true },
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvasElement }) => {
+    const want = {
+      critical: tokenColour('accent-critical-outline-border-default'),
+      fill: tokenColour('surface-elevated-secondary'),
+      text: tokenColour('text-primary'),
+      icon: tokenColour('text-subtle'),
+    };
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('combobox', { name: 'Starts At' });
+    const dialog = canvas.getByRole('dialog', { name: 'Starts At' });
+    await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    const style = getComputedStyle(field);
+    await expect(style.boxShadow).toContain(insetStroke(want.critical, 2));
+    await expect(style.backgroundColor).toBe(want.fill);
+    await expect(getComputedStyle(field.querySelector('span')!).color).toBe(want.text);
+    await expect(getComputedStyle(field.querySelector('svg')!).color).toBe(want.icon);
+    await expect(canvas.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument();
+    await expect(dialog).toHaveAttribute('data-placement', 'bottom');
+  },
+});
+
+export const ErrorOpenLight = errorOpen('light');
+export const ErrorOpenDark = errorOpen('dark');
+
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The eight states of the Figma component set, with and without Show Clear. Focus is forced with
-   storybook-addon-pseudo-states (keyboard focus, :focus-visible). Open is
-   the calendar showing: first, with room kept under it, so the calendar
-   opens downwards over empty space in any viewport. Each cell is checked
-   against the variables Figma binds in that state. */
+   The states of the Figma component set, with and without Show Clear;
+   Error + Open has its own stories above (a second open calendar here would
+   flip over the cells). Focus is forced with storybook-addon-pseudo-states
+   (keyboard focus, :focus-visible). Open is the calendar showing: first,
+   with room kept under it, so the calendar opens downwards over empty space
+   in any viewport. Each cell is checked against the variables Figma binds
+   in that state. */
 
 const FIELD = 'surface-elevated-secondary';
 const DISABLED = 'neutral-tonal-surface-disabled';
@@ -486,15 +522,6 @@ const STATES = [
     fill: FIELD,
     icon: 'text-subtle',
     stroke: ['stroke-focused', 2],
-    clear: false,
-  },
-  {
-    state: 'Error + Open',
-    props: { defaultOpen: true, 'aria-invalid': true },
-    text: 'text-subtle',
-    fill: FIELD,
-    icon: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 2],
     clear: false,
   },
   {
