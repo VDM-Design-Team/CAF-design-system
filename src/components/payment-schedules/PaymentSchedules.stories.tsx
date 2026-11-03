@@ -9,19 +9,21 @@ import { PaymentSchedules } from './PaymentSchedules';
    whole document and makes everything else inert. */
 const OVERLAY_DOCS_STORY = { inline: false, height: '640px' } as const;
 
-type Payment = { status: PaymentRowStatus; date: string; subtitle: string };
+type Payment = { status: PaymentRowStatus; date: string; subtitle: string; amount?: string };
 
-/* Figma's five payments: three processed, two scheduled. */
+/* Figma's five payments: three processed, two scheduled, each with Figma's default Amount. */
 const PAYMENTS: Payment[] = [
-  { status: 'done', date: 'September 1, 2026', subtitle: 'Processed on Sep 1, 2026' },
-  { status: 'done', date: 'September 8, 2026', subtitle: 'Processed on Sep 8, 2026' },
-  { status: 'done', date: 'September 15, 2026', subtitle: 'Processed on Sep 15, 2026' },
-  { status: 'upcoming', date: 'September 22, 2026', subtitle: 'Scheduled' },
-  { status: 'upcoming', date: 'September 29, 2026', subtitle: 'Scheduled' },
+  { status: 'done', date: 'September 1, 2026', subtitle: 'Processed on Sep 1, 2026', amount: 'USD 900' },
+  { status: 'done', date: 'September 8, 2026', subtitle: 'Processed on Sep 8, 2026', amount: 'USD 900' },
+  { status: 'done', date: 'September 15, 2026', subtitle: 'Processed on Sep 15, 2026', amount: 'USD 900' },
+  { status: 'upcoming', date: 'September 22, 2026', subtitle: 'Scheduled', amount: 'USD 900' },
+  { status: 'upcoming', date: 'September 29, 2026', subtitle: 'Scheduled', amount: 'USD 900' },
 ];
 
 const rows = (payments: Payment[] = PAYMENTS) =>
-  payments.map((p) => <PaymentRow key={p.date} status={p.status} date={p.date} subtitle={p.subtitle} />);
+  payments.map((p) => (
+    <PaymentRow key={p.date} status={p.status} date={p.date} subtitle={p.subtitle} amount={p.amount} />
+  ));
 
 const meta = {
   title: 'Components/PaymentSchedules',
@@ -34,7 +36,7 @@ const meta = {
           'Built from the CAF Figma library, page **Modals** (`Modal / Payment Schedules`): the modal Recurring Costs’ ' +
           'View Schedules opens. A ModalHeader (`title` “Payment Schedules”, `description` “Upcoming and processed ' +
           'payments”, the calendar tile, Close) over a list of PaymentRows (`children`), 8px apart, on `surface.base` ' +
-          'with radius 12, 512 wide. It is an Overlay: a dialog named by its title, focus moved in and trapped, Escape ' +
+          'with a 1px `stroke.subtle` edge, radius 12 and Elevation 4 (as ModalDialog), 512 wide. It is an Overlay: a dialog named by its title, focus moved in and trapped, Escape ' +
           'or Close (or a backdrop click) asking `onClose`, and focus back on the opener when it closes.',
       },
     },
@@ -83,10 +85,22 @@ function tokenColour(token: string) {
   return value;
 }
 
+/* The utility's box-shadow (Tailwind inlines a theme shadow, so it's GDL's Light
+   Elevation 4 in both themes; see docs/figma-sync.md, "Popover"). */
+function utilityShadow(className: string) {
+  const probe = document.createElement('div');
+  probe.className = className;
+  document.body.append(probe);
+  const value = getComputedStyle(probe).boxShadow;
+  probe.remove();
+  return value;
+}
+
 /* ── Open, in Light and Dark ───────────────────────────────────────────────
-   Figma's modal with its five payments. The panel is surface.base, radius 12,
-   512 wide; the header is Modal / Header; the rows are a list, 8px apart, 24px
-   from the panel's sides and bottom. */
+   Figma's modal with its five payments. The panel is surface.base with a 1px
+   stroke.subtle border, radius 12, Elevation 4, 512 wide; the header is Modal /
+   Header; the rows are a list, 8px apart, 24px inside the border at the sides
+   and bottom. */
 const open = (theme: 'light' | 'dark'): Story => ({
   name: `Open — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
@@ -102,6 +116,8 @@ const open = (theme: 'light' | 'dark'): Story => ({
   play: async () => {
     const want = {
       panel: tokenColour('surface-base'),
+      stroke: tokenColour('stroke-subtle'),
+      shadow: utilityShadow('shadow-elevation-4'),
       scrim: tokenColour('surface-overlay'),
       title: tokenColour('text-primary'),
       description: tokenColour('text-subtle'),
@@ -114,7 +130,15 @@ const open = (theme: 'light' | 'dark'): Story => ({
     const style = getComputedStyle(dialog);
     await expect(style.backgroundColor).toBe(want.panel);
     await expect(style.borderTopLeftRadius).toBe('12px');
-    await expect(style.boxShadow).toBe('none');
+    // Modal / Dialog's edge and elevation: a 1px stroke.subtle border, Elevation 4.
+    await expect([style.borderTopWidth, style.borderBottomWidth, style.borderLeftWidth, style.borderRightWidth]).toEqual([
+      '1px',
+      '1px',
+      '1px',
+      '1px',
+    ]);
+    await expect(style.borderTopColor).toBe(want.stroke);
+    await expect(style.boxShadow).toBe(want.shadow);
     await expect(dialog.getBoundingClientRect().width).toBeLessThanOrEqual(512);
     await expect(getComputedStyle(dialog.parentElement!).backgroundColor).toBe(want.scrim);
 
@@ -124,10 +148,10 @@ const open = (theme: 'light' | 'dark'): Story => ({
     await expect(getComputedStyle(d.getByText('Upcoming and processed payments')).color).toBe(want.description);
     await expect(d.getByRole('button', { name: 'Close' })).toBeInTheDocument();
 
-    // The rows: one list item per payment, 8px apart, 24px from the sides and the bottom.
+    // The rows: one list item per payment, 8px apart, 24px from the sides and the bottom (inside the 1px border).
     const items = d.getAllByRole('listitem');
     await expect(items).toHaveLength(5);
-    await expect(items.map((li) => li.querySelector('[data-part="status-badge"]')!.textContent)).toEqual([
+    await expect(items.map((li) => li.querySelector('[data-part="status"]')!.textContent)).toEqual([
       'Done',
       'Done',
       'Done',
@@ -138,7 +162,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     const list = dialog.querySelector<HTMLElement>('[data-part="rows"]')!;
     const pad = getComputedStyle(list);
     await expect([pad.paddingTop, pad.paddingRight, pad.paddingBottom, pad.paddingLeft]).toEqual(['0px', '24px', '24px', '24px']);
-    await expect(items[0].getBoundingClientRect().left - dialog.getBoundingClientRect().left).toBe(24);
+    await expect(items[0].getBoundingClientRect().left - dialog.getBoundingClientRect().left).toBe(25);
     // Never taller than the viewport. In a short one the list scrolls, and is then a tab stop.
     await expect(dialog.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
     const scrolls = list.scrollHeight > list.clientHeight + 1;

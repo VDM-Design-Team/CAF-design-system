@@ -511,6 +511,10 @@ export interface RecurringCost {
 export const formatFrequency = ({ value, unit }: RecurringCost['frequency']) =>
   `${value} ${unit.toLowerCase()}${value === 1 ? '' : 's'}`;
 
+/** What each payment of a recurring cost comes to, as a Payment Row's Amount prints it: "USD 900". */
+export const formatPaymentAmount = ({ currency, breakdowns }: Pick<RecurringCost, 'currency' | 'breakdowns'>) =>
+  formatAmount(currency, breakdowns.reduce((sum, line) => sum + line.amount, 0));
+
 const RECURRING_LINE: CostBreakdown = {
   title: 'Recurring 1', amount: 900, natureOfService: 'Salary', costCentre: 'Employee Expenses', location: 'Philippines', periodFrom: '2026-08-01', periodTo: '2026-08-31',
 };

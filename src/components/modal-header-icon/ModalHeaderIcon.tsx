@@ -10,8 +10,9 @@ import { Icon, type IconName } from '../icon';
  * Figma → code:
  * - The 40×40 frame → `size-10`, radius 8 (Figma: raw 8) → `rounded-8`.
  * - Fill → `accent.info.tonal.surface.default`.
- * - The nested icon instance (`CalendarBlank`, 24px) → `icon`, an Icon name
- *   (default `calendar-blank`), drawn at 24px.
+ * - Icon (an instance-swap property since 3 Nov 2026, default CalendarBlank
+ *   24) → `icon`, an Icon name (default `calendar-blank`), drawn at 24px. A
+ *   swapped glyph keeps the tile's content colour.
  * - The glyph's colour → `accent.info.tonal.content.default`. Figma fills it
  *   with a raw blue (#7EB3F7, 1.78:1 on the tile in Light); code uses the
  *   pairing Modal / Confirm's icon tile binds on the same fill (5.60 / 5.72).

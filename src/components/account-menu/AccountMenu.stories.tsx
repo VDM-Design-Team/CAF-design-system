@@ -183,9 +183,9 @@ const open = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   afterEach: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       label: tokenColour('text-primary'),
-      hover: tokenColour('surface-base'),
+      hover: tokenColour('neutral-tonal-surface-default'),
       divider: tokenColour('stroke-subtle'),
       glyph: tokenColour('text-primary'),
       iconHover: tokenColour('neutral-tonal-surface-default'),
@@ -203,9 +203,9 @@ const open = (theme: 'light' | 'dark'): Story => ({
 
     await waitFor(
       () => {
-        // Panel: surface.neutral.faint fill (Menu / Dropdown's surface).
+        // Panel: surface.elevated fill (Menu / Dropdown's surface).
         expect(getComputedStyle(menu).backgroundColor).toBe(want.fill);
-        // Items: text.primary labels, all Type=Default (Logout too). Settings on hover: surface.base.
+        // Items: text.primary labels, all Type=Default (Logout too). Settings on hover: neutral.tonal.surface.default.
         for (const i of items) {
           const style = getComputedStyle(i);
           expect(style.color).toBe(want.label);

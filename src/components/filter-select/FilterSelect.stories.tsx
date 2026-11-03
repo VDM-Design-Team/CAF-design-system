@@ -243,7 +243,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
       stroke: tokenColour('stroke-field'),
       primary: tokenColour('text-primary'),
       subtle: tokenColour('text-subtle'),
-      menu: tokenColour('surface-neutral-faint'),
+      menu: tokenColour('surface-elevated'),
       menuStroke: tokenColour('stroke-subtle'),
       selected: tokenColour('surface-base'),
       check: tokenColour('action-primary-surface-default'),
@@ -277,7 +277,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
         continue;
       }
 
-      // Menu: Select / Menu — surface.neutral.faint, 1px stroke.subtle inside, radius 8, 6 padding, 2 between options;
+      // Menu: Select / Menu — surface.elevated (the overlay surface, since 3 Nov 2026), 1px stroke.subtle inside, radius 8, 6 padding, 2 between options;
       // space.4 under the field, flush left, as wide as the field (Fill).
       const list = within(cell).getByRole('listbox', { name: 'Status' });
       const l = list.getBoundingClientRect();

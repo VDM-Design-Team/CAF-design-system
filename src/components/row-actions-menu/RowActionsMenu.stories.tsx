@@ -168,7 +168,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
-    const want = { fill: tokenColour('surface-neutral-faint'), glyph: tokenColour('text-secondary') };
+    const want = { fill: tokenColour('surface-elevated'), glyph: tokenColour('text-secondary') };
     const canvas = within(canvasElement);
     // Queried afresh on every try: the story's globals can re-render it while the play starts,
     // and the menu (on <body>, Popover's portal) is then a new element. No DOM writes inside.

@@ -15,6 +15,8 @@ import { IconButton } from '../icon-button';
  * - Message     → `message` (Body/sm-regular, `text.primary`).
  * - Action      → `action` (default "Undo", as in Figma), Body/sm-semibold in
  *   `text.link.default`. A `<button>`; `onAction` runs when it is pressed.
+ * - Action State → the action's own state: Default, or Hover (`:hover`,
+ *   `text.link.hover`, since 3 Nov 2026), as on Button Text.
  * - Show Action → `showAction` (default false, as in Figma).
  * - The X       → always shown, as in Figma: an IconButton ("x", Ghost, 32)
  *   that calls `onDismiss`.
@@ -85,8 +87,10 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         {showAction && (
           <button
             type="button"
+            data-toast-action=""
             className={cn(
-              'shrink-0 cursor-pointer rounded-4 text-body-sm-semibold text-text-link-default',
+              /* Action State=Default: text.link.default; Hover: text.link.hover. */
+              'shrink-0 cursor-pointer rounded-4 text-body-sm-semibold text-text-link-default hover:text-text-link-hover',
               // Figma has no Focus state; the ring is Button's.
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
             )}

@@ -16,7 +16,7 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Feedback** (`Spinner`): the loading indicator. `size` is Figma’s ' +
           'Size: `16` (default), `24` or `32`. The track is `neutral/tonal/surface/default` and the indicator ' +
-          '`action/primary/surface/default`. It turns in the product (not under reduced motion, and not in these ' +
+          '`action/tertiary/content/default` (since 3 Nov 2026). It turns in the product (not under reduced motion, and not in these ' +
           'stories). It is a `role="status"` region with a visually hidden `label` (default "Loading"): say what is loading.',
       },
     },
@@ -69,7 +69,7 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       track: tokenColour('neutral-tonal-surface-default'),
-      indicator: tokenColour('action-primary-surface-default'),
+      indicator: tokenColour('action-tertiary-content-default'),
     };
     await waitFor(() => {
       for (const size of SPINNER_SIZES) {

@@ -11,7 +11,9 @@ import { popoverSurface } from '../popover';
  * itself (a combobox).
  *
  * Figma → code:
- * - Fill    → surface.neutral.faint
+ * - Fill    → surface.elevated, the overlay surface (since 3 Nov 2026,
+ *   decision menu-surface; Figma's Select / Menu still binds
+ *   surface.neutral.faint: docs/figma-sync.md, "SelectMenu")
  * - Stroke  → 1px inside stroke.subtle (an inset ring)
  * - Radius  → radius.8 (Figma: raw 8)
  * - Effect  → Elevation Dark/3 → `shadow-elevation-3`, as on Menu / Dropdown

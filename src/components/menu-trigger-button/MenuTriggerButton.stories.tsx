@@ -232,7 +232,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-neutral-faint');
+    const fill = tokenColour('surface-elevated');
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole('button', { name: 'Change Status (3)' });
     const menu = canvas.getByRole('menu', { name: 'Change Status (3)' });

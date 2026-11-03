@@ -12,9 +12,11 @@ import { useScrollableTabStop } from '../../lib/useScrollableTabStop';
  * of `Modal / Payment Row`s.
  *
  * Figma → code:
- * - The panel: fill `surface.base`, radius 12 (Figma: raw 12) → `rounded-12`,
- *   clips its content; no stroke and no shadow, as in Figma. Fixed 512 wide →
- *   `max-w-lg` (512), narrower on a small screen.
+ * - The panel: fill `surface.base`, `radius/12` → `rounded-12`, a 1px
+ *   `stroke.subtle` stroke (a border: Figma includes strokes in the layout)
+ *   and the Elevation Dark/4 style → `shadow-elevation-4`, as Modal / Dialog
+ *   (since 3 Nov 2026). It clips its content. Fixed 512 wide → `max-w-lg`
+ *   (512), narrower on a small screen.
  * - The `Modal / Header` instance → ModalHeader, with its Title ("Payment
  *   Schedules") → `title`, its Description ("Upcoming and processed
  *   payments") → `description`, and its tile's glyph → `icon` (default
@@ -84,7 +86,11 @@ export const PaymentSchedules = React.forwardRef<HTMLDivElement, PaymentSchedule
       returnFocusRef={returnFocusRef}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
-      className={cn('flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-12 bg-surface-base', className)}
+      className={cn(
+        'flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-12',
+        'border border-stroke-subtle bg-surface-base shadow-elevation-4',
+        className,
+      )}
     >
       <ModalHeader
         title={title}

@@ -102,7 +102,7 @@ export const KeyboardAndFocus: Story = {
 };
 
 /* ── The surface, in Light and Dark ────────────────────────────────────────
-   Menu / Dropdown's bindings: surface.neutral.faint fill, 1px inside
+   Menu / Dropdown's bindings: surface.elevated fill, 1px inside
    stroke.subtle, radius 8, Elevation 3, padding 6. Checked against the tokens. */
 
 /* A token's computed value in the current theme. Measure before waitFor, never inside it:
@@ -141,7 +141,7 @@ const surface = (theme: 'light' | 'dark', portal = false): Story => ({
   tags: theme === 'dark' || portal ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       text: tokenColour('text-primary'),
       shadow: utilityShadow('shadow-elevation-3 inset-ring inset-ring-stroke-subtle'),

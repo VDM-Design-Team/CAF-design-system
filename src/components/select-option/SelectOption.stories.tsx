@@ -111,7 +111,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const want = {
-      menu: tokenColour('surface-neutral-faint'),
+      menu: tokenColour('surface-elevated'),
       filled: tokenColour('surface-base'),
       label: tokenColour('text-primary'),
       check: tokenColour('action-primary-surface-default'),

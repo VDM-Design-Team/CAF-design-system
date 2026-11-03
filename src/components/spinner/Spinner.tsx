@@ -11,7 +11,8 @@ import { cn } from '../../lib/cn';
  * - Track: an ellipse with a 75% inner radius (a ring an eighth of the size
  *   thick) in neutral.tonal.surface.default.
  * - Indicator: the same ring from 12 to 6 o'clock (the right half), in
- *   action.primary.surface.default.
+ *   action.tertiary.content.default (since 3 Nov 2026, decision spinner-dark:
+ *   action.primary.surface.default was 1.97:1 on the track in Dark).
  * - "Animate with a 360° rotation in prototypes" → it turns once a second
  *   (Tailwind's `animate-spin`), and stands still under
  *   `prefers-reduced-motion`.
@@ -43,8 +44,8 @@ export const Spinner = React.forwardRef<HTMLSpanElement, SpinnerProps>(
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false" className="size-full motion-safe:animate-spin">
         {/* Track — the whole ring, neutral.tonal.surface.default. */}
         <circle cx="8" cy="8" r="7" strokeWidth="2" className="stroke-neutral-tonal-surface-default" />
-        {/* Indicator — the right half, from 12 to 6 o'clock, action.primary.surface.default. */}
-        <path d="M8 1a7 7 0 0 1 0 14" strokeWidth="2" className="stroke-action-primary-surface-default" />
+        {/* Indicator — the right half, from 12 to 6 o'clock, action.tertiary.content.default. */}
+        <path d="M8 1a7 7 0 0 1 0 14" strokeWidth="2" className="stroke-action-tertiary-content-default" />
       </svg>
       <span className="sr-only">{label}</span>
     </span>

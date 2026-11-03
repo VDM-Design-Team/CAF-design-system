@@ -10,6 +10,8 @@ const meta = {
     docs: {
       description: {
         component:
+          '**Deprecated (3 Nov 2026, decision version-badge):** show a release version as `<Tag status="info" ' +
+          'showIcon={false}>`, as ChangelogHeader now does. ' +
           'Built from the CAF Figma library, page **Modals** (`Modal / Version Badge`): the release number beside the ' +
           'date in the what’s-new dialog (ChangelogHeader). Figma’s Version is `children`. A `surface.base` pill with ' +
           'the version in Body/sm-semibold, `accent.info.tonal.content`; it sits on the dialog’s `surface.canvas`. ' +

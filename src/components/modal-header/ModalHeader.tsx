@@ -15,7 +15,8 @@ import { ModalHeaderIcon } from '../modal-header-icon';
  * - Auto layout, horizontal, centred: 16px top and bottom, 24px sides, 12px
  *   gap (Figma: raw values on GDL's scale) → `py-4 px-6 gap-3`.
  * - Fixed 512×80 → fills its container, at least 80 tall (`min-h-20`).
- * - The `Modal / Header Icon` instance → ModalHeaderIcon; its glyph → `icon`.
+ * - The `Modal / Header Icon` instance → ModalHeaderIcon. Its Icon swap is
+ *   exposed on Modal / Header (since 3 Nov 2026) → `icon`, passed through.
  * - Title → `title`: Body/lg-semibold, `text.primary`, an `<h2>`.
  * - Description → `description`: Body/sm-regular, `text.subtle`.
  * - Header Actions: Show Actions + Actions → `actions`, IconButtons (Ghost,
