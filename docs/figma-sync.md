@@ -557,7 +557,7 @@ Figma gaps the code doesn't copy:
 
 Source: none. The CAF Figma library has no Popover. Its surface is page **Menus** (`446:11509`) → `Menu / Dropdown` (`446:11510`), and it opens where pattern **03 · Row actions menu** (Patterns – Admin, `520:2387`) draws the menu. Code: `src/components/popover/`. MenuDropdown and Select are built on it, and a Date field will be.
 
-Behaviour is hand-built like VCP's Popover, with no positioning library and no portal:
+Behaviour is hand-built like VCP's Popover, with no positioning library and, by default, no portal:
 - The trigger is cloned with `aria-expanded`, `aria-haspopup` (from `panelRole`) and, while open, `aria-controls`.
 - The panel opens below the trigger, 4px away, flush with its left or right edge (`placement`, `align`).
 - It flips above the trigger, or to the other edge, when the viewport has no room.
@@ -565,6 +565,16 @@ Behaviour is hand-built like VCP's Popover, with no positioning library and no p
 - It doesn't trap focus: it is non-modal.
 
 The stories check the surface against the tokens in Light and Dark, and test flipping in all four corners of the viewport.
+
+**`portal` (3 Nov 2026, decision add-phone-table-layout).** An opt-in way to render the panel outside the trigger's wrapper, so a container that scrolls or clips can't cut it off. Figma has no phone layout and no Popover, so this is code only. RowActionsMenu turns it on (a TableList now scrolls sideways in its own region, which clips what is inside it). Everything else keeps the default.
+- The panel renders in a portal on `document.body`, `position: fixed` (`fixed` instead of `absolute`), with its top or bottom and its left or right edge set inline from the trigger's box. The gap is still the panel's own `mt-1` / `mb-1` (`space/4`), so it sits where the inline panel would.
+- It is placed before paint, and again on any scroll (capturing, so a scrolling table region counts), on resize and when the trigger, the panel or the page changes size (the same ResizeObserver). It flips as the inline panel does.
+- Z-order: `z-50`, after the page in the DOM, so it is above the page and above a dialog it was opened from.
+- The ARIA wiring is unchanged (`aria-expanded`, `aria-haspopup`, `aria-controls` to the panel's id). Outside click, Escape and focus leaving count the panel as inside although it is no longer in the wrapper.
+- Tab keeps the inline order, which the portal would otherwise break: Tab on the open trigger goes into the panel; Tab past its last control goes to whatever follows the trigger (which closes it); Shift+Tab before its first control goes back to the trigger. A handler that moves focus itself (MenuDropdown's Tab) calls `preventDefault()` and wins.
+- Opened from inside a dialog, the panel is outside the dialog in the DOM. Overlay leaves Tab alone when focus is in a portalled popup whose trigger is in the dialog (the panel carries `data-popover-portal`), so the popup's own Tab handling runs; the panel isn't made inert, because it is added after the dialog opened.
+- Nothing touches `document` on a server: the portal waits for the browser (`useSyncExternalStore`, true from the first client render).
+- Tests find a portalled panel with `screen` (it is outside `canvasElement`). The stories: Portal (a trigger in a box that scrolls: outside the box, over its edge, following it as it scrolls; Tab, Shift+Tab, Escape, outside click) and Surface, portal in Light and Dark.
 
 | Layer | Figma (Menu / Dropdown) | Code |
 |---|---|---|
@@ -588,7 +598,8 @@ Code departs from Figma here:
 | Width | Fixed 212 (Menu / Dropdown) | Hugs its content (`w-max`); MenuDropdown sets its own minimum | None needed |
 
 Limits:
-- **No portal.** A parent with `overflow: hidden` or `auto`, such as a horizontally scrolling table, clips the panel.
+- **No portal by default.** A parent with `overflow: hidden` or `auto`, such as a TableList's scroll region, clips the inline panel. Pass `portal` there (RowActionsMenu does).
+- **A portalled panel follows its trigger, not the trigger's clip.** If a container scrolls the trigger out of sight while the panel is open (a trackpad scroll of the table region), the panel stays where the trigger is. A touch or a click on the region closes it first (outside pointer down).
 - **Dark elevation doesn't reach components.** `dist/tokens.dark.css` redefines `--shadow-elevation-*` under `.dark`, but Tailwind v4 compiles `shadow-elevation-*` with the values inlined. Every elevated component is Light Elevation in Dark, Button's hover shadow included. The fix belongs in GDL's theme output.
 
 ### MenuItem (29 Oct 2026)
@@ -658,6 +669,8 @@ Keyboard. On the trigger, Enter, Space or ↓ opens the menu on the first item, 
 
 Focus then goes back to the trigger. A click outside closes the menu and leaves focus where the click put it. The Keyboard story tests every key.
 
+In a table, or in anything else that scrolls or clips, pass Popover's `portal` (3 Nov 2026): the menu opens on `document.body`, over the table's scroll region, instead of being cut off inside it. RowActionsMenu does this. MenuDropdown's default is unchanged (inline), and its Tab handling (close, focus back to the trigger) is the same either way.
+
 Contrast: as MenuItem.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
@@ -687,14 +700,15 @@ Source: page **Menus** (`446:11509`), `Menu / Row Actions Button` (`405:551`, 56
 - The menu is a MenuDropdown below the button, flush with its right edge.
 - Put it in a TableCell of type `actions`.
 - `label` names the button and its menu. Name the record when a table has many rows ("Actions for cost 123456").
+- The menu opens outside the table (3 Nov 2026, decision add-phone-table-layout: "row menus open outside" the table's scroll region): Popover's `portal`, on `document.body`, fixed at the button, 4px under it and flush with its right edge as before. `portal={false}` keeps it inline. Tests find the menu with `screen`.
 
-Stories: in a TableRow (pointer and keyboard, with the menu over the next rows), and open in a table in Light and Dark.
+Stories: in a TableRow (pointer and keyboard, with the menu over the next rows, on `<body>`), and open in a table in Light and Dark. TableList's and the Costs table's phone stories open it over the scroll region's edge.
 
 | | Figma | Code |
 |---|---|---|
 | Button | The one-off 32×32 ••• | IconButton Ghost 32: `text/secondary` glyph (16px); `neutral/tonal/surface/default` on hover |
 | Menu | Menu / Dropdown | MenuDropdown, `align="right"` |
-| Placement | 4px under the button, right-aligned | `mt-1`, `right-0`; flips at the viewport's edges |
+| Placement | 4px under the button, right-aligned | `mt-1`, flush with the button's right edge (fixed, on `<body>`); flips at the viewport's edges |
 
 Contrast: the ••• glyph needs 3:1. It is 9.90 (Light) and 14.48 (Dark) on the canvas, and 8.40 / 6.15 on its hover fill (see IconButton). The menu is as MenuItem.
 
@@ -1624,6 +1638,7 @@ Source: page **Patterns – Admin** (`504:13180`). The library has no Overlay co
 
 Behaviour is code only, hand-built like VCP's Modal with no new dependency:
 - It renders through a portal to `<body>`.
+- Tab leaves a popup alone that the dialog opened in a portal (a RowActionsMenu's menu, marked `data-popover-portal`): the popup's own Tab handling closes it and returns focus to its trigger in the dialog (3 Nov 2026).
 - The panel is `role="dialog"` (or `alertdialog`) with `aria-modal="true"`. It is named by `aria-labelledby` (or `aria-label`).
 - Focus moves to `initialFocusRef` or to the panel. Tab and Shift+Tab wrap inside the panel.
 - Escape asks `onClose`. If a popup inside the panel is open (a MenuDropdown), that popup closes first.
@@ -5007,9 +5022,19 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 1112 (the sample's) | Its container's width; the columns share it by content unless the header sets widths | None needed |
-| Clipping | The Rows slot clips its content | No clipping, so the rows' ••• menus can open below the table | Turn off Clip content |
+| Clipping | The Rows slot clips its content | The scroll region clips (it scrolls sideways); the rows' ••• menus open outside it, on `<body>` | Turn off Clip content |
+| Narrow screens | Not drawn: no phone layout | The table scrolls sideways in its own region (below) | Draw a phone frame if designers want rows as cards later |
+| Focus ring | None | The region's 2px `stroke/focused` outline, inside its edge (`-outline-offset-2`), while it can scroll | None needed |
 | No rows | Not drawn | One TableRow whose TableCell `type="custom"` spans every column and holds an EmptyState (the patterns' "No items.") | Draw the empty list |
 | Name | (visual only) | Give the table an `aria-label` | None needed |
+
+**Narrow screens (3 Nov 2026, decision add-phone-table-layout).** The user chose "a table that scrolls in its own region; row menus open outside it" over rows as cards. Figma draws no phone layout (no mobile list screens, 2102:4 and 2102:3; Table / List is 1112 wide), so this is code only and nothing changed in the library.
+- The `<table>` sits in a `<div data-part="scroll-region">` that takes its container's width (`w-full`) and scrolls sideways (`overflow-x-auto`). The table's `className` and `ref` stay on the `<table>`; `regionClassName` styles the region. The region is `relative`, so what is absolutely placed in the cells (a visually hidden header label) is held by it too; without that, Drafts, Exports, Announcements and Cost Centers still widened the page at 320.
+- While the columns need more than the region's width, the region is a tab stop (`tabIndex` 0), so the keyboard can reach it and the arrow keys scroll it (WCAG 2.1.1; axe's scrollable-region-focusable), a `role="region"` named like the table (its `aria-label`, or its `aria-labelledby`), and shows the focus ring. While everything fits, it is a plain `<div>`: no tab stop, no landmark. It is measured before paint and again on any size change (`useScrollableTabStop(ref, true, 'x')`, the hook the modal bodies use for `y`). An unnamed table gets the tab stop but no region role.
+- Row menus open outside it: RowActionsMenu renders its menu on `<body>` (Popover's `portal`), so the region never cuts one off.
+- Every list in the patterns and templates is a TableList (Costs, Cost Centers, Recurring Costs, Drafts, Users, Exports, Announcements, Audit Logs, Manage Currencies, the Costs breakdown), so every one scrolls in its region. At 320 no template scrolls sideways any more.
+- **The Costs table at 1024:** AppShell's content box is 976 (24 at each side). The table needs a few pixels more (the decision's estimate was 977; 982 in headless Chromium with Inter), so at 1024 it scrolls by those pixels inside its region, a tab stop named Costs, and the page doesn't scroll. The other lists fit at 1024. Making Costs fit would mean narrowing a column, a design change.
+- Stories: TableList At a phone's width (Light, Dark; the mobile viewport and `chromatic.viewports: [320]`, in a 320 frame with AppShell's 16 gutters so every runner gets 288): the region scrolls and the page doesn't; Tab stops on the region, then on the rows' •••; the last row's menu opens on `<body>`, 4px under its •••, past the region's bottom edge, inside the viewport and not clipped (its last item is the menu's own pixels). Focus ring (Light, Dark; forced `:focus-visible`). Playground checks that a table that fits has no tab stop. Costs table At a phone's width; the List page and Overview list templates check the region on every screen; List page Costs, 1024. The arrow keys are the browser's own scrolling of a focused scroll container, which a play's synthetic key events don't trigger; checked with Playwright's real keyboard instead (Tab reaches the region, → scrolls it 40px a press, ← back).
 
 ### FilterSelect (2 Nov 2026)
 

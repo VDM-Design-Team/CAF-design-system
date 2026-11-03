@@ -143,6 +143,7 @@ Known overlaps, to settle once design answers the questions below:
 - **Expand:** the caret opens the cost's breakdown in the row under it, with `aria-controls` pointing at it. Rows open independently, and Enter closes one with focus kept on the caret.
 - **Row menu:** ••• opens Approve, Reject, View invoices, Request adjustment, Delete. Approve changes the status pill, and focus returns to •••. From the keyboard, ↓ ↓ Enter rejects, and Escape closes the menu without choosing.
 - **Dark:** two rows selected, one expanded, sorted by date.
+- **At a phone's width** (320, decision add-phone-table-layout): the table (about 980 wide) scrolls sideways in its own region, a tab stop named Costs, and the page doesn't. The last row's ••• menu opens on `<body>`, over the region's bottom edge, all of it in the viewport.
 
 **What Figma draws that the stories don't.**
 - Row – Cost's selected outline (stroke/focused 2px): code uses TableRow's selected fill.
@@ -288,6 +289,8 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - *Menus for each page*: the Costs, Recurring Costs, Exports and “most lists” menus open together. Each follows Figma’s order, with Delete last and red.
 - *View opens a modal*: on Recurring Costs, View Schedules opens the read-only Payment Schedules. × or Escape closes it and focus returns to the •••.
 - Snapshots: *Menu open*, *Delete confirmation open*, *Dark*.
+
+**On a narrow screen** (decision add-phone-table-layout): the table scrolls sideways in its own region, and every row menu opens outside it, on `<body>` (RowActionsMenu's portal), so the region never cuts a menu off. The stories find the menus with `screen`.
 
 **What Figma draws that the stories don’t:** the Cost Centers headers are Sortable in Figma (sorting belongs to the list page pattern, 01/02). The Table / Row Hover state is TableRow’s own `:hover` and isn’t asserted. Add New belongs to pattern 05.
 
@@ -647,7 +650,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - Partners (2102:6128) and Contacts (2102:6234) have no page composition yet, so the frame shows only their title.
 - Routing goes no further than swapping the page in the container.
 
-**Design questions.** The list pages' tables don't fit a phone, which is why the mobile stories open on form pages (see List page).
+**Design questions.** ~~The list pages' tables don't fit a phone, which is why the mobile stories open on form pages (see List page).~~ Decided (add-phone-table-layout) and built on 3 Nov 2026: the tables scroll in their own region, so the list pages fit a phone too (the List page template's mobile stories). The mobile stories here still open on form pages.
 
 ### List page (Figma: Admin / Costs 2102:5749, User / Costs 2102:1069, Drafts 2102:1342 / 2102:7086)
 
@@ -671,11 +674,15 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 - a page of eight costs and no selection column;
 - for the admin: View Audit Logs and Export, right of the title and tabs. The user has Export only.
 - Drafts' columns and the ••• named for the draft.
+- the table in its own scroll region and no sideways page scroll: on a phone the region scrolls, is a tab stop and is named like the table; where the table fits it is a plain box.
+
+**Costs, 1024** (a 1024 × 768 viewport; `chromatic.viewports: [1024]`): AppShell's content box is 976, and the Costs table needs a few pixels more (the decision's estimate was 977; 982 in headless Chromium with Inter), so it scrolls by those pixels inside its region and the page doesn't scroll. The other lists fit at 1024.
 
 **What Figma draws that the stories don't.** The rows' menus, bulk selection, expanded details and the audit sheet are patterns 03, 07, 08 and 01's own stories. The template shows the page as it opens.
 
 **Design questions.**
-- Tables are wider than a phone: on mobile the page scrolls sideways under a 320-wide header. A mobile table pattern is needed.
+- ~~Tables are wider than a phone: on mobile the page scrolls sideways under a 320-wide header. A mobile table pattern is needed.~~ Decided (add-phone-table-layout) and built on 3 Nov 2026: each table scrolls sideways in its own region (TableList), and the row menus open outside it. Figma still has no phone layout.
+- The Costs table at 1024 scrolls by a few pixels in its region (above). Narrowing a column so it fits would be a design change.
 - Clear Filters has three treatments: the screens' Filter / Field stand-in, always shown; pattern 02's Outlined Button, shown only while a filter is in use; Drafts' disabled Text button.
 
 ### Overview list (Figma: Admin / Exports 2102:6902, Admin / Announcements 2102:6628)
@@ -691,6 +698,7 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 **Stories.**
 - **Exports**, Light, Dark and Mobile: "Export Management", four totals (Total Exports 6003 while the table shows four rows), Search / status / type filters, the table and pagination, in that order. ••• offers Download (a completed export) and View Details.
 - **Announcements**, Light, Dark and Mobile: title and description, three totals, then New Announcement and View Changelog, the filter bar (Search, Filter Date) and the table. New Announcement opens Create Announcement; ••• → Preview shows the release.
+- Both check the table in its own scroll region and no sideways page scroll: at 320 the region scrolls and is a tab stop named like the table.
 
 **What Figma draws that the stories don't.**
 - Pattern 13's Retry and Delete, and pattern 14's Delete: those flows are the patterns' stories.
@@ -779,7 +787,7 @@ components (or left out) until the library and code have it.
 - ~~**Table / Breakdown**~~ Not added (decision add-table-breakdown): the expanded Cost row's breakdown (121:2956 with 121:2957) is built from the generic parts; `CostBreakdownTable` is a TableList.
 - ~~**Table / Cell for custom content or a control**~~ Added on 2 Nov 2026 (TableCell `type="custom"`, Table / Cell Type=Custom): Account Details, the expand button, Manage Currencies' Toggle and the lists' Empty State rows use it.
 - ~~**A plain list table**~~ Added on 2 Nov 2026 (`TableList`, Table / List); it replaces `RecordsTable`, and every plain list (Cost Centers, Recurring Costs, Drafts, Users, Exports, Announcements, Audit Logs) uses it.
-- **A table layout for phones**: decided (add-phone-table-layout): a table that scrolls in its own region, with row menus that open outside it. Not built yet; Figma has no mobile list screens (2102:4, 2102:3).
+- ~~**A table layout for phones**~~ Built on 3 Nov 2026 (decision add-phone-table-layout): every TableList scrolls sideways in its own region (a tab stop named like the table while it can scroll), and RowActionsMenu opens its menu outside it (Popover's new `portal`). Code only: Figma has no mobile list screens (2102:4, 2102:3) and no phone table layout.
 
 **Statuses**
 - ~~**Status Pill Approved, Paid and Rejected**~~ and ~~**Inactive / Stopped**~~: added to Status Pill on 2 Nov 2026; the costs, recurring costs and announcements tables use them.
