@@ -16,7 +16,7 @@ const meta = {
           'It is controlled: a click calls `onThemeChange` with the other theme, and the app switches it (the `.dark` ' +
           'class on `<html>`, as the toolbar does here) and remembers it. The toggle never changes the document itself. ' +
           'Its name says what a click does: “Switch to light theme” or “Switch to dark theme”. It is IconButton size 40 ' +
-          'with a `text.primary` glyph, the colour Figma binds. Pattern 15 gives it a tooltip; UserActions does.',
+          'Ghost, whose `text.secondary` glyph is the colour Figma binds. Pattern 15 gives it a tooltip; UserActions does.',
       },
     },
   },
@@ -161,7 +161,7 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const want = {
-      glyph: tokenColour('text-primary'),
+      glyph: tokenColour('text-secondary'),
       hover: tokenColour('neutral-tonal-surface-default'),
       none: 'rgba(0, 0, 0, 0)',
     };
@@ -176,7 +176,7 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
           // Theme=Dark: the moon, "Switch to light theme". Theme=Light: the sun, "Switch to dark theme".
           expect(svg.querySelector('path')!.getAttribute('d')).toBe(theme === 'dark' ? ICON_PATHS.moon : ICON_PATHS.sun);
           expect(toggle).toHaveAccessibleName(theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-          // Glyph: text.primary (Figma's binding). No fill at rest; Ghost's neutral.tonal fill on hover.
+          // Glyph: text.secondary (Figma's binding, Ghost's). No fill at rest; Ghost's neutral.tonal fill on hover.
           expect(getComputedStyle(svg).color).toBe(want.glyph);
           expect(style.backgroundColor).toBe(toggle.dataset.pseudo === 'hover' ? want.hover : want.none);
           // 40×40, radius 8, 20px glyph.

@@ -25,8 +25,8 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
  *   the page's banner, `bg-surface-neutral-base`.
  * - Top Bar Area (72 high, 0 / 192 padding, centred, `surface.neutral.base`)
  *   → TopBar in a row with `py-3` around its 48px (72 in all).
- * - Navigation Area (52 high, 0 / 192 padding, `surface.base`) → NavBar, whose
- *   8 / 0 padding around 36px links makes the 52.
+ * - Navigation Area (52 high, 0 / 192 padding, `surface.neutral.faint`) →
+ *   NavBar, whose 8 / 0 padding around 36px links makes the 52.
  * - The 192px sides of the 1920 frame → a centred `container` (1536 wide at
  *   1920, as Figma) inside `px-6` gutters, so both rows line up with each other
  *   and with a page that uses the same container.
@@ -37,8 +37,8 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
  * - Below 768px (`md:`), the two rows give way to MobileHeader. Its ☰ opens
  *   MobileMenu with the same links (`aria-expanded`, `aria-controls`). The
  *   menu's state is `menuOpen` (Mobile Header's Menu Open), uncontrolled by
- *   default; it closes when a link is chosen, and when the screen widens past
- *   768px.
+ *   default; it closes when a link or an account item is chosen, and when the
+ *   screen widens past 768px.
  *
  * Routing isn't wired in: each link is an `<a href>`, and `renderLink` swaps
  * in a router's link. The theme is controlled (`theme`, `onThemeChange`):
@@ -66,7 +66,7 @@ export interface AppHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   menuOpen?: boolean;
   /** Whether the mobile menu starts open, when `menuOpen` is left out. Default false. */
   defaultMenuOpen?: boolean;
-  /** Called with the menu state asked for: ☰, ✕, Escape, a link chosen, or the screen widening past 768px. */
+  /** Called with the menu state asked for: ☰, ✕, Escape, a link or account item chosen, or the screen widening past 768px. */
   onMenuOpenChange?: (open: boolean) => void;
 }
 
@@ -129,8 +129,8 @@ export const AppHeader = React.forwardRef<HTMLElement, AppHeaderProps>(function 
         <div data-part="top-bar-area" className="bg-surface-neutral-base px-6 py-3">
           <TopBar username={username} {...shared} className="container mx-auto" />
         </div>
-        {/* Navigation Area: 52 high (the Nav Bar's), surface.base. Scrolls sideways if the links don't fit. */}
-        <div data-part="navigation-area" className="overflow-x-auto bg-surface-base px-6">
+        {/* Navigation Area: 52 high (the Nav Bar's), surface.neutral.faint. Scrolls sideways if the links don't fit. */}
+        <div data-part="navigation-area" className="overflow-x-auto bg-surface-neutral-faint px-6">
           <NavBar aria-label={navLabel} className="container mx-auto">
             {links.map((link) => (
               <React.Fragment key={link.label}>

@@ -64,7 +64,7 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Navigation**: `Navigation / Header`, `Header – Admin` (Page ×10) and ' +
           '`Header – User` (Page ×5), with `Mobile Header` and `Mobile Menu – Admin` below 768px. A `<header>` banner: ' +
-          'the Top Bar Area (TopBar, `surface/neutral/base`) over the Navigation Area (NavBar, `surface/base`), both in ' +
+          'the Top Bar Area (TopBar, `surface/neutral/base`) over the Navigation Area (NavBar, `surface/neutral/faint`), both in ' +
           'a centred container (1536 at 1920, as Figma’s 192px sides). The links are data (`links`: label and `href`; ' +
           '`APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` are Figma’s labels), and Page is `page`, the current ' +
           'link. `renderLink` swaps in a router’s link. Below 768px (`md:`) the MobileHeader shows instead; its ☰ ' +
@@ -166,7 +166,7 @@ export const WithRouterLinks: Story = {
    Header – Admin and Header – User at a desktop width. Each header sits in its
    own named region (so it isn't one of several banners) with its own nav name.
    Checked against Navigation / Header's bindings: the frame and Top Bar Area
-   surface.neutral.base, 72 high; the Navigation Area surface.base, 52 high;
+   surface.neutral.base, 72 high; the Navigation Area surface.neutral.faint, 52 high;
    only the Page's link Active; both rows in the same centred container. */
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -210,8 +210,9 @@ const pages = (set: keyof typeof SETS, theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       frame: tokenColour('surface-neutral-base'),
-      nav: tokenColour('surface-base'),
+      nav: tokenColour('surface-neutral-faint'),
       active: tokenColour('neutral-tonal-surface-default'),
+      indicator: tokenColour('action-primary-surface-selected'),
       none: 'rgba(0, 0, 0, 0)',
     };
     await waitFor(() => {
@@ -230,7 +231,7 @@ const pages = (set: keyof typeof SETS, theme: 'light' | 'dark'): Story => ({
         expect(navArea.getBoundingClientRect().height).toBe(52);
         expect(header.getBoundingClientRect().height).toBe(124);
 
-        // The links, only the Page's Active.
+        // The links, only the Page's Active: its fill and its Indicator under the label.
         const nav = within(header).getByRole('navigation', { name: `${set} navigation, Page=${page}` });
         const links = [...nav.querySelectorAll<HTMLAnchorElement>('a')];
         expect(links.map((a) => a.textContent)).toEqual(SETS[set].links.map((l) => l.label));
@@ -238,6 +239,9 @@ const pages = (set: keyof typeof SETS, theme: 'light' | 'dark'): Story => ({
           const current = a.textContent === page;
           expect(a.getAttribute('aria-current')).toBe(current ? 'page' : null);
           expect(getComputedStyle(a).backgroundColor).toBe(current ? want.active : want.none);
+          const bar = getComputedStyle(a, '::after');
+          if (current) expect([bar.backgroundColor, bar.height]).toEqual([want.indicator, '2px']);
+          else expect(bar.content).toBe('none');
         }
 
         // Top Bar and Nav Bar share one centred container: the logo and the first link line up.
@@ -274,7 +278,7 @@ const mobile = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
-    const want = { frame: tokenColour('surface-neutral-base'), glyph: tokenColour('text-primary') };
+    const want = { frame: tokenColour('surface-neutral-base'), glyph: tokenColour('text-secondary') };
     const banner = within(canvasElement).getByRole('banner');
     const desktop = banner.querySelector<HTMLElement>('[data-part="desktop"]')!;
     const header = banner.querySelector<HTMLElement>('[data-part="mobile"]')!;
@@ -329,16 +333,20 @@ export const MobileMenuOpen: Story = {
     const links = within(nav).getAllByRole('link');
     await expect(links.map((link) => link.textContent)).toEqual([...APP_HEADER_ADMIN_PAGES]);
     await expect(within(nav).getByRole('link', { name: 'Recurring Costs' })).toHaveAttribute('aria-current', 'page');
-    await expect(menu.querySelector('[data-part="account"]')).toHaveTextContent('Admin Account');
+    const accountRow = within(menu).getByRole('button', { name: 'Admin Account' });
+    await expect(accountRow).toHaveAttribute('data-part', 'account');
 
-    // Trapped: Shift+Tab from the first control wraps to the last link, Tab back again.
+    // Trapped: Shift+Tab from the first control wraps to the Account Row, the last; Tab back again.
     await userEvent.tab();
     await expect(links[0]).toHaveFocus();
     await userEvent.tab({ shift: true });
     await userEvent.tab({ shift: true });
     await userEvent.tab({ shift: true });
     await userEvent.tab({ shift: true });
+    await expect(accountRow).toHaveFocus();
+    await userEvent.tab({ shift: true });
     await expect(links[links.length - 1]).toHaveFocus();
+    await userEvent.tab();
     await userEvent.tab();
     await expect(within(menu).getByRole('button', { name: 'Switch to light theme' })).toHaveFocus();
     await userEvent.tab({ shift: true });

@@ -12,7 +12,9 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Navigation**: `Navigation / Nav Link` (the header’s Nav Bar) and ' +
           '`Navigation / Nav Link – Vertical` (the Mobile Menu), as `orientation` `horizontal` (default) and ' +
-          '`vertical`. Figma’s State: Active is `active`, the current page (`aria-current="page"`); Hover is `:hover`. ' +
+          '`vertical`. Figma’s State: Active is `active`, the current page (`aria-current="page"`): a semibold label ' +
+          'and a 2px `action/primary/surface/selected` Indicator, under the label (horizontal) or at the row’s left ' +
+          'edge (vertical). Hover is `:hover`. ' +
           'The Label is `children`. It is an `<a href>`; pass a router’s link component as `as`. Figma has no Focus ' +
           'state: the ring is `stroke/focused`, as on Button.',
       },
@@ -109,9 +111,15 @@ const BOUND: Record<'horizontal' | 'vertical', Record<State, readonly [string | 
   },
 };
 
-/* Type style and box per orientation: Body/sm-regular, 36 high / Body/md-medium, 40 high; 8 / 12 padding, radius 6. */
-const TYPE = { horizontal: 'text-body-sm-regular', vertical: 'text-body-md-medium' } as const;
+/* Type style per orientation, at rest and Active: Body/sm-regular → Body/sm-semibold, Body/md-medium →
+   Body/md-semibold. Box: 36 / 40 high, 8 / 12 padding, radius 6. */
+const TYPE = {
+  horizontal: { rest: 'text-body-sm-regular', active: 'text-body-sm-semibold' },
+  vertical: { rest: 'text-body-md-medium', active: 'text-body-md-semibold' },
+} as const;
 const HEIGHT = { horizontal: 36, vertical: 40 } as const;
+/* The Active Indicator: Nav Link's is ::after, under the label; Nav Link – Vertical's is ::before, at the left. */
+const INDICATOR = { horizontal: '::after', vertical: '::before' } as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
@@ -189,7 +197,8 @@ const grid = (orientation: 'horizontal' | 'vertical', theme: 'light' | 'dark'): 
       return { state, fill: fill ? tokenColour(fill) : none, text: tokenColour(text) };
     });
     const focused = tokenColour('stroke-focused');
-    const type = utilityType(TYPE[orientation]);
+    const indicator = tokenColour('action-primary-surface-selected');
+    const type = { rest: utilityType(TYPE[orientation].rest), active: utilityType(TYPE[orientation].active) };
     await waitFor(
       () => {
         const widths = new Set<number>();
@@ -199,7 +208,9 @@ const grid = (orientation: 'horizontal' | 'vertical', theme: 'light' | 'dark'): 
           expect(style.backgroundColor).toBe(fill);
           expect(style.color).toBe(text);
           expect(link.getAttribute('aria-current')).toBe(state === 'Active' ? 'page' : null);
-          expect({ fontSize: style.fontSize, lineHeight: style.lineHeight, fontWeight: style.fontWeight }).toEqual(type);
+          expect({ fontSize: style.fontSize, lineHeight: style.lineHeight, fontWeight: style.fontWeight }).toEqual(
+            state === 'Active' ? type.active : type.rest,
+          );
           expect(link.getBoundingClientRect().height).toBe(HEIGHT[orientation]);
           expect(style.padding).toBe('8px 12px');
           expect(style.borderRadius).toBe('6px');
@@ -210,6 +221,24 @@ const grid = (orientation: 'horizontal' | 'vertical', theme: 'light' | 'dark'): 
             expect(style.outlineColor).toBe(focused);
           } else {
             expect(style.outlineStyle).toBe('none');
+          }
+          // Indicator: only on Active. A 2px action.primary.surface.selected bar.
+          const bar = getComputedStyle(link, INDICATOR[orientation]);
+          if (state === 'Active') {
+            const box = link.getBoundingClientRect();
+            expect(bar.position).toBe('absolute');
+            expect(bar.backgroundColor).toBe(indicator);
+            if (orientation === 'horizontal') {
+              // Under the label: at the bottom, 12 in from each side (the link's side padding), so the label's width.
+              expect([bar.left, bar.right, bar.bottom, bar.height]).toEqual(['12px', '12px', '0px', '2px']);
+              expect(parseFloat(bar.width)).toBeCloseTo(box.width - 24, 1);
+            } else {
+              // At the row's left edge, 8 in from the top and bottom.
+              expect([bar.left, bar.top, bar.bottom, bar.width]).toEqual(['0px', '8px', '8px', '2px']);
+              expect(parseFloat(bar.height)).toBeCloseTo(box.height - 16, 1);
+            }
+          } else {
+            expect(bar.content).toBe('none');
           }
           widths.add(link.getBoundingClientRect().width);
         }

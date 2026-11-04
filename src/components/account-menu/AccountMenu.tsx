@@ -20,8 +20,9 @@ import { MenuItem } from '../menu-item';
  * - Divider (a 1px rectangle filled `stroke.subtle`) → a `role="separator"`
  *   with a 1px top border in `stroke.subtle`.
  * - The trigger → `trigger`. Default: the header's account icon, Navigation /
- *   Icon Button (40×40, User glyph) as IconButton size 40, named "Account".
- *   Its glyph is `text.primary`, the colour Figma binds the icon to.
+ *   Icon Button (40×40, User glyph 20) as IconButton size 40, named "Account".
+ *   Its glyph is `text.secondary`, the colour Figma binds the icon to and
+ *   IconButton's ghost tone draws.
  *
  * Figma's component has no properties, so the items are fixed. `onSelect`
  * gets the one the user chose ('manage-currencies', 'settings', 'changelog' or 'logout');
@@ -66,8 +67,8 @@ export const AccountMenu = React.forwardRef<HTMLDivElement, AccountMenuProps>(fu
       ref={ref}
       trigger={
         trigger ?? (
-          /* Navigation / Icon Button: 40×40, User glyph. Figma binds the icon to text.primary. */
-          <IconButton icon="user" label="Account" size={40} className="text-text-primary" />
+          /* Navigation / Icon Button: 40×40, User glyph 20, text.secondary (Ghost's). */
+          <IconButton icon="user" label="Account" size={40} />
         )
       }
       align={align}

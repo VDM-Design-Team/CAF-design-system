@@ -14,6 +14,9 @@ import { cn } from '../../lib/cn';
  *   `vertical` (Nav Link – Vertical). They share the structure (a label in a
  *   padded, rounded box) and differ only in type, padding and colours.
  * - State=Active → `active`: the current page. It sets `aria-current="page"`.
+ *   Its label is semibold and its Indicator, a 2px bar in
+ *   `action.primary.surface.selected`, is drawn as a pseudo-element: under
+ *   the label on a horizontal link, at the row's left edge on a vertical one.
  * - State=Hover  → `:hover` (not on the Active link: Figma has no Active +
  *   Hover).
  * - State=Default → neither.
@@ -29,34 +32,54 @@ import { cn } from '../../lib/cn';
  */
 export const navLinkVariants = cva(
   [
-    'inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-6 px-3 py-2 transition-colors',
+    /* relative: the Active Indicator is positioned against the link. */
+    'relative inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-6 px-3 py-2 transition-colors',
     // Figma has no Focus state; the ring is stroke.focused, as on Button.
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
   ],
   {
     variants: {
       orientation: {
-        /* Nav Link: 8 / 12 padding, radius 6 (raw). Label: Body/sm-regular, text.primary in every state. */
-        horizontal: 'text-body-sm-regular text-text-primary',
-        /* Nav Link – Vertical: the menu's full width, 10 / 12 padding (raw 10 → space.8), radius 6 (raw).
-           Label: Body/md-medium. */
-        vertical: 'w-full text-body-md-medium',
+        /* Nav Link: 8 / 12 padding (space.8 / space.12), radius 6. Label text.primary in every state. */
+        horizontal: 'text-text-primary',
+        /* Nav Link – Vertical: the menu's full width, 8 / 12 padding (space.8 / space.12), radius 6. */
+        vertical: 'w-full',
       },
       active: { true: '', false: '' },
     },
     compoundVariants: [
-      /* Nav Link, Default: no fill. Hover: neutral.tonal.surface fill. */
-      { orientation: 'horizontal', active: false, className: 'hover:bg-neutral-tonal-surface-default' },
-      /* Nav Link, Active: the same neutral.tonal.surface fill as Hover. */
-      { orientation: 'horizontal', active: true, className: 'bg-neutral-tonal-surface-default' },
-      /* Vertical, Default: no fill, text.secondary. Hover: surface.neutral.faint fill, text.primary. */
+      /* Nav Link, Default: Body/sm-regular, no fill. Hover: neutral.tonal.surface fill. */
+      {
+        orientation: 'horizontal',
+        active: false,
+        className: 'text-body-sm-regular hover:bg-neutral-tonal-surface-default',
+      },
+      /* Nav Link, Active: Body/sm-semibold on the same neutral.tonal.surface fill as Hover. Indicator: a 2px
+         bar at the bottom, 12 in from each side (under the label), action.primary.surface.selected. */
+      {
+        orientation: 'horizontal',
+        active: true,
+        className: [
+          'text-body-sm-semibold bg-neutral-tonal-surface-default',
+          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-action-primary-surface-selected',
+        ],
+      },
+      /* Vertical, Default: Body/md-medium, no fill, text.secondary. Hover: surface.neutral.faint fill, text.primary. */
       {
         orientation: 'vertical',
         active: false,
-        className: 'text-text-secondary hover:bg-surface-neutral-faint hover:text-text-primary',
+        className: 'text-body-md-medium text-text-secondary hover:bg-surface-neutral-faint hover:text-text-primary',
       },
-      /* Vertical, Active: surface.base fill, text.primary. */
-      { orientation: 'vertical', active: true, className: 'bg-surface-base text-text-primary' },
+      /* Vertical, Active: Body/md-semibold, surface.base fill, text.primary. Indicator: a 2px bar at the
+         left edge, 8 in from the top and bottom, action.primary.surface.selected. */
+      {
+        orientation: 'vertical',
+        active: true,
+        className: [
+          'text-body-md-semibold bg-surface-base text-text-primary',
+          'before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:bg-action-primary-surface-selected',
+        ],
+      },
     ],
     defaultVariants: { orientation: 'horizontal', active: false },
   },

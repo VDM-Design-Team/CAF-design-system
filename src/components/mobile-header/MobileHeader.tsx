@@ -15,12 +15,14 @@ import { Tooltip } from '../tooltip';
  * - The variant (64 high: 12 / 16 padding, Space Between, centred; fill
  *   `surface.neutral.base`) → a flex row, `px-4 py-3`, `justify-between`.
  * - Logo (Navigation / Logo at 92 × 36) → Logo at `h-9`.
- * - Actions (horizontal, 8 between) → `gap-2`, holding three 40 × 40 frames,
- *   each with a glyph bound to `text.primary`:
- *   - Theme (Moon, 20) → ThemeToggle (`theme`, `onThemeChange`), in a Tooltip
- *     with its name, as pattern 15 asks for the icon-only toggle.
- *   - Account (User, 20) → AccountMenu, whose trigger is the same 40 × 40
- *     User icon. It opens Navigation / Account Menu (`onAccountSelect`).
+ * - Actions (horizontal, 8 between) → `gap-2`, holding three 40 × 40
+ *   buttons, each with a glyph bound to `text.secondary` (Button / Icon
+ *   Ghost's):
+ *   - Theme (Navigation / Theme Toggle) → ThemeToggle (`theme`,
+ *     `onThemeChange`), in a Tooltip with its name, as pattern 15 asks for the
+ *     icon-only toggle.
+ *   - Account (Button / Icon 40 Ghost, User 20) → AccountMenu, whose trigger
+ *     is the same button. It opens Navigation / Account Menu (`onAccountSelect`).
  *   - Open Menu (List, 24) / Close Menu (X, 24) → IconButton size 40, `list`
  *     or `x`, named "Open menu" or "Close menu".
  * - Menu Open → `menuOpen`: false shows ☰, true shows ✕ ("Menu Open=true
@@ -86,13 +88,12 @@ export const MobileHeader = React.forwardRef<HTMLDivElement, MobileHeaderProps>(
         </Tooltip>
         {/* Account: the User icon opens Navigation / Account Menu. */}
         <AccountMenu onSelect={onAccountSelect} />
-        {/* Open Menu / Close Menu: the glyph is text.primary, as Figma binds it. */}
+        {/* Open Menu / Close Menu: the glyph is text.secondary (Ghost's), as Figma binds it. */}
         <IconButton
           ref={menuButtonRef}
           icon={menuOpen ? 'x' : 'list'}
           label={menuOpen ? 'Close menu' : 'Open menu'}
           size={40}
-          className="text-text-primary"
           aria-expanded={menuOpen}
           aria-controls={menuId}
           onClick={() => onMenuOpenChange?.(!menuOpen)}
