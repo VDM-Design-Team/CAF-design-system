@@ -17,12 +17,12 @@ import { FormFieldContext, type FormFieldContextValue, type FormFieldControlProp
  *   20px above the control (Figma: the row's raw 20 bottom padding).
  * - _Form Label's Required → `required`: the marker, and `required` on the control.
  * - Input Wrapper → `children`, the control. It fills the field's width.
- * - Show Helper + Helper → `helper`, under the control with no gap:
- *   Caption/md-regular, text/subtle.
- * - The input's State=Error, with Show Helper on for the message (Figma's
- *   "Add Cost Center – Errors" and "Feedback messages" patterns) → `error`.
- *   The message takes the helper's place, in the helper's style (Figma binds
- *   one Helper layer to text/subtle), and the control is `aria-invalid`.
+ * - Show Helper + Helper → `helper`, space.8 under the control (Figma's
+ *   Input Wrapper gap): Caption/md-regular, text/subtle.
+ * - State=Error + Error → `error`: the control's State=Error (it is
+ *   `aria-invalid`), and the Error Text in the helper's place, space.8 under
+ *   the control: Caption/md-regular, accent/critical/tonal/content/default
+ *   (the Required marker's colour).
  *
  * Wiring: FormField puts its ids in a context (`useFormField`). A control
  * calls `useFormFieldControl(props)`, as TextInput, SelectTrigger and Select
@@ -105,7 +105,15 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(functi
           {action}
         </div>
         {control}
-        {messageId && <FormHelperText id={messageId}>{message}</FormHelperText>}
+        {/* Helper Text or Error Text, space.8 under the control. */}
+        {messageId && (
+          <FormHelperText
+            id={messageId}
+            className={cn('mt-2', invalid && 'text-accent-critical-tonal-content-default')}
+          >
+            {message}
+          </FormHelperText>
+        )}
       </div>
     </FormFieldContext.Provider>
   );

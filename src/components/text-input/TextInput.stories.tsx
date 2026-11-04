@@ -97,7 +97,7 @@ export const ErrorState: Story = {
   },
 };
 
-/** State=Disabled: it can't be focused or typed into, and a value shows in text.subtle, like the placeholder. */
+/** State=Disabled: it can't be focused or typed into. The disabled fill and stroke, the value in text.disabled, no opacity. */
 export const Disabled: Story = {
   args: { disabled: true, defaultValue: 'Acme Ltd' },
   play: async ({ args, canvas }) => {
@@ -107,26 +107,63 @@ export const Disabled: Story = {
     await expect(input).toHaveValue('Acme Ltd');
     await expect(input).not.toHaveFocus();
     await expect(args.onChange).not.toHaveBeenCalled();
-    await expect(getComputedStyle(input).color).toBe(tokenColour('text-subtle'));
+    const style = getComputedStyle(input);
+    await expect(style.color).toBe(tokenColour('text-disabled'));
+    await expect(style.backgroundColor).toBe(tokenColour('neutral-tonal-surface-disabled'));
+    await expect(style.boxShadow).toContain(insetStroke(tokenColour('neutral-outline-border-disabled'), 1));
+    await expect(style.opacity).toBe('1');
   },
 };
 
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The same five states as the Figma component set. Focus is forced with
+   The same six states as the Figma component set (and Disabled with a value). Focus is forced with
    storybook-addon-pseudo-states, and each cell is checked against the
    variables Figma binds in that state. */
 
 const STATES = [
-  { state: 'Default', props: {}, value: 'text-subtle', stroke: ['stroke-field', 1] },
-  { state: 'Filled', props: { defaultValue: 'Acme Ltd' }, value: 'text-primary', stroke: ['stroke-field', 1] },
-  { state: 'Focus', props: { defaultValue: 'Acme Ltd' }, value: 'text-primary', stroke: ['stroke-focused', 2] },
+  { state: 'Default', props: {}, value: 'text-subtle', fill: 'surface-elevated-secondary', stroke: ['stroke-field', 1] },
+  {
+    state: 'Filled',
+    props: { defaultValue: 'Acme Ltd' },
+    value: 'text-primary',
+    fill: 'surface-elevated-secondary',
+    stroke: ['stroke-field', 1],
+  },
+  {
+    state: 'Focus',
+    props: { defaultValue: 'Acme Ltd' },
+    value: 'text-primary',
+    fill: 'surface-elevated-secondary',
+    stroke: ['stroke-focused', 2],
+  },
   {
     state: 'Error',
     props: { defaultValue: 'Acme Ltd', 'aria-invalid': true },
     value: 'text-primary',
+    fill: 'surface-elevated-secondary',
     stroke: ['accent-critical-outline-border-default', 1],
   },
-  { state: 'Disabled', props: { disabled: true }, value: 'text-subtle', stroke: ['stroke-subtle', 1] },
+  {
+    state: 'Error + Focus',
+    props: { defaultValue: 'Acme Ltd', 'aria-invalid': true },
+    value: 'text-primary',
+    fill: 'surface-elevated-secondary',
+    stroke: ['accent-critical-outline-border-default', 2],
+  },
+  {
+    state: 'Disabled',
+    props: { disabled: true },
+    value: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  {
+    state: 'Disabled, filled',
+    props: { disabled: true, defaultValue: 'Acme Ltd' },
+    value: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
 ] as const;
 
 const grid = (theme: 'light' | 'dark'): Story => ({
@@ -141,7 +178,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             aria-label={`${state} field`}
             placeholder="Placeholder"
             data-state={state}
-            data-pseudo={state === 'Focus' ? 'focus' : undefined}
+            data-pseudo={state === 'Focus' || state === 'Error + Focus' ? 'focus' : undefined}
           />
         </div>
       ))}
@@ -158,20 +195,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const want = STATES.map(({ state, props, value, stroke: [token, width] }) => ({
+    const want = STATES.map(({ state, props, value, fill, stroke: [token, width] }) => ({
       state,
       filled: 'defaultValue' in props,
       value: tokenColour(value),
+      fill: tokenColour(fill),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, filled, value, stroke } of want) {
+        for (const { state, filled, value, fill, stroke } of want) {
           const input = canvasElement.querySelector<HTMLInputElement>(`[data-state="${state}"]`)!;
           const style = getComputedStyle(input);
           expect(style.backgroundColor).toBe(fill);
           expect(style.boxShadow).toContain(stroke);
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           // The text a cell shows: its value, or else its placeholder.
           expect(filled ? style.color : getComputedStyle(input, '::placeholder').color).toBe(value);
           expect(input.getBoundingClientRect().height).toBe(40);

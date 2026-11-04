@@ -326,15 +326,58 @@ export const Controlled: Story = {
   },
 };
 
-/** Disabled (State=Disabled): it can't be focused, and doesn't open. */
+/**
+ * The Caret Button (Button / Icon, Ghost 32): a click opens the full list without typing, and a second
+ * click closes it. It isn't a tab stop, and focus stays in the input, so the keys go on working.
+ */
+export const CaretButton: Story = {
+  args: { defaultValue: 'Romania' },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole('combobox', { name: 'Location' });
+    const caret = canvas.getByRole('button', { name: 'Show options' });
+    await expect(caret).toHaveAttribute('tabindex', '-1');
+    await expect(caret).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(caret);
+    const list = canvas.getByRole('listbox', { name: 'Location' });
+    // The full list, on the chosen option; the input has focus and the keys.
+    await expect(labels(list)).toEqual(COUNTRIES);
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveAttribute('aria-expanded', 'true');
+    await expect(caret).toHaveAttribute('aria-expanded', 'true');
+    await expect(input).toHaveAttribute('aria-activedescendant', canvas.getByRole('option', { name: 'Romania' }).id);
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await expect(input).toHaveValue('Hungary');
+    await expect(args.onValueChange).toHaveBeenCalledWith('Hungary');
+
+    // Open again, then the caret closes it, keeping the choice and focus.
+    await userEvent.click(caret);
+    await expect(canvas.getByRole('listbox')).toBeInTheDocument();
+    await userEvent.click(caret);
+    await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
+    await expect(caret).toHaveAttribute('aria-expanded', 'false');
+    await expect(input).toHaveFocus();
+    await expect(input).toHaveValue('Hungary');
+
+    // Tab goes from the input past the caret, to the next field.
+    await userEvent.tab();
+    await expect(canvas.getByRole('button', { name: 'Next field' })).toHaveFocus();
+  },
+};
+
+/** Disabled (State=Disabled): it can't be focused, and doesn't open, from the input or the caret. */
 export const Disabled: Story = {
   args: { disabled: true, defaultValue: 'Hungary' },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByRole('combobox', { name: 'Location' });
+    const caret = canvas.getByRole('button', { name: 'Show options' });
     await expect(input).toBeDisabled();
+    await expect(caret).toBeDisabled();
     await expect(input).toHaveValue('Hungary');
     await userEvent.click(input, { pointerEventsCheck: 0 });
+    await userEvent.click(caret, { pointerEventsCheck: 0 });
     await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
     await userEvent.tab();
     await expect(input).not.toHaveFocus();
@@ -374,33 +417,94 @@ export const ErrorOpen: Story = {
   parameters: { controls: { disable: true } },
   play: async ({ canvasElement }) => {
     const input = within(canvasElement).getByRole('combobox', { name: 'Location' });
+    const caret = within(canvasElement).getByRole('button', { name: 'Show options' });
     await expect(input).toHaveAttribute('aria-expanded', 'true');
+    await expect(caret).toHaveAttribute('aria-expanded', 'true');
     await expect(getComputedStyle(input).boxShadow).toContain(
       insetStroke(tokenColour('accent-critical-outline-border-default'), 2),
     );
+    await expect(getComputedStyle(caret).color).toBe(tokenColour('text-secondary'));
   },
 };
 
+/** State=Error + Open in Dark. */
+export const ErrorOpenDark: Story = {
+  ...ErrorOpen,
+  name: 'Error, open — Dark',
+  globals: { theme: 'dark' },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: ['!autodocs'],
+};
+
 /* ── Every State, in Light and Dark ────────────────────────────────────────
-   The six states of the Figma component set. Focus is forced with
+   The states of the Figma component set (Error + Open: the "Error, open"
+   stories). Focus is forced with
    storybook-addon-pseudo-states, and each cell is checked against the
    variables Figma binds in that state: fill, stroke colour and width, the
-   value or placeholder colour, both icons (text.subtle, 20px, 12px from the
-   edge), the 40px text inset and the height. */
+   value or placeholder colour, the search icon (20px, 12px from the left),
+   the Caret Button (ghost 32, 4px from the right, its 16px glyph 12px in),
+   the text's 40 / 44 inset and the height. */
 
+const FIELD = 'surface-elevated-secondary';
 const STATES = [
-  { state: 'Default', props: {}, text: 'text-subtle', stroke: ['stroke-field', 1] },
-  { state: 'Filled', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-field', 1] },
-  { state: 'Focus', props: { defaultValue: 'Philippines' }, text: 'text-primary', stroke: ['stroke-focused', 2] },
+  { state: 'Default', props: {}, text: 'text-subtle', fill: FIELD, icon: 'text-subtle', stroke: ['stroke-field', 1] },
+  {
+    state: 'Filled',
+    props: { defaultValue: 'Philippines' },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['stroke-field', 1],
+  },
+  {
+    state: 'Focus',
+    props: { defaultValue: 'Philippines' },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['stroke-focused', 2],
+  },
   {
     state: 'Error',
     props: { defaultValue: 'Philippines', 'aria-invalid': true },
     text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
     stroke: ['accent-critical-outline-border-default', 1],
   },
-  { state: 'Disabled', props: { disabled: true }, text: 'text-subtle', stroke: ['stroke-subtle', 1] },
-  // Last, so its list opens over nothing.
-  { state: 'Open', props: { defaultOpen: true }, text: 'text-subtle', stroke: ['stroke-focused', 2] },
+  {
+    state: 'Error + Focus',
+    props: { defaultValue: 'Philippines', 'aria-invalid': true },
+    text: 'text-primary',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['accent-critical-outline-border-default', 2],
+  },
+  {
+    state: 'Disabled',
+    props: { disabled: true },
+    text: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    icon: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  {
+    state: 'Disabled, filled',
+    props: { disabled: true, defaultValue: 'Philippines' },
+    text: 'text-disabled',
+    fill: 'neutral-tonal-surface-disabled',
+    icon: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
+  },
+  // Last, so its list opens over nothing. Error + Open is the "Error, open" stories above.
+  {
+    state: 'Open',
+    props: { defaultOpen: true },
+    text: 'text-subtle',
+    fill: FIELD,
+    icon: 'text-subtle',
+    stroke: ['stroke-focused', 2],
+  },
 ] as const;
 
 const grid = (theme: 'light' | 'dark'): Story => ({
@@ -415,7 +519,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             options={COUNTRIES}
             aria-label={`${state} location`}
             placeholder={PLACEHOLDER}
-            data-pseudo={state === 'Focus' ? 'focus' : undefined}
+            data-pseudo={state === 'Focus' || state === 'Error + Focus' ? 'focus' : undefined}
           />
         </div>
       ))}
@@ -432,40 +536,58 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Focus on
   // STORY_RENDERED, which comes after play.
   afterEach: async ({ canvasElement }) => {
-    const fill = tokenColour('surface-elevated-secondary');
-    const icon = tokenColour('text-subtle');
-    const want = STATES.map(({ state, props, text, stroke: [token, width] }) => ({
+    const glyph = tokenColour('text-secondary');
+    const disabledGlyph = tokenColour('text-disabled');
+    const want = STATES.map(({ state, props, text, fill, icon, stroke: [token, width] }) => ({
       state,
       filled: 'defaultValue' in props,
+      open: 'defaultOpen' in props,
+      disabled: 'disabled' in props,
       text: tokenColour(text),
+      fill: tokenColour(fill),
+      icon: tokenColour(icon),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, filled, text, stroke } of want) {
+        for (const { state, filled, open, disabled, text, fill, icon, stroke } of want) {
           const cell = canvasElement.querySelector<HTMLElement>(`[data-cell="${state}"]`)!;
           const input = cell.querySelector<HTMLInputElement>('[role="combobox"]')!;
           const style = getComputedStyle(input);
           expect(style.backgroundColor).toBe(fill);
           expect(style.boxShadow).toContain(stroke);
+          // Disabled is its own tokens now, not the box at 50% opacity.
+          expect(style.opacity).toBe('1');
+          expect(getComputedStyle(input.parentElement!).opacity).toBe('1');
           // The text a cell shows: its value, or else its placeholder.
           expect(filled ? style.color : getComputedStyle(input, '::placeholder').color).toBe(text);
           const box = input.getBoundingClientRect();
           expect(box.height).toBe(40);
-          // 12px side + 20px icon + 8px gap before the text, on both sides.
+          // 12px side + 20px icon + 8px gap before the text; 4px side + 32px button + 8px gap after it.
           expect(style.paddingLeft).toBe('40px');
-          expect(style.paddingRight).toBe('40px');
-          // Icon / Search and Icon / Caret: text.subtle, 20px, 12px in from each edge, centred.
-          const [search, caret] = cell.querySelectorAll('svg');
-          for (const svg of [search, caret]) {
-            const b = svg.getBoundingClientRect();
-            expect(getComputedStyle(svg).color).toBe(icon);
-            expect(b.width).toBe(20);
-            expect(b.top - box.top).toBe(10);
-          }
-          expect(search.getBoundingClientRect().left - box.left).toBe(12);
-          expect(box.right - caret.getBoundingClientRect().right).toBe(12);
-          expect(input.getAttribute('aria-expanded')).toBe(String(state === 'Open'));
+          expect(style.paddingRight).toBe('44px');
+          // Icon / Search: 20px, 12px in from the left, centred.
+          const search = input.parentElement!.querySelector(':scope > svg')!;
+          const s = search.getBoundingClientRect();
+          expect(getComputedStyle(search).color).toBe(icon);
+          expect(s.width).toBe(20);
+          expect(s.top - box.top).toBe(10);
+          expect(s.left - box.left).toBe(12);
+          // Caret Button: ghost 32, 4px in from the right, centred; CaretDown 16 in text.secondary
+          // (text.disabled when disabled), so the glyph is 12px in. It shows the list's state.
+          const caret = cell.querySelector<HTMLButtonElement>('button[aria-label="Show options"]')!;
+          const c = caret.getBoundingClientRect();
+          const g = caret.querySelector('svg')!.getBoundingClientRect();
+          expect([c.width, c.height]).toEqual([32, 32]);
+          expect(box.right - c.right).toBe(4);
+          expect(c.top - box.top).toBe(4);
+          expect(g.width).toBe(16);
+          expect(box.right - g.right).toBe(12);
+          expect(getComputedStyle(caret).color).toBe(disabled ? disabledGlyph : glyph);
+          expect(getComputedStyle(caret).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+          expect(caret.disabled).toBe(disabled);
+          expect(input.getAttribute('aria-expanded')).toBe(String(open));
+          expect(caret.getAttribute('aria-expanded')).toBe(String(open));
         }
       },
       { timeout: 3000 },
@@ -491,9 +613,9 @@ const open = (theme: 'light' | 'dark'): Story => ({
     const want = {
       fill: tokenColour('surface-neutral-faint'),
       stroke: tokenColour('stroke-subtle'),
-      selected: tokenColour('surface-base'),
+      selected: tokenColour('neutral-tonal-surface-default'),
       label: tokenColour('text-primary'),
-      check: tokenColour('action-primary-surface-default'),
+      check: tokenColour('text-primary'),
       focused: tokenColour('stroke-focused'),
     };
     const canvas = within(canvasElement);
@@ -515,7 +637,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     await expect(style.boxShadow).toContain(insetStroke(want.stroke, 1));
     await expect(style.borderRadius).toBe('8px');
     await expect(style.padding).toBe('6px');
-    // Select / Option: Selected is surface.base with the check; the rest have no fill.
+    // Select / Option: Selected is neutral.tonal.surface.default with the text.primary check; the rest have no fill.
     const [chosen, ...rest] = options;
     await expect(chosen).toHaveAttribute('aria-selected', 'true');
     await expect(getComputedStyle(chosen).backgroundColor).toBe(want.selected);
@@ -545,7 +667,7 @@ const filtered = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      active: tokenColour('surface-base'),
+      active: tokenColour('neutral-tonal-surface-default'),
       focused: tokenColour('stroke-focused'),
       typed: tokenColour('text-primary'),
     };
@@ -558,7 +680,7 @@ const filtered = (theme: 'light' | 'dark'): Story => ({
     await expect(input).toHaveFocus();
     await expect(getComputedStyle(input).color).toBe(want.typed);
     await expect(getComputedStyle(input).boxShadow).toContain(insetStroke(want.focused, 2));
-    // The first match is active: Hover's surface.base fill (it fades in) and the 2px stroke.focused ring.
+    // The first match is State=Active: Hover's neutral.tonal fill (it fades in) and the 2px stroke.focused ring.
     await expect(input).toHaveAttribute('aria-activedescendant', first.id);
     await waitFor(() => expect(getComputedStyle(first).backgroundColor).toBe(want.active));
     await expect(getComputedStyle(first).outlineColor).toBe(want.focused);

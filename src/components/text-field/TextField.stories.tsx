@@ -198,8 +198,8 @@ const STATES = [
   {
     state: 'Disabled',
     props: { disabled: true, defaultValue: 'QA Test' },
-    value: 'text-subtle',
-    stroke: ['stroke-subtle', 1],
+    value: 'text-disabled',
+    stroke: ['neutral-outline-border-disabled', 1],
   },
   { state: 'Required', props: { required: true }, value: 'text-subtle', stroke: ['stroke-field', 1] },
   {
@@ -241,17 +241,20 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const marker = tokenColour('accent-critical-tonal-content-default');
     const helper = tokenColour('text-subtle');
     const fill = tokenColour('surface-elevated-secondary');
+    const disabledFill = tokenColour('neutral-tonal-surface-disabled');
+    const critical = tokenColour('accent-critical-tonal-content-default');
     const want = STATES.map(({ state, props, value, stroke: [token, width] }) => ({
       state,
       filled: 'defaultValue' in props,
       required: 'required' in props,
       message: 'error' in props || 'helper' in props,
+      error: 'error' in props,
       value: tokenColour(value),
       stroke: insetStroke(tokenColour(token), width),
     }));
     await waitFor(
       () => {
-        for (const { state, filled, required, message, value, stroke } of want) {
+        for (const { state, filled, required, message, error, value, stroke } of want) {
           const input = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
           const field = input.parentElement!;
           const labelNode = field.querySelector('label')!;
@@ -265,19 +268,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(input.getBoundingClientRect().top - labelNode.getBoundingClientRect().bottom).toBe(20);
           // The input: the _Text Input bindings for this state.
           const style = getComputedStyle(input);
-          expect(style.backgroundColor).toBe(fill);
+          expect(style.backgroundColor).toBe(state === 'Disabled' ? disabledFill : fill);
+          // Disabled is its own tokens now, not Default at 50% opacity.
+          expect(style.opacity).toBe('1');
           expect(style.boxShadow).toContain(stroke);
           expect(filled ? style.color : getComputedStyle(input, '::placeholder').color).toBe(value);
           expect(input.getBoundingClientRect().height).toBe(40);
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, right under the input.
+          // The Helper (text.subtle) or the Error Text in its place (accent.critical.tonal.content.default):
+          // Caption/md-regular, space.8 under the input.
           const note = field.querySelector('p');
           if (!message) {
             expect(note).toBeNull();
             continue;
           }
-          expect(getComputedStyle(note!).color).toBe(helper);
+          expect(getComputedStyle(note!).color).toBe(error ? critical : helper);
           expect(getComputedStyle(note!).fontSize).toBe('12px');
-          expect(note!.getBoundingClientRect().top).toBe(input.getBoundingClientRect().bottom);
+          expect(note!.getBoundingClientRect().top).toBe(input.getBoundingClientRect().bottom + 8);
         }
       },
       { timeout: 3000 },

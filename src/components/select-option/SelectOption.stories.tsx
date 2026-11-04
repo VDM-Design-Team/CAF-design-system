@@ -11,10 +11,11 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Form** (`Select / Option`): one choice in a Select / Menu. Figma’s ' +
-          'State is Default, Hover (`:hover`) or Selected (`selected`: a surface/base fill, a check and ' +
-          '`aria-selected`); the Label is `children`. It is a `<div role="option">` inside a SelectMenu, and never takes ' +
-          'focus: Select keeps focus on its trigger and marks the option the arrow keys are on with `data-active`, plus ' +
-          '`data-focus-visible` for the focus ring when the keyboard put it there.',
+          'State is Default, Hover (`:hover`, a neutral/tonal/surface/default fill), Active (the option the arrow keys ' +
+          'are on) or Selected (`selected`: the same fill, a text/primary check and `aria-selected`); the Label is ' +
+          '`children`. It is a `<div role="option">` inside a SelectMenu, and never takes focus: Select keeps focus on ' +
+          'its trigger and marks the Active option with `data-active`, plus `data-focus-visible` for its Focus Ring ' +
+          'when the keyboard put it there.',
       },
     },
   },
@@ -42,17 +43,19 @@ export const Playground: Story = {
 };
 
 /* ── Every state, in Light and Dark ────────────────────────────────────────
-   Figma's Default, Hover and Selected, plus Selected on hover (which Figma
-   doesn't draw) and the option the arrow keys are on (code's addition), each
-   on Select / Menu's surface. Hover is forced with storybook-addon-pseudo-states
-   and checked against Figma's bindings. */
+   Figma's Default, Hover, Active (the option the arrow keys are on, with its
+   Focus Ring) and Selected, plus Selected on hover and Active from the pointer
+   (no ring), which Figma doesn't draw, each on Select / Menu's surface. Hover
+   is forced with storybook-addon-pseudo-states and checked against Figma's
+   bindings. */
 
 const STATES = [
-  { id: 'default', label: 'Default', selected: false, hover: false, keys: false },
-  { id: 'hover', label: 'Hover', selected: false, hover: true, keys: false },
-  { id: 'selected', label: 'Selected', selected: true, hover: false, keys: false },
-  { id: 'selected-hover', label: 'Selected, hover', selected: true, hover: true, keys: false },
-  { id: 'keys', label: 'Arrow keys on it', selected: false, hover: false, keys: true },
+  { id: 'default', label: 'Default', selected: false, hover: false, active: false, keys: false },
+  { id: 'hover', label: 'Hover', selected: false, hover: true, active: false, keys: false },
+  { id: 'keys', label: 'Active', selected: false, hover: false, active: true, keys: true },
+  { id: 'pointer', label: 'Active, from the pointer', selected: false, hover: false, active: true, keys: false },
+  { id: 'selected', label: 'Selected', selected: true, hover: false, active: false, keys: false },
+  { id: 'selected-hover', label: 'Selected, hover', selected: true, hover: true, active: false, keys: false },
 ] as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -87,7 +90,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
             <SelectOption
               selected={s.selected}
               data-pseudo={s.hover ? 'hover' : undefined}
-              data-active={s.keys ? '' : undefined}
+              data-active={s.active ? '' : undefined}
               data-focus-visible={s.keys ? '' : undefined}
               data-state={s.id}
               className="transition-none"
@@ -112,9 +115,9 @@ const states = (theme: 'light' | 'dark'): Story => ({
   afterEach: async ({ canvasElement }) => {
     const want = {
       menu: tokenColour('surface-neutral-faint'),
-      filled: tokenColour('surface-base'),
+      filled: tokenColour('neutral-tonal-surface-default'),
       label: tokenColour('text-primary'),
-      check: tokenColour('action-primary-surface-default'),
+      check: tokenColour('text-primary'),
       ring: tokenColour('stroke-focused'),
       type: utilityType('text-body-sm-regular'),
     };
@@ -128,8 +131,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
         for (const option of options) {
           const s = STATES.find((x) => x.id === option.dataset.state)!;
           const style = getComputedStyle(option);
-          // Default: no fill. Hover, Selected and the arrow keys' option: surface.base.
-          const filled = s.hover || s.selected || s.keys;
+          // Default: no fill. Hover, Active and Selected: neutral.tonal.surface.default.
+          const filled = s.hover || s.selected || s.active;
           expect(style.backgroundColor).toBe(filled ? want.filled : 'rgba(0, 0, 0, 0)');
           // Label: text.primary, Body/sm-regular, in every state.
           expect(style.color).toBe(want.label);
@@ -138,7 +141,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
           expect(style.padding).toBe('8px 12px');
           expect(style.borderRadius).toBe('6px');
           expect(option.getBoundingClientRect().height).toBeCloseTo(36, 1);
-          // Selected: aria-selected and a 16px check in action.primary.surface.default.
+          // Selected: aria-selected and a 16px check in text.primary, the label's colour.
           expect(option).toHaveAttribute('aria-selected', String(s.selected));
           const check = option.querySelector('svg');
           if (s.selected) {
@@ -148,7 +151,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
           } else {
             expect(check).toBeNull();
           }
-          // The arrow keys' option: Button's 2px stroke.focused ring, 2px out.
+          // Active from the keyboard: Figma's Focus Ring, 2px stroke.focused, 2px out.
           if (s.keys) {
             expect(style.outlineStyle).toBe('solid');
             expect(style.outlineWidth).toBe('2px');

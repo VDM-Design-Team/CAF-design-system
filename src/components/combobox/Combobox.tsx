@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cn } from '../../lib/cn';
 import { useFormField, useFormFieldControl } from '../form-field';
 import { Icon } from '../icon';
+import { IconButton } from '../icon-button';
 import { Popover } from '../popover';
 import type { SelectOptionData } from '../select';
 import { selectMenuLayout } from '../select-menu';
@@ -20,13 +21,17 @@ import { TextInput, type TextInputProps } from '../text-input';
  * - State=Filled   → a chosen option (`value` / `defaultValue`): its label, in text/primary.
  * - State=Focus    → `:focus` (Figma: "typing"): a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border.
- * - State=Disabled → the native `disabled` attribute.
+ * - State=Disabled → the native `disabled` attribute: the disabled fill and
+ *   stroke; the text, the search icon and the caret in text/disabled.
  * - State=Open     → the list showing (`open` / `defaultOpen`, or the user
  *   opening it), which sets `aria-expanded`: Focus's 2px stroke.
  * - Value          → `placeholder` while nothing is chosen, the chosen label
  *   once filled, and what the user types while filtering.
  * - Icon / Search  → Icon `magnifying-glass`, 20px, text/subtle, 12px from the left.
- * - Icon / Caret   → Icon `caret-down`, 20px, text/subtle, 12px from the right.
+ * - Caret Button   → an IconButton (ghost, 32, `caret-down`, "Show options"),
+ *   4px from the right, so its 16px glyph is 12px in. It opens the full list
+ *   without typing, and closes it again. It isn't a tab stop (the input's
+ *   ↓ / ↑ do the same) and doesn't take focus from the input.
  * - Select / Menu and Select / Option → the list: Popover's panel with
  *   SelectMenu's layout, and one SelectOption per match (Select's, reused).
  *
@@ -38,6 +43,7 @@ import { TextInput, type TextInputProps } from '../text-input';
  *   No match shows "No results" (`emptyText`), which is also announced.
  * - A click, ↓ or ↑ opens the full list on the chosen option (↓: else the
  *   first; ↑: else the last). Open, ↓ / ↑ move one option and stop at the ends.
+ *   The caret button opens the list as a click does, and closes it when open.
  * - Enter chooses the active option and closes; a click on an option does too.
  *   Closed, Enter is the form's (it submits).
  * - Escape closes the list and puts back the chosen label. Pressed again,
@@ -65,30 +71,54 @@ import { TextInput, type TextInputProps } from '../text-input';
 const comboboxInputClasses = [
   /* TextInput is _Text Input: the same fill, stroke, radius, type, height and
      Default / Filled / Focus / Error / Disabled bindings as _Combobox Input.
-     Here the text sits between the icons: 12px side + 20px icon + 8px gap = space.40. */
-  'px-10',
+     The text sits between the search icon (12px side + 20px icon + 8px gap =
+     space.40) and the caret button (4px side + 32px button + 8px gap = space.44). */
+  'pl-10 pr-11',
   /* State=Open: Focus's 2px stroke.focused stroke. Error keeps its colour at that width. */
   'aria-expanded:inset-ring-2 aria-expanded:inset-ring-stroke-focused',
-  /* State=Disabled's 50% opacity goes on the box below, so the icons dim with the input. */
-  'disabled:opacity-100',
 ];
 
-/* The box: the input, with Figma's two icons over its padding. They let a
-   click through to the input, which opens the list. */
-const ComboboxInput = React.forwardRef<HTMLInputElement, TextInputProps>(function ComboboxInput(
-  { className, ...props },
+interface ComboboxInputProps extends TextInputProps {
+  /** The caret button was pressed: open or close the list. */
+  onCaretClick: () => void;
+}
+
+/* The box: the input, with Figma's search icon over its left padding (it lets
+   a click through to the input, which opens the list) and its Caret Button
+   over the right. */
+const ComboboxInput = React.forwardRef<HTMLInputElement, ComboboxInputProps>(function ComboboxInput(
+  { className, onCaretClick, ...props },
   ref,
 ) {
+  const { disabled } = props;
   return (
-    /* State=Disabled: the whole box, icons included, at 50% opacity (Figma's layer opacity, raw 0.5). */
-    <span className="relative flex w-full min-w-0 has-disabled:opacity-50">
+    <span className="relative flex w-full min-w-0">
+      {/* Icon / Search: text.subtle; text.disabled in State=Disabled. */}
       <Icon
         name="magnifying-glass"
         size={20}
-        className="pointer-events-none absolute inset-y-0 left-3 my-auto text-text-subtle"
+        className={cn(
+          'pointer-events-none absolute inset-y-0 left-3 my-auto',
+          disabled ? 'text-text-disabled' : 'text-text-subtle',
+        )}
       />
       <TextInput ref={ref} className={cn(comboboxInputClasses, className)} {...props} />
-      <Icon name="caret-down" size={20} className="pointer-events-none absolute inset-y-0 right-3 my-auto text-text-subtle" />
+      {/* Caret Button: Button / Icon, Size=32, Tone=Ghost, CaretDown 16 in text.secondary (Figma
+          overrides the glyph to text.disabled in State=Disabled). Not a tab stop: the input's
+          ↓ / ↑ open the list. Pressing it keeps focus in the input. */}
+      <IconButton
+        icon="caret-down"
+        label="Show options"
+        tabIndex={-1}
+        disabled={disabled}
+        aria-expanded={props['aria-expanded'] === true || props['aria-expanded'] === 'true'}
+        className="absolute inset-y-0 right-1 my-auto disabled:text-text-disabled"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={(event) => {
+          event.currentTarget.parentElement?.querySelector('input')?.focus();
+          onCaretClick();
+        }}
+      />
     </span>
   );
 });
@@ -315,6 +345,12 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(functi
     lastInput.current = 'pointer';
   };
 
+  /* The caret button: the full list (as a click in the input opens it), or closed again. */
+  const handleCaretClick = () => {
+    lastInput.current = 'pointer';
+    setOpen(!openNow.current);
+  };
+
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     onBlur?.(event);
     /* Text typed while the list was kept closed (a controlled `open`) settles on the way out. */
@@ -346,6 +382,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(functi
             onClick={handleClick}
             onPointerDown={handlePointerDown}
             onBlur={handleBlur}
+            onCaretClick={handleCaretClick}
           />
         }
         open={isOpen}
