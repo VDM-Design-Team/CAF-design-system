@@ -20,8 +20,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Cards** (`Card / Changelog Entry`): one release on the Changelog ' +
           'page (patterns 14 and U07). `title` is Title (a heading, `<h2>` unless `headingLevel` says otherwise), `meta` ' +
-          'is Meta (“Version 2.5.6 • August 10, 2026”), `showNew` is Show New (the Info Tag “New”, default true as in ' +
-          'Figma; the Changelog shows it on the latest release only), and the notes are `children`: BulletItems. It is ' +
+          'is Meta (“Version 2.5.6 • August 10, 2026”), `showNew` is Show New (the Info Tag “New”, default false as in ' +
+          'Figma; the Changelog sets it on the latest release only), and the notes are `children`: BulletItems. It is ' +
           'an `<article>` named by its title.',
       },
     },
@@ -45,7 +45,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Playground: Story = {};
+/** Figma's default: Show New off, so no New tag. */
+export const Playground: Story = {
+  play: async ({ canvasElement }) => {
+    const card = within(canvasElement).getByRole('article', { name: 'WELCOME TO THE NEW UPDATE FOR CAF' });
+    await expect(within(card).queryByText('New')).toBeNull();
+  },
+};
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
@@ -66,10 +72,11 @@ const variants = (theme: 'light' | 'dark'): Story => ({
   name: `Show New — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
     <div className="flex flex-col gap-4">
-      <ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026">
+      <ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026" showNew>
         {notes}
       </ChangelogEntry>
-      <ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026" showNew={false}>
+      {/* Show New off: Figma's default. */}
+      <ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026">
         {notes}
       </ChangelogEntry>
     </div>
@@ -159,13 +166,13 @@ export const OnTheChangelog: Story = {
         <h1 className="text-heading-lg-bold text-text-primary">Changelog</h1>
         <p className="text-body-sm-regular text-text-subtle">Everything that’s new in the Cost Application Form.</p>
       </div>
-      <ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026">
+      <ChangelogEntry title="WELCOME TO THE NEW UPDATE FOR CAF" meta="Version 2.5.6 • August 10, 2026" showNew>
         {notes}
       </ChangelogEntry>
-      <ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026" showNew={false}>
+      <ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026">
         {notes}
       </ChangelogEntry>
-      <ChangelogEntry title="RECURRING COSTS" meta="Version 2.4.0 • May 18, 2026" showNew={false}>
+      <ChangelogEntry title="RECURRING COSTS" meta="Version 2.4.0 • May 18, 2026">
         {notes}
       </ChangelogEntry>
     </div>

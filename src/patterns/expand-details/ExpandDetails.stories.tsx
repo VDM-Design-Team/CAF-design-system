@@ -75,10 +75,14 @@ export const ExpandForDetails: Story = {
     const table = costsTable(canvasElement);
 
     // Step 1: each cost shows its account summary; nothing is open.
-    const summary = within(rowOf(table, '32430'));
-    for (const line of ['ID: 32430', 'Applicant: QA Test Bryan', 'Beneficiary name: Jane Doe', 'IBAN Account: 982389428934', 'Recurring']) {
-      await expect(summary.getByText(line)).toBeVisible();
+    const summary = rowOf(table, '32430');
+    // Each Detail Label is a Label and a Value; the line reads as one.
+    const lines = [...summary.querySelectorAll('p')].map((p) => p.textContent);
+    for (const line of ['ID: 32430', 'Applicant: QA Test Bryan', 'Beneficiary name: Jane Doe', 'IBAN Account: 982389428934']) {
+      await expect(lines).toContain(line);
+      await expect(within(summary).getByText(line.slice(line.indexOf(': ') + 2))).toBeVisible();
     }
+    await expect(within(summary).getByText('Recurring')).toBeVisible();
     for (const button of canvas.getAllByRole('button', { name: /^Show details for cost/ })) {
       await expect(button).toHaveAttribute('aria-expanded', 'false');
     }

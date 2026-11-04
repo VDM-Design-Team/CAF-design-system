@@ -27,7 +27,8 @@ const meta = {
           'Built from the CAF Figma library, page **Filters** (`Filter / Summary` and its `Filter / Summary Line`s): a ' +
           'read-only record of the filters something was made with, as in Export Details. `title` is Figma’s Title ' +
           '(default “Current Filters”) and names the summary. `filters` is the lines, one `{ key, value }` each: pass ' +
-          'the filter’s name as `key` (“Status”), and the colon is added. The lines are a `dl`. It has no action: ' +
+          'the filter’s name as `key` (“Status”), and the colon is added. The lines are a `dl`, in a box with a 1px ' +
+          '`stroke/subtle` edge inside (decorative, as Card / Panel’s). It has no action: ' +
           'filters are changed in the Filter Bar.',
       },
     },
@@ -96,6 +97,7 @@ const filtersStory = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       box: tokenColour('surface-elevated-secondary'),
+      edge: tokenColour('stroke-subtle'),
       primary: tokenColour('text-primary'),
       secondary: tokenColour('text-secondary'),
     };
@@ -107,10 +109,12 @@ const filtersStory = (theme: 'light' | 'dark'): Story => ({
         expect(getComputedStyle(summary).rowGap).toBe('8px');
         expect(getComputedStyle(title).color).toBe(want.secondary);
         expect([getComputedStyle(title).fontSize, getComputedStyle(title).fontWeight]).toEqual(['14px', '500']);
-        // Filters — a dl; surface.elevated-secondary, radius 8, 12/16 padding, 6px gap; it hugs its lines.
+        // Filters — a dl; surface.elevated-secondary, a 1px stroke.subtle stroke inside, radius 8, 12/16 padding, 6px gap; it hugs its lines.
         const style = getComputedStyle(box);
         expect(box.tagName).toBe('DL');
         expect(style.backgroundColor).toBe(want.box);
+        expect(style.boxShadow).toContain(`${want.edge} 0px 0px 0px 1px inset`);
+        expect(style.borderTopWidth).toBe('0px');
         expect(style.borderTopLeftRadius).toBe('8px');
         expect([style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft]).toEqual(['12px', '16px', '12px', '16px']);
         expect(style.rowGap).toBe('6px');

@@ -21,22 +21,26 @@ import { cn } from '../../lib/cn';
  *   table (GDL has no width scale). Before and After share the rest.
  * - The Row instances → `children`: one ChangeDiffRow per changed field.
  *
- * ChangeDiffRow, Figma → code (Field, Before, After are its properties):
+ * ChangeDiffRow, Figma → code (Field, Before, After and Show Before are its
+ * properties):
  * - Field  → `field`: a `<th scope="row">`, Body/sm-semibold, `text.primary`.
  * - Before → `before`: a `<del>` on `accent.critical.tonal` (surface and
- *   content), with a 1px `accent.critical.outline.border` inside the edge.
+ *   content), with a 1px `accent.critical.outline.border` inside the edge,
+ *   its value struck through, as Figma draws it.
+ * - Show Before → whether `before` is given. Leave it out for a Created
+ *   entry, whose fields had no value: the Before cell stays empty, and After
+ *   keeps its column.
  * - After  → `after`: an `<ins>` on `accent.success.tonal`, with
- *   `accent.success.outline.border`.
- * - The value boxes: radius 6 (raw) → `rounded-6`; padding 6 / 10 (raw) →
- *   `py-1.5 px-2` (GDL has no 10).
+ *   `accent.success.outline.border`, not underlined.
+ * - The value boxes: radius 6 → `rounded-6`; padding `space/6` / `space/8`
+ *   → `py-1.5 px-2`.
  *
  * The colour isn't the only cue: the column headers say Before and After,
- * and the values are `<del>` and `<ins>`, each led by a visually hidden
- * "Removed:" or "Added:" for screen readers that don't announce them. Figma
- * draws no strike-through or underline, so neither does code. Rows and the
- * header pad 16px at the sides and 16px between columns; Figma's raw 10 top
- * and bottom is 8 (`space/8`). Where code departs from Figma, the reason is
- * in docs/figma-sync.md ("ChangeDiff").
+ * Before is struck through, and the values are `<del>` and `<ins>`, each led
+ * by a visually hidden "Removed:" or "Added:" for screen readers that don't
+ * announce them. Rows and the header pad 8px top and bottom (`space/8`) and
+ * 16px at the sides, with 16px between columns. Where code departs from
+ * Figma, the reason is in docs/figma-sync.md ("ChangeDiff").
  */
 const head = 'py-2 pl-4 text-left align-middle text-body-sm-regular text-text-subtle border-b border-stroke-subtle';
 
@@ -79,18 +83,21 @@ export const ChangeDiff = React.forwardRef<HTMLTableElement, ChangeDiffProps>(fu
 ChangeDiff.displayName = 'ChangeDiff';
 
 /* The value boxes: a tonal fill, its content colour, a 1px outline border inside the edge.
-   `no-underline` clears the browser's strike-through on <del> and underline on <ins>: Figma has neither. */
-const value = 'inline-block max-w-full rounded-6 px-2 py-1.5 align-middle break-words text-body-sm-regular no-underline inset-ring';
+   Before is struck through (Figma's Value: Strikethrough); `no-underline` clears the browser's underline on <ins>. */
+const value = 'inline-block max-w-full rounded-6 px-2 py-1.5 align-middle break-words text-body-sm-regular inset-ring';
 const removed =
-  'bg-accent-critical-tonal-surface-default text-accent-critical-tonal-content-default inset-ring-accent-critical-outline-border-default';
+  'bg-accent-critical-tonal-surface-default text-accent-critical-tonal-content-default inset-ring-accent-critical-outline-border-default line-through';
 const added =
-  'bg-accent-success-tonal-surface-default text-accent-success-tonal-content-default inset-ring-accent-success-outline-border-default';
+  'bg-accent-success-tonal-surface-default text-accent-success-tonal-content-default inset-ring-accent-success-outline-border-default no-underline';
 
 export interface ChangeDiffRowProps extends Omit<React.HTMLAttributes<HTMLTableRowElement>, 'children'> {
   /** Figma Field: the changed field's name ("Status"). */
   field: React.ReactNode;
-  /** Figma Before: the old value ("Unknown"). */
-  before: React.ReactNode;
+  /**
+   * Figma Before: the old value ("Unknown"). Leave it out (Figma's Show Before
+   * off) for a Created entry: the Before cell stays empty.
+   */
+  before?: React.ReactNode;
   /** Figma After: the new value ("Pending"). */
   after: React.ReactNode;
 }
@@ -99,16 +106,19 @@ export const ChangeDiffRow = React.forwardRef<HTMLTableRowElement, ChangeDiffRow
   { field, before, after, className, ...props },
   ref,
 ) {
+  const showBefore = before !== undefined && before !== null && before !== false;
   return (
     <tr ref={ref} className={className} {...props}>
       <th scope="row" className="py-2 pl-4 text-left align-middle text-body-sm-semibold text-text-primary">
         {field}
       </th>
       <td className="py-2 pl-4 align-middle">
-        <del className={cn(value, removed)}>
-          <span className="sr-only">Removed: </span>
-          {before}
-        </del>
+        {showBefore && (
+          <del className={cn(value, removed)}>
+            <span className="sr-only">Removed: </span>
+            {before}
+          </del>
+        )}
       </td>
       <td className="py-2 pr-4 pl-4 align-middle">
         <ins className={cn(value, added)}>
