@@ -1309,17 +1309,17 @@ Today + Selected's Today Mark, the radius and the 36×36 size.
 
 Every state is 36×36 with radius 6, in Body/sm-regular. Day is `children`.
 
-Contrast on the calendar's `surface/neutral/faint`:
+Contrast on the calendar's `surface/elevated` (since 4 Nov 2026; `surface/neutral/faint` before):
 
 | Pair | Light | Dark | Needs |
 |---|---|---|---|
-| Default and Today, label | 19.28 | 17.85 | 4.5 |
-| Today, ring | 6.51 | 6.51 | 3 |
+| Default and Today, label | 20.17 | 14.63 | 4.5 |
+| Today, ring | 6.81 | 5.33 | 3 |
 | Selected, label on fill | 6.81 | 4.77 | 4.5 |
 | Today + Selected, the Today Mark on the fill | 6.81 | 4.77 | 3 |
 | (Today's `stroke/focused` ring on the Selected fill, before 3 Nov) | **1.00** | **1.40** | 3 |
 | In Range, label on fill | 16.36 | 7.58 | 4.5 |
-| In Range, fill against the panel | 1.18 | 2.36 | (decorative: the ends carry the range) |
+| In Range, fill against the panel | 1.23 | 1.93 | (decorative: the ends carry the range) |
 | Outside Month, label | **1.42** | **3.75** | exempt: inactive |
 
 - **Outside Month is below AA in both themes.** Code makes these days
@@ -1361,7 +1361,7 @@ in Light and Dark, mouse paging and the keyboard.
 
 | Layer | Figma | Code |
 |---|---|---|
-| Panel fill | `surface/neutral/faint` | `bg-surface-neutral-faint` |
+| Panel fill | `surface/elevated` (since 3 Nov 2026, decision menu-surface; `surface/neutral/faint` before) | `bg-surface-elevated` (`calendarSurface`, shared with RangeCalendar) |
 | Panel stroke | 1px inside `stroke/subtle` | `inset-ring inset-ring-stroke-subtle` |
 | Panel radius | `radius/12` | `rounded-12` |
 | Panel effect | Effects/Elevation Dark/3 | `shadow-elevation-3` (as Popover) |
@@ -1381,11 +1381,11 @@ Figma draws them. `month` is the visible month (default: the selected
 day's month, else today's), and ‹ / › call `onMonthChange` with its 1st.
 Choosing a day calls `onChange` with it at local midnight.
 
-Contrast, Light / Dark:
-- Month: 19.28 / 17.85.
-- Weekdays: 4.55 / 6.96. Light is just over AA.
-- Carets: 9.90 / 14.48 (3:1 needed).
-- Focus ring: 6.51 / 6.51.
+Contrast on `surface/elevated`, Light / Dark (since 4 Nov 2026):
+- Month: 20.17 / 14.63.
+- Weekdays: 4.76 / 5.71.
+- Carets: 10.35 / 11.87 (3:1 needed).
+- Focus ring: 6.81 / 5.33.
 - The days: as in DatePickerDay.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
@@ -1436,7 +1436,7 @@ Calendar's `CalendarMonth` and `dates.ts`.
 | Between | Day State=In Range, each a 36×36 tile with radius 6, 4 apart | `inRange`, the same tiles, as Figma |
 
 Contrast: as Calendar. The In Range label on its fill is 16.36 / 7.58.
-The In Range fill against the panel is 1.18 / 2.36 (decorative).
+The In Range fill against the panel is 1.23 / 1.93 (decorative).
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -1741,9 +1741,10 @@ Code departs from Figma here:
 | Width | Hug, with options set to Fill, so the menu has **collapsed to 38px** and every label wraps one letter per line | In Select, at least the trigger's width (wider for a longer label). On its own, its container's width | Set the width to Fixed (510, as `_Dropdown Input`) |
 | Height | No limit | `max-h-64` (`space/256`), then it scrolls; Select keeps the active option in view | Add a max height or a scrolling example |
 | Elevation in Dark | Elevation Dark/3 | GDL's Light Elevation 3 in both themes (Popover's note) | None in Figma |
-| Fill (3 Nov 2026) | `surface/neutral/faint` | `surface/elevated`: the list shares Popover's surface, which follows Menu / Dropdown (decision menu-surface: "Menu / Dropdown and every popover"). Options on it: `text/primary` 20.17 / 14.63; the active ring 6.81 / 5.33. Select, FilterSelect and Combobox show it so | Bind Select / Menu's fill to `surface/elevated` and its effect to Elevation Light/3, as Menu / Dropdown |
 
 Figma gaps the code doesn't copy: none. No modes are pinned.
+
+**Changed in Figma on 3 Nov 2026, published 4 Nov** (decision menu-surface): Select / Menu's fill is `surface/elevated`, as code's (Popover's surface). Options on it: `text/primary` 20.17 / 14.63; the active ring 6.81 / 5.33.
 
 ### Select (29 Oct 2026)
 
@@ -3601,7 +3602,7 @@ Dark; the stories also check the keyboard and a real form submit.
 | Required marker | `_Form Label`'s, `accent/critical/tonal/content/default` | the same, 2px after the label |
 | Options row | Horizontal, `space/24` gap | `flex flex-wrap gap-x-6` (`space/24`) |
 | Helper | Caption/md-regular, `text/subtle` | FormHelperText: `text-caption-md-regular text-text-subtle` |
-| Error (State=Error) | Caption/md-regular, `accent/critical/tonal/content/default`, in the Helper's place | FormHelperText, as on main: `text/subtle` (see below) |
+| Error (State=Error) | Caption/md-regular, `accent/critical/tonal/content/default`, in the Helper's place | FormHelperText with `text-accent-critical-tonal-content-default`, as FormField's error |
 | Radios (State=Error) | Radio Option Error=true | `aria-invalid` on each radio: Radio's Error stroke |
 | Column gap | `space/8` between Label, Options and Helper | 8px (`space/8`): `gap-2`, and `mb-2` on the legend |
 
@@ -3610,7 +3611,8 @@ Contrast, on `surface/canvas` (and `surface/base`, inside a modal):
 | Pair | Light | Dark |
 |---|---|---|
 | Label, `text/secondary` (4.5:1) | 9.90 (10.35) | 14.48 (11.87) |
-| Helper and error, `text/subtle` (4.5:1) | 4.55 (4.76) | 6.96 (5.71) |
+| Helper, `text/subtle` (4.5:1) | 4.55 (4.76) | 6.96 (5.71) |
+| Error, `accent/critical/tonal/content/default` (4.5:1) | 7.99 (8.36) | 9.30 (7.62) |
 | Marker, `accent/critical/tonal/content/default` (4.5:1) | 7.99 | 9.30 |
 
 The options and radios are RadioOption's and Radio's.
@@ -3627,7 +3629,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Width | Hugs (223) in the library; Fill (752) in Create Announcement | Fills its container | None needed |
 | Narrow screens | One row, no wrap | The row wraps, with `space/8` between rows | Set the Options frame to wrap, if wanted |
-| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message (FormHelperText) as on main, `text/subtle` | None: code follows when the form area gives the shared message its error colour |
 | Disabled | Not drawn | As above | See the design question |
 | Label's line height | Inter's auto (17px) | GDL's 20px | Bind the text style to the ramp |
 
@@ -3698,7 +3699,7 @@ Contrast, on `surface/canvas` (and `surface/base`, inside a modal):
 | Card stroke, `stroke/default` | 1.42 (1.48) | 2.36 (1.93) |
 | Checked card stroke, `stroke/focused` | 6.51 (6.81) | 6.51 (5.33) |
 | Error box and card stroke, `accent/critical/outline/border/default` | 3.64 (3.81) | 3.74 (3.07) |
-| Error message as code draws it, `text/subtle` (4.5:1) | 4.55 (4.76) | 6.96 (5.71) |
+| Error message, `accent/critical/tonal/content/default` (4.5:1) | 7.99 (8.36) | 9.30 (7.62) |
 
 Disabled is exempt: `text/disabled` is 1.42–1.48 (Light) and 3.07–3.75
 (Dark).
@@ -3721,7 +3722,7 @@ Code departs from Figma here:
 | Width | Fixed 464 in the library; Fill (512) in Add New User | Fills its container | None needed |
 | Click target | — | The whole field (a `<label>`) | None needed |
 | Focus | Checkbox's Focus, not a field State | Checkbox's 2px `stroke/focused` ring on the box | None needed |
-| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message's style as on main (FormHelperText's `text-caption-md-regular text-text-subtle`), on a `<span>`: a `<p>` can't sit in the field's `<label>` | None: code follows when the form area gives the shared message its error colour |
+| Error message element | A text layer | FormHelperText's type in the critical colour (`text-caption-md-regular text-accent-critical-tonal-content-default`), on a `<span>`: a `<p>` can't sit in the field's `<label>` | None needed |
 | Disabled + Error | Not drawn | Disabled wins: the box and card take their disabled colours, the message stays | None needed |
 
 **Changed in Figma on 3 Nov 2026** (decision checkbox-toggle-field-states;
@@ -3788,7 +3789,7 @@ Code departs from Figma here:
 |---|---|---|---|
 | Width | Fixed 464 in the library; Fill (752) in Create Announcement | Fills its container | None needed |
 | Click target | — | The whole field (a `<label>`) | None needed |
-| Error message colour | `accent/critical/tonal/content/default` (8.36 / 7.62) | The shared field message's style as on main, `text/subtle` (4.55 / 6.96), on a `<span>` inside the `<label>` | None: code follows when the form area gives the shared message its error colour |
+| Error message element | A text layer | `text-caption-md-regular text-accent-critical-tonal-content-default` (8.36 / 7.62) on a `<span>` inside the `<label>` | None needed |
 
 **Changed in Figma on 3 Nov 2026** (decision checkbox-toggle-field-states;
 published): a BOOLEAN **Required** (the "*" marker, as code already drew
@@ -3933,13 +3934,11 @@ Contrast, on the chip's fill:
 | × hovered: `text/secondary` on `neutral/tonal/surface/default` (3:1) | 8.40 | 6.15 |
 | Error stroke (3:1) | 3.64 | 3.74 |
 | Resting stroke, `stroke/subtle` (3:1) | **1.18** | **1.72** |
-| Download label, `action/primary/surface/default` on `surface/brand/faint` (hovered, on `surface/brand/subtle`) | 5.46 (3.98) | **3.59 (2.79)** |
+| Download label: Button's Tonal, `text/brand/strong` on `surface/brand/faint` (since 3 Nov 2026) | 11.08 | 8.07 |
 
-Download's pair is Button's Tonal pair, which is below AA in Dark. The
-grids skip the Download buttons in axe's contrast check only. The
-"Download contrast" stories report them with `a11y: { test: 'todo' }`, as
-Button's Tonal stories do. Remove the exception when Button's Tonal pair
-passes. The chip's fill has the same value as `surface/canvas` in both
+Download's pair is Button's Tonal pair, which passes AA in both themes
+since 3 Nov 2026 (Button). The contrast exception and the two "Download
+contrast" stories are gone (4 Nov 2026): axe checks every cell. The chip's fill has the same value as `surface/canvas` in both
 themes (1.00:1), so on a page the stroke is its only edge.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
@@ -5567,7 +5566,7 @@ Source: page **Filters** (`89:836`), section Drafts – 2 Nov 2026 (`765:15532`)
 | Field | Filter / Field Type=Dropdown: fill `colors/surface/elevated secondary`, 1px inside `colors/stroke/field`, radius `radius-4` (8), padding `24`, gap `16`, space-between | FilterField `type="dropdown"`, unchanged |
 | Field / Funnel, CaretDown | `colors/text/subtle` | `text-text-subtle` (FilterField) |
 | Field / Value ("All Status") | Body/sm-regular, `colors/text/primary` (an override) | the chosen option's label; `allLabel` while `value` is null |
-| Menu | Select / Menu, Fill: fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/8`, padding `space/6`, gap `space/2`, Effects/Elevation Dark/3 | Popover's surface with `selectMenuLayout`, `min-w-full` (as wide as the field) |
+| Menu | Select / Menu, Fill: fill `colors/surface/elevated` (since 3 Nov 2026), 1px inside `colors/stroke/subtle`, `radius/8`, padding `space/6`, gap `space/2`, Effects/Elevation Dark/3 | Popover's surface with `selectMenuLayout`, `min-w-full` (as wide as the field) |
 | Option 1 ("All Status") | Select / Option State=Selected (`colors/neutral/tonal/surface/default`, Check `colors/text/primary`, since 3 Nov 2026; see SelectOption) | `allLabel`, the first SelectOption; `onValueChange(null)` |
 | Options 2…5 | Select / Option State=Default, Body/sm-regular `colors/text/primary`, padding `space/8` / `space/12`, `radius/6` | one SelectOption per `options` entry |
 
@@ -5595,7 +5594,7 @@ Source: page **Filters** (`89:836`), section `765:15532`, set `Filter / Field �
 | Root | vertical, gap `space/4` | Popover (`panelRole="dialog"`, `surface={false}`): the picker `space/4` under the field, flush left |
 | Field | Filter / Field Type=Dropdown (as FilterSelect), Leading Icon swapped to CalendarBlank (`colors/text/subtle`) | FilterField `type="dropdown"`, `icon` `calendar-blank` (the default) |
 | Field / Value ("12–24 Oct", since 3 Nov 2026) | Body/sm-regular, `colors/text/primary` (the exposed Field's Value) | `formatDateRange(value, today)` ("12–24 Oct"); `placeholder` ("Select Period") in `text/subtle` while there is none |
-| Date Picker / Range | fill `colors/surface/neutral/faint`, 1px inside `colors/stroke/subtle`, `radius/12`, padding and gap `space/8`, Effects/Elevation Dark/3; Month / Start and Month / End | RangeCalendar, unchanged |
+| Date Picker / Range | fill `colors/surface/elevated` (since 3 Nov 2026), 1px inside `colors/stroke/subtle`, `radius/12`, padding and gap `space/8`, Effects/Elevation Dark/3; Month / Start and Month / End | RangeCalendar, unchanged |
 
 Behaviour: like DateInput's calendar (a range is picked, not typed). The field is a `<button role="combobox" aria-haspopup="dialog">` named by `label` ("Period"), with the range (or the placeholder) as its value. A click, Enter, Space, ↓ or ↑ open the picker and move focus to the calendar (the range's start, else today). The first pick is the start and the second the end, in either order; then the picker closes, focus comes back to the field, and `onValueChange` gets `{ start, end }` (only when the range changed). Escape, a click outside or Tab past the calendar close it without a change. The picker is a non-modal dialog with the field's name.
 

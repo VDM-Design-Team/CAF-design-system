@@ -70,10 +70,6 @@ export const WithoutRemove: Story = {
 /** Action=Download (the Invoices dialog): the Download button is named after the file, and has no ×. */
 export const Download: Story = {
   args: { action: 'download' },
-  parameters: {
-    // Button's Tonal pair is below AA in Dark (see Button); reported here, not failed.
-    a11y: { test: 'todo' },
-  },
   play: async ({ args, canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: 'Download invoice-september.pdf' }));
     await expect(args.onDownload).toHaveBeenCalledTimes(1);
@@ -132,9 +128,8 @@ export const FileSizes: Story = {
 
 /* ── Every State × Action, in Light and Dark ───────────────────────────────
    The Figma component set, then each button hovered (forced with
-   storybook-addon-pseudo-states). Button's Tonal pair is below AA in Dark,
-   so axe's contrast check skips the Download buttons here (data-a11y-todo);
-   the Download contrast stories below report them. */
+   storybook-addon-pseudo-states). Every cell is in axe's contrast check:
+   Button's Tonal label passes AA in both themes since 3 Nov 2026. */
 
 const CELLS = [
   { label: 'Default, Remove', state: 'default', action: 'remove', hover: false },
@@ -153,19 +148,17 @@ function Cells({ cells }: { cells: ReadonlyArray<(typeof CELLS)[number]> }) {
       {cells.map(({ label, state, action, hover }) => (
         <div key={label} className="flex flex-col gap-2">
           <p className="text-caption-md-medium text-text-secondary">{label}</p>
-          <div data-a11y-todo={action === 'download' ? 'contrast' : undefined}>
-            <FileChip
-              fileName={state === 'error' ? 'contract.zip' : 'invoice-september.pdf'}
-              meta={state === 'error' ? REASON : '245 KB'}
-              state={state}
-              action={action}
-              onRemove={() => {}}
-              data-cell={label}
-              data-pseudo={hover ? 'hover' : undefined}
-              // No colour transition in the grid, so the check reads the end colour.
-              className="[&_button]:transition-none"
-            />
-          </div>
+          <FileChip
+            fileName={state === 'error' ? 'contract.zip' : 'invoice-september.pdf'}
+            meta={state === 'error' ? REASON : '245 KB'}
+            state={state}
+            action={action}
+            onRemove={() => {}}
+            data-cell={label}
+            data-pseudo={hover ? 'hover' : undefined}
+            // No colour transition in the grid, so the check reads the end colour.
+            className="[&_button]:transition-none"
+          />
         </div>
       ))}
     </div>
@@ -181,17 +174,6 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
     // The chip carries data-pseudo; its button is the hovered element.
     pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"] button'] },
-    a11y: {
-      test: 'error',
-      config: {
-        rules: [
-          {
-            id: 'color-contrast',
-            selector: '*:not([data-a11y-todo~="contrast"]):not([data-a11y-todo~="contrast"] *)',
-          },
-        ],
-      },
-    },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -257,20 +239,3 @@ const grid = (theme: 'light' | 'dark'): Story => ({
 
 export const StatesLight = grid('light');
 export const StatesDark = grid('dark');
-
-/* Download's Tonal button in each theme: its contrast is reported in the
-   a11y panel, not failed, until Button's Tonal binding passes in Figma. */
-const downloadContrast = (theme: 'light' | 'dark'): Story => ({
-  name: `Download contrast — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  render: () => <Cells cells={CELLS.filter((cell) => cell.action === 'download')} />,
-  globals: { theme },
-  parameters: {
-    controls: { disable: true },
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"] button'] },
-    a11y: { test: 'todo' },
-  },
-  tags: theme === 'dark' ? ['!autodocs'] : [],
-});
-
-export const DownloadContrastLight = downloadContrast('light');
-export const DownloadContrastDark = downloadContrast('dark');

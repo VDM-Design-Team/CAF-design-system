@@ -77,7 +77,7 @@ const frame = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvas }) => {
     const want = {
-      panel: tokenColour('surface-neutral-faint'),
+      panel: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       shadow: utilityShadow('shadow-elevation-3 inset-ring inset-ring-stroke-subtle'),
       primary: tokenColour('text-primary'),

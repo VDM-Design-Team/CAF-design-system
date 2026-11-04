@@ -26,13 +26,13 @@ import {
 
 /**
  * `Date Picker / Calendar`'s and `/ Range`'s panel:
- * - Fill   → `surface.neutral.faint`
+ * - Fill   → `surface.elevated` (since 3 Nov 2026, decision menu-surface: every popover)
  * - Stroke → 1px inside `stroke.subtle` (an inset ring)
  * - Radius → `radius.12` (Figma: raw 12)
  * - Effect → `shadow-elevation-3` (Figma: the Elevation Dark/3 style), as on Popover
  */
 export const calendarSurface =
-  'rounded-12 bg-surface-neutral-faint text-text-primary shadow-elevation-3 inset-ring inset-ring-stroke-subtle';
+  'rounded-12 bg-surface-elevated text-text-primary shadow-elevation-3 inset-ring inset-ring-stroke-subtle';
 
 /* ── Keyboard: one tab stop per calendar, arrows move the focus ─────────────── */
 

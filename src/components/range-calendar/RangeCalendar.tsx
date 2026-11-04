@@ -10,7 +10,7 @@ import { addMonths, compareDays, sameDay, startOfDay, startOfMonth } from '../ca
  * panel only: a later filter puts it in a Popover.
  *
  * Figma → code:
- * - The panel → the Calendar's surface (`surface.neutral.faint`, 1px inside
+ * - The panel → the Calendar's surface (`surface.elevated`, 1px inside
  *   `stroke.subtle`, radius 12, Elevation 3), with padding 8 and 8 between
  *   the months.
  * - Month / Start, Month / End → two Calendar months without their own
