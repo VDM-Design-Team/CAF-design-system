@@ -10,7 +10,7 @@ import { addMonths, sameDay, startOfDay, startOfMonth } from './dates';
  * field puts it in a Popover under its input.
  *
  * Figma → code:
- * - The panel → `surface.neutral.faint` fill, 1px inside `stroke.subtle`,
+ * - The panel → `surface.elevated` fill, 1px inside `stroke.subtle`,
  *   radius 12, Elevation 3, padding 16, 12 between header, weekdays and
  *   days.
  * - Month (text property, "September 2026") → the visible month, from

@@ -235,7 +235,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
       stroke: tokenColour('stroke-field'),
       primary: tokenColour('text-primary'),
       subtle: tokenColour('text-subtle'),
-      panel: tokenColour('surface-neutral-faint'),
+      panel: tokenColour('surface-elevated'),
     };
     const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(0.6);
 

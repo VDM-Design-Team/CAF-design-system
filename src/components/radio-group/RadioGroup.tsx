@@ -27,7 +27,7 @@ import { RadioOption } from '../radio-option';
  *   radio (the browser won't submit the form until one is chosen) and
  *   `aria-required` on the group.
  * - `error` (Figma's State=Error and Error text): the message, in the
- *   Helper's place and style (as FormField does), with `aria-invalid` on the
+ *   Helper's place and type, in the critical colour (as FormField does), with `aria-invalid` on the
  *   group and its radios, which then show Radio's Error stroke (Radio
  *   Option's Error=true).
  * - `disabled`: the fieldset's own, which disables every radio.
@@ -136,7 +136,11 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
           />
         ))}
       </div>
-      {messageId && <FormHelperText id={messageId}>{message}</FormHelperText>}
+      {messageId && (
+        <FormHelperText id={messageId} className={cn(invalid && 'text-accent-critical-tonal-content-default')}>
+          {message}
+        </FormHelperText>
+      )}
     </fieldset>
   );
 });

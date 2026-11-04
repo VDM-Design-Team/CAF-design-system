@@ -34,7 +34,7 @@ import { Toggle, type ToggleProps } from '../toggle';
  * `value` ("on" by default) while on.
  *
  * Every colour is the semantic variable the Figma layer is bound to. The
- * error message has the shared field message's style (FormHelperText's).
+ * error message has the shared field message's type in the critical colour, as FormField's.
  * Where code departs from Figma, the reason is in docs/figma-sync.md
  * ("ToggleField").
  */
@@ -87,9 +87,9 @@ export const ToggleField = React.forwardRef<HTMLInputElement, ToggleFieldProps>(
             {description}
           </span>
         )}
-        {/* The shared field message's style (FormHelperText), as a span: a <p> can't sit in a <label>. */}
+        {/* The shared field message's type (FormHelperText's), as a span: a <p> can't sit in a <label>. Error Text is critical, as FormField's. */}
         {errorId && (
-          <span id={errorId} className="text-caption-md-regular text-text-subtle">
+          <span id={errorId} className="text-caption-md-regular text-accent-critical-tonal-content-default">
             {error}
           </span>
         )}

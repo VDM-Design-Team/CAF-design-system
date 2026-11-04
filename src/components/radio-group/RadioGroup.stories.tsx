@@ -285,6 +285,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const marker = tokenColour('accent-critical-tonal-content-default');
     const option = tokenColour('text-primary');
     const helper = tokenColour('text-subtle');
+    const errorText = tokenColour('accent-critical-tonal-content-default');
     const selected = insetStroke(tokenColour('action-primary-surface-default'), 2);
     const resting = insetStroke(tokenColour('stroke-field'), 1);
     const hover = insetStroke(tokenColour('stroke-focused'), 1);
@@ -319,12 +320,12 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(radios[1]).boxShadow).toContain(state === 'Default' ? hover : rest);
           expect(getComputedStyle(radios[2]).boxShadow).toContain(rest);
           for (const radio of radios) expect(getComputedStyle(radio.parentElement!).opacity).toBe('1');
-          // The Helper (or the error in its place): Caption/md-regular, text.subtle, 8px under the options.
+          // The Helper (or the error in its place): Caption/md-regular, 8px under the options; text.subtle, or critical for the error.
           if (!message) {
             expect(note).toBeNull();
             continue;
           }
-          expect(getComputedStyle(note!).color).toBe(helper);
+          expect(getComputedStyle(note!).color).toBe(message === 'error' ? errorText : helper);
           expect(getComputedStyle(note!).fontSize).toBe('12px');
           expect(note!.getBoundingClientRect().top - row.getBoundingClientRect().bottom).toBe(8);
         }
