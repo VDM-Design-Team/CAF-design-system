@@ -118,7 +118,7 @@ names. A component that a second brand needs moves up to GDL.
 | `FormSectionHeader` | Form → `Form / Section Header`, `Form / Section Header – Action` | Components/FormSectionHeader |
 | `Textarea` | Form → `_Textarea` | Components/Textarea |
 | `TextareaField` | Form → `Form / Field – Textarea` | Components/TextareaField |
-| `DateInput` | Form → `_Date Input`, opening `Date Picker / Calendar` | Components/DateInput |
+| `DateInput` | Form → `_Date Input`: a typed or pasted `yyyy-mm-dd`, or picked in `Date Picker / Calendar` | Components/DateInput |
 | `DateField` | Form → `Form / Field – Date` | Components/DateField |
 | `Combobox` | Form → `_Combobox Input` + `Select / Menu` (composed) | Components/Combobox |
 | `ComboboxField` | Form → `Form / Field – Combobox` | Components/ComboboxField |
@@ -342,7 +342,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 <Textarea aria-label="Notes" placeholder="Add notes…" />            // _Textarea; rows={4} is Figma's 96px
 <TextareaField label="Notes" name="notes" defaultValue="Monthly team salary, split by cost center." />
 <TextareaField label="Reason" name="reason" required error="Add a reason for the rejection." />
-<DateInput aria-label="Starts At" />                                // Default: "Select date"; opens the Calendar
+<DateInput aria-label="Starts At" />                                // Default: "Select date"; type yyyy-mm-dd or pick
+<DateInput aria-label="Ends At" onInvalidChange={setBadText} />     // true while typed text isn't a date
 <DateField label="Starts At" name="startsAt" required defaultValue="2026-09-01" />  // submits "2026-09-01"
 <DateField label="Ends At" name="endsAt" value={endsAt} onValueChange={setEndsAt} />  // yyyy-mm-dd, or null for none
 
@@ -723,18 +724,24 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   (`aria-invalid`) and Disabled (`disabled`, at Figma's 50% opacity).
   `rows` sets the height. The default of 4 gives Figma's 96px, and the user
   can drag it taller.
-- `DateInput` is Figma's _Date Input: a `<button role="combobox">` with a
-  calendar icon. It opens a `Calendar` under it in a Popover. Dates are
-  `yyyy-mm-dd` strings: `value` / `defaultValue` / `onValueChange`, the
-  text it shows, and what `name` submits (through a hidden input). The date
-  is picked, not typed. A click, Enter, Space, ↓ or ↑ open the calendar on
-  the chosen day. Enter or a click chooses a day, Escape closes, and focus
-  comes back to the field. `placeholder` defaults to "Select date".
-  `required` sets `aria-required`; check it on submit.
+- `DateInput` is Figma's _Date Input: an `<input role="combobox">` that
+  takes a typed or pasted `yyyy-mm-dd`, and whose calendar icon ("Choose
+  date") opens a `Calendar` under it in a Popover. Dates are `yyyy-mm-dd`
+  strings: `value` / `defaultValue` / `onValueChange`, the text it shows,
+  and what `name` submits (through a hidden input). Typed text is checked
+  on blur, on Enter and when the calendar opens: a real date becomes the
+  value; anything else stays as typed, makes the field `aria-invalid`, calls
+  `onInvalidChange(true)` and leaves no date (`onValueChange('')`). ↓ or ↑,
+  Enter with nothing new typed, or the calendar button open the calendar on
+  the date. Enter or a click chooses a day, Escape closes and keeps the
+  text, and focus comes back to the field. `placeholder` defaults to
+  "Select date". `required` sets `aria-required`; check it on submit.
 - `TextareaField` and `DateField` are Figma's Form / Field – Textarea and
   Form / Field – Date: FormField around a Textarea or a DateInput, like
   TextField and SelectField. `label`, `required`, `helper` and `error`
   belong to the field. Every other prop, and the ref, go to the control.
+  DateField shows "Enter a date as yyyy-mm-dd." in place of the helper or
+  `error` while its typed text isn't a date.
 - `Combobox` is the searchable select. Typing filters `options` (strings or
   `{ value, label }`), and Enter or a click chooses. `value` /
   `defaultValue` / `onValueChange` hold the choice (`null` for none), and

@@ -248,7 +248,7 @@ export const RecurringCost: Story = {
     // ↓ opens the calendar on today; Enter takes it.
     await userEvent.keyboard('{ArrowDown}');
     await userEvent.keyboard('{Enter}');
-    await expect(startsAt).toHaveTextContent('2026-11-01');
+    await expect(startsAt).toHaveValue('2026-11-01');
     await expect(startsAt).not.toHaveAttribute('aria-invalid');
 
     // ← goes back to Single Cost: Invoice number returns, the rest is kept.

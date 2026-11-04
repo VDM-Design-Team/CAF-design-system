@@ -38,7 +38,8 @@ import { RangeCalendar, type DateRange } from '../range-calendar';
  * Escape, a click outside or Tab past the calendar close it without changing
  * the range (a half-picked one is dropped).
  *
- * It is a `<button role="combobox" aria-haspopup="dialog">`, like DateInput:
+ * It is a `<button role="combobox" aria-haspopup="dialog">` (a range is picked,
+ * not typed; DateInput is the typed one):
  * named by `label` ("Period"), with the range (or the placeholder) as its
  * value. ↓ or ↑ open the picker, or go into it when it is open. The picker is
  * a non-modal dialog with the same name.
