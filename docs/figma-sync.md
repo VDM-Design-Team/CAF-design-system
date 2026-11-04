@@ -3018,7 +3018,8 @@ The Clear Button is Button / Icon's Ghost 32: no fill (its hover fill is
 Every state is Body/sm-regular with radius `radius/8`, side padding
 `space/12`, 40 high, the value on the left and the icon on the right,
 `space/8` apart. The open calendar draws its own surface
-(`surface/neutral/faint`, 1px `stroke/subtle`, radius 12, Elevation 3).
+(`surface/elevated` since 4 Nov 2026, 1px `stroke/subtle`, radius 12,
+Elevation 3; see Calendar).
 Popover's panel draws nothing (`rounded-12 bg-transparent p-0 shadow-none
 inset-ring-0`) and only positions it.
 
