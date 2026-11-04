@@ -1,5 +1,274 @@
 # Changelog
 
+## 0.10.0 — 2026-11-04
+
+### Table, filter and card parts follow the 3 November Figma clean-up (November 2026)
+
+The CAF Figma library's Table, Filters and Cards pages were cleaned up on
+3 November 2026 from the CAF design decisions and published. Code follows:
+
+- **`StatCard`** has a 1px `stroke.subtle` edge inside (as `PanelCard`), so
+  a card shows on the canvas in Light. Its size doesn't change. The edge is
+  decorative. Figma's `_Stat Icon` is now Tone × Icon, which `tone` and
+  `icon` already were.
+- **`FilterSummary`**'s box has the same 1px `stroke.subtle` edge, so it
+  shows on a dialog in Light and on the canvas in Dark.
+- **`TableExpandButton`** has a Hover fill, `neutral.tonal.surface.hover`
+  (Figma's Expanded × State set: Default, Hover, Focus).
+- **`ChangeDiffRow`**: Before is struck through, as Figma draws it.
+  `before` is optional (Figma's Show Before): leave it out for a Created
+  entry, and the Before cell stays empty while After keeps its column.
+- **`TableDetailLabel`** takes `label` ("ID:") and `value` ("32430"), Figma's
+  Label and Value, 4px apart. The value stays on one line and ends in …
+  when the line is narrower than it. The whole line as `children` still
+  renders, and is deprecated.
+- **`ChangelogEntry`**'s `showNew` defaults to false, as Figma's Show New
+  now does: pass `showNew` on the latest release. An entry that relied on
+  the old default loses its New tag.
+- **`TableAccountDetails`**: Figma's default Category Tag is a Tag Info
+  without its icon, "Recurring" (it was an orange Status Pill), so it
+  doesn't read as a second status. Pass `<Tag status="info"
+  showIcon={false}>Recurring</Tag>` as `categoryTag`.
+
+In Storybook, Light and Dark: stat cards and filter summaries gain their
+edge; the Costs table's recurring costs show a blue "Recurring" tag
+instead of the orange pill; the Audit Logs' Created entry shows only its
+After values; an expand button's fill changes on hover (darker in Light,
+lighter in Dark).
+
+### Form controls follow the 3 Nov Figma clean-up (November 2026)
+
+The CAF Figma library's Form page was cleaned up and published on 3 Nov
+2026. The form components follow it:
+
+- **Disabled inputs** (TextInput, SelectTrigger and Select, Textarea,
+  DateInput, Combobox) use the disabled tokens instead of 50% opacity:
+  the fill `neutral.tonal.surface.disabled`, a 1px
+  `neutral.outline.border.disabled` stroke, and the value, placeholder and
+  icons in `text.disabled`. In Light the field is a pale slate-100 box with
+  slate-300 text; in Dark a slate-800 box with slate-500 text. Both read as
+  quieter than every enabled state.
+- **Field messages** (FormField, so TextField, SelectField, TextareaField,
+  DateField, ComboboxField and FileUploadField) sit 8px under the control
+  instead of flush against it, and an `error` message is
+  `accent.critical.tonal.content.default` (the Required marker's red)
+  instead of grey. The helper stays `text.subtle`.
+- **Select options** (Select, Combobox, FilterSelect): Hover, the option
+  the arrow keys are on and Selected fill with
+  `neutral.tonal.surface.default` (slate-200 / slate-600) instead of the
+  near-invisible `surface.base`, and the check is `text.primary`, the
+  label's colour (it was 1.97:1 on the new fill in Dark).
+- **Date picker days** (Calendar, DateInput, RangeCalendar and
+  FilterDateRange): In Range days fill with `neutral.tonal.surface.default`,
+  so a range shows in Light. Today, when it is also selected, has its own
+  mark: a 1px ring 2px inside the day, in the selected label colour,
+  where Today's blue ring used to vanish on the fill.
+- **DateInput (and DateField)**: an optional field with a date has a clear
+  button (×, "Clear date") before the calendar icon. It clears the date,
+  calls `onValueChange('')` and puts focus back on the field. Required,
+  empty, disabled and open fields have none. On CAF's screens this is Ends
+  At in Edit Recurring Cost.
+- **Combobox (and ComboboxField)**: the caret is its own button ("Show
+  options", not a tab stop) that opens the full list without typing and
+  closes it again; focus stays in the input. The text's right inset grows
+  from 40 to 44px.
+- **FormEditLink** ("[Edit]"): Hover, Pressed and Disabled colours
+  (`text.link.hover`, `text.link.pressed`, `text.disabled`) and a 24×24
+  target that takes no layout space, so the label row keeps its height.
+- **FileUploadZone (and FileUploadField)**: the resting dashed border is
+  `stroke.field` (3:1, like the inputs) instead of the faint
+  `stroke.subtle`; drag-over is a 2px `stroke.focused` dash; disabled dims
+  the title, hint and icon to `text.disabled`.
+
+No prop changes. Two DOM changes: DateInput's button now sits in a
+wrapper `<div>` with the clear button (its `className` still styles the
+outer wrapper), and Combobox has a second button after the input.
+
+### Buttons, selection controls, Status Pill and tabs follow the 3 Nov Figma clean-up (November 2026)
+
+The CAF Figma library's buttons, controls, tags and tabs were cleaned up and
+published on 3 Nov 2026 (the user took every recommendation, decisions
+fc-buttons-*). Code follows Figma's new bindings.
+
+- **`Button`**: Tonal's label is `text.brand.strong` (`text.brand.stronger`
+  while pressed) and passes AA in every state (it was 1.77–3.98:1 in places).
+  Destructive and Success labels use their own `accent.*.filled.content`
+  tokens, which are #020617 in Dark (from #13141B). Disabled: Default and
+  Tonal use the neutral tonal disabled pair, Outlined and Text the neutral
+  outline one, so in Dark a disabled button is no longer louder than an
+  enabled one (and Tonal Disabled no longer looks enabled). Figma's new Focus
+  state matches code's ring. **`MenuTriggerButton`** (Export, Change Status)
+  takes the new Default Disabled look through Button.
+- **`IconButton`**: Disabled draws the glyph in `text.disabled`, with no hover.
+- **`StatusPill`**: Pending's label is `accent.pending.filled.content` (the
+  same colours today).
+- **`TabItem`**: a hover on tabs that aren't selected
+  (`neutral.outline.surface.hover`, `text.primary` label), in Tabs and
+  FormTabNavigation. **`FormTabNavigation`**'s active tab is
+  `neutral.tonal.surface.default` (was `surface.base`), so it shows against
+  the track in Light.
+- **`Checkbox`**: radius 4 in every state (unchecked was 2); Hover's border is
+  `stroke.stronger`; a checked box has no border; Disabled and Disabled
+  Selected have their own colours (they only changed the cursor). An
+  `aria-invalid` unchecked box has the critical border.
+- **`Radio`** and **`Toggle`**: Disabled has its own colours instead of 50%
+  opacity. Radio's new Error state is `aria-invalid` (the critical stroke),
+  so **`RadioGroup`**'s `error` now marks its radios too, and **`RadioOption`**
+  shows Error=true.
+- **`CheckboxField`** and **`ToggleField`**: new prop `error` (Figma's
+  State=Error): the message under the description and the control
+  `aria-invalid`; CheckboxField's box, or its card, turns critical. Disabled
+  turns the label, marker and description `text.disabled` (and the card's
+  stroke `neutral.outline.border.disabled`).
+
+Screens: every disabled button, checkbox, radio and toggle looks different
+in Light and Dark; Tonal buttons (View Changes, Download) have darker labels
+in Light and lighter ones in Dark; Destructive and Success labels are
+slightly darker in Dark; the New Cost form's active tab shows as a grey pill.
+
+### Modals, menus and feedback follow the 3 Nov Figma clean-up (November 2026)
+
+Code follows the CAF Figma library's 3 Nov 2026 clean-up of the Modals, Menus
+and Feedback pages, published by the user.
+
+- **Menus and popovers** are on `surface.elevated` instead of
+  `surface.neutral.faint` (decision menu-surface): Popover's shared surface
+  (`popoverSurface`), so MenuDropdown, AccountMenu's panel, RowActionsMenu,
+  MenuTriggerButton's menu and the lists of Select, FilterSelect and Combobox.
+  In Light the panel is white on the slate-50 canvas; in Dark it is slate-800.
+- **MenuItem** Hover is `neutral.tonal.surface.default` (was `surface.base`,
+  invisible on the new panel), and the item the keyboard is on takes the same
+  fill. A destructive item on hover or keyboard focus has the new
+  Destructive Hover label, `accent.critical.tonal.content.hover`, which passes
+  on that fill in Dark.
+- **PaymentSchedules** has Modal / Dialog's 1px `stroke.subtle` edge and
+  Elevation 4. **ChangelogModal** has Modal / Dialog's surface: `surface.base`,
+  radius 12 (was 16), a 1px inside `stroke.subtle` and Elevation 4 (was 2).
+- **ChangelogHeader**: the rocket is `accent.critical.tonal.content.default`
+  (was `accent.red.medium`, 2.76:1 in Light), the date `text.secondary`, and the
+  version a Tag Status=Info without its icon.
+- **VersionBadge** is deprecated: show a version as
+  `<Tag status="info" showIcon={false}>`. It stays exported for now.
+- **PaymentRow** has a new `amount` prop (Body/sm-semibold, `text.primary`)
+  between the date block and the status, and its status is a Tag (Completed
+  "Done", Warning "Upcoming", no icon) instead of its own smaller badge. It is
+  still 60 tall. The Recurring Costs patterns show each payment's amount.
+- **Toast**: the action has a Hover, `text.link.hover`.
+- **Spinner**: the indicator is `action.tertiary.content.default`. Light looks
+  the same; in Dark it is near-white, 6.33:1 on the track (was 1.97).
+- **EmptyState**: the Default tile is the neutral tonal pair
+  (`neutral.tonal.surface.default` with the glyph in
+  `neutral.tonal.content.default`), and a new `icon` prop (an Icon name,
+  default `tray`) swaps the glyph. Compact is unchanged and has no `icon`.
+
+Screens that look different, in Light and Dark: every open menu and select
+list, the View Schedules and what's-new dialogs, toasts with an action on
+hover, spinners in Dark, and the empty states on the Announcements and 404
+pages.
+
+### The header follows the 3 Nov Figma clean-up: Active link indicator, a lighter nav band, Ghost glyphs, and the mobile Account Row opens the Account Menu (November 2026)
+
+From the CAF Figma library's clean-up of 3 Nov 2026 (decisions nav-active,
+user-actions, mobile-menu and the fc-nav recommendations), published in
+Figma first.
+
+- **`NavLink`**: the Active link's label is semibold (Body/sm-semibold
+  horizontal, Body/md-semibold vertical), and a 2px
+  `action.primary.surface.selected` Indicator marks it: under the label on a
+  header link, at the left edge of a Mobile Menu row. The Active fill is
+  kept. The current page now shows in Light too, where the fill alone barely
+  did (3.07:1 at the closest, the underline on the Active fill in Dark).
+- **`AppHeader`**: the Navigation Area under the top bar is
+  `surface.neutral.faint` (was `surface.base`). In Light the two bands now
+  separate (#F8FAFC under white); in Dark the step is smaller than before.
+- **`UserActions`**: 8px (`space.8`) between the greeting, the theme toggle
+  and the account icon (was no gap), so the group is 16px wider.
+- **`ThemeToggle`**, **`AccountMenu`**'s account icon and **`MobileHeader`**'s
+  ☰ / ✕: the glyphs are `text.secondary`, IconButton Ghost's colour (were
+  `text.primary`), in the desktop header and below 768px, Light and Dark.
+- **`MobileMenu`**: the Account Row is now a button, AccountMenu's trigger.
+  It opens the Account Menu below it, 16px in, on `document.body` (so the
+  menu's scroll can't cut it off). It looks as before, with a focus ring on
+  keyboard focus, and it is the last Tab stop in the menu. Choosing an
+  account item, from the row or from the header's account icon in the open
+  menu, closes the Account Menu and the Mobile Menu, returns focus to ☰ and
+  then calls `onAccountSelect`, so the app can move focus into the dialog it
+  opens. Escape and a tap outside close only the Account Menu. No prop
+  changes; the row's element changes from `<p>` to `<button>`.
+
+### Darker scrim in Dark (November 2026)
+
+`surface.overlay` in Dark changes from slate 800 at 75% (`#1e293bbf`) to
+slate 950 at 75% (`#020617bf`), as the CAF Figma library now has it. The
+scrim behind every modal and side sheet is darker in Dark, so a dialog's
+edge stands out from the page under it (1.06:1 → 1.34:1 over the canvas).
+Light is unchanged.
+
+The snapshot also picks up the text-style bindings fixed in Figma (GDL's
+`font/size/*` and `font/family/*` variables on 11 styles). No text style
+changes value.
+
+### Tables scroll in their own region on narrow screens; row menus open outside it (November 2026)
+
+From the CAF design decision add-phone-table-layout ("a table that scrolls in
+its own region; row menus open outside it"). Figma has no phone layout, so
+this is code only.
+
+- **`TableList`** wraps its `<table>` in a scroll region that takes its
+  container's width and scrolls sideways when the columns need more, so the
+  page itself no longer scrolls sideways on a phone. While it can scroll, the
+  region is a tab stop (the arrow keys scroll it), a `role="region"` named
+  like the table (its `aria-label` or `aria-labelledby`), and shows the 2px
+  `stroke.focused` ring inside its edge. While the table fits, the region is
+  a plain `<div>` with no tab stop. New prop `regionClassName` styles the
+  region; `className` and `ref` still go to the `<table>`.
+- **`Popover`** has a new opt-in prop, `portal`: the panel renders on
+  `document.body`, fixed at the trigger, and follows it on scroll and resize,
+  so a container that scrolls or clips can't cut it off. The ARIA wiring,
+  outside click, Escape, focus return and the Tab order (trigger → panel →
+  what follows the trigger) are kept. The default is unchanged. `MenuDropdown`
+  passes it through: use it for a menu in a table.
+- **`RowActionsMenu`** opens its menu with `portal` by default, so a row's •••
+  menu opens over the table's scroll region and the page, never clipped.
+  `portal={false}` keeps it inline. Tests that look for the menu need
+  `screen` instead of `within(canvasElement)`.
+- **`Overlay`** leaves Tab alone in a popup it opened in a portal, so a
+  RowActionsMenu inside a dialog or side sheet still closes on Tab and hands
+  focus back to its •••.
+
+Nothing looks different at desktop widths, in Light or Dark: menus open where
+they did. On a phone every list page (Costs, Drafts, Cost Centers, Recurring
+Costs, Exports, Announcements, Users) now fits the screen, with the table
+scrolling in its region. At 1024 the Admin Costs table needs a few pixels
+more than the 976 it gets, so it scrolls by those pixels inside its region.
+
+### Storybook's form pages and Settings sit in a PanelCard (November 2026)
+
+Story-level only: nothing in the published package changes. In Storybook's
+patterns and templates, the form pages and Settings now use the Layout
+components added in 0.8.0, as the CAF design decisions add-card-panel,
+add-form-heading and add-divider say:
+
+- **New Cost**, **Bulk Upload**, the file-upload pattern's **Attach invoice**
+  and **Settings**: the page's `PageHeader`, then, 24px under it, a
+  `PanelCard` (surface.base, a 1px stroke.subtle edge, radius 12, 32px
+  padding) that holds only the form. The heading and the card share a
+  centred column as wide as Figma's form cards (`max-w-xl`, 576px; Figma
+  578).
+- **Dividers** where Figma draws a rule: New Cost's before Beneficiary
+  Information and before Breakdowns (on both tabs), Bulk Upload's between
+  the CSV upload and the template row. The labelled "Cost Details" rule stays
+  a section header.
+- New Cost's Save to Drafts and Save stack below 640px: on a 320 phone the
+  card's padding leaves too little width for both side by side.
+
+The pattern and template pages (Multi-section form, File upload &
+attachments, Save and resume drafts, Account, settings & currencies, Form
+page, App shell's Settings and Create Cost) look different in Light and Dark:
+a white card on the slate-50 page in Light, a slate-800 card on slate-900 in
+Dark, and the fields 64px narrower than before (512 instead of 576). Every
+form's fields, checks and FormData are unchanged.
+
 ## 0.9.0 — 2026-11-03
 
 ### TableHeaderRow, TableList and TableCell type="custom" (November 2026)
