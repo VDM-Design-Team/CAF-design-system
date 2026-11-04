@@ -601,7 +601,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (545:19054): Divider exists since 2 Nov 2026, but the side sheet's form doesn't use it yet (the form pages and Settings did first, 3 Nov 2026). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
 
-**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. Starts At is a Text field or a Date field. U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
+**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. ~~Starts At is a Text field or a Date field~~ (a Date field in U02 and U04 too since 4 Nov 2026). U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
 
 ### U06 · Account, settings & currencies (Figma 545:23189)
 

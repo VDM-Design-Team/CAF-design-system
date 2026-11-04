@@ -40,8 +40,6 @@ import {
  *   Breakdown Item per line.
  *
  * Stand-ins, each a design question in docs/patterns.md:
- * - Starts At is a Form / Field – Text in U04; it is a DateField here, as
- *   Pattern 06 draws it (Form / Field – Date).
  * - Figma's Dividers between sections: there is no Divider component.
  *
  * It validates on submit (and clears an error as soon as the value is valid),
