@@ -424,7 +424,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       focused: tokenColour('stroke-focused'),
-      panel: tokenColour('surface-neutral-faint'),
+      panel: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       selectedFill: tokenColour('action-primary-surface-default'),
       icon: tokenColour('text-subtle'),

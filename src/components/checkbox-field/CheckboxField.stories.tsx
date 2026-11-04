@@ -284,8 +284,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       description: tokenColour('text-secondary'),
       disabledText: tokenColour('text-disabled'),
       marker: tokenColour('accent-critical-tonal-content-default'),
-      // The shared field message (FormHelperText), as on main.
-      message: tokenColour('text-subtle'),
+      // Error Text: the field message's type in the critical colour, as FormField's.
+      message: tokenColour('accent-critical-tonal-content-default'),
       // The Checkbox's states: [fill, border].
       box: {
         rest: [tokenColour('surface-base'), tokenColour('stroke-field')],

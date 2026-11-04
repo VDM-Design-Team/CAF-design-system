@@ -246,8 +246,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const description = tokenColour('text-secondary');
     const disabledText = tokenColour('text-disabled');
     const marker = tokenColour('accent-critical-tonal-content-default');
-    // The shared field message (FormHelperText), as on main.
-    const messageColour = tokenColour('text-subtle');
+    // Error Text: the field message's type in the critical colour, as FormField's.
+    const messageColour = tokenColour('accent-critical-tonal-content-default');
     // The Toggle's tracks: [enabled, disabled].
     const off = [tokenColour('surface-track'), tokenColour('surface-neutral-medium')];
     const on = [tokenColour('action-primary-surface-default'), tokenColour('surface-brand-medium')];
