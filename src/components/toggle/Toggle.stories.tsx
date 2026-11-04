@@ -191,11 +191,10 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   afterEach: async ({ canvasElement }) => {
-    const off = tokenColour('surface-track');
-    // Checked=false, Disabled=true keeps Figma's neutral.tonal track.
-    const offDisabled = tokenColour('neutral-tonal-surface-default');
-    const on = tokenColour('action-primary-surface-default');
-    const knobFill = tokenColour('action-primary-content-default');
+    // Figma's tracks: [enabled, disabled] for off and on; the knob likewise.
+    const off = [tokenColour('surface-track'), tokenColour('surface-neutral-medium')];
+    const on = [tokenColour('action-primary-surface-default'), tokenColour('surface-brand-medium')];
+    const knobFill = [tokenColour('action-primary-content-default'), tokenColour('action-primary-content-disabled')];
     await waitFor(
       () => {
         for (const variant of VARIANTS) {
@@ -204,17 +203,20 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const knob = input.nextElementSibling!;
           const track = input.getBoundingClientRect();
           const dot = knob.getBoundingClientRect();
-          // Track: 36 × 20, a pill: surface.track off (neutral.tonal when disabled), action.primary on.
+          const d = Number(variant.disabled);
+          // Track: 36 × 20, a pill: surface.track off, action.primary on; disabled, surface.neutral.medium and
+          // surface.brand.medium.
           expect([track.width, track.height]).toEqual([36, 20]);
           expect(getComputedStyle(input).borderRadius).toBe('1000px');
-          expect(getComputedStyle(input).backgroundColor).toBe(variant.checked ? on : variant.disabled ? offDisabled : off);
-          // Knob: 16px, action.primary.content, 2px in from the start (off) or the end (on).
+          expect(getComputedStyle(input).backgroundColor).toBe((variant.checked ? on : off)[d]);
+          // Knob: 16px, action.primary.content (its disabled colour when disabled), 2px in from the start (off)
+          // or the end (on).
           expect([dot.width, dot.height]).toEqual([16, 16]);
-          expect(getComputedStyle(knob).backgroundColor).toBe(knobFill);
+          expect(getComputedStyle(knob).backgroundColor).toBe(knobFill[d]);
           expect(dot.top - track.top).toBe(2);
           expect(dot.left - track.left).toBe(variant.checked ? 18 : 2);
-          // Disabled: the whole switch at 50%.
-          expect(getComputedStyle(wrapper).opacity).toBe(variant.disabled ? '0.5' : '1');
+          // Disabled is drawn with its own colours, not layer opacity.
+          expect(getComputedStyle(wrapper).opacity).toBe('1');
           // Forced colours keep these fills, so the switch doesn't vanish in High Contrast.
           expect(getComputedStyle(wrapper).forcedColorAdjust).toBe('none');
         }

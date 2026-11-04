@@ -26,7 +26,7 @@ const meta = {
           'Recurring Cost switch at the top of the New Cost form. Put TabItems in it: Tab 1 Label and Tab 2 Label are ' +
           'their `children`. Figma’s Active is `active`, the active tab’s `value` (uncontrolled: `defaultActive`, ' +
           'default the first tab); `onActiveChange` gets the tab the user picks. Keyboard and roles are Tabs’. It ' +
-          'is not Tabs’ look: the active tab is a raised surface.base pill, not the blue, and the tabs share the width.',
+          'is not Tabs’ look: the active tab is a neutral.tonal pill, not the blue, and the tabs share the width.',
       },
     },
   },
@@ -73,7 +73,7 @@ export const Playground: Story = {
 
 /* ── Every Active, in Light and Dark ───────────────────────────────────────
    Active=Tab 1 and Tab 2, each checked against the variables the layers
-   are bound to: the bar's fill, the active tab's raised fill and label, and
+   are bound to: the bar's fill, the active tab's pill fill and label, and
    the other tab's label. */
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -118,7 +118,7 @@ const actives = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const want = {
       bar: tokenColour('surface-elevated-secondary'),
-      activeFill: tokenColour('surface-base'),
+      activeFill: tokenColour('neutral-tonal-surface-default'),
       activeText: tokenColour('text-primary'),
       otherText: tokenColour('text-subtle'),
       activeType: utilityType('text-body-sm-medium'),

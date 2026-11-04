@@ -206,7 +206,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const secondary = tokenColour('text-secondary');
     const xHover = tokenColour('neutral-tonal-surface-default');
     const tonal = [tokenColour('surface-brand-faint'), tokenColour('surface-brand-subtle')];
-    const tonalLabel = tokenColour('action-primary-surface-default');
+    // Button Tonal's label: text.brand.strong (Figma, 3 Nov 2026).
+    const tonalLabel = tokenColour('text-brand-strong');
     await waitFor(
       () => {
         for (const { label, state, action, hover } of CELLS) {

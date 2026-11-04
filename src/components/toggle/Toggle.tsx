@@ -8,12 +8,13 @@ import { cn } from '../../lib/cn';
  *
  * Figma → code (it is a native `<input type="checkbox" role="switch">`, so
  * every state is the element's own):
- * - Checked=false → unchecked: the track in neutral/tonal/surface/default,
- *   the knob at the start.
+ * - Checked=false → unchecked: the track in surface/track, the knob at the
+ *   start.
  * - Checked=true  → `checked` (or `defaultChecked`): the track in
  *   action/primary/surface/default, the knob at the end.
- * - Disabled=true → the native `disabled` attribute: the whole switch at
- *   Figma's 50% layer opacity.
+ * - Disabled=true → the native `disabled` attribute: the track in
+ *   surface/neutral/medium (off) or surface/brand/medium (on), the knob in
+ *   action/primary/content/disabled.
  * - Knob → a 16px circle in action/primary/content/default, 2px inside the
  *   36 × 20 track.
  *
@@ -35,29 +36,28 @@ const track = [
   'peer size-full cursor-pointer appearance-none rounded-full',
   /* Checked=false and Checked=true */
   'bg-surface-track checked:bg-action-primary-surface-default',
-  /* Checked=false, Disabled=true keeps Figma's neutral.tonal track (at the wrapper's 50% opacity) */
-  'disabled:not-checked:bg-neutral-tonal-surface-default',
+  /* Disabled=true: surface.neutral.medium off, surface.brand.medium on */
+  'disabled:not-checked:bg-surface-neutral-medium disabled:checked:bg-surface-brand-medium',
   // Figma has no Focus state; the ring uses stroke.focused, as Button's and Checkbox's do.
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focused',
   'disabled:cursor-not-allowed',
 ];
 
-/* The knob: 16px, 2px in from the track's edge (Figma: raw 2 padding), and
-   16px further along when checked (36 − 2 − 16 − 2). */
-const knob =
-  'pointer-events-none absolute top-0.5 left-0.5 size-4 rounded-full bg-action-primary-content-default peer-checked:translate-x-4';
+/* The knob: 16px, 2px in from the track's edge (space/2), and 16px further
+   along when checked (36 − 2 − 16 − 2). Disabled: action.primary.content.disabled. */
+const knob = [
+  'pointer-events-none absolute top-0.5 left-0.5 size-4 rounded-full bg-action-primary-content-default',
+  'peer-checked:translate-x-4 peer-disabled:bg-action-primary-content-disabled',
+];
 
 export type ToggleProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'role' | 'size'>;
 
 export const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(({ className, style, ...props }, ref) => (
-  /* Disabled=true: Figma sets the whole switch to 50% opacity. Forced colours (Windows High Contrast) would
-     drop the track's and knob's fills and leave nothing visible, so the switch keeps its own colours there. */
-  <span
-    className={cn('relative inline-flex h-5 w-9 shrink-0 forced-color-adjust-none has-disabled:opacity-50', className)}
-    style={style}
-  >
+  /* Forced colours (Windows High Contrast) would drop the track's and knob's fills and leave nothing
+     visible, so the switch keeps its own colours there. */
+  <span className={cn('relative inline-flex h-5 w-9 shrink-0 forced-color-adjust-none', className)} style={style}>
     <input ref={ref} type="checkbox" role="switch" className={cn(track)} {...props} />
-    <span aria-hidden="true" className={knob} />
+    <span aria-hidden="true" className={cn(knob)} />
   </span>
 ));
 Toggle.displayName = 'Toggle';

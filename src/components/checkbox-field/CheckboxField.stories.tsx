@@ -15,8 +15,9 @@ const meta = {
           'a label and an optional description beside it. `label` is Figma’s Label, `description` Show Description ' +
           '+ Description, `bordered` Bordered, and Checked is the box’s `checked` (or `defaultChecked`). The whole ' +
           'field is a `<label>`: a click anywhere toggles the box. The label names it and the description describes ' +
-          'it. Every other prop, and the ref, go to the native checkbox: `name`, `value`, `onChange`, `disabled`, ' +
-          '`required` (which also shows _Form Label’s marker). `className` styles the field.',
+          'it. Figma’s State is `error` (the message under the description; the box, or the card, turns critical) ' +
+          'or `disabled` (the text in text/disabled), and Required is `required`. Every other prop, and the ref, go ' +
+          'to the native checkbox: `name`, `value`, `onChange`, `disabled`, `required`. `className` styles the field.',
       },
     },
   },
@@ -32,6 +33,7 @@ const meta = {
     disabled: { control: 'boolean' },
     required: { control: 'boolean' },
     description: { control: 'text' },
+    error: { control: 'text' },
   },
   decorators: [
     (Story) => (
@@ -103,6 +105,21 @@ export const Keyboard: Story = {
     await userEvent.keyboard(' ');
     await expect(box).toBeChecked();
     await expect(args.onChange).toHaveBeenCalledTimes(1);
+  },
+};
+
+/** Error: the message under the description, which also describes the box; the box is `aria-invalid`. */
+export const ErrorState: Story = {
+  name: 'Error',
+  args: { bordered: true, required: true, error: 'Select this to continue.' },
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: 'Restricted User' });
+    await expect(box).toHaveAttribute('aria-invalid', 'true');
+    await expect(box).toHaveAccessibleDescription(
+      'Users with this role can only see their own costs. Select this to continue.',
+    );
+    await userEvent.click(canvas.getByText('Select this to continue.'));
+    await expect(box).toBeChecked();
   },
 };
 
@@ -206,23 +223,45 @@ export const SubmitsWithForm: Story = {
   },
 };
 
-/* ── Every Checked × Bordered, in Light and Dark ───────────────────────────
-   Figma's four variants, then code's Required, Disabled and no description. */
+/* ── Every Checked × Bordered × State, in Light and Dark ───────────────────
+   Figma's twelve variants, then Required (enabled and disabled) and no
+   description. */
 
-const STATES = [
-  { state: 'Checked=false, Bordered=false', props: {} },
-  { state: 'Checked=true, Bordered=false', props: { defaultChecked: true } },
-  { state: 'Checked=false, Bordered=true', props: { bordered: true } },
-  { state: 'Checked=true, Bordered=true', props: { bordered: true, defaultChecked: true } },
+type FieldProps = {
+  defaultChecked?: boolean;
+  bordered?: boolean;
+  disabled?: boolean;
+  error?: string;
+  required?: boolean;
+  description?: undefined;
+};
+
+const ERROR = 'Select this to continue.';
+const STATES: Array<{ state: string; props: FieldProps }> = [
+  ...[false, true].flatMap((bordered) =>
+    [false, true].flatMap((checked) =>
+      (['Default', 'Disabled', 'Error'] as const).map((s) => ({
+        state: `Checked=${checked}, Bordered=${bordered}, State=${s}`,
+        props: {
+          ...(checked && { defaultChecked: true }),
+          ...(bordered && { bordered: true }),
+          ...(s === 'Disabled' && { disabled: true }),
+          ...(s === 'Error' && { error: ERROR }),
+        },
+      })),
+    ),
+  ),
   { state: 'Required', props: { required: true } },
-  { state: 'Disabled', props: { disabled: true, defaultChecked: true } },
+  { state: 'Required, disabled', props: { required: true, disabled: true } },
   { state: 'No description', props: { description: undefined } },
-] as const;
+];
 
 const grid = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  // pointer-events-none: the grid checks resting colours, so a pointer left where the previous story
+  // clicked mustn't hover a cell (on CI's wider Linux text, a box lands under it).
   render: () => (
-    <div className="flex flex-col gap-6">
+    <div className="pointer-events-none flex flex-col gap-6">
       {STATES.map(({ state, props }) => (
         <CheckboxField
           key={state}
@@ -239,45 +278,85 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   afterEach: async ({ canvasElement }) => {
-    const label = tokenColour('text-primary');
-    const description = tokenColour('text-secondary');
-    const marker = tokenColour('accent-critical-tonal-content-default');
-    const fill = tokenColour('action-primary-surface-default');
-    const card = insetStroke(tokenColour('stroke-default'), 1);
-    const cardChecked = insetStroke(tokenColour('stroke-focused'), 1);
+    const none = 'rgba(0, 0, 0, 0)';
+    const c = {
+      label: tokenColour('text-primary'),
+      description: tokenColour('text-secondary'),
+      disabledText: tokenColour('text-disabled'),
+      marker: tokenColour('accent-critical-tonal-content-default'),
+      // The shared field message (FormHelperText), as on main.
+      message: tokenColour('text-subtle'),
+      // The Checkbox's states: [fill, border].
+      box: {
+        rest: [tokenColour('surface-base'), tokenColour('stroke-field')],
+        invalid: [tokenColour('surface-base'), tokenColour('accent-critical-outline-border-default')],
+        disabled: [tokenColour('neutral-tonal-surface-disabled'), tokenColour('neutral-outline-border-disabled')],
+        checked: [tokenColour('action-primary-surface-default'), none],
+        checkedDisabled: [tokenColour('surface-brand-medium'), none],
+      },
+      card: {
+        rest: insetStroke(tokenColour('stroke-default'), 1),
+        checked: insetStroke(tokenColour('stroke-focused'), 1),
+        invalid: insetStroke(tokenColour('accent-critical-outline-border-default'), 1),
+        disabled: insetStroke(tokenColour('neutral-outline-border-disabled'), 1),
+      },
+    };
     await waitFor(
       () => {
         for (const { state, props } of STATES) {
           const box = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
           const field = box.closest('label')!;
-          const [title, note] = [...field.lastElementChild!.children] as HTMLElement[];
+          const [title, note, message] = [...field.lastElementChild!.children] as HTMLElement[];
           const boxRect = box.getBoundingClientRect();
           const fieldRect = field.getBoundingClientRect();
-          const bordered = 'bordered' in props;
-          const checked = 'defaultChecked' in props;
-          // The box: the 16px Checkbox, its fill following Checked.
+          const { bordered, defaultChecked: checked, disabled, error, required } = props;
+          const text = (colour: string) => (disabled ? c.disabledText : colour);
+          // The box: the 16px Checkbox in its state (Checkbox Disabled / Disabled Selected; critical when invalid and unchecked).
           expect([boxRect.width, boxRect.height]).toEqual([16, 16]);
-          if (checked) expect(getComputedStyle(box).backgroundColor).toBe(fill);
-          // Label: Body/sm-semibold, text.primary, 12px after the box, whose top is 2px below the label's.
-          expect(getComputedStyle(title).color).toBe(label);
+          const [fill, border] = checked
+            ? disabled
+              ? c.box.checkedDisabled
+              : c.box.checked
+            : disabled
+              ? c.box.disabled
+              : error
+                ? c.box.invalid
+                : c.box.rest;
+          expect(getComputedStyle(box).backgroundColor).toBe(fill);
+          expect(getComputedStyle(box).borderTopColor).toBe(border);
+          expect(box.getAttribute('aria-invalid')).toBe(error ? 'true' : null);
+          // Label: Body/sm-semibold, text.primary (text.disabled when disabled), 12px after the box, whose top is
+          // 2px below the label's.
+          expect(getComputedStyle(title).color).toBe(text(c.label));
           expect(getComputedStyle(title).fontSize).toBe('14px');
           expect(getComputedStyle(title).fontWeight).toBe('600');
           expect(title.getBoundingClientRect().left - boxRect.right).toBe(12);
           expect(boxRect.top - title.getBoundingClientRect().top).toBe(2);
           const star = title.querySelector('[aria-hidden]');
-          if ('required' in props) expect(getComputedStyle(star!).color).toBe(marker);
+          if (required) expect(getComputedStyle(star!).color).toBe(text(c.marker));
           else expect(star).toBeNull();
-          // Description: Caption/md-regular, text.secondary, 2px under the label.
+          // Description: Caption/md-regular, text.secondary (text.disabled when disabled), 2px under the label.
           if ('description' in props) expect(note).toBeUndefined();
           else {
-            expect(getComputedStyle(note).color).toBe(description);
+            expect(getComputedStyle(note).color).toBe(text(c.description));
             expect(getComputedStyle(note).fontSize).toBe('12px');
             expect(note.getBoundingClientRect().top - title.getBoundingClientRect().bottom).toBe(2);
           }
-          // Bordered: a card with 16px padding, radius 8, stroke.default, stroke.focused while checked.
+          // State=Error: the message, Caption/md-regular, 2px under the description.
+          if (error) {
+            expect(message).toHaveTextContent(ERROR);
+            expect(getComputedStyle(message).color).toBe(c.message);
+            expect(getComputedStyle(message).fontSize).toBe('12px');
+            expect(message.getBoundingClientRect().top - note.getBoundingClientRect().bottom).toBe(2);
+          } else {
+            expect(message).toBeUndefined();
+          }
+          // Bordered: a card with 16px padding, radius 8, stroke.default, stroke.focused while checked;
+          // critical in State=Error, neutral.outline.border.disabled in State=Disabled.
           const style = getComputedStyle(field);
           if (bordered) {
-            expect(style.boxShadow).toContain(checked ? cardChecked : card);
+            const card = disabled ? c.card.disabled : error ? c.card.invalid : checked ? c.card.checked : c.card.rest;
+            expect(style.boxShadow).toContain(card);
             expect(style.borderRadius).toBe('8px');
             expect([boxRect.left - fieldRect.left, boxRect.top - fieldRect.top]).toEqual([16, 18]);
           } else {
