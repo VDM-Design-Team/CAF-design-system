@@ -611,7 +611,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       selected: tokenColour('neutral-tonal-surface-default'),
       label: tokenColour('text-primary'),
@@ -631,7 +631,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
     // defaultOpen isn't the keyboard: no focus ring on the active option.
     await expect(canvasElement.querySelector('[data-focus-visible]')).toBeNull();
 
-    // Select / Menu: surface.neutral.faint, a 1px stroke.subtle stroke inside, radius 8, 6 padding.
+    // The overlay surface (surface.elevated since 3 Nov 2026), a 1px stroke.subtle stroke inside, radius 8, 6 padding.
     const style = getComputedStyle(list);
     await expect(style.backgroundColor).toBe(want.fill);
     await expect(style.boxShadow).toContain(insetStroke(want.stroke, 1));

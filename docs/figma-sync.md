@@ -629,20 +629,21 @@ The stories check the surface against the tokens in Light and Dark, and test fli
 
 | Layer | Figma (Menu / Dropdown) | Code |
 |---|---|---|
-| Fill | `surface/neutral/faint` | `bg-surface-neutral-faint` |
+| Fill | `surface/elevated` (`surface/neutral/faint` until 3 Nov) | `bg-surface-elevated` |
 | Stroke | 1px inside `stroke/subtle` | `inset-ring inset-ring-stroke-subtle` |
 | Radius | `radius/8` (raw 8 until 29 Oct) | `rounded-8` |
-| Effect | `Effects/Elevation Dark/3` style | `shadow-elevation-3` |
+| Effect | `Effects/Elevation Light/3` style (Dark/3 until 3 Nov) | `shadow-elevation-3` |
 | Padding | `space/6`, every side (raw 6 until 29 Oct) | `p-1.5` (`space/6`) |
 
-Contrast. The panel's fill is the canvas colour (1.00 in both themes), so its edge is the stroke: `stroke/subtle` on `surface/canvas` is 1.18 (Light) and 1.72 (Dark), plus the shadow. The panel is a container, not a control, so WCAG 1.4.11 doesn't apply (see the design question under MenuDropdown). Content on it: `text/primary` 19.28 / 17.85; the focus ring (`stroke/focused`) 6.51 / 6.51.
+Contrast. The panel on `surface/canvas` is 1.05 (Light) and 1.22 (Dark); the stroke (`stroke/subtle` on the panel, 1.23 / 1.41) and the shadow set it apart. The panel is a container, not a control, so WCAG 1.4.11 doesn't apply. Content on it: `text/primary` 20.17 / 14.63, `text/subtle` 4.76 / 5.71; the focus ring (`stroke/focused`) 6.81 / 5.33.
+
+**Changed in Figma on 3 Nov 2026** (decisions menu-surface, elevation-dark-3): Menu / Dropdown's fill is `surface/elevated` ("Cards, Widgets, Popovers") and its effect Elevation Light/3. Code: `popoverSurface` fills with `bg-surface-elevated`. Everything that floats on it follows: MenuDropdown, AccountMenu, RowActionsMenu, MenuTriggerButton's menu, and the lists of Select, FilterSelect and Combobox. Figma's Select / Menu still binds `surface/neutral/faint` (see SelectMenu). The date pickers (Calendar, RangeCalendar) draw their own surface and are unchanged.
 
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Component | None | A code-only Popover with Menu / Dropdown's surface | Add a panel component if designers want overlays other than menus |
-| Elevation in Dark | Elevation Dark/3: 15% and 20% black | `shadow-elevation-3`. Tailwind inlines theme shadows into the utility, so it is GDL's Light Elevation 3 (10% / 15%) in both themes | None in Figma: GDL's theme output has to carry Dark elevation (below) |
 | Gap to the trigger | Pattern 03 draws the menu 4px under the ••• | `mt-1` / `mb-1` (`space/4`) | None needed |
 | Placement | Pattern 03: under the button, right-aligned | `placement` bottom / top, `align` left / right, flipping at the viewport's edges | None needed |
 | Text colour | None on the panel | `text/primary`, for content that sets none | None needed |
@@ -655,30 +656,33 @@ Limits:
 
 ### MenuItem (29 Oct 2026)
 
-Source: page **Menus** (`446:11509`), set `Menu / Item` (`405:561`): Type (Default, Hover, Destructive) with a Label. Code: `src/components/menu-item/`.
+Source: page **Menus** (`446:11509`), set `Menu / Item` (`405:561`): Type (Default, Hover, Destructive, Destructive Hover) with a Label. Code: `src/components/menu-item/`.
 - Type=Hover is `:hover`.
-- Type=Destructive is `destructive`.
+- Type=Destructive is `destructive`; Type=Destructive Hover is `destructive` on `:hover`.
 - Label is `children`.
 
-It is a `<button role="menuitem">` outside the tab order, used inside MenuDropdown. The Storybook grids check fill, label colour, type style, padding and radius in Light and Dark, with Hover forced.
+It is a `<button role="menuitem">` outside the tab order, used inside MenuDropdown. The Storybook grids check fill, label colour, focus ring, type style, padding and radius in Light and Dark, with Hover and keyboard focus forced.
 
 | Type | Fill | Label |
 |---|---|---|
 | Default | none | `text/primary` |
-| Hover | `surface/base` | `text/primary` |
+| Hover | `neutral/tonal/surface/default` | `text/primary` |
 | Destructive | none | `accent/critical/tonal/content/default` |
-| Destructive on hover (code only) | `surface/base` | `accent/critical/tonal/content/default` |
+| Destructive Hover | `neutral/tonal/surface/default` | `accent/critical/tonal/content/hover` |
+| The keyboard's item (`:focus-visible`, code only) | Hover's fill (Destructive Hover's label on a destructive item), plus the focus ring | as Hover / Destructive Hover |
 
 The label is Body/sm-regular, with 8 / 12 padding and radius 6.
 
-Contrast: every label passes AA. Ratios are on the menu's `surface/neutral/faint` at rest, and on `surface/base` on hover:
+Contrast: every label passes AA. Ratios are on the menu's `surface/elevated` at rest, and on `neutral/tonal/surface/default` on hover:
 
 | Label | Light, rest / hover | Dark, rest / hover |
 |---|---|---|
-| `text/primary` | 19.28 / 20.17 | 17.85 / 14.63 |
-| `accent/critical/tonal/content/default` | 7.99 / 8.36 | 9.30 / 7.62 |
+| `text/primary` | 20.17 / 16.36 | 14.63 / 7.58 |
+| Destructive: `…/content/default` at rest, `…/content/hover` on hover | 8.36 / 8.13 | 7.62 / 5.21 |
 
-The focus ring (`stroke/focused`) on the menu is 6.51 in both themes.
+Destructive's own `…/content/default` on the hover fill would be 6.78 / **3.95**, so Destructive Hover (and the keyboard's destructive item) uses `…/content/hover`. The hover fill on the panel is 1.23 / 1.93: the label carries the state. The focus ring (`stroke/focused`) sits 2px outside the item, on the panel: 6.81 / 5.33.
+
+**Changed in Figma on 3 Nov 2026** (decisions weak-fills, states-code-adds, dark-pins-components; fc-modals-menu-item): Hover's fill is `neutral/tonal/surface/default` (was `surface/base`, 1.00:1 on the new panel); a fourth Type, **Destructive Hover** (`793:20113`), draws the destructive item on hover; the set's Semantics → Dark pin is cleared. Type stays one property (no Type × State split for now). Code: `enabled:hover:bg-neutral-tonal-surface-default`, the same fill on `focus-visible` (the decision gives the keyboard's item the Hover fill), and `enabled:hover:` / `focus-visible:text-accent-critical-tonal-content-hover` on a destructive item.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -693,13 +697,10 @@ Code departs from Figma here:
 | Height | Hugs Inter's auto line height: 33 | 36, on Body/sm's 20px line height | Use the ramp's line height |
 | Letter spacing | 0 | GDL's ramp (0.4px for Body/sm) | Bind the text style to the ramp |
 | Width | Fixed 200 in the set (Fill inside Menu / Dropdown) | Fills the menu | None needed |
-| Destructive + Hover | Not drawn | Hover's `surface/base` fill under the red label | Add it, or confirm (design question) |
-| Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
+| Focus | No Focus state | Hover's fill plus a 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
 | Disabled | No such state | No `disabled` prop: leave out an action the user can't take | Add one if the screens need it |
 
-Figma gaps the code doesn't copy:
-- **The set is pinned to Semantics Dark** (mode `1:2`). Clear the explicit mode.
-- **Hover is barely visible in Light:** `surface/base` (white) on `surface/neutral/faint` (slate-50) is 1.05:1 (Dark 1.22). This is a design question.
+Figma gaps the code doesn't copy: none since 3 Nov 2026 (the pin is cleared and Hover shows).
 
 ### MenuDropdown (29 Oct 2026)
 
@@ -707,7 +708,7 @@ Source: page **Menus** (`446:11509`), `Menu / Dropdown` (`446:11510`). How it op
 
 | | Figma | Code |
 |---|---|---|
-| Surface | `surface/neutral/faint` fill, 1px inside `stroke/subtle`, radius 8, Elevation Dark/3, padding 6 | Popover's surface |
+| Surface | `surface/elevated` fill, 1px inside `stroke/subtle`, radius 8, Elevation Light/3, padding 6 | Popover's surface |
 | Layout | Vertical auto layout, 2px item spacing, items Fill | `flex flex-col gap-0.5`; items `w-full` |
 | Width | Fixed 212 | `min-w-64` (256), wider for a longer label |
 | Items | Menu / Item instances, Destructive last | MenuItem `children` |
@@ -735,14 +736,12 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 212, raw and off GDL's scale | At least 256 (`space/256`) | Set the width to 256, or hug with a 256 minimum |
-| Elevation in Dark | Elevation Dark/3 | `shadow-elevation-3`, Light values in both themes (see Popover) | None in Figma; fix GDL's theme output |
 | Behaviour | Pattern 03: closes on a choice, a click outside or Esc | That, plus the arrow keys, Home / End and Tab | None needed |
 | Name | None | Named by its trigger (`aria-labelledby`), or by `label` | None needed |
 
-Figma gaps the code doesn't copy:
-- **Menu / Dropdown is pinned to Semantics Dark** (mode `1:2`), as is every placement on pattern 03, so it renders Dark on Light screens. Clear the explicit mode.
-- **Its effect is `Effects/Elevation Dark/3`,** a Dark style applied directly, to match the pin. With the pin cleared, use `Effects/Elevation Light/3`. Code uses GDL's Elevation 3 token.
-- **The fill is the canvas colour** in both themes (1.00:1), so only the stroke (1.18 Light, 1.72 Dark) and the shadow set the menu apart. CAF's `surface/elevated` is described as "Cards, Widgets, Popovers". This is a design question.
+**Changed in Figma on 3 Nov 2026** (decisions menu-surface, elevation-dark-3, dark-pins-components): the fill is `surface/elevated` (was `surface/neutral/faint`, the canvas colour), the effect Elevation Light/3 (was Dark/3), and the Semantics → Dark pin is cleared; the 9 placements on Patterns – Admin follow. Code: Popover's surface, `bg-surface-elevated` (see Popover).
+
+Figma gaps the code doesn't copy: none.
 
 ### RowActionsMenu (29 Oct 2026)
 
@@ -770,8 +769,9 @@ Code departs from Figma here:
 | Button | One-off: radius 6, 20px DotsThree in `text/primary`, no hover | IconButton Ghost 32 (see "IconButton") | Swap it for a `Button / Icon` instance, Ghost 32 |
 | Name | None | `label`, default "Row actions" | None needed |
 
-Figma gaps the code doesn't copy:
-- **The button is pinned to Semantics Dark** (mode `1:2`), like every placement in pattern 03. Clear the explicit mode.
+**Changed in Figma on 3 Nov 2026** (decisions dark-pins-components, menu-surface): Menu / Row Actions Button's Semantics → Dark pin is cleared (its placements sit in Dark-pinned screens, so they still render Dark), and the menu it opens is on `surface/elevated` (see Popover).
+
+Figma gaps the code doesn't copy: none.
 
 ### TextInput (29 Oct 2026)
 
@@ -1667,7 +1667,7 @@ full-width options and the 200px height, in Light and Dark.
 
 | Layer | Binding | Code |
 |---|---|---|
-| Fill | `surface/neutral/faint` | `bg-surface-neutral-faint` |
+| Fill | `surface/neutral/faint` | `bg-surface-elevated`, Popover's surface since 3 Nov 2026 (below) |
 | Stroke | 1px inside, `stroke/subtle` | `inset-ring inset-ring-stroke-subtle` |
 | Effect | Elevation Dark/3 | `shadow-elevation-3` (see Popover) |
 | Radius | `radius/8` | `rounded-8` |
@@ -1689,6 +1689,7 @@ Code departs from Figma here:
 | Width | Hug, with options set to Fill, so the menu has **collapsed to 38px** and every label wraps one letter per line | In Select, at least the trigger's width (wider for a longer label). On its own, its container's width | Set the width to Fixed (510, as `_Dropdown Input`) |
 | Height | No limit | `max-h-64` (`space/256`), then it scrolls; Select keeps the active option in view | Add a max height or a scrolling example |
 | Elevation in Dark | Elevation Dark/3 | GDL's Light Elevation 3 in both themes (Popover's note) | None in Figma |
+| Fill (3 Nov 2026) | `surface/neutral/faint` | `surface/elevated`: the list shares Popover's surface, which follows Menu / Dropdown (decision menu-surface: "Menu / Dropdown and every popover"). Options on it: `text/primary` 20.17 / 14.63; the active ring 6.81 / 5.33. Select, FilterSelect and Combobox show it so | Bind Select / Menu's fill to `surface/elevated` and its effect to Elevation Light/3, as Menu / Dropdown |
 
 Figma gaps the code doesn't copy: none. No modes are pinned.
 
@@ -1793,7 +1794,9 @@ Source: page **Modals** (`299:3301`), component `Modal / Header Icon` (`348:8268
 |---|---|---|
 | Tile | 40×40, `radius/8` | `size-10 rounded-8` |
 | Fill | `accent/info/tonal/surface/default` | `bg-accent-info-tonal-surface-default` |
-| Glyph | `CalendarBlank`, 24px, `accent/info/tonal/content/default` | `icon` (default `calendar-blank`), 24px, `accent/info/tonal/content/default` |
+| Glyph | **Icon** instance swap (`Icon#793:20`, default `CalendarBlank` 24), `accent/info/tonal/content/default` | `icon` (default `calendar-blank`), 24px, `accent/info/tonal/content/default` |
+
+**Changed in Figma on 3 Nov 2026** (decision confirm-and-header-props): the glyph is an **Icon** instance-swap property (default CalendarBlank 24). A swapped glyph keeps the tile's content colour (5.60 / 5.72). Code already had `icon`; the IconSwap story on ModalHeader checks it goes through.
 
 **Changed in Figma on 29 Oct 2026** (the library needs publishing):
 - **The glyph's fill** (`I348:8269;3167:83758`) was a raw #7EB3F7: 1.78:1
@@ -1804,11 +1807,7 @@ Source: page **Modals** (`299:3301`), component `Modal / Header Icon` (`348:8268
 
 Contrast (the glyph needs 3:1): 5.60 in Light, 5.72 in Dark. Figma's old raw #7EB3F7 was 1.78 / 4.78.
 
-Code departs from Figma here:
-
-| | Figma | Code | Fix in Figma |
-|---|---|---|---|
-| Glyph | Fixed CalendarBlank, not a property | `icon` prop (the nested instance, as on IconButton) | Expose an instance-swap property |
+Code departs from Figma here: nothing since 3 Nov 2026.
 
 ### ModalHeader (29 Oct 2026)
 
@@ -1818,11 +1817,11 @@ Source: page **Modals** (`299:3301`), component `Modal / Header` (`348:8299`), w
 |---|---|---|
 | Header | Horizontal, centred; padding `space/16` / `space/24`, gap `space/12` | `py-4 px-6 gap-3 items-center` |
 | Size | Fixed 512×80 | Fills its container, at least 80 tall (`min-h-20`) |
-| Header Icon | `Modal / Header Icon` instance | `ModalHeaderIcon` (`icon`) |
+| Header Icon | `Modal / Header Icon` instance, its Icon swap exposed (since 3 Nov) | `ModalHeaderIcon`; `icon` passes through |
 | Title Container | Vertical, gap 0, Fill | `flex-1` column |
 | Title | Body/lg-semibold, `text/primary` (Title) | `<h2>` `text-body-lg-semibold text-text-primary` (`title`, `titleId`) |
 | Description | Body/sm-regular, `text/subtle` (Description) | `<p>` `text-body-sm-regular text-text-subtle` (`description`, `descriptionId`) |
-| Close | `Modal / Close Button` | `<IconButton icon="x" label="Close">`, calls `onClose` |
+| Close | `Button / Icon`, Ghost, 32, X 16 (since 2 Nov) | `<IconButton icon="x" label="Close">`, calls `onClose` |
 
 Contrast, Light / Dark on `surface/base`:
 - Title: 20.17 / 14.63
@@ -1837,7 +1836,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Close button | 24×32, 24px X in `text/secondary`, radius 8, no hover or focus | IconButton Ghost 32: 32×32, 16px X, `neutral/tonal` hover, focus ring | Swap for `Button / Icon` (Ghost, 32) |
 | Height | Fixed 80; the text is 39 tall on Inter's auto line height | At least 80; the text is 44 tall on GDL's line heights | None needed |
 | Width | Fixed 512 | Fills its container | Set the width to Fill |
 | Description | Always shown | Renders only when given | Add Show Description, as Modal / Dialog has |
@@ -1845,6 +1843,8 @@ Code departs from Figma here:
 
 
 **Changed in Figma on 2 Nov 2026** (decisions add-modal-header-actions, icon-buttons-to-button-icon): Modal / Header has **Show Actions** and an Actions slot of Button / Icon (Ghost, 32) instances, such as Audit Logs' refresh (ArrowsClockwise), 4px (`space/4`) before the close button. Its close button is now Button / Icon (Ghost, 32), as code already drew it. Code: `actions`, rendered before the Close IconButton in a `gap-1` group.
+
+**Changed in Figma on 3 Nov 2026** (decision confirm-and-header-props): the nested Modal / Header Icon is an exposed instance, so every Modal / Header shows its **Icon** swap (default CalendarBlank 24). Code already passed `icon` to ModalHeaderIcon; nothing looks different.
 
 ### ModalDialog (29 Oct 2026)
 
@@ -1862,12 +1862,12 @@ How the Figma properties map:
 | Band | Figma | Code |
 |---|---|---|
 | Panel | `surface/base`, 1px inside `stroke/subtle` (strokes included in layout), `radius/12`, Effects/Elevation Dark/4, clips content | `bg-surface-base border border-stroke-subtle rounded-12 shadow-elevation-4 overflow-hidden` |
-| Width | Small 400, Medium 560, Large 800 | `max-w-sm` 384, `max-w-xl` 576, `max-w-3xl` 768; narrower on a small screen |
+| Width | Small 384, Medium 576, Large 768 (400 / 560 / 800 until 3 Nov) | `max-w-sm` 384, `max-w-xl` 576, `max-w-3xl` 768; narrower on a small screen |
 | Header | Padding 20 / 24, gap 16, Space Between, centred; 1px `stroke/subtle` below | `px-6 py-5 gap-4 justify-between border-b border-stroke-subtle` |
 | Title Group | Vertical, gap 4 | `gap-1` |
 | Title | Body/lg-semibold, `text/primary` | `<h2>`, same tokens |
 | Description | Body/sm-regular, `text/subtle`, hidden by default | `<p>`, same tokens |
-| Close | `Modal / Close Button` | `IconButton icon="x" label="Close"` |
+| Close | `Button / Icon`, Ghost, 32, X 16 in `text/secondary` (since 3 Nov) | `IconButton icon="x" label="Close"` |
 | Body | Padding 24, gap 16, holds the `_Slot` | `p-6 gap-4`; scrolls, and becomes a tab stop while it does |
 | Footer | Padding 16 / 24, gap 12, right-aligned; 1px `stroke/subtle` above | `px-6 py-4 gap-3 justify-end border-t border-stroke-subtle` |
 
@@ -1888,9 +1888,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Width | Raw 400 / 560 / 800 | Capped at 384 / 576 / 768 (Tailwind's container widths; GDL has no width scale) | Resize to 384 / 576 / 768, or bind to a GDL width scale |
 | Elevation | Effects/Elevation Dark/4 | `shadow-elevation-4`. Tailwind compiles it to GDL's Light Elevation 4 in both themes, so Dark is a little lighter than Figma until the theme output carries Dark elevation (as on Popover) | None in Figma |
-| Close | `Modal / Close Button` | IconButton (see ModalHeader) | Swap for `Button / Icon` |
 | Height | Hugs; footer 68 with Inter's 35px buttons | Footer 69 (GDL's 36px Button); never taller than the viewport minus 16 on each side; the body scrolls | None needed |
 | Show Description default | Off | On whenever there is a description | None needed |
 | Focus, keyboard | n/a | Focus moves to the dialog and is trapped; Escape, Close and a backdrop click call `onClose`; focus returns to the opener | None needed |
@@ -1899,6 +1897,9 @@ Code departs from Figma here:
 Figma gaps the code doesn't copy:
 - **`_Slot` (`458:338`)** is a placeholder: a dashed `stroke/default` box on `surface/elevated secondary`. It isn't built; Content is `children`.
 - **The Description layer is a fixed 213×17,** so a longer description is clipped. Code wraps it.
+- **Placed dialogs keep their old widths.** The Patterns – Admin ×9 and Patterns – User ×1 instances carry width overrides from when the screens were built (400 / 560 / 800, Audit Logs 1200). Code's sizes are the component's.
+
+**Changed in Figma on 3 Nov 2026** (decisions modal-widths, icon-buttons-to-button-icon): the widths are 384 / 576 / 768, as code, and the header's Modal / Close Button is swapped for Button / Icon (Ghost, 32, X 16 in `text/secondary`), as code's IconButton. Header heights are unchanged (73). No code change.
 
 ### ModalConfirm (29 Oct 2026)
 
@@ -1917,7 +1918,7 @@ It is an `alertdialog` described by its message:
 
 | Layer | Figma | Code |
 |---|---|---|
-| Panel | 420 fixed, padding 24, gap 20, `surface/base`, 1px `stroke/subtle`, `radius/12`, Elevation Dark/4 | `max-w-md p-6 gap-5 bg-surface-base border border-stroke-subtle rounded-12 shadow-elevation-4` |
+| Panel | 448 fixed (420 until 3 Nov), padding 24, gap 20, `surface/base`, 1px `stroke/subtle`, `radius/12`, Elevation Dark/4 | `max-w-md p-6 gap-5 bg-surface-base border border-stroke-subtle rounded-12 shadow-elevation-4` |
 | Content row | Gap 16 | `gap-4` |
 | Icon Tile | 40×40, `radius/20` | `size-10 rounded-20` |
 | Default tile | `accent/info/tonal/surface/default`; Info glyph in `accent/info/tonal/content/default` | Same tokens, Icon `info` 24 |
@@ -1944,11 +1945,12 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Width | Raw 420 | Capped at 448 (`max-w-md`) | Resize to 448, or bind to a GDL width scale |
 | Elevation | Elevation Dark/4 | `shadow-elevation-4` (see ModalDialog) | None in Figma |
 | Role, focus | n/a | `alertdialog`, described by the Message; focus opens on Cancel | None needed |
 | Closing | No close button | Escape and Cancel close it; a backdrop click doesn't | None needed |
-| Labels | Text overrides on the button instances | `confirmLabel` and `cancelLabel` | Consider text properties |
+| Labels | Text overrides on the button instances | `confirmLabel` and `cancelLabel` | Text properties, once Button / Normal has a Label property (decided 3 Nov) |
+
+**Changed in Figma on 3 Nov 2026** (decision modal-widths): the width is 448 (was 420), as code. Its placement on Patterns – Admin follows. No code change.
 
 ### SideSheet (29 Oct 2026)
 
@@ -1990,7 +1992,8 @@ Code departs from Figma here:
 | Height | Fixed 900 | The viewport's height | None needed |
 | Width | Raw 672 | `max-w-2xl` (672, Tailwind's container width) | Bind to a GDL width scale once there is one |
 | Elevation | Elevation Dark/4 | `shadow-elevation-4` (see ModalDialog) | None in Figma |
-| Close | `Modal / Close Button` | IconButton | Swap for `Button / Icon` |
+
+**Changed in Figma on 3 Nov 2026** (decision icon-buttons-to-button-icon): the header's Modal / Close Button is swapped for Button / Icon (Ghost, 32, X 16 in `text/secondary`), as code's IconButton. No code change.
 
 ### Alert (29 Oct 2026)
 
@@ -2050,26 +2053,14 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 464 | Fills its container | None needed: instances are stretched |
-| Compact padding | Raw 10 top and bottom; `space/12` at the sides | `space/12` all round: 44px tall (Figma 42) | Bind top and bottom to `space/12` (design question) |
-| Height | Default 68, on Inter's auto line height | 70, on GDL's 20px Body/sm and 16px Caption/md line heights | Bind the text styles' line heights to the ramp |
+| Height | Default 66 (68 until 3 Nov), on Inter's auto line height; Compact 44, as code | Default 70, on GDL's 20px Body/sm and 16px Caption/md line heights | Bind the text styles' line heights to the ramp |
 | Letter spacing | 0 | GDL's ramp (0.4px Body/sm, 0.3px Caption/md) | As above |
-| Dismiss | A bare 16px X glyph, hidden in every variant (its colour override can't be read) | `IconButton` Ghost 32 with a `text/secondary` glyph. Its margin is -8px so it takes the X's 16px slot, and the alert keeps Figma's height | Swap for `Button / Icon` (Ghost, 32, X) |
 | Focus | No Focus state | 2px `stroke.focused` ring on the X, as on Button | Add a Focus state |
-| Compact text | Title hidden; Message hard-coded per variant | `message` only. `title` isn't shown in Compact | Connect Message (below) |
 | Role | None | `role="alert"` for Error and Warning, `role="status"` for Info and Success | None needed |
 
-Figma gaps the code doesn't copy:
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
 
-- **Compact's Message isn't connected to the Message property,** so
-  instances can't change the text. The Audit Logs instance (`526:4636`,
-  also nested in pattern 08) sets Message "There are no changes to
-  compare." but shows the variant's own "This cost was deleted". It's the
-  only Compact instance in the file. It wasn't connected on 29 Oct,
-  because connecting it changes what Audit Logs reads, and which line
-  Compact should show is a design question.
-- **The "Alerts" frame (`510:3008`) pins Semantics to Dark,** so the
-  Feedback page shows only Dark. The set itself has no pinned mode. Clear
-  the frame's explicit mode.
+**Changed in Figma on 3 Nov 2026** (decisions alert-compact, offscale-spacing, icon-buttons-to-button-icon, dark-pins-showcase; fc-modals-close-slot, fc-modals-stroke-layout): Compact's Message is connected to `Message`, and its top and bottom padding is `space/12` (was raw 10), as code. Show Dismiss now shows Button / Icon (Ghost, 32, X 16 in `text/secondary`) in a 16px slot it overflows by 8px each side, as code's `-m-2`. The strokes are no longer counted in the layout (Default 66, Compact 44). The Feedback page has an "Alerts – Light" frame (`798:17518`) beside the Dark one. No code change.
 
 
 **Changed in Figma on 2 Nov 2026** (decision add-alert-action): Alert has **Show Action** (default off) and an Action button, Button / Small Style=Text ("Retry"), between the text and the dismiss button, as Toast places its action. Code: `showAction`, `action` (the label) and `onAction`; a `Button variant="text" size="small"`. Its label is `action/tertiary/content/default`: 5.58–8.66:1 on every Type's fill. Figma can't expose the label as an Alert text property (it sits inside a nested Button instance), so designers override it. With the action, Compact is 56px tall in code (53 in Figma: its raw 10 top and bottom vs code's `space/12`).
@@ -2077,15 +2068,18 @@ Figma gaps the code doesn't copy:
 ### Toast (29 Oct 2026)
 
 Source: page **Feedback** (`459:232`), set `Toast` (`459:379`): Type
-(Info, Success, Warning, Error), with Message, Action and Show Action.
+(Info, Success, Warning, Error) × Action State (Default, Hover), with
+Message, Action and Show Action.
 Behaviour from **Patterns – Admin**, 12 · Feedback messages (`528:6347`).
 Code: `src/components/toast/`: `Toast`, plus `ToastProvider` and
-`useToast` (the host, code only). Every colour binding is copied exactly
-except the X (below). The card is `surface/base` with a 1px inside
+`useToast` (the host, code only). Every colour binding is copied exactly.
+Action State is the action's own state: Hover is its `:hover`, the label
+in `text/link/hover`. The card is `surface/base` with a 1px inside
 `stroke/subtle` and Elevation 3, padding `space/12` / `space/16`, gap
 `space/12`, centred. The message is Body/sm-regular in `text/primary`, and the action
 Body/sm-semibold in `text/link/default`. The Storybook grids check each
-Type with Show Action off and on and with the X hovered, in Light and Dark.
+Type with Show Action off and on, with the action hovered (Action
+State=Hover) and with the X hovered, in Light and Dark.
 They check the fill, inset ring and shadow, radius, padding, icon, message,
 action and X colours.
 
@@ -2120,6 +2114,7 @@ Contrast: every pair passes.
 |---|---|---|
 | Message (`text/primary` on `surface/base`) | 20.17 | 14.63 |
 | Action (`text/link/default`) | 5.01 | 6.73 |
+| Action on hover (`text/link/hover`) | 6.85 | 4.60 |
 | Icon: Info / Success / Warning / Error | 6.83 / 7.13 / 4.93 / 8.36 | 8.07 / 10.44 / 11.03 / 7.62 |
 | X (`text/secondary`), at rest / on hover | 10.35 / 8.40 | 11.87 / 6.15 |
 
@@ -2131,19 +2126,14 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 380 | 384 (`w-sm`), never wider than the screen | Set the width to 384 |
-| Radius | Raw 10 (off GDL's scale) | `radius/8`, as Alert and Menu / Dropdown | Bind to `radius/8` (or `radius/12`) |
 | Effect | `Elevation Dark/3` style in both modes | `shadow-elevation-3`: Tailwind inlines GDL's Light Elevation 3 in both themes, as on Popover | None in Figma; code follows when the theme output carries Dark elevation |
-| Height | 46, on Inter's auto line height | 44 (12 + 20 + 12), on GDL's 20px Body/sm line height | Bind the text styles' line heights to the ramp |
-| The X | A bare 16px X glyph in `text/subtle`, always shown | `IconButton` Ghost 32 with a `text/secondary` glyph and a `neutral/tonal` hover fill, -8px margin so it takes the X's 16px slot. `text/subtle` on that hover fill is 3.86 / 2.96, below 3:1 | Swap for `Button / Icon` (Ghost, 32, X) |
-| Action | A text layer, no states | A `<button>` with Button's focus ring; no hover | Add Hover and Focus if wanted |
+| Action focus | No Focus state | A `<button>` with Button's focus ring | Add a Focus state if wanted |
 | Action default | "Undo" | `action` defaults to "Undo"; `showAction` defaults to false | None needed |
 | Host | None (pattern 12 describes it) | `ToastProvider` and `useToast` | None needed |
 
-Figma gaps the code doesn't copy:
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
 
-- **The "Toasts" frame (`510:3009`) pins Semantics to Dark,** so the
-  Feedback page shows only Dark toasts. The set itself has no pinned mode.
-  Clear the frame's explicit mode.
+**Changed in Figma on 3 Nov 2026** (decisions toast-radius, icon-buttons-to-button-icon, toast-action-hover, dark-pins-showcase; fc-modals-toast-action, fc-modals-close-slot, fc-modals-stroke-layout): the radius is bound to `radius/8`; the X is Button / Icon (Ghost, 32, X 16 in `text/secondary`) overflowing its 16px slot, as code's `-m-2`; strokes are no longer counted in the layout (44 tall, as code); a new **Action State** (Default / Hover) gives the action a Hover in `text/link/hover`, colour only; and the Feedback page has a "Toasts – Light" frame (`798:17591`). Code: the action gets `hover:text-text-link-hover`.
 
 ### Tooltip (29 Oct 2026)
 
@@ -2160,7 +2150,7 @@ and gap.
 | Body fill | `surface/neutral/stronger` | `bg-surface-neutral-stronger` |
 | Label | `text/inverted/primary`, Caption/md-medium | `text-text-inverted-primary`, `text-caption-md-medium` |
 | Body radius | `radius/6` | `rounded-6` (`radius/6`) |
-| Body padding | `space/6` top and bottom, raw 10 at the sides | `py-1.5 px-2` (`space/6`, `space/8`) |
+| Body padding | `space/6` top and bottom, `space/8` at the sides (raw 10 until 3 Nov) | `py-1.5 px-2` (`space/6`, `space/8`) |
 | Arrow | 10×6 triangle in `surface/neutral/stronger`, centred and touching the body: below it for Top (pointing down), above it for Bottom (pointing up) | An SVG with Figma's geometry (`viewBox="0 0 10 6"`) and `fill-surface-neutral-stronger`, 6px tall (`h-1.5`); its width follows the viewBox |
 
 Contrast: the label passes AA by a wide margin. In Light it's white on
@@ -2178,7 +2168,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Side padding | Raw 10, unbound | `space/8`. 10 isn't on GDL's scale; Button's raw 10 also became 8 | Bind to `space/8` (design question) |
 | Height | 27, on Inter's auto line height (15) | 28, on GDL's 16px Caption/md line height | Bind the text style's line height to the ramp |
 | Letter spacing | 0 | GDL's 0.3px | As above |
 | Arrow construction | Top: a frame holding a vector. Bottom: a 3-point polygon | One SVG with the same 10×6 geometry, flipped for Bottom | Build both arrows the same way |
@@ -2188,12 +2177,9 @@ Code departs from Figma here:
 | Accessibility | None | `role="tooltip"`, and the target gets `aria-describedby`. When closed it's `hidden` but still the target's description. Escape from the target is used by the tooltip, so it doesn't also close a dialog or menu behind it | None needed |
 | Focus | No Focus state | None on the tooltip, which is never focusable. The target brings its own focus ring | None needed |
 
-Figma gaps the code doesn't copy:
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
 
-- **The Tooltips section (`510:3010`) pins a variable mode to Dark,** so
-  the library page shows Dark's light-grey bubble. The component itself
-  pins nothing, so code follows the theme: a slate-700 bubble in Light and
-  a slate-200 bubble in Dark.
+**Changed in Figma on 3 Nov 2026** (decisions offscale-spacing, dark-pins-showcase): the side padding is `space/8` (was raw 10), as code, and the Feedback page has a "Tooltips – Light" frame (`798:17680`) beside the Dark section. No code change.
 
 ### Skeleton (29 Oct 2026)
 
@@ -2278,15 +2264,17 @@ thickness, in Light and Dark.
 | Part | Binding |
 |---|---|
 | Track | `neutral/tonal/surface/default` |
-| Indicator | `action/primary/surface/default` |
+| Indicator | `action/tertiary/content/default` (`action/primary/surface/default` until 3 Nov) |
 
 Contrast: the ring is a graphic, so it needs 3:1 (WCAG 1.4.11).
 
 | Pair | Light | Dark |
 |---|---|---|
-| Indicator on canvas / base | 6.51 / 6.81 | 4.63 / 3.80 |
-| Indicator on its track | 5.53 | **1.97** (design question) |
+| Indicator on canvas / base | 6.51 / 6.81 | 14.91 / 12.22 |
+| Indicator on its track | 5.53 | 6.33 (was **1.97**) |
 | Track on canvas | 1.18 | 2.36 |
+
+**Changed in Figma on 3 Nov 2026** (decision spinner-dark; fc-modals-spinner): the indicator is `action/tertiary/content/default`: Light unchanged (the same CAF blue), Dark near-white (#EAEAF1). Code: `stroke-action-tertiary-content-default`.
 
 Code departs from Figma here:
 
@@ -2301,20 +2289,21 @@ Figma gaps the code doesn't copy: none (no pinned modes).
 ### EmptyState (29 Oct 2026)
 
 Source: page **Feedback** (`459:232`), set `Empty State` (`464:12461`):
-Size (Default, Compact) × Title × Description × Show Action. Pattern 11
+Size (Default, Compact) × Title × Description × Show Action × Icon. Pattern 11
 places Default in an empty Announcements table and on the 404 page. Code:
 `src/components/empty-state/`. `size` is Size, `title` is Title,
 `description` is Description, and `action` is Show Action plus its nested
-Button (pass the Button, or leave it out). Compact has neither
-description nor action, and its types don't allow them. Every binding is
+Button (pass the Button, or leave it out). `icon` is the Icon swap (an
+Icon name, default `tray`). Compact has no description, action or icon,
+and its types don't allow them. Every binding is
 copied exactly. The Storybook grids check each part's colour, type style,
 size and padding, in Light and Dark.
 
 | Part | Size=Default | Size=Compact |
 |---|---|---|
 | Layout | Vertical, centred; 48px top and bottom, 24px sides, 12px gap; 480px wide | 24px padding, 6px gap; 480px wide |
-| Icon tile | 64×64, `surface/base`, `radius/full` | 24×24, no fill |
-| Icon | Phosphor Tray 32px, `text/subtle` | Tray 20px, `text/subtle` |
+| Icon tile | 64×64, `neutral/tonal/surface/default` (`surface/base` until 3 Nov), `radius/full` | 24×24, no fill |
+| Icon | **Icon** swap (`Icon#798:6`, default Phosphor Tray 32px), `neutral/tonal/content/default` (`text/subtle` until 3 Nov) | Tray 20px, fixed, `text/subtle` |
 | Title | Body/md-semibold, `text/primary` | Body/sm-regular, `text/subtle` |
 | Description | Body/sm-regular, `text/subtle`, centred | — |
 | Action | `Button / Normal`, Style=Default, Plus icon ("Create Cost") | — |
@@ -2325,8 +2314,11 @@ Contrast: the text passes AA, and the icon passes 3:1.
 |---|---|---|
 | Title, `text/primary` | 19.28 / 20.17 | 17.85 / 14.63 |
 | Description and Compact title, `text/subtle` | 4.55 / 4.76 | 6.96 / 5.71 |
-| Icon on its tile (`text/subtle` on `surface/base`) | 4.76 | 5.71 |
-| Tile on canvas (decorative) | 1.05 | 1.22 (design question) |
+| Icon on its tile (`neutral/tonal/content/default` on `neutral/tonal/surface/default`) | 8.40 | 5.10 |
+| Tile on canvas / base (decorative) | 1.18 / 1.23 | 2.36 / 1.93 |
+| Compact icon, `text/subtle` | 4.55 / 4.76 | 6.96 / 5.71 |
+
+**Changed in Figma on 3 Nov 2026** (decision empty-state; fc-modals-empty-compact): the Default tile is the neutral tonal pair (fill `neutral/tonal/surface/default`, glyph `neutral/tonal/content/default`; `text/subtle` on the new tile would be 2.96 in Dark), and the set has an **Icon** instance swap (default Tray 32) bound to Size=Default only: Compact's 20px Tray stays fixed. Code: the tile's new bindings, and a new `icon` prop (Default only; default `tray`).
 
 **Changed in Figma on 29 Oct 2026** (the library needs publishing): the
 Icon Tile's radius was a raw 32 (on a 64px tile in Default, and a 24px
@@ -2341,8 +2333,7 @@ Code departs from Figma here:
 | Text wrapping | Title and Description hug their text, so long copy runs past 480px | They wrap within the width, centred | Make the text layers wrap (fixed width, auto height) |
 | Title element | A text layer | A `<p>`, because the page or the table already has the heading | None needed |
 | Action | Show Action toggles a nested Button instance | `action`: the Button the screen passes, with its own label, icon and handler | None needed |
-| Icon | Tray, fixed (no swap property) | Tray, fixed | Add an icon swap if screens need other glyphs (design question) |
-| Compact copy | The set's description says "No items." | The Title, whose Figma default is "No items found" | Align the description with the default |
+| Icon | An Icon swap on the component set, bound to Size=Default only | `icon` on Size=Default; Compact has no `icon` (its types don't allow one) | None needed (fc-modals-empty-compact) |
 
 Figma gaps the code doesn't copy: none (no pinned modes). The Tray
 instance's inner frame has an unbound white fill. It is hidden behind the
@@ -4376,31 +4367,33 @@ Figma gaps the code doesn't copy:
 
 ### PaymentRow (30 Oct 2026)
 
-Source: page **Modals** (`299:3301`), set `Modal / Payment Row` (`348:8298`): Status (Done `348:8278`, Upcoming `348:8288`), Date and Subtitle. It nests `Modal / Status Icon` (`348:8258`) and `Modal / Status Badge` (`348:8263`). Payment Schedules places five. Code: `src/components/payment-row/`. The Storybook grids check both statuses against every binding, in Light and Dark.
+Source: page **Modals** (`299:3301`), set `Modal / Payment Row` (`348:8298`): Status (Done `348:8278`, Upcoming `348:8288`), Date, Subtitle and Amount. It nests `Modal / Status Icon` (`348:8258`) and, since 3 Nov 2026, a `Tag` for the status. Payment Schedules places five. Code: `src/components/payment-row/`. The Storybook grids check both statuses against every binding, in Light and Dark.
 
 How the Figma properties map:
 - Status → `status`: `done` (default) or `upcoming`.
-- Date → `date`. Subtitle → `subtitle`.
-- Status Icon and Status Badge are part of the row, not components of their own. Only Payment Row places them, in the library and on both Patterns pages.
-- Tag has the same tonal pairs, but its look is larger (Label/sm-medium, 4 / 12 padding, an icon), so the badge isn't a Tag (see the design question below).
-- The icon is decorative (`aria-hidden`): the badge says the status in text.
+- Date → `date`. Subtitle → `subtitle`. Amount (`Amount#793:13`, default "USD 900") → `amount`; left out, nothing renders for it.
+- Status Icon is part of the row, not a component of its own. Only Payment Row places it, in the library and on both Patterns pages.
+- The status (`348:8286`, `348:8296`) is a Tag, Show Icon off: Status=Completed "Done" or Status=Warning "Upcoming" → `<Tag status="completed" | "warning" showIcon={false}>`.
+- The icon is decorative (`aria-hidden`): the Tag says the status in text.
 
 | Layer | Figma | Code |
 |---|---|---|
-| Frame | Horizontal, centred; padding 13 (raw), gap `space/12`; fixed 460×62 | `flex items-center p-3 gap-3`; fills its container, hugs its height (60) |
+| Frame | Horizontal, centred; padding and gap `space/12`; 460 wide, hugs 60 | `flex items-center p-3 gap-3`; fills its container, hugs its height (60) |
 | Fill, edge | `surface/canvas`; 1px inside, `accent/success/outline/border/default` (Done) or `accent/warning/outline/border/default` (Upcoming); `radius/8` | `bg-surface-canvas inset-ring` + the status's border colour; `rounded-8` |
 | Status Icon | 36×36 circle (`radius/full`), `accent/<success or warning>/tonal/surface/default` | `size-9 rounded-full`, same fill |
 | Its glyph | 24px CheckCircle (Done) / Clock (Upcoming), `accent/<status>/tonal/content/default` (raw #31C48D / #FBBF24 until 30 Oct) | `check-circle` / `clock`, 24px, `accent/<status>/tonal/content/default` |
 | Text Content | Vertical, gap 0, Fill | `flex-1 flex-col` |
 | Date | Body/sm-regular, `text/primary` | Same |
 | Subtitle | Caption/md-regular; `text/subtle` (Done), `accent/warning/tonal/content/default` (Upcoming) | Same, per status |
-| Status Badge | Padding `space/2` / `space/8`, `radius/full`; `accent/<status>/tonal/surface/default`; "Done" / "Upcoming" in Caption/md-regular, `accent/<status>/tonal/content/default` | `px-2 py-0.5 rounded-full text-caption-md-regular`, same colours and labels |
+| Amount | Body/sm-semibold, `text/primary`, hugs, between Text Content and Status | `text-body-sm-semibold text-text-primary whitespace-nowrap` |
+| Status | `Tag`, Show Icon off: Completed "Done" / Warning "Upcoming" (Label/sm-medium, 4 / 12 padding) | `<Tag status="completed" / "warning" showIcon={false}>` |
 
 Contrast, Light / Dark:
 - Date on `surface/canvas`: 19.28 / 17.85
 - Subtitle, Done (`text/subtle`): 4.55 / 6.96
 - Subtitle, Upcoming (warning content on canvas): 4.71 / 13.46
-- Badge, Done: 6.49 / 6.46. Badge, Upcoming: 4.59 / 6.53
+- Amount on `surface/canvas`: 19.28 / 17.85
+- Tag, Done (Completed): 6.49 / 6.46. Tag, Upcoming (Warning): 4.59 / 6.53
 - Icon glyph (needs 3:1), as code draws it: Done 6.49 / 6.46, Upcoming 4.59 / 6.53. Figma's raw glyphs before 30 Oct: Done 2.03 / 4.06, Upcoming **1.55** / 5.19
 - The edge on `surface/canvas`: Done 3.08 / 5.55, Upcoming 4.71 / 6.08
 
@@ -4414,13 +4407,12 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Padding | Raw 13 (off GDL's scale) | 12 (`space/12`), as the gap | Bind to `space/12` (design question) |
-| Height | Fixed 62 | Hugs: 60 (12 + the 36px icon + 12) | Set the height to Hug |
 | Width | Fixed 460 (Fill in the modal) | Fills its container | Set the width to Fill |
-| Badge height | 19, on Inter's auto line height | 20, on GDL's 16px Caption line | Bind the text style's line height to the ramp |
+| Amount | Always shown | Renders only when given | None needed |
 
-Figma gaps the code doesn't copy:
-- **Both variants are pinned to Semantics Dark** (mode `1:2`), and so is every row Payment Schedules places. Code follows the page's theme. Clear the explicit modes.
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
+
+**Changed in Figma on 3 Nov 2026** (decisions payment-row, offscale-spacing, dark-pins-components; fc-modals-payment-amount, fc-modals-deprecate): a new **Amount** text property and text (Body/sm-semibold, `text/primary`) between the date block and the status; the status is a Tag (Show Icon off) instead of Modal / Status Badge, which is marked deprecated; the padding is `space/12` (was raw 13); the row hugs at 60 (was fixed 62); the Semantics → Dark pins are cleared. Code: the new `amount` prop and the Tag. The Recurring Costs patterns pass each cost's amount per payment ("USD 900").
 
 ### PaymentSchedules (30 Oct 2026)
 
@@ -4433,34 +4425,37 @@ How it maps:
 
 | Layer | Figma | Code |
 |---|---|---|
-| Panel | Vertical, gap 0; `surface/base`; `radius/12`; clips content; no stroke, no effect | `flex flex-col overflow-hidden bg-surface-base rounded-12` |
+| Panel | Vertical, gap 0; `surface/base`; `radius/12`; 1px inside `stroke/subtle` (strokes included in layout); Effects/Elevation Dark/4; clips content | `flex flex-col overflow-hidden bg-surface-base rounded-12 border border-stroke-subtle shadow-elevation-4`, as ModalDialog |
 | Width | Fixed 512 | `w-full max-w-lg` (512), narrower on a small screen |
 | Header | `Modal / Header` (`348:8299`) | `ModalHeader` |
 | Rows Container | Vertical; padding 0 / `space/24` / `space/24` / `space/24`, gap `space/8` | `px-6 pb-6`, a `<ul>` with `gap-2`; scrolls (and is a tab stop) when the rows are taller than the viewport |
 | Rows | `Modal / Payment Row` ×5, Fill | `PaymentRow`s |
 
-Contrast, Light / Dark on `surface/base`: Title 20.17 / 14.63, Description 4.76 / 5.71, Close glyph 10.35 / 11.87 (see ModalHeader). The rows are as PaymentRow.
+Contrast, Light / Dark on `surface/base`: Title 20.17 / 14.63, Description 4.76 / 5.71, Close glyph 10.35 / 11.87 (see ModalHeader). The rows are as PaymentRow. The panel's edge (`stroke/subtle`, 1.23 / 1.41 on the panel) and the shadow set it apart from the scrim; they are decorative.
 
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Behaviour | A static frame | Overlay's portal, focus trap, Escape and backdrop click, inert page, scroll lock, focus return | None needed |
-| Height | Hugs: 446 for five rows | Hugs, never taller than the viewport minus 16 on each side; the rows scroll | None needed |
+| Height | Hugs: 438 for five rows | Hugs, never taller than the viewport minus 16 on each side; the rows scroll | None needed |
 | Rows container | A frame | A `<ul>` of `<li>`s | None needed |
-| Edge and shadow | None | None, as Figma. On the scrim, `surface/base` is 1.18 (Light) and 1.06 (Dark) | Add Modal / Dialog's 1px `stroke/subtle` and Elevation 4? (design question) |
+| Elevation | Effects/Elevation Dark/4 | `shadow-elevation-4`: GDL's Light Elevation 4 in both themes (see ModalDialog) | None in Figma |
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing; nothing looks different, and code already uses these tokens):
 - The panel's radius (raw 12) is bound to `radius/12`.
 - The Rows Container's padding (raw 24) is bound to `space/24`, and its gap (raw 8) to `space/8`.
 - The Done rows' Status Icon fill override is reset (see PaymentRow).
 
-Figma gaps the code doesn't copy:
-- **The modal is pinned to Semantics Dark** (mode `1:2`), and so are its rows. Code follows the page's theme. Clear the explicit modes.
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
+
+**Changed in Figma on 3 Nov 2026** (decisions overlay-surfaces, dark-pins-components): the panel has Modal / Dialog's edge and elevation, a 1px inside `stroke/subtle` and Elevation Dark/4, and the Semantics → Dark pins on it and its rows are cleared. Code: `border border-stroke-subtle shadow-elevation-4`.
 
 ### VersionBadge (30 Oct 2026)
 
-Source: page **Modals** (`299:3301`), component `Modal / Version Badge` (`359:10826`), with Version. Modal / Changelog Header places it next to the date. Code: `src/components/version-badge/`. Version is `children`. The badge is plain text with no states.
+**Deprecated (3 Nov 2026, decision version-badge).** Show a release version as `<Tag status="info" showIcon={false}>`, as the Announcements table and, since 3 Nov, ChangelogHeader do. Figma's `Modal / Version Badge` is kept with a "Deprecated" description and has no placements left; code keeps `VersionBadge` exported, marked `@deprecated`, until a major release removes it.
+
+Source: page **Modals** (`299:3301`), component `Modal / Version Badge` (`359:10826`), with Version. Until 3 Nov 2026 Modal / Changelog Header placed it next to the date. Code: `src/components/version-badge/`. Version is `children`. The badge is plain text with no states.
 
 **It isn't a Tag.** Tag Status=Info, which the Announcements table uses for its version column, has the `accent/info/tonal` fill and Label/sm-medium. The badge has a `surface/base` fill and Body/sm-semibold. Only the text colour is the same.
 
@@ -4470,7 +4465,7 @@ Source: page **Modals** (`299:3301`), component `Modal / Version Badge` (`359:10
 | Fill | `surface/base` | `bg-surface-base` |
 | Version | Body/sm-semibold, `accent/info/tonal/content/default` | `text-body-sm-semibold text-accent-info-tonal-content-default` |
 
-Contrast, Light / Dark: the version text on its fill is 6.83 / 8.07. The pill against the dialog's `surface/canvas` is 1.05 / 1.22. It's decorative: the text carries the meaning.
+Contrast, Light / Dark: the version text on its fill is 6.83 / 8.07. On the dialog's new `surface/base` the pill would vanish (1.00), one reason for the decision.
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the radius (raw 9999) is bound to `radius/full` and the padding (raw 4 / 12) to `space/4` and `space/12`. Nothing looks different.
 
@@ -4492,9 +4487,9 @@ Source: page **Modals** (`299:3301`), component `Modal / Bullet Item` (`359:1083
 | Bullet Dot | 6×6 ellipse, `accent/success/tonal/content/default` | `size-1.5 rounded-full bg-accent-success-tonal-content-default`, in a 20px box (`h-5`) |
 | Text | Body/sm-regular, `text/primary` | `text-body-sm-regular text-text-primary` |
 
-Contrast, Light / Dark, on `surface/canvas` (the dialog) or `surface/neutral/faint` (the card), which have the same values:
-- Text: 19.28 / 17.85
-- Dot: 6.82 / 12.74. It's decorative, because the list says "bullet".
+Contrast, Light / Dark, on `surface/base` (the dialog, since 3 Nov 2026) and on `surface/neutral/faint` (the card):
+- Text: 20.17 / 14.63 in the dialog, 19.28 / 17.85 on the card
+- Dot: 7.13 / 10.44 in the dialog, 6.82 / 12.74 on the card. It's decorative, because the list says "bullet".
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the gap (raw 8) is bound to `space/8`. Nothing looks different.
 
@@ -4518,7 +4513,7 @@ Source: page **Modals** (`299:3301`), component `Modal / Release Notes` (`359:10
 | Section Title | Body/sm-semibold, `text/primary` | `<p>` `text-body-sm-semibold text-text-primary` |
 | Items | `Modal / Bullet Item` | `children`: `BulletItem`s |
 
-Contrast, Light / Dark, on `surface/canvas`: section title 19.28 / 17.85. For the items, see BulletItem.
+Contrast, Light / Dark, on the dialog's `surface/base` (since 3 Nov 2026): section title 20.17 / 14.63. For the items, see BulletItem.
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the gap (raw 12) is bound to `space/12`. Nothing looks different.
 
@@ -4533,29 +4528,29 @@ Figma gaps the code doesn't copy: none.
 
 ### ChangelogHeader (30 Oct 2026)
 
-Source: page **Modals** (`299:3301`), component `Modal / Changelog Header` (`359:10835`), with Title and Date. It nests `Modal / Changelog Icon` (`359:10822`) and `Modal / Version Badge`. Modal / Changelog places it. Code: `src/components/changelog-header/`.
+Source: page **Modals** (`299:3301`), component `Modal / Changelog Header` (`359:10835`), with Title and Date. It nests `Modal / Changelog Icon` (`359:10822`) and, since 3 Nov 2026, a `Tag` Status=Info for the version (`359:10843`). Modal / Changelog places it. Code: `src/components/changelog-header/`.
 
 How the Figma properties map:
 - Title → `title`, an `<h2>`. Pass `titleId` and point the dialog's `aria-labelledby` at it.
 - Date → `date`.
-- The nested Version Badge's Version → `version`. Without it, no badge renders.
+- The Version Tag's label ("v2.5.6", an override) → `version`. Without it, no Tag renders.
 
 **Changelog Icon** appears only here, so it's drawn inline and isn't a component of its own. It's decorative (`aria-hidden`).
 
 | Layer | Figma | Code |
 |---|---|---|
 | Header | Vertical, gap `space/16`, hugs 186 | `flex-col gap-4`, fills its container |
-| Changelog Icon | 48×48 frame, Phosphor RocketLaunch 48px, `accent/red/medium` | `<Icon name="rocket-launch" size={48}>` `text-accent-red-medium`, `aria-hidden` |
+| Changelog Icon | 48×48 frame, Phosphor RocketLaunch 48px, `accent/critical/tonal/content/default` | `<Icon name="rocket-launch" size={48}>` `text-accent-critical-tonal-content-default`, `aria-hidden` |
 | Title | Title/md-bold, `text/primary`, Fill, wraps | `<h2>` `text-title-md-bold text-text-primary` |
 | Metadata Row | Horizontal, centred, gap `space/12` | `flex items-center gap-3`, wrapping |
-| Date | Body/sm-regular, `text/subtle` | `<p>` `text-body-sm-regular text-text-subtle` |
-| Version | `Modal / Version Badge` | `VersionBadge` |
+| Date | Body/sm-regular, `text/secondary` | `<p>` `text-body-sm-regular text-text-secondary` |
+| Version | `Tag` Status=Info, Show Icon off | `<Tag status="info" showIcon={false}>` |
 
-Contrast, Light / Dark, on `surface/canvas`:
-- Title: 19.28 / 17.85
-- Date: 4.55 / 6.96
-- Version: see VersionBadge
-- Rocket: 2.76 / 4.69. It's below 3:1 in Light, a design question. The rocket is decorative, so axe and WCAG 1.4.11 don't require 3:1.
+Contrast, Light / Dark, on the dialog's `surface/base`:
+- Title: 20.17 / 14.63
+- Date: 10.35 / 11.87
+- Version (Tag Info label on its fill): 5.60 / 5.72
+- Rocket: 8.36 / 7.62 (it was 2.76 / 4.69 in `accent/red/medium`). It's decorative, but now passes 3:1 anyway.
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the header's gap (raw 16) is bound to `space/16` and the Metadata Row's (raw 12) to `space/12`. Nothing looks different.
 
@@ -4569,8 +4564,9 @@ Code departs from Figma here:
 | Title height | Inter's auto line height | GDL's 28px Title/md line height | Bind the text style's line height to the ramp |
 | Element | n/a | A `<div>`, because a `<header>` could become a second banner landmark | None needed |
 
-Figma gaps the code doesn't copy:
-- **Modal / Changelog Icon pins the Semantics collection to Dark.** Code follows the page's theme. Clear the explicit mode. Not changed on 30 Oct: clearing it changes what the library shows, so it's the designer's call.
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
+
+**Changed in Figma on 3 Nov 2026** (decisions changelog-colours, version-badge, dark-pins-components): the rocket is `accent/critical/tonal/content/default` (was `accent/red/medium`, 2.76:1 in Light), the Date `text/secondary` (was `text/subtle`), the version a Tag Status=Info with Show Icon off (was Modal / Version Badge, now deprecated), and the Changelog Icon's Semantics → Dark pin is cleared. Code: `text-accent-critical-tonal-content-default`, `text-text-secondary` and `<Tag status="info" showIcon={false}>`.
 
 ### ChangelogEntry (30 Oct 2026)
 
@@ -4630,22 +4626,23 @@ Figma has no close button. Got It, Escape and a backdrop click all call `onClose
 
 | Layer | Figma | Code |
 |---|---|---|
-| Panel | Vertical, padding `space/32`, gap `space/24`; `radius/16`; `surface/canvas`; Effects/Elevation Dark/2; no stroke; fixed 500 | `p-8 gap-6 rounded-16 bg-surface-canvas shadow-elevation-2`, `max-w-lg` (512), narrower on a small screen; scrolls if taller than the viewport |
-| Header | `Modal / Changelog Header`, Fill; the Date is overridden to `text/secondary` | `ChangelogHeader`; the date is passed in `text-text-secondary` (copies the override) |
+| Panel | Vertical, padding `space/32`, gap `space/24`; `radius/12`; `surface/base`; 1px inside `stroke/subtle` (not in the layout); Effects/Elevation Dark/4; fixed 500 | `p-8 gap-6 rounded-12 bg-surface-base inset-ring inset-ring-stroke-subtle shadow-elevation-4`, `max-w-lg` (512), narrower on a small screen; scrolls if taller than the viewport |
+| Header | `Modal / Changelog Header`, Fill, no overrides | `ChangelogHeader` |
 | Release Notes | `Modal / Release Notes`, Fill | `ReleaseNotes` |
 | Modal Actions | Horizontal, gap `space/16`; two Fill buttons | `grid gap-4 @sm:grid-cols-2`: two equal columns, stacked when the panel is under 384 inside |
 | View Change Log | `Button / Normal`, Style=Default | `<Button>`, calls `onViewChangeLog` |
 | Got It | `Button / Normal`, Style=Outlined | `<Button variant="outlined">`, calls `onClose` |
 | Scrim | the "Overlay" frame on the pattern pages | `Overlay`, `surface/overlay` |
 
-Contrast, Light / Dark, on `surface/canvas`:
-- Title and notes: 19.28 / 17.85
-- Date (`text/secondary`): 9.90 / 14.48
-- Version: 6.83 / 8.07
+Contrast, Light / Dark, on `surface/base`:
+- Title and notes: 20.17 / 14.63
+- Date (`text/secondary`): 10.35 / 11.87
+- Version (Tag Info): 5.60 / 5.72
 - View Change Log label on its fill: 6.81 / 4.77
-- Got It label: 6.51 / 14.91
-- Got It border: 6.51 / 4.63
-- Rocket: 2.76 / 4.69 (decorative; design question)
+- Got It label: 6.81 / 12.22
+- Got It border: 6.81 / 3.80
+- Rocket: 8.36 / 7.62 (decorative)
+- The panel's edge, `stroke/subtle` on the panel: 1.23 / 1.41 (decorative, as ModalDialog's)
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the panel's padding (raw 32), gap (raw 24) and radius (raw 16) are bound to `space/32`, `space/24` and `radius/16`, and the Modal Actions' gap (raw 16) to `space/16`. Nothing looks different.
 
@@ -4654,14 +4651,15 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 500 | Capped at 512 (`max-w-lg`, the nearest container width; GDL has no width scale) | Resize to 512, or bind to a width scale |
-| Elevation | Effects/Elevation Dark/2 | `shadow-elevation-2`. Tailwind compiles it to GDL's Light Elevation 2 in both themes (as on ModalDialog) | None in Figma |
+| Elevation | Effects/Elevation Dark/4 | `shadow-elevation-4`. Tailwind compiles it to GDL's Light Elevation 4 in both themes (as on ModalDialog) | None in Figma |
 | Actions on a phone | Always side by side | Stacked under 384 inside the panel (a container query), so "View Change Log" isn't cut | None needed, or add a narrow variant |
 | Button height | 35, on Inter | 36 (GDL's Button) | As Button |
 | Close | No close button | Got It, Escape and a backdrop click call `onClose`; focus moves into the dialog, is trapped there and returns to the opener | None needed |
 | Height | Hugs | Never taller than the viewport minus 16 on each side; the panel scrolls | None needed |
 
-Figma gaps the code doesn't copy:
-- **Modal / Changelog pins the Semantics collection to Dark** (as does its Changelog Icon, and its instances on the pattern pages). Code follows the page's theme. Clear the explicit mode. Not changed on 30 Oct: clearing it changes what the library and the patterns show, so it's the designer's call.
+Figma gaps the code doesn't copy: none since 3 Nov 2026.
+
+**Changed in Figma on 3 Nov 2026** (decisions overlay-surfaces, changelog-colours, version-badge, dark-pins-components): the panel has Modal / Dialog's surface: `surface/base` (was `surface/canvas`), `radius/12` (was 16), a 1px inside `stroke/subtle` (none before) and Elevation Dark/4 (was Dark/2). Its header instance has no overrides left (the Date is the header's own `text/secondary`), and the Semantics → Dark pins are cleared. Code: `rounded-12 bg-surface-base inset-ring inset-ring-stroke-subtle shadow-elevation-4`; the date override is gone. The stroke isn't counted in Figma's layout, so code draws it as an inset ring and the content stays 32px in (the ledger's `border` would move it 1px).
 ### Logo (30 Oct 2026)
 
 Source: page **Navigation** (`3:368`), component `Navigation / Logo`
@@ -4956,19 +4954,19 @@ Keyboard: as MenuDropdown, and the arrows skip the divider. The Keyboard story t
 
 | | Figma | Code |
 |---|---|---|
-| Surface | `surface/neutral/faint` fill, 1px inside `stroke/subtle`, `radius/8`, Effects/Elevation Dark/3, `space/6` padding | Popover's surface, through MenuDropdown |
+| Surface | `surface/elevated` fill, 1px inside `stroke/subtle`, `radius/8`, Effects/Elevation Light/3, `space/6` padding | Popover's surface, through MenuDropdown |
 | Layout | Vertical auto layout, `space/2` spacing, rows Fill | `flex flex-col gap-0.5`; rows `w-full` |
-| Width | Fixed 220 | `min-w-64` (256), wider for a longer label |
+| Width | Fixed 256 (220 until 3 Nov) | `min-w-64` (256), wider for a longer label |
 | Items | Menu / Item ×3, Type=Default: `text/primary` Body/sm-regular, 8 / 12 padding, radius 6 | MenuItem ×3 (Logout is not `destructive`) |
 | Divider | 1px rectangle filled `stroke/subtle`, Fill width | `<div role="separator">` with `border-t border-stroke-subtle` |
 | Trigger | Navigation / Icon Button: 40×40, User 24px, the glyph `text/primary` (raw #0F172A until 30 Oct) | IconButton size 40, `user` 20px, `text-text-primary`, with Ghost's hover |
 | Placement | Under the icon with no gap; its right edge 8px in from the icon's | `space/4` below, flush right (Popover's, as pattern 03) |
 
 Contrast:
-- Labels: as MenuItem, `text/primary` 19.28 / 17.85 at rest and 20.17 / 14.63 on Hover.
+- Labels: as MenuItem, `text/primary` 20.17 / 14.63 at rest and 16.36 / 7.58 on Hover.
 - Trigger glyph: as ThemeToggle, 19.28 / 17.85 on the canvas and 16.36 / 7.58 on its hover fill.
-- Focus ring: 6.51 / 6.51.
-- Divider: `stroke/subtle` on `surface/neutral/faint` is 1.18 (Light) and 1.72 (Dark). It separates groups; it is not a control boundary, so WCAG 1.4.11 doesn't apply.
+- Focus ring: 6.81 / 5.33 on the panel.
+- Divider: `stroke/subtle` on `surface/elevated` is 1.23 (Light) and 1.41 (Dark). It separates groups; it is not a control boundary, so WCAG 1.4.11 doesn't apply.
 
 **Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs
 publishing):
@@ -4986,8 +4984,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Width | Fixed 220, raw and off GDL's scale | At least 256 (`space/256`) | Set the width to 256 (design question) |
-| Elevation | Effects/Elevation Dark/3 on a component that isn't pinned to Dark | `shadow-elevation-3`: GDL's Light Elevation 3 in both themes (see Popover) | Use Effects/Elevation Light/3 (not applied: a style change, as on Menu / Dropdown) |
 | Trigger glyph | 24px | 20px (IconButton 40) | Swap in Button / Icon 40 (design question) |
 | Placement | No gap, 8px in from the icon's right edge | `space/4` gap, flush right | None needed |
 | Item height, letter spacing | As Menu / Item: 33px, 0 | As MenuItem: 36px, GDL's 0.4px | As MenuItem |
@@ -4996,6 +4992,8 @@ Code departs from Figma here:
 Figma gaps the code doesn't copy:
 - **The frame holding it on the Navigation page ("Account, Theme & Mobile") is pinned to Semantics Dark** (mode `1:2`). The component itself pins nothing. Clear the frame's explicit mode.
 
+
+**Changed in Figma on 3 Nov 2026** (decisions menu-surface, elevation-dark-3, offscale-widths): the panel's fill is `surface/elevated` (was `surface/neutral/faint`), its effect Elevation Light/3 (was Dark/3) and its width 256 (was 220), as code already drew it. Code: the panel is Popover's surface, now `bg-surface-elevated`; the trigger is unchanged here.
 
 **Changed in Figma on 2 Nov 2026** (decision add-account-menu-changelog, U07): a **Changelog** row (Menu / Item, Type=Default, no icon, like the others) after Settings, before the divider and Logout. Code: `ACCOUNT_MENU_ITEMS` gains `{ item: 'changelog', label: 'Changelog' }`; `onSelect('changelog')` asks the app to open the what's-new dialog (ChangelogModal).
 

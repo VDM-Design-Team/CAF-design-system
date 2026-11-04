@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
-import { Icon } from '../icon';
+import { Icon, ICON_NAMES } from '../icon';
+import { ICON_PATHS } from '../icon/icons';
 import { TableHeaderCell } from '../table-header-cell';
 import { EmptyState } from './EmptyState';
 
@@ -19,7 +20,8 @@ const meta = {
           'Built from the CAF Figma library, page **Feedback** (`Empty State`): what a list or a page shows when it has ' +
           'nothing to show. `size` is Figma’s Size: `default` (page level: icon tile, `title`, `description` and an ' +
           'optional `action`) or `compact` (inside a table body: a small icon and the `title`). `action` is Show Action: ' +
-          'pass the `Button` to show, or leave it out. It centres itself in the space it is given.',
+          'pass the `Button` to show, or leave it out. `icon` is Figma’s Icon swap (default `tray`), on Size=Default ' +
+          'only. The tile is the neutral tonal pair. It centres itself in the space it is given.',
       },
     },
   },
@@ -28,7 +30,7 @@ const meta = {
     description: 'Try changing your filters or create a new item.',
     action: createCost,
   },
-  argTypes: { action: { control: false } },
+  argTypes: { action: { control: false }, icon: { control: 'select', options: ICON_NAMES } },
 } satisfies Meta<typeof EmptyState>;
 
 export default meta;
@@ -54,6 +56,7 @@ function tokenColour(token: string) {
 const VARIANTS = [
   { name: 'Default', id: 'default' },
   { name: 'Default, no action', id: 'default-no-action' },
+  { name: 'Default, Icon swapped (Info)', id: 'default-icon' },
   { name: 'Compact', id: 'compact' },
 ] as const;
 
@@ -72,6 +75,7 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
                 title="No items found"
                 description="Try changing your filters or create a new item."
                 action={id === 'default' ? createCost : undefined}
+                icon={id === 'default-icon' ? 'info' : undefined}
                 data-variant={id}
               />
             )}
@@ -88,7 +92,8 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
     const want = {
       primary: tokenColour('text-primary'),
       subtle: tokenColour('text-subtle'),
-      base: tokenColour('surface-base'),
+      tile: tokenColour('neutral-tonal-surface-default'),
+      glyph: tokenColour('neutral-tonal-content-default'),
     };
     const part = (id: string) => {
       const root = canvasElement.querySelector<HTMLElement>(`[data-variant="${id}"]`)!;
@@ -96,16 +101,18 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
       return { root, tile, icon: tile.querySelector('svg')!, title, description };
     };
     await waitFor(() => {
-      // Size=Default: 48 / 24 padding, 12px gap; a 64px surface.base tile with a 32px Tray in text.subtle;
-      // the title in Body/md-semibold, text.primary; the description in Body/sm-regular, text.subtle.
-      for (const id of ['default', 'default-no-action'] as const) {
+      // Size=Default: 48 / 24 padding, 12px gap; a 64px neutral.tonal.surface.default tile with a 32px glyph
+      // (Tray, or the swapped Icon) in neutral.tonal.content.default; the title in Body/md-semibold,
+      // text.primary; the description in Body/sm-regular, text.subtle.
+      for (const id of ['default', 'default-no-action', 'default-icon'] as const) {
         const { root, tile, icon, title, description } = part(id);
         const style = getComputedStyle(root);
         expect([style.paddingTop, style.paddingRight, style.rowGap]).toEqual(['48px', '24px', '12px']);
         expect(tile.getBoundingClientRect().width).toBe(64);
-        expect(getComputedStyle(tile).backgroundColor).toBe(want.base);
+        expect(getComputedStyle(tile).backgroundColor).toBe(want.tile);
         expect(icon.getBoundingClientRect().width).toBe(32);
-        expect(getComputedStyle(icon).color).toBe(want.subtle);
+        expect(getComputedStyle(icon).color).toBe(want.glyph);
+        expect(icon.querySelector('path')!.getAttribute('d')).toBe(id === 'default-icon' ? ICON_PATHS.info : ICON_PATHS.tray);
         expect(getComputedStyle(title).color).toBe(want.primary);
         expect([getComputedStyle(title).fontSize, getComputedStyle(title).fontWeight]).toEqual(['16px', '600']);
         expect(getComputedStyle(description).color).toBe(want.subtle);
@@ -122,6 +129,7 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
       expect(getComputedStyle(compact.tile).backgroundColor).toBe('rgba(0, 0, 0, 0)');
       expect(compact.icon.getBoundingClientRect().width).toBe(20);
       expect(getComputedStyle(compact.icon).color).toBe(want.subtle);
+      expect(compact.icon.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.tray);
       expect(getComputedStyle(compact.title).color).toBe(want.subtle);
       expect([getComputedStyle(compact.title).fontSize, getComputedStyle(compact.title).fontWeight]).toEqual(['14px', '400']);
       expect(compact.root.children).toHaveLength(2);

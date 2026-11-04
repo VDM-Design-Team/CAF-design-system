@@ -11,13 +11,14 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Modals** (`Modal / Payment Row`): one payment in the Payment ' +
           'Schedules modal. `status` is Figma’s Status, `done` (default) or `upcoming`: it sets the round status icon ' +
-          '(CheckCircle or Clock), the 1px edge, the subtitle’s colour and the badge (“Done” or “Upcoming”). `date` and ' +
-          '`subtitle` are Figma’s Date and Subtitle. The icon is decorative; the badge says the status in text. ' +
-          '`Modal / Status Icon` and `Modal / Status Badge` are only placed in this row, so they are part of it.',
+          '(CheckCircle or Clock), the 1px edge, the subtitle’s colour and the status Tag (Completed “Done” or Warning ' +
+          '“Upcoming”, no icon). `date`, `subtitle` and `amount` are Figma’s Date, Subtitle and Amount; the amount is ' +
+          'Body/sm-semibold in `text.primary`, between the text and the Tag. The icon is decorative; the Tag says the ' +
+          'status in text. `Modal / Status Icon` is only placed in this row, so it is part of it.',
       },
     },
   },
-  args: { date: 'September 1, 2026', subtitle: 'Processed on Sep 1, 2026' },
+  args: { date: 'September 1, 2026', subtitle: 'Processed on Sep 1, 2026', amount: 'USD 900' },
   argTypes: { status: { control: 'select', options: PAYMENT_ROW_STATUSES } },
   // Figma's row is 460 wide.
   decorators: [
@@ -32,8 +33,17 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma's default: Status=Done. */
+/** Figma's default: Status=Done, Amount "USD 900". */
 export const Playground: Story = {};
+
+/** No `amount`: nothing renders for it, and the text block takes the room. */
+export const WithoutAmount: Story = {
+  args: { amount: undefined },
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('[data-part="amount"]')).toBeNull();
+    await expect(within(canvasElement).getByText('Done')).toBeVisible();
+  },
+};
 
 /** Status=Upcoming: a payment that is scheduled, not yet processed. */
 export const Upcoming: Story = {
@@ -57,11 +67,21 @@ function tokenColour(token: string) {
   return value;
 }
 
+/* The type a utility class sets: size, line height, weight. Measure before waitFor, never inside it. */
+function utilityType(className: string) {
+  const probe = document.createElement('span');
+  probe.className = className;
+  document.body.append(probe);
+  const { fontSize, lineHeight, fontWeight } = getComputedStyle(probe);
+  probe.remove();
+  return { fontSize, lineHeight, fontWeight };
+}
+
 /* The stroke drawn inside the edge (Tailwind's inset-ring), as computed box-shadow text. */
 const insetStroke = (colour: string) => `${colour} 0px 0px 0px 1px inset`;
 
 /* Figma's bindings per Status: the edge, the tonal [surface, content] pair the icon
-   and badge share, and the subtitle's colour. */
+   and the Tag share, and the subtitle's colour. */
 const BOUND = {
   done: {
     edge: 'accent-success-outline-border-default',
@@ -85,10 +105,10 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   render: () => (
     <ul className="flex flex-col gap-2">
       <li>
-        <PaymentRow status="done" date="September 1, 2026" subtitle="Processed on Sep 1, 2026" />
+        <PaymentRow status="done" date="September 1, 2026" subtitle="Processed on Sep 1, 2026" amount="USD 900" />
       </li>
       <li>
-        <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" />
+        <PaymentRow status="upcoming" date="September 22, 2026" subtitle="Scheduled" amount="USD 900" />
       </li>
     </ul>
   ),
@@ -99,6 +119,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   play: async ({ canvasElement }) => {
     const canvas = tokenColour('surface-canvas');
     const primary = tokenColour('text-primary');
+    const amountType = utilityType('text-body-sm-semibold');
+    const tagType = utilityType('text-label-sm-medium');
     const want = Object.fromEntries(
       Object.entries(BOUND).map(([status, b]) => [
         status,
@@ -117,8 +139,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       for (const row of rows) {
         const w = want[row.dataset.status!];
         const style = getComputedStyle(row);
-        // Row: surface.canvas, the status's 1px outline border inside, radius 8, 12px padding and gap.
+        // Row: surface.canvas, the status's 1px outline border inside, radius 8, 12px padding and gap; 60 tall.
         expect(style.backgroundColor).toBe(canvas);
+        expect(row.getBoundingClientRect().height).toBe(60);
         expect(style.boxShadow).toContain(w.edge);
         expect(style.borderTopLeftRadius).toBe('8px');
         expect(style.paddingTop).toBe('12px');
@@ -133,11 +156,24 @@ const grid = (theme: 'light' | 'dark'): Story => ({
         const [date, subtitle] = Array.from(row.children[1].children);
         expect(getComputedStyle(date).color).toBe(primary);
         expect(getComputedStyle(subtitle).color).toBe(w.subtitle);
-        // Status Badge: the same tonal pair, its status in text.
-        const badge = row.querySelector<HTMLElement>('[data-part="status-badge"]')!;
-        expect(badge.textContent).toBe(w.label);
-        expect(getComputedStyle(badge).backgroundColor).toBe(w.surface);
-        expect(getComputedStyle(badge).color).toBe(w.content);
+        // Amount: Body/sm-semibold, text.primary, on one line, between the text and the status.
+        const amount = row.querySelector<HTMLElement>('[data-part="amount"]')!;
+        const a = getComputedStyle(amount);
+        expect(amount.textContent).toBe('USD 900');
+        expect(a.color).toBe(primary);
+        expect({ fontSize: a.fontSize, lineHeight: a.lineHeight, fontWeight: a.fontWeight }).toEqual(amountType);
+        expect(a.whiteSpace).toBe('nowrap');
+        expect(amount.previousElementSibling).toBe(row.children[1]);
+        // Status: a Tag (Show Icon off) with the same tonal pair, Label/sm-medium, 4 / 12 padding, 25 high.
+        const tag = row.querySelector<HTMLElement>('[data-part="status"]')!;
+        const t = getComputedStyle(tag);
+        expect(tag.previousElementSibling).toBe(amount);
+        expect(tag.textContent).toBe(w.label);
+        expect(tag.querySelector('svg')).toBeNull();
+        expect(t.backgroundColor).toBe(w.surface);
+        expect(t.color).toBe(w.content);
+        expect({ fontSize: t.fontSize, lineHeight: t.lineHeight, fontWeight: t.fontWeight }).toEqual(tagType);
+        expect(t.padding).toBe('4px 12px');
       }
     });
   },

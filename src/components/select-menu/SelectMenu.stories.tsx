@@ -14,7 +14,7 @@ const meta = {
       description: {
         component:
           'Built from the CAF Figma library, page **Form** (`Select / Menu`): the open list of a select, a ' +
-          '`role="listbox"` of SelectOptions on the CAF overlay surface (surface/neutral/faint, a 1px stroke/subtle ' +
+          '`role="listbox"` of SelectOptions on the CAF overlay surface (surface/elevated, a 1px stroke/subtle ' +
           'stroke inside, radius 8, Elevation 3, 6px padding, 2px between options). Select shows it under its trigger; ' +
           'on its own it is the list for a control that positions it and handles the keys itself. Past 256px it ' +
           'scrolls. Name it with `aria-label` or `aria-labelledby`.',
@@ -68,7 +68,7 @@ const menu = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      fill: tokenColour('surface-neutral-faint'),
+      fill: tokenColour('surface-elevated'),
       stroke: tokenColour('stroke-subtle'),
       selected: tokenColour('neutral-tonal-surface-default'),
       label: tokenColour('text-primary'),
@@ -80,7 +80,7 @@ const menu = (theme: 'light' | 'dark'): Story => ({
     await expect(within(list).getByRole('option', { selected: true })).toHaveTextContent('Philippines');
 
     const style = getComputedStyle(list);
-    // Fill surface.neutral.faint; radius 8; 1px stroke.subtle inside, on top of Elevation 3.
+    // Fill surface.elevated (the overlay surface, since 3 Nov 2026); radius 8; 1px stroke.subtle inside, on top of Elevation 3.
     await expect(style.backgroundColor).toBe(want.fill);
     await expect(style.borderRadius).toBe('8px');
     await expect(style.boxShadow).toContain(`${want.stroke} 0px 0px 0px 1px inset`);
