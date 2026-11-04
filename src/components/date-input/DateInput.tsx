@@ -19,8 +19,10 @@ import { TextInput, type TextInputProps } from '../text-input';
  *
  * Figma → code (it is a native `<input>`, a TextInput, so most states are
  * the element's own):
- * - State=Default  → no date and no text: the `placeholder` shows ("Select
- *   date", Figma's default Value), in text/subtle.
+ * - State=Default  → no date and no text: the `placeholder` shows, in
+ *   text/subtle. It defaults to "yyyy-mm-dd", Figma's default Value since
+ *   4 Nov 2026 (it was "Select date"), so the format shows before anything
+ *   is typed.
  * - State=Filled   → a date (or typed text), in text/primary.
  * - State=Focus    → `:focus` (typing): a 2px stroke/focused stroke inside the edge.
  * - State=Error    → `aria-invalid`: the accent/critical/outline border. The
@@ -182,7 +184,7 @@ export interface DateInputProps extends Omit<
    * shows its message.
    */
   onInvalidChange?: (invalid: boolean) => void;
-  /** The text shown while there is no date. Default "Select date", as in Figma. */
+  /** The text shown while there is no date. Default "yyyy-mm-dd" (the format to type), as in Figma. */
   placeholder?: string;
   /** Controlled: the calendar is showing (Figma State=Open). Pair with `onOpenChange`. */
   open?: boolean;
@@ -204,7 +206,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(func
     defaultValue = null,
     onValueChange,
     onInvalidChange,
-    placeholder = 'Select date',
+    placeholder = 'yyyy-mm-dd',
     open,
     defaultOpen = false,
     onOpenChange,

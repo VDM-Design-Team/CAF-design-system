@@ -342,7 +342,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 <Textarea aria-label="Notes" placeholder="Add notes…" />            // _Textarea; rows={4} is Figma's 96px
 <TextareaField label="Notes" name="notes" defaultValue="Monthly team salary, split by cost center." />
 <TextareaField label="Reason" name="reason" required error="Add a reason for the rejection." />
-<DateInput aria-label="Starts At" />                                // Default: "Select date"; type yyyy-mm-dd or pick
+<DateInput aria-label="Starts At" />                                // Default: placeholder "yyyy-mm-dd"; type it or pick
 <DateInput aria-label="Ends At" onInvalidChange={setBadText} />     // true while typed text isn't a date
 <DateField label="Starts At" name="startsAt" required defaultValue="2026-09-01" />  // submits "2026-09-01"
 <DateField label="Ends At" name="endsAt" value={endsAt} onValueChange={setEndsAt} />  // yyyy-mm-dd, or null for none
@@ -735,7 +735,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   Enter with nothing new typed, or the calendar button open the calendar on
   the date. Enter or a click chooses a day, Escape closes and keeps the
   text, and focus comes back to the field. `placeholder` defaults to
-  "Select date". `required` sets `aria-required`; check it on submit.
+  "yyyy-mm-dd", the format to type. `required` sets `aria-required`; check
+  it on submit.
 - `TextareaField` and `DateField` are Figma's Form / Field – Textarea and
   Form / Field – Date: FormField around a Textarea or a DateInput, like
   TextField and SelectField. `label`, `required`, `helper` and `error`

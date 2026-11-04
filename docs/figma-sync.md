@@ -2906,7 +2906,7 @@ Figma gaps the code doesn't copy:
 
 Source: page **Form** (`183:1765`), set `_Date Input` (`455:510`): State
 (Default, Filled, Focus, Error, Error + Focus, Disabled, Open, Error +
-Open) with a Value text property ("Select date"), a Show Clear boolean
+Open) with a Value text property ("yyyy-mm-dd" since 4 Nov 2026, was "Select date"), a Show Clear boolean
 (the Clear Button, Button / Icon Size=32 Ghost with X 16, before the icon)
 and a nested `CalendarBlank / Style=Regular, Size=20px` (Icon / Calendar). Its description says it "opens Date Picker / Calendar"
 and "A typed or pasted yyyy-mm-dd works as well as picking", and Form /
@@ -2922,8 +2922,9 @@ What code maps:
 - Value → `value` / `defaultValue`, the date as `yyyy-mm-dd`: the
   format every placement shows (Starts At 2026-09-01, Period From
   2026-11-01, Period To 2026-11-30, Release Date 2026-08-10), and the text
-  the user types. Empty is State=Default and shows `placeholder` ("Select
-  date", Figma's default Value). A `value` that isn't a real date counts as
+  the user types. Empty is State=Default and shows `placeholder`
+  ("yyyy-mm-dd" by default, Figma's default Value, so the format shows
+  before anything is typed). A `value` that isn't a real date counts as
   empty.
 - `onValueChange` gets the date as `yyyy-mm-dd`, picked or typed, when it
   changes, and `''` for none. Dates are local calendar days; nothing goes
@@ -3053,6 +3054,11 @@ publishing):
 - **The description** lists all eight states, Show Clear and typed dates.
   Code takes typed and pasted dates since 4 Nov 2026 (decision
   `date-input`), so that departure is gone.
+
+**Changed in Figma on 4 Nov 2026** (decision `date-input`; the user's call
+on PR #49, to show the format up front): the Value's default, which is the
+placeholder, is "yyyy-mm-dd" instead of "Select date". Code's `placeholder`
+defaults to the same, and the patterns no longer pass "Select date".
 
 Code departs from Figma here:
 

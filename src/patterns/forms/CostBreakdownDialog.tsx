@@ -184,7 +184,6 @@ export function CostBreakdownDialog({ open, onClose, onSave, breakdown, today }:
             label="Period From"
             name="periodFrom"
             required
-            placeholder="Select date"
             defaultValue={breakdown?.periodFrom ?? null}
             today={today}
             error={errors.periodFrom}
@@ -195,7 +194,6 @@ export function CostBreakdownDialog({ open, onClose, onSave, breakdown, today }:
             label="Period To"
             name="periodTo"
             required
-            placeholder="Select date"
             defaultValue={breakdown?.periodTo ?? null}
             today={today}
             error={errors.periodTo}

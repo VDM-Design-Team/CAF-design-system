@@ -73,7 +73,7 @@ export const Playground: Story = {
     const canvas = within(canvasElement);
     const field = canvas.getByRole('combobox', { name: 'Starts At' });
     await expect(field).toHaveValue('');
-    await expect(field).toHaveAttribute('placeholder', 'Select date');
+    await expect(field).toHaveAttribute('placeholder', 'yyyy-mm-dd');
     await userEvent.click(canvas.getByText('Starts At'));
     await expect(field).toHaveFocus();
     await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();

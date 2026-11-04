@@ -19,7 +19,7 @@ const meta = {
           'Built from the CAF Figma library, page **Form** (`_Date Input`): the field for one date. Type or paste ' +
           'it as `yyyy-mm-dd`, or pick it in `Date Picker / Calendar` (Calendar), which opens under it in a ' +
           'Popover. Dates are `yyyy-mm-dd` strings, the format Figma’s placements show and what the form submits ' +
-          '(`name`). Figma’s States: Default shows `placeholder` (“Select date”), Filled shows the date, Focus is ' +
+          '(`name`). Figma’s States: Default shows `placeholder` (“yyyy-mm-dd”, the format to type), Filled shows the date, Focus is ' +
           '`:focus`, Error is `aria-invalid`, Disabled is `disabled`, Open is the calendar showing. Typed text is ' +
           'checked on blur, on Enter and when the calendar opens: a real date becomes the value; anything else stays ' +
           'as typed, the field turns Error (`onInvalidChange(true)`) and holds no date. Figma’s Icon / Calendar is ' +
@@ -120,7 +120,7 @@ export const Playground: Story = {
     const field = canvas.getByRole('combobox', { name: 'Starts At' });
     const button = calendarButton(canvas);
     await expect(field).toHaveValue('');
-    await expect(field).toHaveAttribute('placeholder', 'Select date');
+    await expect(field).toHaveAttribute('placeholder', 'yyyy-mm-dd');
     await expect(field).toHaveAttribute('aria-haspopup', 'dialog');
     await expect(field).toHaveAttribute('aria-expanded', 'false');
     // Like Combobox's caret, not a tab stop: ↓ / ↑ open the calendar from the field.
@@ -490,7 +490,7 @@ export const InvalidValue: Story = {
     const canvas = within(canvasElement);
     const field = canvas.getByRole('combobox', { name: 'Starts At' });
     await expect(field).toHaveValue('');
-    await expect(field).toHaveAttribute('placeholder', 'Select date');
+    await expect(field).toHaveAttribute('placeholder', 'yyyy-mm-dd');
     await expect(field).not.toHaveAttribute('aria-invalid');
     await expect(canvasElement.querySelector('input[name="startsAt"]')).toHaveValue('');
   },

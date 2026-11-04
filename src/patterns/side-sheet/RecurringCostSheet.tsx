@@ -175,7 +175,6 @@ export function RecurringCostSheet({ cost, open, onClose, onUpdate, today }: Rec
                 label="Starts At"
                 name="startsAt"
                 required
-                placeholder="Select date"
                 defaultValue={cost.startsAt}
                 today={today}
                 error={errors.startsAt}
@@ -185,7 +184,6 @@ export function RecurringCostSheet({ cost, open, onClose, onUpdate, today }: Rec
                 ref={setRef('endsAt')}
                 label="Ends At"
                 name="endsAt"
-                placeholder="Select date"
                 defaultValue={cost.endsAt ?? null}
                 today={today}
                 error={errors.endsAt}
