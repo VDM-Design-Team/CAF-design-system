@@ -2907,65 +2907,99 @@ Figma gaps the code doesn't copy:
 
 Source: page **Form** (`183:1765`), set `_Date Input` (`455:510`): State
 (Default, Filled, Focus, Error, Error + Focus, Disabled, Open, Error +
-Open) with a Value text property ("Select date"), a Show Clear boolean
+Open) with a Value text property ("yyyy-mm-dd" since 4 Nov 2026, was "Select date"), a Show Clear boolean
 (the Clear Button, Button / Icon Size=32 Ghost with X 16, before the icon)
-and a nested `CalendarBlank / Style=Regular, Size=20px` (Icon / Calendar). Its description says it "opens Date Picker / Calendar",
-and Form / Field – Date's says "Pair with Date Picker / Calendar for the
-open state". Code: `src/components/date-input/`. It is a `<button
-role="combobox" aria-haspopup="dialog">` (SelectTrigger's look) that
-opens Calendar (`456:672`) in a Popover.
+and a nested `CalendarBlank / Style=Regular, Size=20px` (Icon / Calendar). Its description says it "opens Date Picker / Calendar"
+and "A typed or pasted yyyy-mm-dd works as well as picking", and Form /
+Field – Date's says "Pair with Date Picker / Calendar for the open state".
+Code: `src/components/date-input/`. Since 4 Nov 2026 (decision
+`date-input`) it is an `<input role="combobox" aria-haspopup="dialog">`
+(TextInput, which is _Text Input with the same bindings) that takes a
+typed or pasted date, with Icon / Calendar as the button that opens
+Calendar (`456:672`) in a Popover. Before, it was a `<button
+role="combobox">` and the date could only be picked.
 
 What code maps:
-- Value → `value` / `defaultValue`, the chosen date as `yyyy-mm-dd`: the
+- Value → `value` / `defaultValue`, the date as `yyyy-mm-dd`: the
   format every placement shows (Starts At 2026-09-01, Period From
-  2026-11-01, Period To 2026-11-30, Release Date 2026-08-10). Empty is
-  State=Default and shows `placeholder` ("Select date", Figma's default
-  Value). A string that isn't a real date counts as empty.
-- `onValueChange` gets the chosen day as `yyyy-mm-dd`. Dates are local
-  calendar days; nothing goes through `toISOString()`.
-- Focus → `:focus-visible`. A mouse press opens it, and Open shows the
-  same stroke.
-- Error → `aria-invalid`. Disabled → `disabled`.
+  2026-11-01, Period To 2026-11-30, Release Date 2026-08-10), and the text
+  the user types. Empty is State=Default and shows `placeholder`
+  ("yyyy-mm-dd" by default, Figma's default Value, so the format shows
+  before anything is typed). A `value` that isn't a real date counts as
+  empty.
+- `onValueChange` gets the date as `yyyy-mm-dd`, picked or typed, when it
+  changes, and `''` for none. Dates are local calendar days; nothing goes
+  through `toISOString()`.
+- Focus → `:focus` (typing, as _Text Input). Open shows the same stroke.
+- Error → `aria-invalid`, from the prop, the FormField's `error`, or typed
+  text that isn't a date (below). Disabled → `disabled`.
 - Open → the calendar showing (`open` / `defaultOpen` / `onOpenChange`),
   which sets `aria-expanded` and, while open, `aria-controls`.
 - Icon / Calendar → Icon `calendar-blank`, 20px, `text/subtle`
-  (`text/disabled` when disabled).
+  (`text/disabled` when disabled), 12px from the right, inside the
+  calendar's button (see the departures).
 - Show Clear + Clear Button → shown by itself for an optional field (not
-  `required`) with a date, while it is enabled and the calendar is closed:
-  Figma draws it in Filled, Focus, Error and Error + Focus, and not in
-  Default, Open, Error + Open or Disabled. It is an IconButton (ghost, 32,
-  `x`, named "Clear date"), a tab stop after the field, sitting over a
-  32px gap the field keeps for it (value, `space/8`, button, `space/8`,
-  icon). It clears the date (`onValueChange('')`, as a native date input
-  reports none), the placeholder comes back and focus returns to the
-  field.
+  `required`) with text (a date, or typed text), while it is enabled and
+  the calendar is closed: Figma draws it in Filled, Focus, Error and Error
+  + Focus, and not in Default, Open, Error + Open or Disabled. It is an
+  IconButton (ghost, 32, `x`, named "Clear date"), a tab stop after the
+  field, over the field's right padding, which grows by 32 + 8 while it
+  shows (text, `space/8`, button, `space/8`, icon). It clears the text and
+  the date (`onValueChange('')`, as a native date input reports none), the
+  placeholder comes back and focus returns to the field. Pressing it
+  doesn't take focus, so typed text isn't checked on the way.
 - `name` → a hidden input carrying the `yyyy-mm-dd` value ("" for none),
-  disabled with the field, as Select does.
-- `required` → `aria-required` (a button can't be `required`). The form's
-  submit handler checks it.
+  disabled with the field, as Select does. The visible input has no name,
+  so typed text is never submitted.
+- `required` → `aria-required`, not the native attribute: the browser
+  doesn't block the form, and its submit handler checks it, as before.
 
-Behaviour (the WAI-ARIA date picker dialog, non-modal):
-- Closed: a click (on the field or its label), Enter, Space, ↓ or ↑ open
-  the calendar on the chosen day's month, with focus on the chosen day
-  (else today, else the 1st).
+Typed dates (decision `date-input`, Figma's description since 3 Nov 2026):
+- Typed or pasted text is checked on blur, on Enter and when the calendar
+  opens, strictly: `yyyy-mm-dd`, a real calendar day ("2026-02-30" and
+  "2026-9-1" aren't), spaces around it ignored. Nothing is checked while
+  the user types. A paste is checked the same way.
+- A date becomes the value (`onValueChange`, when it differs) and shows as
+  `yyyy-mm-dd`. Empty text clears the date.
+- Anything else stays as typed, so it can be fixed. The field is
+  `aria-invalid` (State=Error; Error + Focus while focused) and calls
+  `onInvalidChange(true)`; DateField shows "Enter a date as yyyy-mm-dd."
+  under it. The field holds no date (`onValueChange('')`), so a form never
+  submits a date the field no longer shows. Fixing or clearing the text, or
+  picking a day, ends it (`onInvalidChange(false)`).
+- A new controlled `value` from outside replaces typed text and its error.
+  The field's own `onValueChange('')` coming back as `value` doesn't.
+- No `min` / `max`: _Date Input has none, so any real day is accepted.
+
+Behaviour (the WAI-ARIA date picker combobox; the calendar is a non-modal
+dialog):
+- Closed: ↓ or ↑ (Alt too), Enter while nothing new is typed, or the
+  calendar button open the calendar, with focus on the date (else today,
+  else the 1st). Typed text is checked first, so a typed date opens the
+  calendar on its month. A click in the field (or on its label) is for
+  typing and doesn't open it; nor does typing.
 - Open: the Calendar's keys (arrows, Home / End, Page Up / Page Down, with
   Shift by year). Enter, Space or a click chooses the day, closes the
   calendar and returns focus to the field. Escape closes without choosing
-  and returns focus. A click outside, or Tab out of the calendar, closes it
-  and leaves focus where the user put it. ↓ on the field while it is open
-  moves focus into the calendar.
-- The date is picked, not typed. Figma's description says a typed or
-  pasted `yyyy-mm-dd` works as well (3 Nov 2026); code doesn't do that yet
-  (below).
+  and returns focus, with the text as it was. A click outside, or Tab out
+  of the calendar, closes it and leaves focus where the user put it. ↓ on
+  the field while it is open moves focus into the calendar; typing or a
+  click in the field closes it. The calendar button closes it too.
+- Enter with new text checks it, and doesn't submit the form or open the
+  calendar.
 - The calendar is a `role="dialog"` panel named like the field: by its
   `aria-label`, its `aria-labelledby`, or the FormField's label.
 
 Every binding is copied exactly. The Storybook grids check each state's
-fill, stroke colour and width, radius, opacity, text colour, the icon's
-colour, size and place, the Clear Button (32, `text/secondary`, 8px from
-the value and the icon) where Show Clear applies, the 40px height, `aria-expanded` and the open
-calendar (placed below the field), in Light and Dark. The Open stories
-check the calendar's surface and its place under the field.
+fill, stroke colour and width, radius, opacity, text (or placeholder)
+colour, the icon's colour, size and place, the calendar button (32 × 32,
+no fill, not a tab stop, `aria-expanded`), the Clear Button (32,
+`text/secondary`, 8px from the text and the icon) where Show Clear applies,
+the 40px height, `aria-expanded` and the open calendar (placed below the
+field), in Light and Dark. The Open stories check the calendar's surface
+and its place under the field. The Typing, Pasting, Invalid date,
+Keyboard, Clear, Controlled and SubmitsWithForm stories check typed dates,
+and Typed, not a date — Light / Dark checks the Error look they give.
 
 | State | Fill | Stroke (inside) | Text | Icon |
 |---|---|---|---|---|
@@ -2984,7 +3018,8 @@ The Clear Button is Button / Icon's Ghost 32: no fill (its hover fill is
 Every state is Body/sm-regular with radius `radius/8`, side padding
 `space/12`, 40 high, the value on the left and the icon on the right,
 `space/8` apart. The open calendar draws its own surface
-(`surface/neutral/faint`, 1px `stroke/subtle`, radius 12, Elevation 3).
+(`surface/elevated` since 4 Nov 2026, 1px `stroke/subtle`, radius 12,
+Elevation 3; see Calendar).
 Popover's panel draws nothing (`rounded-12 bg-transparent p-0 shadow-none
 inset-ring-0`) and only positions it.
 
@@ -3019,20 +3054,28 @@ publishing):
 - **Show Clear** and the Clear Button are new. Code adds the clear button
   (above).
 - **The description** lists all eight states, Show Clear and typed dates.
+  Code takes typed and pasted dates since 4 Nov 2026 (decision
+  `date-input`), so that departure is gone.
+
+**Changed in Figma on 4 Nov 2026** (decision `date-input`; the user's call
+on PR #49, to show the format up front): the Value's default, which is the
+placeholder, is "yyyy-mm-dd" instead of "Select date". Code's `placeholder`
+defaults to the same, and the patterns no longer pass "Select date".
 
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
-| Focus | The Focus state is the 2px stroke | Copied on `:focus-visible` (keyboard focus). The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
+| Focus | The Focus state is the 2px stroke | Copied on `:focus`, as TextInput. The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
 | Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
-| Show Clear | A boolean the designer turns on | On by itself: an optional field with a date, enabled and closed. No prop | None needed |
-| Clear Button | Inside the field's auto layout | A sibling of the field's button (a button can't hold one), placed over the 32px the field keeps for it | None needed |
-| Typed dates | The description: "A typed or pasted yyyy-mm-dd works as well as picking" | Not built: the field is a button, the date is picked | None in Figma; a code follow-up (it turns the field into a text input) |
+| Show Clear | A boolean the designer turns on | On by itself: an optional field with text (a date or typed), enabled and closed. No prop | None needed |
+| Clear Button | Inside the field's auto layout | Over the input's right padding (an input can't hold one), which grows by 32 + 8 while it shows | None needed |
+| Icon / Calendar | An icon (CalendarBlank 20, `text/subtle`), not a button | The calendar's button: 32 × 32 around the glyph, which stays where Figma draws it; no fill or hover look of its own; named "Choose date", `aria-expanded`, not a tab stop (↓ / ↑ open the calendar from the field), like Combobox's Caret Button | Optional, for the user: make it a Button / Icon (Ghost 32) like _Combobox Input's Caret Button. That changes its look (16px glyph in `text/secondary`, a hover fill) |
+| Error from typed text | Error is a state the designer sets | The field sets `aria-invalid` itself for typed text that isn't a date; DateField shows "Enter a date as yyyy-mm-dd." | Optional: an example on Form / Field – Date with typed text and that message |
 | Open | The field alone, with Focus's stroke | The field plus Calendar in a Popover: below, `space/4` away, flush left. It flips above when there's no room below | Add an open example to Form / Field – Date (the field with Date Picker / Calendar under it) |
 | Value | A free text property | `value` as `yyyy-mm-dd`, the format the placements use. The same string is submitted | None needed |
-| Semantics | None | `role="combobox"`, `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls` while open. The calendar is a named non-modal dialog | None needed |
+| Semantics | None | An `<input role="combobox">` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls` while open. The calendar is a named non-modal dialog | None needed |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
@@ -3059,13 +3102,18 @@ What code maps:
 - `_Form Label`'s Label and Required → `label`, `required` (the marker,
   and `aria-required` on the field).
 - `_Date Input`'s Value and State → the DateInput: `value` /
-  `defaultValue` / `onValueChange` as `yyyy-mm-dd`, `placeholder`,
-  `disabled`, `open`. Clicking the label opens the calendar, as a click on
-  the field does.
+  `defaultValue` / `onValueChange` as `yyyy-mm-dd`, typed or picked,
+  `placeholder`, `disabled`, `open`. Clicking the label puts focus in the
+  field, to type (since 4 Nov 2026; it used to open the calendar).
 - Show Helper + Helper → `helper`. The error message in the Helper →
   `error`, which makes the field `aria-invalid` and describes it.
+- Typed text that isn't a date (DateInput's `onInvalidChange`) → the
+  field's own Error Text, "Enter a date as yyyy-mm-dd.", in the Helper's
+  place, until it is fixed, cleared or replaced by a pick. While it shows
+  it takes the place of `error`, since it says what is wrong with the text
+  in the field now.
 - The label names the calendar dialog.
-- Every other prop, and the ref (the button), go to the DateInput. `name`
+- Every other prop, and the ref (the input), go to the DateInput. `name`
   submits the date as `yyyy-mm-dd`. The submit handler checks a required
   date.
 
@@ -3081,9 +3129,12 @@ What code maps:
 
 The Storybook grids check the label, the marker, the 20px label row, the
 field's bindings, icon and height, the Helper and the open calendar, in
-Light and Dark. SubmitsWithForm checks the required check in the submit
-handler and the FormData (`yyyy-mm-dd`, "" for none, nothing for a
-disabled field).
+Light and Dark. Typed, not a date — Light / Dark checks the typed-text
+error (the critical stroke, and the message in
+`accent/critical/tonal/content/default`, `space/8` under the field).
+SubmitsWithForm checks the required check in the submit handler and the
+FormData (`yyyy-mm-dd`, "" for none or for text that isn't a date,
+nothing for a disabled field).
 
 Contrast: as FormField and DateInput.
 
@@ -3098,6 +3149,7 @@ Code departs from Figma here: as FormField and DateInput, plus:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Open | No example | The DateInput's calendar, under the field | Add an open example (see DateInput) |
+| Typed-text error | No example; Error's text is a property the designer sets | "Enter a date as yyyy-mm-dd." while typed text isn't a date, over `error` | Optional: an Error example with that text |
 
 Figma gaps the code doesn't copy:
 
@@ -5545,7 +5597,7 @@ Source: page **Filters** (`89:836`), section `765:15532`, set `Filter / Field �
 | Field / Value ("12–24 Oct", since 3 Nov 2026) | Body/sm-regular, `colors/text/primary` (the exposed Field's Value) | `formatDateRange(value, today)` ("12–24 Oct"); `placeholder` ("Select Period") in `text/subtle` while there is none |
 | Date Picker / Range | fill `colors/surface/elevated` (since 3 Nov 2026), 1px inside `colors/stroke/subtle`, `radius/12`, padding and gap `space/8`, Effects/Elevation Dark/3; Month / Start and Month / End | RangeCalendar, unchanged |
 
-Behaviour: like DateInput. The field is a `<button role="combobox" aria-haspopup="dialog">` named by `label` ("Period"), with the range (or the placeholder) as its value. A click, Enter, Space, ↓ or ↑ open the picker and move focus to the calendar (the range's start, else today). The first pick is the start and the second the end, in either order; then the picker closes, focus comes back to the field, and `onValueChange` gets `{ start, end }` (only when the range changed). Escape, a click outside or Tab past the calendar close it without a change. The picker is a non-modal dialog with the field's name.
+Behaviour: like DateInput's calendar (a range is picked, not typed). The field is a `<button role="combobox" aria-haspopup="dialog">` named by `label` ("Period"), with the range (or the placeholder) as its value. A click, Enter, Space, ↓ or ↑ open the picker and move focus to the calendar (the range's start, else today). The first pick is the start and the second the end, in either order; then the picker closes, focus comes back to the field, and `onValueChange` gets `{ start, end }` (only when the range changed). Escape, a click outside or Tab past the calendar close it without a change. The picker is a non-modal dialog with the field's name.
 
 The range's format (decision period-field-width, "shorter range text", and the user's decision on 2 Nov 2026, "drop the current year"), from `formatDateRange(range, today)`:
 - **Both ends in `today`'s year** (the component's `today`, default the real today): no year, and the month once within one month: "12–24 Oct", "1–31 Oct", "28 Sep – 31 Oct", "12 Oct".

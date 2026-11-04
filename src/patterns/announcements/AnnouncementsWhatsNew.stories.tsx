@@ -352,9 +352,9 @@ export const AdminPublishes: Story = {
     await expect(version).toHaveAttribute('aria-invalid', 'true');
     await userEvent.type(version, '.0');
     await expect(version).not.toHaveAttribute('aria-invalid', 'true');
-    await userEvent.click(within(dialog).getByRole('combobox', { name: 'Release Date' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Choose date' }));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Monday 2 November 2026' }));
-    await expect(within(dialog).getByRole('combobox', { name: 'Release Date' })).toHaveTextContent('2026-11-02');
+    await expect(within(dialog).getByRole('combobox', { name: 'Release Date' })).toHaveValue('2026-11-02');
     await userEvent.click(within(dialog).getByRole('radio', { name: 'User' }));
     await userEvent.type(feature, 'Upload a sheet of recurring costs');
     await expect(feature).not.toHaveAttribute('aria-invalid');

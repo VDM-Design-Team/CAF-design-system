@@ -84,8 +84,8 @@ export function CostBreakdownDialog({ open, onClose, onSave, breakdown, today }:
     costCentre: React.useRef<HTMLButtonElement>(null),
     natureOfService: React.useRef<HTMLButtonElement>(null),
     location: React.useRef<HTMLInputElement>(null),
-    periodFrom: React.useRef<HTMLButtonElement>(null),
-    periodTo: React.useRef<HTMLButtonElement>(null),
+    periodFrom: React.useRef<HTMLInputElement>(null),
+    periodTo: React.useRef<HTMLInputElement>(null),
     amount: React.useRef<HTMLInputElement>(null),
   };
 
@@ -184,7 +184,6 @@ export function CostBreakdownDialog({ open, onClose, onSave, breakdown, today }:
             label="Period From"
             name="periodFrom"
             required
-            placeholder="Select date"
             defaultValue={breakdown?.periodFrom ?? null}
             today={today}
             error={errors.periodFrom}
@@ -195,7 +194,6 @@ export function CostBreakdownDialog({ open, onClose, onSave, breakdown, today }:
             label="Period To"
             name="periodTo"
             required
-            placeholder="Select date"
             defaultValue={breakdown?.periodTo ?? null}
             today={today}
             error={errors.periodTo}

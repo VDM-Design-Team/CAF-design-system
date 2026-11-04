@@ -307,7 +307,7 @@ export const NewCostForm = React.forwardRef<HTMLFormElement, NewCostFormProps>(f
               <>
                 <FormSectionHeader title="Recurring Details" description="How often this cost repeats and when it starts." />
                 <DateField
-                  ref={setRef<HTMLButtonElement>('startsAt')}
+                  ref={setRef<HTMLInputElement>('startsAt')}
                   label="Starts At"
                   name="startsAt"
                   required

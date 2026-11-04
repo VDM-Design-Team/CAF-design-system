@@ -99,7 +99,7 @@ export const EditAndUpdate: Story = {
     const value = within(sheet).getByRole('spinbutton', { name: /^Frequency Value/ });
     await expect(value).toHaveValue(3);
     await expect(within(sheet).getByRole('combobox', { name: /^Frequency Unit/ })).toHaveTextContent('Week');
-    await expect(within(sheet).getByRole('combobox', { name: /^Starts At/ })).toHaveTextContent('2026-07-30');
+    await expect(within(sheet).getByRole('combobox', { name: /^Starts At/ })).toHaveValue('2026-07-30');
     await expect(within(sheet).getByRole('combobox', { name: /^Payment Method/ })).toHaveTextContent('YourSafe');
     await expect(within(sheet).getByRole('heading', { level: 3, name: 'Recurring Details' })).toBeVisible();
     await expect(within(sheet).getByRole('heading', { level: 3, name: 'Breakdowns' })).toBeVisible();
@@ -143,7 +143,7 @@ export const EditAndUpdate: Story = {
     within(dialog).getByRole('combobox', { name: /^Period To/ }).focus();
     await userEvent.keyboard('{ArrowDown}');
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowRight}{Enter}');
-    await expect(within(dialog).getByRole('combobox', { name: /^Period To/ })).toHaveTextContent('2026-11-30');
+    await expect(within(dialog).getByRole('combobox', { name: /^Period To/ })).toHaveValue('2026-11-30');
     await userEvent.type(within(dialog).getByRole('textbox', { name: /^Amount/ }), '350');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
 
