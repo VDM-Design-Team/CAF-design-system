@@ -9,8 +9,9 @@ way the CAF Figma library subscribes to the GDL Figma library.
 ├─ tokens/core/typography.json    font.family.sans → Inter (CAF's one override of GDL)
 ├─ tokens/semantic/color*.json    the 312 semantic colours, Light + Dark
 ├─ dist/                          theme.css, tokens.css, tokens.dark.css, …
-│                                 = GDL's tokens + CAF's, in GDL's output format
-└─ src/components/                CAF's React components (Button), on dist/theme.css
+│                                 = GDL's tokens + CAF's, in GDL's output format;
+│                                 npm run build adds index.js (the components) and types/
+└─ src/components/                CAF's React components, on dist/theme.css
 
 from @vdm-design-team/gdl (never copied here)
    palette (slate, green, red, …), spacing, radius, stroke, fonts,
@@ -20,28 +21,88 @@ from @vdm-design-team/gdl (never copied here)
 
 What comes from where, and why: [`docs/inheritance.md`](docs/inheritance.md).
 
-## Using it in a CAF app
+## Using CAF in an app
+
+The package is on GitHub Packages. Tell npm where the scope lives, in the
+app's `.npmrc`, with a token that has `read:packages`:
+
+```ini
+@vdm-design-team:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+```bash
+npm i @vdm-design-team/caf
+npm i -D tailwindcss @tailwindcss/vite   # Next.js: @tailwindcss/postcss
+```
+
+React 18 or 19 and Tailwind v4 are peer dependencies: the app's own copies
+are used. GDL is not: CAF's `dist/` already holds GDL's tokens, so an app
+never installs `@vdm-design-team/gdl` (see
+[`docs/inheritance.md`](docs/inheritance.md#what-reaches-an-app)).
+
+**1. The CSS.** One line in the app's root CSS, **in place of**
+`@import "tailwindcss"` (CAF's theme loads Tailwind itself, so don't import
+it a second time):
 
 ```css
-/* in place of @import "tailwindcss" */
 @import "@vdm-design-team/caf/theme.css";
 ```
 
-Utilities follow the token names: `bg-surface-canvas`, `text-text-primary`,
+That gives the app Tailwind, every CAF and GDL token as a utility, and the
+components' styles. The theme has an `@source` on the component bundle
+(`dist/index.js`), so the app's Tailwind generates the components' classes
+with no `@source` line in the app. Utilities follow the token names:
+`bg-surface-canvas`, `text-text-primary`,
 `bg-action-primary-surface-default`, `border-stroke-default`,
 `text-body-md-regular`, `rounded-8`, `shadow-elevation-3`, `bg-caf-blue-500`.
-Dark theme: put `.dark` on `<html>`.
 
-The package is published to GitHub Packages (`.npmrc`:
-`@vdm-design-team:registry=https://npm.pkg.github.com`, plus a token with
-`read:packages`).
+**2. Light and Dark.** Light is the default. Put `.dark` on `<html>` for
+Dark (what `next-themes` sets with `attribute="class"`). The tokens swap;
+the components need nothing else. Give the page CAF's canvas:
+`<body class="bg-surface-canvas text-text-primary">`.
+
+**3. Inter.** The theme sets `--font-sans` to Inter (weights 400, 500, 600
+and 700) but doesn't load it, so the app does, for example in `index.html`:
+
+```html
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+```
+
+or with `next/font/google` or `@fontsource/inter`.
+
+**4. The components.**
+
+```tsx
+import { Button, DateField, SelectField, ToastProvider, useToast } from '@vdm-design-team/caf';
+
+<ToastProvider>                                   {/* once, near the root */}
+  <SelectField label="Currency" options={['EUR', 'USD']} value={currency} onValueChange={setCurrency} />
+  <DateField label="Starts At" value={date} onValueChange={setDate} />
+  <Button variant="default">Save</Button>
+</ToastProvider>
+```
+
+Everything in `src/index.ts` is exported, with its types. The bundle is
+ESM and starts with `"use client"`, so a Next.js Server Component can
+import and render a component directly; helpers like `cn` can only be
+*called* in client code. Overlays (Modal, Popover, Toast) render into
+`<body>` through a portal.
+
+**5. Tokens in JS.** `import { tokens } from '@vdm-design-team/caf/tokens'`
+has every value (Light, and Dark under `tokens.dark`). It isn't a client
+module, so server code can read it. The CSS and JSON exports are as before:
+`theme.css`, `tokens.css` and `tokens.dark.css` (plain CSS variables, for an
+app without Tailwind), `typography.desktop.css`, `tokens.json`,
+`tokens.flat.json` and `tokens/*`.
 
 ## Working on CAF
 
 ```bash
 npm install            # pulls GDL from its git tag — no token needed
 npx playwright install chromium   # once: the browser the story tests run in
-npm test               # lint, build, GDL contract, contrast (strict), changelog entry, typecheck, story tests
+npm test               # lint, build, package contents, GDL contract, contrast (strict), changelog entry, typecheck, story tests
+npm run build          # tokens → dist/, then the component bundle (dist/index.js) and its types
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
 npm run storybook:build && npm run test:static   # every story against the production build, as Chromatic runs it
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
@@ -936,9 +997,11 @@ Components use only token utilities:
 fails on hex, px or arbitrary values. Where code departs from Figma, the
 reason is in [`docs/figma-sync.md`](docs/figma-sync.md#components).
 
-Components aren't in the published package yet: there's no JS build
-(`tsup`) until an app needs to install them. For now they live in Storybook.
-Visual review runs through Chromatic once the CAF project's token is set
+The published package carries the components: `npm run build` bundles
+`src/index.ts` into `dist/index.js` with `tsup` and writes the types with
+`tsc -p tsconfig.build.json`, and `npm run check:package` (in `npm test`)
+checks what `npm publish` would ship. How an app uses them: "Using CAF in
+an app" above. Visual review runs through Chromatic once the CAF project's token is set
 (`CHROMATIC_PROJECT_TOKEN`). Until then the Chromatic check passes without
 snapshotting.
 
@@ -994,7 +1057,9 @@ npm run changelog      # fold changes/ into CHANGELOG.md and bump the version
 ```
 
 Merge that as the release PR, then create a GitHub release tagged
-`v<version>`. The release workflow publishes `@vdm-design-team/caf`.
+`v<version>`. The release workflow publishes `@vdm-design-team/caf`: the
+tokens, the CSS and the components (`npm publish` runs `npm run build`
+through `prepack`).
 
 ## Status (v0.1)
 
