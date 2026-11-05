@@ -3094,8 +3094,11 @@ Source: page **Form** (`183:1765`), component `Form / Field – Date`
 Wrapper with a `_Date Input`, and the Helper Text (Show Helper + Helper).
 Placed on Patterns – Admin as Starts At and Ends At (Edit Recurring Cost),
 Period From and Period To (Cost Breakdown) and Release Date (Create
-Announcement). Starts At, Period From and Release Date show the required
-marker. Code: `src/components/date-field/`. It is FormField around a
+Announcement), and since 4 Nov 2026 on Patterns – User as Starts At in
+New Cost Form / Recurring (U02, `545:18252`, showing the placeholder) and
+Side Panel / Edit Recurring Cost (U04, `545:19038`), which were Form /
+Field – Text. Starts At (in U02 and U04 too), Period From and Release
+Date show the required marker. Code: `src/components/date-field/`. It is FormField around a
 DateInput, built like SelectField.
 
 What code maps:

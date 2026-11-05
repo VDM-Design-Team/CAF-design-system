@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
@@ -98,6 +99,68 @@ export const KeyboardAndFocus: Story = {
     await userEvent.tab(); // out
     await expect(canvas.getByRole('button', { name: 'After the popover' })).toHaveFocus();
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  },
+};
+
+/* Three steps in a panel. The step lives above the Popover, so moving on re-renders the Popover, and
+   the next step takes focus in a layout effect of that same commit, as a range calendar's day does
+   when the page around it updates. */
+function StepsPanel({ step, onNext }: { step: number; onNext: () => void }) {
+  const buttons = React.useRef<(HTMLButtonElement | null)[]>([]);
+  const moved = React.useRef(false);
+  React.useLayoutEffect(() => {
+    if (moved.current) buttons.current[step]?.focus();
+  });
+  return (
+    <div className="flex items-center gap-2">
+      {[0, 1, 2].map((i) => (
+        <Button
+          key={i}
+          size="small"
+          variant={i === step ? 'default' : 'outlined'}
+          ref={(node) => {
+            buttons.current[i] = node;
+          }}
+          onClick={() => {
+            moved.current = true;
+            onNext();
+          }}
+        >
+          Step {i + 1}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function StepsPopover() {
+  const [step, setStep] = React.useState(0);
+  return (
+    <Popover trigger={<Button>Pick a step</Button>} panelRole="dialog" label="Steps">
+      <StepsPanel step={step} onNext={() => setStep((s) => Math.min(s + 1, 2))} />
+    </Popover>
+  );
+}
+
+/**
+ * Focus moving inside the panel while the Popover re-renders keeps it open. (Its refs used to be
+ * set again in every commit, so for a moment the panel looked empty and the move read as focus leaving.)
+ */
+export const FocusMoveWhileRerendering: Story = {
+  render: () => <StepsPopover />,
+  parameters: { controls: { disable: true } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole('button', { name: 'Pick a step' });
+    await userEvent.click(trigger);
+    await expect(canvas.getByRole('dialog', { name: 'Steps' })).toBeVisible();
+    canvas.getByRole('button', { name: 'Step 1' }).focus();
+    await userEvent.keyboard('{Enter}');
+    await expect(canvas.getByRole('button', { name: 'Step 2' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(canvas.getByRole('button', { name: 'Step 3' })).toHaveFocus();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(canvas.getByRole('dialog', { name: 'Steps' })).toBeVisible();
   },
 };
 

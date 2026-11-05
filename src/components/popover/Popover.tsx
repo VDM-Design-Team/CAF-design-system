@@ -221,6 +221,13 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const triggerRef = React.useRef<HTMLElement | null>(null);
   const panelRef = React.useRef<HTMLDivElement | null>(null);
+  /* Stable callbacks: a new one each render makes React clear the ref and set
+     it again in every commit, and a focus move inside the panel during that
+     commit (a calendar's day, in its layout effect) would read as focus leaving. */
+  const triggerOuterRef = trigger.props?.ref;
+  const wrapperNodeRef = React.useMemo(() => mergeRefs<HTMLDivElement>(wrapperRef, ref), [ref]);
+  const triggerNodeRef = React.useMemo(() => mergeRefs<HTMLElement>(triggerRef, triggerOuterRef), [triggerOuterRef]);
+  const panelNodeRef = React.useMemo(() => mergeRefs<HTMLDivElement>(panelRef, panelRefProp), [panelRefProp]);
 
   /* Was focus inside the popover when it closed? Only then does closing move
      focus back to the trigger. A click or Tab somewhere else must not pull
@@ -394,7 +401,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
 
   const triggerNode = React.cloneElement(trigger, {
     id: triggerId,
-    ref: mergeRefs<HTMLElement>(triggerRef, trigger.props?.ref),
+    ref: triggerNodeRef,
     'aria-expanded': isOpen,
     'aria-haspopup': panelRole ? HASPOPUP[panelRole] : undefined,
     /* Only while the panel exists: a reference to a missing id is worse than none. */
@@ -415,7 +422,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
   const panelNode = (
     <div
       {...panelProps}
-      ref={mergeRefs<HTMLDivElement>(panelRef, panelRefProp)}
+      ref={panelNodeRef}
       id={panelId}
       role={panelRole}
       /* A panel with a role needs a name: its own (`label`, or an `aria-labelledby`
@@ -443,7 +450,7 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
   );
 
   return (
-    <div ref={mergeRefs<HTMLDivElement>(wrapperRef, ref)} className={cn('relative inline-flex', className)} {...props}>
+    <div ref={wrapperNodeRef} className={cn('relative inline-flex', className)} {...props}>
       {triggerNode}
       {isOpen && !portal && panelNode}
       {isOpen && portal && canPortal && createPortal(panelNode, document.body)}

@@ -311,7 +311,6 @@ export const NewCostForm = React.forwardRef<HTMLFormElement, NewCostFormProps>(f
                   label="Starts At"
                   name="startsAt"
                   required
-                  placeholder="Select start date"
                   defaultValue={value('startsAt') ?? null}
                   today={today}
                   error={errors.startsAt}
