@@ -25,8 +25,9 @@ import { UsersTable } from './UsersTable';
  *
  * A failed load (Figma draws none: docs/patterns.md): an Error Alert above
  * the table, "Couldn't load users." / "Check your connection and try
- * again.", with a Retry Button under it (Alert has no action slot). Retry
- * loads again and moves focus to the table, since the button goes away.
+ * again.", with its own action (Alert's Show Action, Action "Retry", since
+ * 2 Nov 2026; Figma 765:14883). Retry loads again and moves focus to the
+ * table, since the alert and its button go away.
  *
  * Filters narrow the loaded rows; nothing found shows the Compact Empty
  * State ("No items.") in the table, with the filters still there.
@@ -76,7 +77,7 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: 
   const retry = () => {
     setAttempt((n) => n + 1);
     setState('loading');
-    /* The Retry button is about to go: put focus on what is loading. */
+    /* The alert and its Retry are about to go: put focus on what is loading. */
     tableRef.current?.focus();
   };
 
@@ -114,12 +115,14 @@ export function UsersPage({ load, dialogOpen = false, today = '2026-11-02', as: 
         {state === 'loading' ? 'Loading users' : ''}
       </p>
       {state === 'error' && (
-        <div className="flex flex-col items-start gap-3">
-          <Alert type="error" title="Couldn’t load users." message="Check your connection and try again." />
-          <Button variant="outlined" size="small" onClick={retry}>
-            Retry
-          </Button>
-        </div>
+        <Alert
+          type="error"
+          title="Couldn’t load users."
+          message="Check your connection and try again."
+          showAction
+          action="Retry"
+          onAction={retry}
+        />
       )}
       <UsersTable
         ref={tableRef}

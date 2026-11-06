@@ -45,13 +45,13 @@ const meta = {
       story: OVERLAY_DOCS_STORY,
       description: {
         component:
-          'Built from the CAF Figma library, page **Navigation** (`Navigation / Mobile Menu – Admin`): the open mobile ' +
+          'Built from the CAF Figma library, page **Navigation** (`Navigation / Mobile Menu`, Links=Admin / User): the open mobile ' +
           'navigation, full width against the top of the screen. The Mobile Header with ✕ (Menu Open=true), the links ' +
           'as vertical NavLinks (`links`, with `page` Active) and the Account Row with the signed-in `username`, which ' +
           'opens the Account Menu below it (`onAccountSelect`). It is ' +
           'a modal dialog on Overlay, named “Menu”: focus moves to ✕ and is trapped; Escape, ✕, a tap on the scrim or ' +
-          'a chosen link call `onClose`; you set `open`, and focus goes back to ☰. The links are data, so the user ' +
-          'app’s five links work the same.',
+          'a chosen link call `onClose`; you set `open`, and focus goes back to ☰. Figma’s Links is `links`: the ' +
+          'admin’s ten or the user’s five, as data. Leave `page` out and no link is Active.',
       },
     },
   },
@@ -104,13 +104,21 @@ function bodyChildOf(el: HTMLElement): HTMLElement {
   return node;
 }
 
-/* ── Open, in Light and Dark ───────────────────────────────────────────────
-   Mobile Menu – Admin as Figma draws it: Page=Users. Full width against the top
-   of the screen, surface.neutral.base with Elevation 3; the Mobile Header with
-   ✕; the ten links, 8 / 16 padding, 2 apart, the Active one semibold with its
-   left Indicator; the Account Row, a button, under a stroke.subtle line. */
-const opened = (theme: 'light' | 'dark'): Story => ({
-  name: `Mobile Menu – Admin — ${theme === 'light' ? 'Light' : 'Dark'}`,
+/* ── Each Links value, open, in Light and Dark ──────────────────────────────
+   Navigation / Mobile Menu as Figma draws it: Links=Admin (462:851) with Users
+   Active, Links=User (864:1290, since 5 Nov 2026) with Costs Active and "QA
+   Test". Full width against the top of the screen, surface.neutral.base with
+   Elevation 3; the Mobile Header with ✕; the links, 8 / 16 padding, 2 apart,
+   the Active one semibold with its left Indicator; the Account Row, a button,
+   under a stroke.subtle line. */
+const MENUS = {
+  Admin: { links: ADMIN_LINKS, labels: APP_HEADER_ADMIN_PAGES, page: 'Users', username: 'Admin Account' },
+  User: { links: USER_LINKS, labels: APP_HEADER_USER_PAGES, page: 'Costs', username: 'QA Test' },
+} as const;
+
+const opened = (set: keyof typeof MENUS, theme: 'light' | 'dark'): Story => ({
+  name: `Links=${set} — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  args: { links: MENUS[set].links, page: MENUS[set].page, username: MENUS[set].username },
   render: (args) => (
     <Page>
       <MobileMenu {...args} theme={theme} />
@@ -154,15 +162,15 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     await expect(close.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.x);
     await waitFor(() => expect(close).toHaveFocus());
 
-    // Links: vertical, 8 / 16 padding, 2 apart, the menu's width; Users is Active.
+    // Links: vertical, 8 / 16 padding, 2 apart, the menu's width; the page's link is Active.
     const nav = within(menu).getByRole('navigation', { name: 'Main' });
     const list = nav.querySelector('ul')!;
     await expect(getComputedStyle(list).padding).toBe('8px 16px');
     await expect(getComputedStyle(list).rowGap).toBe('2px');
     const links = within(nav).getAllByRole('link');
-    await expect(links.map((link) => link.textContent)).toEqual([...APP_HEADER_ADMIN_PAGES]);
+    await expect(links.map((link) => link.textContent)).toEqual([...MENUS[set].labels]);
     for (const [i, link] of links.entries()) {
-      const active = link.textContent === 'Users';
+      const active = link.textContent === MENUS[set].page;
       const style = getComputedStyle(link);
       await expect(link.getAttribute('aria-current')).toBe(active ? 'page' : null);
       await expect(style.backgroundColor).toBe(active ? want.active : want.none);
@@ -178,7 +186,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
     // It is the Account Menu's trigger: a button named by the name it shows, the menu closed.
     const account = menu.querySelector<HTMLElement>('[data-part="account"]')!;
     const row = getComputedStyle(account);
-    await expect(account).toBe(within(menu).getByRole('button', { name: 'Admin Account' }));
+    await expect(account).toBe(within(menu).getByRole('button', { name: MENUS[set].username }));
     await expect(account).toHaveAttribute('aria-haspopup', 'menu');
     await expect(account).toHaveAttribute('aria-expanded', 'false');
     await expect(row.backgroundColor).toBe(want.none);
@@ -205,12 +213,15 @@ const opened = (theme: 'light' | 'dark'): Story => ({
   },
 });
 
-export const AdminLight = opened('light');
-export const AdminDark = opened('dark');
+export const AdminLight = opened('Admin', 'light');
+export const AdminDark = opened('Admin', 'dark');
+export const UserLight = opened('User', 'light');
+export const UserDark = opened('User', 'dark');
 
-/** The user app's five links (U08: Mobile Menu – User is still to add in Figma), Page=Create Cost. */
-export const User: Story = {
-  args: { links: USER_LINKS, page: 'Create Cost', username: 'QA Test' },
+/** No `page` (a page outside the navigation, such as Settings): no link is Active, as the headers' Page=None. */
+export const NoCurrentPage: Story = {
+  name: 'No current page',
+  args: { links: USER_LINKS, page: undefined, username: 'QA Test' },
   render: (args) => (
     <Page>
       <MobileMenu {...args} />
@@ -220,10 +231,8 @@ export const User: Story = {
   play: async () => {
     const menu = await screen.findByRole('dialog', { name: 'Menu' });
     const nav = within(menu).getByRole('navigation', { name: 'Main' });
-    const links = within(nav).getAllByRole('link');
-    await expect(links.map((link) => link.textContent)).toEqual([...APP_HEADER_USER_PAGES]);
-    await expect(within(nav).getByRole('link', { name: 'Create Cost' })).toHaveAttribute('aria-current', 'page');
-    await expect(within(menu).getByRole('button', { name: 'QA Test' })).toHaveAttribute('data-part', 'account');
+    await expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual([...APP_HEADER_USER_PAGES]);
+    await expect(nav.querySelectorAll('[aria-current]')).toHaveLength(0);
   },
 };
 

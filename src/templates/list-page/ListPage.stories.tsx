@@ -103,13 +103,14 @@ async function expectCostsList(canvasElement: HTMLElement, audience: 'admin' | '
   if (isDesktop()) await expect(exportButton.getBoundingClientRect().left).toBeGreaterThan(tabs.getBoundingClientRect().right);
 }
 
-/** Drafts: the title alone, Search and Clear Filters, the Drafts table, pagination. */
+/** Drafts: the title alone, the filter bar with Search (Clear Filters only while searching), the Drafts table, pagination. */
 async function expectDraftsList(canvasElement: HTMLElement) {
   const { main, heading } = await expectFrame(canvasElement, 'Drafts');
   const page = within(main);
   const search = page.getByRole('searchbox', { name: 'Search drafts' });
-  // Nothing to clear yet.
-  await expect(page.getByRole('button', { name: 'Clear Filters' })).toBeDisabled();
+  // Nothing to clear yet: Clear Filters is hidden, not disabled (decision filter-clear-disabled).
+  await expect(page.getByRole('search', { name: 'Filter drafts' })).toContainElement(search);
+  await expect(page.queryByRole('button', { name: 'Clear Filters' })).toBeNull();
   const table = page.getByRole('table', { name: 'Drafts' }) as HTMLTableElement;
   const pagination = page.getByRole('navigation', { name: 'Pagination' });
   await expectInOrder([heading, search, table, pagination]);

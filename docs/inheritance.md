@@ -33,9 +33,32 @@ overrides a GDL default. Only `font.family.sans` is allowed to collide.
 | `font.family.sans` | Poppins | Inter | All 45 CAF text styles are set in Inter |
 
 That's the whole list. Everything else is GDL's, unchanged. The proof is
-`dist/`: apart from the semantic colours, CAF's build differs from GDL's
-only in the two `caf-blue` ramps and `--font-sans`. Dark elevation and the
-desktop type sizes are byte-identical.
+`dist/`: apart from the semantic colours, CAF's token build differs from
+GDL's only in the two `caf-blue` ramps, `--font-sans` and one line of
+`theme.css` (the `@source` below). Dark elevation and the desktop type
+sizes are byte-identical.
+
+## What reaches an app
+
+GDL reaches CAF at build time only. It is a `devDependency`: CAF's build
+merges GDL's tokens with CAF's into `dist/`, and the package ships that
+result. A CAF app installs `@vdm-design-team/caf` and nothing from GDL.
+
+| The package ships | What it is | GDL in it |
+|---|---|---|
+| `theme.css` | `@import "tailwindcss"`, an `@source` on `index.js`, every token in a Tailwind `@theme`, then `tokens.dark.css` and `typography.desktop.css` | GDL's tokens, already merged |
+| `tokens.css`, `tokens.dark.css`, `typography.desktop.css` | The same tokens as plain CSS variables (`:root`, `.dark`, `[data-type-scale="desktop"]`) | merged |
+| `tokens.json`, `tokens.flat.json`, `tokens.js` (`/tokens`) | The token values as data | merged |
+| `index.js` (`.`) and `types/` | The components, ESM, with `"use client"`; React, React DOM, `class-variance-authority`, `clsx` and `tailwind-merge` stay external | none: `cn()` knows GDL's names from `src/lib/cn.ts` |
+| `tokens/*` | CAF's own token source files | aliases into GDL's names |
+
+The `@source` line is CAF's one addition to GDL's `theme.css` format
+(`caf/tailwind-theme` in `style-dictionary.config.mjs`). Tailwind skips
+`node_modules` when it scans an app, so without it the components would
+arrive unstyled. GDL's format starts with `@import "tailwindcss"`, and CAF
+keeps that: a CAF app imports CAF's theme in place of Tailwind, as it would
+GDL's. (VCP's theme drops that import, because VCP apps import Tailwind
+themselves.)
 
 ## CAF's extensions to the contract
 

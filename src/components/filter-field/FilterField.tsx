@@ -47,8 +47,8 @@ import { Icon, type IconName } from '../icon';
 
 /* Both types: surface.elevated-secondary fill, a 1px stroke.strong stroke
    inside the edge, radius 8 (Figma: the remote radius-4 variable, whose value
-   is 8), 24px sides (bound to space/24), Body/sm-regular. Figma hugs 42px;
-   code is 40px, as TextInput and SelectTrigger. */
+   is 8), 24px sides (bound to space/24), Body/sm-regular. 40px tall, as TextInput and SelectTrigger (Figma too
+   since 6 Nov 2026: its inside stroke no longer counts in the layout). */
 const box = [
   'flex h-10 w-full min-w-0 items-center rounded-8 bg-surface-elevated-secondary px-6',
   'text-body-sm-regular inset-ring inset-ring-stroke-field',

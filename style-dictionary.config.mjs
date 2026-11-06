@@ -19,9 +19,34 @@ import { registerGdlFormats, gdlPlatforms, gdlIncludes } from '@vdm-design-team/
  * ------------------------------------------------------------------ */
 registerGdlFormats(StyleDictionary);
 
+/* theme.css is the stylesheet a CAF app imports in place of
+ * `@import "tailwindcss"`, so it keeps GDL's `@import "tailwindcss"` line.
+ * Below it CAF adds an `@source` on the component bundle beside it
+ * (dist/index.js): Tailwind skips node_modules when it scans, so without
+ * this an app would get the components with no styles. With it, the app's
+ * Tailwind generates the components' classes with no `@source` of its own.
+ * (VCP does the same, but its theme.css drops the Tailwind import, because
+ * VCP apps import Tailwind themselves.) */
+const gdlTheme = StyleDictionary.hooks.formats['gdl/tailwind-theme'];
+StyleDictionary.registerFormat({
+  name: 'caf/tailwind-theme',
+  format: async (args) => {
+    const css = await gdlTheme(args);
+    const tailwind = '@import "tailwindcss";\n';
+    const themed = css.replace(tailwind, `${tailwind}@source "./index.js";\n`);
+    if (themed === css) throw new Error('caf/tailwind-theme: GDL\'s theme no longer has @import "tailwindcss" — update this wrapper.');
+    return themed;
+  },
+});
+
+const platforms = gdlPlatforms();
+platforms.tailwind.files = platforms.tailwind.files.map((f) =>
+  f.destination === 'theme.css' ? { ...f, format: 'caf/tailwind-theme' } : f,
+);
+
 export default {
   include: gdlIncludes(),
   source: ['tokens/**/*.json'],
-  platforms: gdlPlatforms(),
+  platforms,
   log: { warnings: 'disabled' },
 };

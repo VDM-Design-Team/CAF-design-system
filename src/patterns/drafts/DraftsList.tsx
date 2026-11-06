@@ -11,6 +11,7 @@ import { TableHeaderCell } from '../../components/table-header-cell';
 import { TableHeaderRow } from '../../components/table-header-row';
 import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
+import { FILTER_SLOT, FilterBar } from '../filters/CostsFilterBar';
 import { formatDate, type Draft } from '../fixtures';
 import { PageHeader } from '../../components/page-header';
 
@@ -18,8 +19,9 @@ import { PageHeader } from '../../components/page-header';
  * DraftsList — a story-level organism, not a DS component: the Drafts page
  * of pattern U03 (545:18578, 545:18649), composed from DS components.
  *
- * - Page Header "Drafts"; a filter bar with Search (Filter / Field) and
- *   "Clear Filters"; the table: ID, Created By (name over email), Frequency
+ * - Page Header "Drafts"; a FilterBar (U03's Filter Bar) with Search
+ *   (Filter / Field) and, only while a search is in use, Filter / Clear
+ *   ("Clear Filters", which empties it and puts focus back in it); the table: ID, Created By (name over email), Frequency
  *   ("Single" or the interval), Applicant Name, Email, Date Created, newest
  *   first, in a TableList (Table / List); Pagination under it. Rows carry
  *   `data-id`.
@@ -101,9 +103,18 @@ export function DraftsList<T extends Draft>({
         />
       ) : (
         <>
-          {/* The filter bar: Search, then Clear Filters. */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="w-full max-w-sm">
+          {/* U03's Filter Bar (545:18583): Search, then Filter / Clear on the far right while a search is in use. */}
+          <FilterBar
+            aria-label="Filter drafts"
+            showClear={query.trim() !== ''}
+            onClear={() => {
+              setQuery('');
+              setPage(1);
+              /* The button goes away with the search: focus goes back to the search field. */
+              searchRef.current?.focus();
+            }}
+          >
+            <div className={FILTER_SLOT}>
               <FilterField
                 ref={searchRef}
                 label="Search drafts"
@@ -115,10 +126,7 @@ export function DraftsList<T extends Draft>({
                 }}
               />
             </div>
-            <Button variant="text" disabled={!query} onClick={() => setQuery('')}>
-              Clear Filters
-            </Button>
-          </div>
+          </FilterBar>
           <TableList
             ref={tableRef}
             aria-label="Drafts"

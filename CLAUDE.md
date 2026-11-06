@@ -103,15 +103,17 @@ Read `docs/inheritance.md` before changing anything structural.
 | | |
 |---|---|
 | `npm run import:figma` | `figma-export/` → `tokens/`, checked against GDL |
-| `npm run build` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
+| `npm run tokens` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
+| `npm run build` | `tokens`, then the component bundle (`dist/index.js`, tsup) and its types (`dist/types/`, `tsc -p tsconfig.build.json`): what the package ships |
+| `npm run check:package` | What `npm publish` would ship: every export resolves, the bundle, types and CSS are there, no stories or Storybook build |
 | `npm run check:contract` | GDL's semantic contract, Light and Dark |
 | `npm run check:contrast` | WCAG AA report for the semantic text, focus and border pairs (`-- --strict` fails on any) |
 | `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
 | `npm run typecheck` | `tsc --noEmit` over `src/` and `.storybook/` |
 | `npm run test:stories` | Every story in Vitest + Playwright: renders, play and afterEach pass, axe clean |
 | `npm run test:static` | Every story against `storybook-static/` (run `storybook:build` first), as Chromatic runs it: fresh page per story (at the story's `chromatic.viewports` width if it has one), then switched over the channel twice. Fails on any play, afterEach, render or axe error. `-- --shard=i/n` runs one slice; CI runs 8 slices in parallel jobs |
-| `npm run storybook` | Build `dist/`, then Storybook on :6006 (Light/Dark toolbar) |
-| `npm test` | What CI runs: the lints, build, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
+| `npm run storybook` | Build the tokens, then Storybook on :6006 (Light/Dark toolbar) |
+| `npm test` | What CI runs: the lints, build, package check, contract, contrast (strict), changelog-entry lint, typecheck, story tests |
 | `npm run changelog` | At release: fold `changes/` into `CHANGELOG.md` and set the version |
 
 ## Workflow

@@ -9,9 +9,11 @@ import type { ThemeToggleTheme } from '../theme-toggle';
 
 /**
  * MobileMenu — built from the CAF Figma library, page "Navigation":
- * `Navigation / Mobile Menu – Admin` (462:851), the open mobile navigation:
- * "header with close, the 10 admin links (one Active), and the account row.
- * Swap link labels for the user app."
+ * `Navigation / Mobile Menu` (864:1343, since 5 Nov 2026; it was `Navigation
+ * / Mobile Menu – Admin`), the open mobile navigation: "header with close,
+ * the links (one Active) and the account row, which opens Navigation /
+ * Account Menu". Its Links property is Admin (462:851, the ten admin links)
+ * or User (864:1290, U08's five).
  *
  * Figma → code:
  * - The menu (full width, fill `surface.neutral.base`, Effects/Elevation
@@ -21,9 +23,11 @@ import type { ThemeToggleTheme } from '../theme-toggle';
  *   theme toggle, the account menu and ✕, which asks to close.
  * - Links (vertical, 8 / 16 padding, 2 between; Navigation / Nav Link –
  *   Vertical, one State=Active) → a `<nav>` list of NavLink
- *   `orientation="vertical"`, from `links`; `page` is the Active one. The
- *   labels are data, so the same menu serves the user app (U08: "add Mobile
- *   Menu – User next to Mobile Menu – Admin").
+ *   `orientation="vertical"`, from `links`; `page` is the Active one.
+ *   Links=Admin / Links=User → `links`: the admin's or the user's list
+ *   (APP_HEADER_ADMIN_PAGES, APP_HEADER_USER_PAGES), as data. Leave `page`
+ *   out (or pass a page outside the links, such as Settings) and no link is
+ *   Active, as the headers' Page=None.
  * - Account Row (12 / 16 padding, 12 between, a 1px `stroke.subtle` line on
  *   top; User glyph 20 and the name in Body/sm-medium, both `text.secondary`)
  *   → AccountMenu's trigger: a full-width button with the glyph and
@@ -59,9 +63,9 @@ export interface MobileMenuProps
   open: boolean;
   /** Asked to close: ✕, Escape, a tap on the scrim, a link chosen, or an account item chosen. Set `open` to false. */
   onClose: () => void;
-  /** The navigation, in order: Figma's link labels, each with its `href`. */
+  /** Figma Links (Admin or User): the navigation, in order, Figma's link labels, each with its `href`. */
   links: readonly AppHeaderLink[];
-  /** Figma's Active link: the current page's label. */
+  /** Figma's Active link: the current page's label. Left out (or a page outside `links`), no link is Active. */
   page?: string;
   /** Renders each link. Default: a NavLink `<a href>`. Return a NavLink with `as` for a router's link. */
   renderLink?: AppHeaderRenderLink;
