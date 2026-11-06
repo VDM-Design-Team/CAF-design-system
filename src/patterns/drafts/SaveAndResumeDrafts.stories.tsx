@@ -301,7 +301,8 @@ export const ResumeRecurringDraft: Story = {
 };
 
 /**
- * Search narrows the list and Clear Filters brings it back. Step 4: ••• →
+ * Search narrows the list; Clear Filters, shown only while searching, brings it
+ * back and puts focus in the search box. Step 4: ••• →
  * Delete asks first; Delete removes the draft, a toast confirms it, and focus
  * moves to the next row’s •••.
  */
@@ -314,15 +315,24 @@ export const SearchAndDelete: Story = {
     await expect(within(table).getAllByRole('row')).toHaveLength(9);
     await expect(canvas.getByRole('navigation', { name: 'Pagination' })).toHaveTextContent('Page 1 of 1');
 
-    // Search.
+    // Search. Clear Filters shows only while there is a search, on the bar's far right.
     const search = canvas.getByRole('searchbox', { name: 'Search drafts' });
+    await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).toBeNull();
     await userEvent.type(search, '3670');
     await expect(within(table).getAllByRole('row').slice(1).map((r) => r.dataset.id)).toEqual(['36701', '36700']);
     await userEvent.clear(search);
     await userEvent.type(search, 'nobody');
     await expect(within(table).getByText('No drafts match your search.')).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: 'Clear Filters' }));
+    const bar = canvas.getByRole('search', { name: 'Filter drafts' });
+    const clear = within(bar).getByRole('button', { name: 'Clear Filters' });
+    const padding = parseFloat(getComputedStyle(bar).paddingRight);
+    await expect(Math.abs(bar.getBoundingClientRect().right - padding - clear.getBoundingClientRect().right)).toBeLessThan(1);
+    // Clear Filters: every draft back, the button gone, focus in the search box.
+    await userEvent.click(clear);
     await expect(within(table).getAllByRole('row')).toHaveLength(9);
+    await expect(search).toHaveValue('');
+    await expect(search).toHaveFocus();
+    await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).toBeNull();
 
     // Delete asks first.
     await userEvent.click(canvas.getByRole('button', { name: 'Actions for draft 36701' }));

@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { Button } from '../../components/button';
 import { EmptyState } from '../../components/empty-state';
 import { FilterField } from '../../components/filter-field';
 import { FilterSelect } from '../../components/filter-select';
@@ -41,21 +40,13 @@ function UsersList() {
       <h1 className="sr-only">Users</h1>
       <FilterBar
         aria-label="Filter users"
-        clear={
-          active && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearch('');
-                setRole(null);
-                setPage(1);
-                searchRef.current?.focus();
-              }}
-            >
-              Clear Filters
-            </Button>
-          )
-        }
+        showClear={active}
+        onClear={() => {
+          setSearch('');
+          setRole(null);
+          setPage(1);
+          searchRef.current?.focus();
+        }}
       >
         <div className={FILTER_SLOT}>
           <FilterField

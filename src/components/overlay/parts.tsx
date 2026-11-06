@@ -18,15 +18,18 @@ export interface OverlayHeaderProps {
   titleId: string;
   description?: React.ReactNode;
   descriptionId?: string;
+  /** Icon buttons before Close (Modal / Dialog's Show Actions + Actions). */
+  actions?: React.ReactNode;
   onClose: () => void;
 }
 
 /* Header: 20px top and bottom, 24px sides, 16px between the title group and
    the close button, a 1px stroke.subtle line under it. The title group stacks
    the title (Body/lg-semibold, text.primary) over the description
-   (Body/sm-regular, text.subtle), 4px apart. Close is Modal / Close Button:
-   an IconButton named "Close". */
-export function OverlayHeader({ title, titleId, description, descriptionId, onClose }: OverlayHeaderProps) {
+   (Body/sm-regular, text.subtle), 4px apart. Header Actions holds the
+   optional `actions` (Modal / Dialog's Show Actions, since 5 Nov 2026), then
+   Close (Button / Icon: an IconButton named "Close"), space.4 apart. */
+export function OverlayHeader({ title, titleId, description, descriptionId, actions, onClose }: OverlayHeaderProps) {
   return (
     <div data-part="header" className="flex shrink-0 items-center justify-between gap-4 border-b border-stroke-subtle px-6 py-5">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -39,7 +42,10 @@ export function OverlayHeader({ title, titleId, description, descriptionId, onCl
           </p>
         )}
       </div>
-      <IconButton icon="x" label="Close" onClick={onClose} />
+      <div data-part="header-actions" className="flex shrink-0 items-center gap-1">
+        {actions}
+        <IconButton icon="x" label="Close" onClick={onClose} />
+      </div>
     </div>
   );
 }

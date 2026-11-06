@@ -13,12 +13,12 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
  * header every signed-in CAF page shares (patterns 15 and U08).
  * - `Navigation / Header` (4:286): the frame, "top bar plus the global
  *   navigation bar".
- * - `Navigation / Header – Admin` (403:3950, Page ×10) and `Navigation /
- *   Header – User` (420:1040, Page ×5): the same frame with the admin's and
- *   the user's links.
- * - Below 768px, `Navigation / Mobile Header` with `Navigation / Mobile Menu
- *   – Admin` (patterns 15 and U08: "Mobile Header with Mobile Menu below
- *   768 px wide").
+ * - `Navigation / Header – Admin` (403:3950, Page ×10 + None) and
+ *   `Navigation / Header – User` (420:1040, Page ×5 + None): the same frame
+ *   with the admin's and the user's links.
+ * - Below 768px, `Navigation / Mobile Header` with `Navigation / Mobile Menu`
+ *   (864:1343, Links=Admin / User; patterns 15 and U08: "Mobile Header with
+ *   Mobile Menu below 768 px wide").
  *
  * Figma → code:
  * - The frame (vertical, no gap, fill `surface.neutral.base`) → `<header>`,
@@ -33,7 +33,10 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
  * - Header – Admin / – User → `links`: label and `href` for each link, in
  *   order (APP_HEADER_ADMIN_PAGES and APP_HEADER_USER_PAGES are Figma's
  *   labels). Page → `page`, the current link's label: its NavLink is Active
- *   (`aria-current="page"`).
+ *   (`aria-current="page"`). Page=None (since 5 Nov 2026: "no link is
+ *   Active, for pages outside the navigation") → leave `page` out, or pass a
+ *   page that isn't one of the links (Settings, the Changelog page): no link
+ *   is Active.
  * - Below 768px (`md:`), the two rows give way to MobileHeader. Its ☰ opens
  *   MobileMenu with the same links (`aria-expanded`, `aria-controls`). The
  *   menu's state is `menuOpen` (Mobile Header's Menu Open), uncontrolled by
@@ -48,7 +51,10 @@ import { renderNavLink, type AppHeaderLink, type AppHeaderRenderLink } from './l
 export interface AppHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'onSelect'> {
   /** The navigation, in order: each link's label and `href`. Header – Admin's or Header – User's. */
   links: readonly AppHeaderLink[];
-  /** Figma Page: the current page's label. Its link is Active. */
+  /**
+   * Figma Page: the current page's label. Its link is Active. Page=None: leave it out (or pass a
+   * page outside the navigation, such as Settings), and no link is Active.
+   */
   page?: string;
   /** Renders each link. Default: a NavLink `<a href>`. Return a NavLink with `as` for a router's link. */
   renderLink?: AppHeaderRenderLink;

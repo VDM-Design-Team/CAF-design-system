@@ -2,6 +2,8 @@ import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
+import { ICON_PATHS } from '../icon/icons';
+import { IconButton } from '../icon-button';
 import { TextInput } from '../text-input';
 import { ModalDialog, MODAL_DIALOG_SIZES, type ModalDialogSize } from './ModalDialog';
 
@@ -20,7 +22,8 @@ const meta = {
           'Built from the CAF Figma library, page **Modals** (`Modal / Dialog`): the generic modal for Add Cost Center, ' +
           'Add Partner, Add User, Create Announcement, Cost Breakdown and Audit Logs. `size` is `small` (default), ' +
           '`medium` or `large`; `title` names the dialog; `description` and `showDescription` are Description and Show ' +
-          'Description; `children` is the Content slot; `footer` holds the actions and `showFooter` is Show Footer. The ' +
+          'Description; `children` is the Content slot; `footer` holds the actions and `showFooter` is Show Footer; ' +
+          '`actions` is Show Actions, icon buttons before Close (Audit Logs’ Refresh). The ' +
           'close button, Escape and a backdrop click call `onClose`; you set `open`. Focus moves into the dialog, is ' +
           'trapped there, and goes back to the opener on close.',
       },
@@ -254,6 +257,82 @@ const described = (theme: 'light' | 'dark'): Story => ({
 
 export const DescriptionNoFooterLight = described('light');
 export const DescriptionNoFooterDark = described('dark');
+
+/* ── Show Actions, in Light and Dark ───────────────────────────────────────
+   Modal / Dialog's Show Actions (since 5 Nov 2026), as its review frame
+   (864:471) draws it: a Small dialog titled "Audit Logs" with Refresh (Button
+   / Icon, Ghost, 32, ArrowsClockwise 16) before Close, space.4 apart, in the
+   header's Header Actions. Refresh is forced to Hover, so the dialog shows
+   Ghost's Default (Close) and Hover (Refresh) side by side. */
+const withActions = (theme: 'light' | 'dark'): Story => ({
+  name: `Show Actions (Refresh hover) — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  args: { size: 'small', title: 'Audit Logs', showFooter: false },
+  render: (args) => (
+    <Page>
+      <ModalDialog
+        {...args}
+        // The checks read each button's own state, so a stray pointer mustn't hover Close.
+        className="pointer-events-none"
+        // transition-none: the forced Hover must be settled before axe and Chromatic look.
+        actions={<IconButton icon="arrows-clockwise" label="Refresh" className="transition-none" data-pseudo="hover" />}
+      >
+        <p className="text-body-sm-regular text-text-secondary">Changes to cost 32430 and the costs around it.</p>
+      </ModalDialog>
+    </Page>
+  ),
+  globals: { theme },
+  parameters: {
+    controls: { disable: true },
+    // rootSelector: the dialog renders in a portal on <body>.
+    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'] },
+  },
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async () => {
+    // Positions, with fresh lookups: the dialog is in a portal (screen, not the canvas).
+    await waitFor(() => {
+      const dialog = screen.getByRole('dialog', { name: 'Audit Logs' });
+      const header = dialog.querySelector<HTMLElement>('[data-part="header"]')!;
+      const group = header.querySelector<HTMLElement>('[data-part="header-actions"]')!;
+      const [refresh, close] = within(group).getAllByRole('button');
+      expect(refresh).toHaveAccessibleName('Refresh');
+      expect(close).toHaveAccessibleName('Close');
+      // Header Actions: Refresh, then Close, 4px apart, at the header's right padding.
+      expect(getComputedStyle(group).columnGap).toBe('4px');
+      expect(close.getBoundingClientRect().left - refresh.getBoundingClientRect().right).toBe(4);
+      expect(header.getBoundingClientRect().right - close.getBoundingClientRect().right).toBe(24);
+      for (const button of [refresh, close]) {
+        expect(button.getBoundingClientRect().width).toBe(32);
+        expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(16);
+      }
+      expect(refresh.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS['arrows-clockwise']);
+      // Header still 73 high (20 + 32 + 20 + the 1px line), as in Figma.
+      expect(header.getBoundingClientRect().height).toBe(73);
+    });
+  },
+  // The forced Hover is checked in afterEach: pseudo-states rewrites :hover on STORY_RENDERED, after play.
+  afterEach: async () => {
+    const want = {
+      glyph: tokenColour('text-secondary'),
+      hover: tokenColour('neutral-tonal-surface-default'),
+      none: 'rgba(0, 0, 0, 0)',
+    };
+    await waitFor(
+      () => {
+        const dialog = screen.getByRole('dialog', { name: 'Audit Logs' });
+        const refresh = within(dialog).getByRole('button', { name: 'Refresh' });
+        const close = within(dialog).getByRole('button', { name: 'Close' });
+        expect(getComputedStyle(refresh).backgroundColor).toBe(want.hover);
+        expect(getComputedStyle(close).backgroundColor).toBe(want.none);
+        expect(getComputedStyle(refresh.querySelector('svg')!).color).toBe(want.glyph);
+        expect(getComputedStyle(close.querySelector('svg')!).color).toBe(want.glyph);
+      },
+      { timeout: 3000 },
+    );
+  },
+});
+
+export const ShowActionsLight = withActions('light');
+export const ShowActionsDark = withActions('dark');
 
 /* ── Behaviour ─────────────────────────────────────────────────────────────── */
 

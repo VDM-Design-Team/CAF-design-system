@@ -49,21 +49,13 @@ function CostCentersPage() {
       <PageHeader title="Cost Centers" actions={<Button leftIcon={<Icon name="plus" />}>Add New</Button>} />
       <FilterBar
         aria-label="Filter cost centers"
-        clear={
-          active && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearch('');
-                setCentre(null);
-                setPage(1);
-                searchRef.current?.focus();
-              }}
-            >
-              Clear Filters
-            </Button>
-          )
-        }
+        showClear={active}
+        onClear={() => {
+          setSearch('');
+          setCentre(null);
+          setPage(1);
+          searchRef.current?.focus();
+        }}
       >
         <div className={FILTER_SLOT}>
           <FilterField

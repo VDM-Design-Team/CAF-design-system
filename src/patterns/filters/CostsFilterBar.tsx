@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button } from '../../components/button';
 import { dayKey, parseDayKey } from '../../components/calendar/dates';
+import { FilterClear } from '../../components/filter-clear';
 import { FilterDateRange } from '../../components/filter-date-range';
 import { FilterField } from '../../components/filter-field';
 import { FilterSelect } from '../../components/filter-select';
@@ -27,8 +27,11 @@ import {
  *
  * - FilterBar: the bar's frame (surface.neutral.faint, a 1px stroke.subtle
  *   stroke, radius 12, 16 padding; the fields 12 apart) as a `search`
- *   landmark, with Clear Filters on the far right (pattern 02: it appears once
- *   a filter is active) and an optional row under the fields.
+ *   landmark, with Filter / Clear (FilterClear, Clear Filters) on the far
+ *   right and an optional row under the fields. Figma's Show Clear (Filter /
+ *   Bar, `Show Clear#867:0`, since 5 Nov 2026) is `showClear`: on only while a
+ *   filter is in use (decision filter-clear-disabled: hidden, never
+ *   disabled, when nothing is filtered).
  * - The dropdowns are the DS's FilterSelect (Filter / Field – Select: All
  *   Status, Pending, …, with the chosen one checked) and FilterDateRange
  *   (Filter / Field – Date range: Select Period and Creation Date, as pattern
@@ -115,8 +118,14 @@ export function costFilterSummary(f: CostFilters): FilterSummaryFilter[] {
 export interface FilterBarProps extends React.HTMLAttributes<HTMLDivElement> {
   /** The fields, left to right: search first, then the dropdowns (pattern 01). Each sits in a `FILTER_SLOT`. */
   children: React.ReactNode;
-  /** Clear Filters, on the far right. Pass it only while a filter is in use (pattern 02). */
-  clear?: React.ReactNode;
+  /**
+   * Figma Show Clear: Filter / Clear (Clear Filters) on the far right. Set it only while a filter
+   * or a search is in use; when nothing is filtered it is hidden, never disabled (decision
+   * filter-clear-disabled). Default false: Figma's default is on, so its screens keep their look.
+   */
+  showClear?: boolean;
+  /** Clear Filters: reset every filter, and move focus to the search field, since the button goes away. */
+  onClear?: () => void;
   /** A row under the fields, such as the filters in use. */
   footer?: React.ReactNode;
 }
@@ -124,10 +133,11 @@ export interface FilterBarProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * The bar's frame: Figma's Bar (176:1690) — surface.neutral.faint, a 1px
  * stroke.subtle stroke inside the edge, radius 12 (radius-5), 16 padding; the
- * Filters row 12 apart. A `search` landmark: name it with `aria-label`.
+ * Filters row 12 apart, and Filter / Clear at its right end while `showClear`
+ * (Filter / Bar's Show Clear). A `search` landmark: name it with `aria-label`.
  */
 export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(function FilterBar(
-  { children, clear, footer, className, ...props },
+  { children, showClear = false, onClear, footer, className, ...props },
   ref,
 ) {
   return (
@@ -139,7 +149,7 @@ export const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(functi
     >
       <div className="flex flex-wrap items-center gap-3">
         {children}
-        {clear && <div className="ml-auto flex">{clear}</div>}
+        {showClear && <FilterClear className="ml-auto" onClick={onClear} />}
       </div>
       {footer}
     </div>
@@ -197,13 +207,8 @@ export const CostsFilterBar = React.forwardRef<HTMLDivElement, CostsFilterBarPro
       ref={ref}
       aria-label={ariaLabel}
       {...props}
-      clear={
-        active && (
-          <Button variant="outlined" onClick={clearAll}>
-            Clear Filters
-          </Button>
-        )
-      }
+      showClear={active}
+      onClear={clearAll}
       footer={showSummary && active && <FilterSummary filters={costFilterSummary(value)} />}
     >
       <div className={FILTER_SLOT}>

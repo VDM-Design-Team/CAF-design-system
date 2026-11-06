@@ -119,7 +119,8 @@ function StepsPanel({ step, onNext }: { step: number; onNext: () => void }) {
           size="small"
           variant={i === step ? 'default' : 'outlined'}
           ref={(node) => {
-            buttons.current[i] = node;
+            /* No href, so the ref is the <button>. */
+            buttons.current[i] = node as HTMLButtonElement | null;
           }}
           onClick={() => {
             moved.current = true;

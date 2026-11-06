@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../../components/button';
 import { auditLog, costs } from '../fixtures';
 import { CostsTable } from '../costs/CostsTable';
@@ -17,9 +17,11 @@ interface PageProps {
   auditOpen?: boolean;
   /** Audit log entries whose changes show at first. */
   auditOpenIds?: string[];
+  /** The Audit Logs header's Refresh. */
+  onRefresh?: () => void;
 }
 
-function CostsWithHistory({ expanded: initialExpanded = [], auditOpen = false, auditOpenIds }: PageProps) {
+function CostsWithHistory({ expanded: initialExpanded = [], auditOpen = false, auditOpenIds, onRefresh }: PageProps) {
   const [expanded, setExpanded] = useState(initialExpanded);
   const [audit, setAudit] = useState(auditOpen);
   return (
@@ -33,7 +35,13 @@ function CostsWithHistory({ expanded: initialExpanded = [], auditOpen = false, a
         }
       />
       <CostsTable rows={ROWS} expandable expandedIds={expanded} onExpandedChange={setExpanded} />
-      <AuditLogsDialog open={audit} onClose={() => setAudit(false)} entries={auditLog} defaultOpenIds={auditOpenIds} />
+      <AuditLogsDialog
+        open={audit}
+        onClose={() => setAudit(false)}
+        entries={auditLog}
+        defaultOpenIds={auditOpenIds}
+        onRefresh={onRefresh}
+      />
     </main>
   );
 }
@@ -50,8 +58,9 @@ const meta = {
           '**08 · Expand for details & change history** (Patterns – Admin, 526:5189): rows show a summary ' +
           '(TableAccountDetails) and open in place to reveal more, so the user keeps their place. The caret ' +
           '(TableExpandButton) opens a cost’s breakdown under its row; several rows can be open. View Audit Logs opens ' +
-          'the log in a large ModalDialog: “View Changes” opens a Field / Before / After ChangeDiff under the entry and ' +
-          'reads “Hide Changes”; a deleted record shows a compact Error Alert instead. Built from CostsTable and the ' +
+          'the log in a large ModalDialog, with Refresh beside × (Show Actions): “View Changes” opens a Field / ' +
+          'Before / After ChangeDiff under the entry and reads “Hide Changes”; a deleted record shows a compact Error ' +
+          'Alert instead. Built from CostsTable and the ' +
           'AuditLogTable composition (`src/patterns/expand-details/AuditLogs.tsx`).',
       },
     },
@@ -119,13 +128,23 @@ export const ExpandForDetails: Story = {
 /** Step 3: View Audit Logs → View Changes opens a Before/After table, or an Alert for a deleted record. */
 export const AuditLogsViewChanges: Story = {
   name: 'Audit logs: view changes',
+  args: { onRefresh: fn() },
   // The dialog it opens makes the docs page inert.
   tags: ['!autodocs'],
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const opener = canvas.getByRole('button', { name: 'View Audit Logs' });
     await userEvent.click(opener);
     const dialog = await screen.findByRole('dialog', { name: 'Audit Logs' });
+
+    // The header's actions (Show Actions): Refresh, then ×, 4px apart. Refresh asks for the entries again.
+    const actions = dialog.querySelector<HTMLElement>('[data-part="header-actions"]')!;
+    const [refresh, close] = within(actions).getAllByRole('button');
+    await expect(refresh).toHaveAccessibleName('Refresh');
+    await expect(close).toHaveAccessibleName('Close');
+    await expect(close.getBoundingClientRect().left - refresh.getBoundingClientRect().right).toBe(4);
+    await userEvent.click(refresh);
+    await expect(args.onRefresh).toHaveBeenCalledOnce();
     const log = within(dialog).getByRole('table', { name: 'Audit log' });
     const headers = within(log).getAllByRole('columnheader').map((th) => th.textContent);
     await expect(headers).toEqual(['Cost ID', 'User', 'Timestamp', 'Activity', 'Actions']);

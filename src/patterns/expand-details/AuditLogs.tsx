@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Alert } from '../../components/alert';
 import { Button } from '../../components/button';
 import { ChangeDiff, ChangeDiffRow } from '../../components/change-diff';
+import { IconButton } from '../../components/icon-button';
 import { ModalDialog } from '../../components/modal-dialog';
 import { Pagination } from '../../components/pagination';
 import { TableCell } from '../../components/table-cell';
@@ -16,7 +17,8 @@ import { auditActivityTag, formatTimestamp, type AuditLogEntry } from '../fixtur
  * AuditLogTable and AuditLogsDialog — story-level compositions, not DS
  * components: the Audit Logs of pattern 08 (Patterns – Admin 526:5189, step 3),
  * which Figma draws as `_Pattern Content / Audit Logs` in the Content slot of
- * a `Modal / Dialog` (Size=Large, 526:4980).
+ * a `Modal / Dialog` (Size=Large, 526:4980), with Show Actions on: a Refresh
+ * beside ×, as the Audit Logs screen (2102:5857) draws it.
  *
  * AuditLogTable, Figma → code:
  * - Header Row: a TableHeaderRow (Table / Header Row, Show Actions) of Table /
@@ -129,21 +131,31 @@ export interface AuditLogsDialogProps {
   entries: readonly AuditLogEntry[];
   /** Entries open at first (Figma's step 3 shows the first two). */
   defaultOpenIds?: readonly string[];
+  /** The header's Refresh (Modal / Dialog's Show Actions): load the entries again. */
+  onRefresh?: () => void;
 }
 
 /**
  * The wide dialog View Audit Logs opens: Modal / Dialog, Size=Large, titled
- * "Audit Logs", the table, and Pagination under it (Figma's Pagination Row).
- * Changing the page keeps the open entries open when you come back.
+ * "Audit Logs", with Refresh before Close (Show Actions: Button / Icon, Ghost,
+ * 32, ArrowsClockwise; it calls `onRefresh`), the table, and Pagination under
+ * it (Figma's Pagination Row). Changing the page keeps the open entries open
+ * when you come back.
  */
-export function AuditLogsDialog({ open, onClose, entries, defaultOpenIds = [] }: AuditLogsDialogProps) {
+export function AuditLogsDialog({ open, onClose, entries, defaultOpenIds = [], onRefresh }: AuditLogsDialogProps) {
   const [page, setPage] = React.useState(1);
   const [openIds, setOpenIds] = React.useState<string[]>([...defaultOpenIds]);
   const pageCount = Math.max(1, Math.ceil(entries.length / AUDIT_PAGE_SIZE));
   const shown = entries.slice((page - 1) * AUDIT_PAGE_SIZE, page * AUDIT_PAGE_SIZE);
 
   return (
-    <ModalDialog open={open} onClose={onClose} title="Audit Logs" size="large">
+    <ModalDialog
+      open={open}
+      onClose={onClose}
+      title="Audit Logs"
+      size="large"
+      actions={<IconButton icon="arrows-clockwise" label="Refresh" onClick={onRefresh} />}
+    >
       <div className="flex flex-col gap-4">
         <AuditLogTable entries={shown} openIds={openIds} onOpenChange={setOpenIds} />
         <Pagination aria-label="Audit log pages" page={page} pageCount={pageCount} onPageChange={setPage} />

@@ -154,6 +154,28 @@ Not in Figma: a Label text property on the three sets. The label sits
 inside a nested GDL base button, so it is a GDL task (decision
 fc-buttons-gdl-label). In code the label is `children` either way.
 
+**Changed in Figma on 5 Nov 2026:** nothing on the Button sets (published
+6 Nov). `Button / Normal`'s description already says "In code, a Button that
+navigates renders as a link (href); it looks the same." Filter / Clear and
+Modal / Dialog's Refresh place Button / Normal and Button / Icon instances;
+see FilterClear and ModalDialog.
+
+**Code addition (6 Nov 2026): `href`.** A Button that navigates, such as
+pattern 11's "Go back home" (`528:6013`), takes `href` and renders an
+`<a href>` with the same classes, so it looks and behaves like the button
+(Hover, Pressed, Focus) and is announced as a link. Code only; Figma needs
+no property for it. A link can't be disabled, so with `disabled` the Button
+stays a disabled `<button>` and `href` is ignored. Hover and Pressed are now
+written `not-disabled:hover:` / `not-disabled:active:` (they were
+`enabled:`, which only matches form controls), so the same classes style the
+`<a>`; a `<button>` looks exactly as before. The ref is the `<a>` or the
+`<button>` (`HTMLButtonElement | HTMLAnchorElement`). Stories: "As a link
+(href)" and every Style × State as a link, Normal, in Light and Dark.
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Link | No link form; the description says a Button that navigates renders as a link | `href` renders `<a href>` with the same classes; with `disabled`, a disabled `<button>` | None needed |
+
 `Button / Icon` (`461:1151`) is IconButton and `Button / Menu Trigger`
 (`461:1459`) is MenuTriggerButton: see their sections.
 
@@ -1578,10 +1600,10 @@ Code departs from Figma here:
 
 Figma gaps the code doesn't copy:
 
-- **Clear Filters is a field.** In `Filter / Bar – Costs` it is a Filter /
-  Field Type=Search instance with an ArrowsClockwise icon and a
-  `text/primary` label. It belongs to `Filter / Bar` and should become a
-  Button when the bar is built.
+- ~~**Clear Filters is a field.**~~ Since 5 Nov 2026 it is its own
+  component, `Filter / Clear` (863:3420), an Outlined Button with
+  ArrowsClockwise, and both Filter Bars place it. See FilterClear and
+  FilterBar.
 
 ### MenuTriggerButton (29 Oct 2026)
 
@@ -1911,6 +1933,8 @@ How the Figma properties map:
 - Content → `children`.
 - Show Footer → `showFooter` (default true).
 - The footer's Button instances (Text Cancel, Default Submit) → `footer`.
+- Show Actions + the exposed Refresh (since 5 Nov 2026) → `actions`: icon
+  buttons before Close. Show Actions is on when there are `actions`.
 
 | Band | Figma | Code |
 |---|---|---|
@@ -1920,6 +1944,8 @@ How the Figma properties map:
 | Title Group | Vertical, gap 4 | `gap-1` |
 | Title | Body/lg-semibold, `text/primary` | `<h2>`, same tokens |
 | Description | Body/sm-regular, `text/subtle`, hidden by default | `<p>`, same tokens |
+| Header Actions | Horizontal, gap `space/4`: Actions (gap `space/4`, visible ← Show Actions), then Close (since 5 Nov) | `<div data-part="header-actions" class="flex items-center gap-1">`: `actions`, then Close |
+| Refresh | `Button / Icon`, Size=32, Ghost, ArrowsClockwise 16 in `text/secondary`, exposed (since 5 Nov) | `<IconButton icon="arrows-clockwise" label="Refresh">`, passed in `actions` (Audit Logs) |
 | Close | `Button / Icon`, Ghost, 32, X 16 in `text/secondary` (since 3 Nov) | `IconButton icon="x" label="Close"` |
 | Body | Padding 24, gap 16, holds the `_Slot` | `p-6 gap-4`; scrolls, and becomes a tab stop while it does |
 | Footer | Padding 16 / 24, gap 12, right-aligned; 1px `stroke/subtle` above | `px-6 py-4 gap-3 justify-end border-t border-stroke-subtle` |
@@ -1953,6 +1979,13 @@ Figma gaps the code doesn't copy:
 - **Placed dialogs keep their old widths.** The Patterns – Admin ×9 and Patterns – User ×1 instances carry width overrides from when the screens were built (400 / 560 / 800, Audit Logs 1200). Code's sizes are the component's.
 
 **Changed in Figma on 3 Nov 2026** (decisions modal-widths, icon-buttons-to-button-icon): the widths are 384 / 576 / 768, as code, and the header's Modal / Close Button is swapped for Button / Icon (Ghost, 32, X 16 in `text/secondary`), as code's IconButton. Header heights are unchanged (73). No code change.
+
+**Changed in Figma on 5 Nov 2026** (decisions modal-dialog-actions and audit-logs-refresh; published 6 Nov): Modal / Dialog has a BOOLEAN **Show Actions** (`Show Actions#863:0`, default off), copying Modal / Header's slot. In each size's Header, Close moved into a horizontal "Header Actions" frame (863:16229 / 863:16237 / 863:16245, gap `space/4`), after an "Actions" frame (gap `space/4`, visible ← Show Actions) holding an exposed **Refresh**: Button / Icon Size=32 Ghost, ArrowsClockwise 16. The header stays 73 high. Pattern 08's Audit Logs dialog (526:4980) turns it on, as the Audit Logs screen (2102:5857) draws it. Code follows:
+- ModalDialog takes `actions`, rendered before Close in a `gap-1` group (`data-part="header-actions"`), as ModalHeader. SideSheet shares the header band and gets the same group with Close alone; it looks the same.
+- AuditLogsDialog (pattern 08) passes `<IconButton icon="arrows-clockwise" label="Refresh" onClick={onRefresh} />` and takes `onRefresh`.
+- Stories: Show Actions (Refresh hover), Light and Dark: Refresh before Close, 4 apart, 32 with 16 glyphs, header 73; Refresh's Hover fill `neutral/tonal/surface/default` beside Close's none, both glyphs `text/secondary`.
+
+Contrast, Light / Dark: the Refresh glyph on `surface/base` 10.35 / 11.87, on its Hover fill 8.40 / 6.15 (3:1 for a glyph).
 
 ### ModalConfirm (29 Oct 2026)
 
@@ -5229,14 +5262,15 @@ Figma gaps the code doesn't copy: none of its own. The theme slot is UserActions
 
 Source: page **Navigation** (`3:368`):
 - `Navigation / Header` (`4:286`): "top bar … plus the global navigation bar".
-- `Navigation / Header – Admin` (`403:3950`): Page ×10, Costs … Drafts.
-- `Navigation / Header – User` (`420:1040`): Page ×5, Costs, Create Cost, Bulk Upload, Recurring Costs, Drafts.
+- `Navigation / Header – Admin` (`403:3950`): Page ×10, Costs … Drafts, and None (`866:1041`, since 5 Nov 2026).
+- `Navigation / Header – User` (`420:1040`): Page ×5, Costs, Create Cost, Bulk Upload, Recurring Costs, Drafts, and None (`866:1087`).
 
-Patterns 15 (`530:7799`) and U08 (`545:26643`) place it, with `Navigation / Mobile Header` and `Navigation / Mobile Menu – Admin` below 768px. Code: `src/components/app-header/`. The link data and render types are in `links.tsx`.
+Patterns 15 (`530:7799`) and U08 (`545:26643`) place it, with `Navigation / Mobile Header` and `Navigation / Mobile Menu` (Links=Admin / User) below 768px. Code: `src/components/app-header/`. The link data and render types are in `links.tsx`.
 
 How Figma maps:
 - Header – Admin and Header – User differ only in their links → one component with `links` (label and `href`, in order). `APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` export Figma's Page values, in Figma's order and words.
 - Page → `page`, the current link's label. Its NavLink is State=Active and gets `aria-current="page"`.
+- Page=None → `page` left out (or a page that isn't one of the links, such as Settings or Changelog): no link is Active and none has `aria-current`.
 - The links are `<a href>`. `renderLink` swaps in a router's link: `({ href, ...props }) => <NavLink {...props} as={RouterLink} to={href} />`.
 - Below 768px (`md:`), MobileHeader replaces the two rows. Its ☰ opens MobileMenu with the same `links` and `page`. Mobile Header's Menu Open → `menuOpen` / `defaultMenuOpen` / `onMenuOpenChange`. It is uncontrolled by default.
 - The menu closes when a link or an account item is chosen, and when the screen widens past 768px.
@@ -5260,6 +5294,19 @@ Contrast, Light / Dark:
 - Focus ring on `surface/neutral/faint`: 6.51 / 6.51
 
 The Navigation Area (`surface/neutral/faint`) under the Top Bar Area (`surface/neutral/base`) is 1.05:1 in Light (#F8FAFC under #FFFFFF) and 1.13:1 in Dark (#0F172A under #020617). The bands are decorative surfaces, not a contrast requirement; decision fc-nav-band chose `faint` over `subtle` (1.10 / 1.95).
+
+**Changed in Figma on 5 Nov 2026** (the user's decision Page=None; published
+6 Nov): Header – Admin and Header – User each have a **Page=None** variant
+(`866:1041`, `866:1087`), a clone of Page=Costs with every link Default: "no
+link is Active, for pages outside the navigation". The U06 Settings header
+(545:25206), the U07 Changelog page header (545:26635) and pattern 14's
+Changelog page header (529:7536) use it. Code already supported it: leave
+`page` out, or pass a page that isn't a link, and no link is Active
+(AccountSettings' Settings step checks that no `[aria-current]` is in the Main
+nav). No API change. The doc comments say so, and the stories add Page=None:
+a "Page=None" story (no `aria-current`; a click still makes a link current)
+and a Page=None row in the Header – Admin and Header – User grids, Light and
+Dark.
 
 **Changed in Figma on 3 Nov 2026** (decisions nav-active, fc-nav-band,
 dark-pins-components, fc-nav-theme-toggle, fc-nav-glyph-size; published):
@@ -5293,11 +5340,11 @@ Code departs from Figma here:
 | Width | Fixed 1920, padding 0 / 192 (raw) | Full width; content in a centred `container` (1536 at ≥1536) inside `px-6` gutters | None needed. A page's content should use the same container so it lines up |
 | Row heights | Fixed 72 and 52 (raw) | Padding around the content: `py-3` + 48 = 72, and NavBar's `py-2` + 36 = 52 | None needed |
 | Between 768 and about 960px | Not drawn | The Navigation Area scrolls sideways when the admin's ten links don't fit | Design question: draw a tablet width, or move the switch to 1024 for the admin header |
-| Below 768px | Separate components (Mobile Header, Mobile Menu – Admin) placed by hand on mobile screens | The same component switches at `md` (768px) | None needed |
+| Below 768px | Separate components (Mobile Header, Mobile Menu) placed by hand on mobile screens | The same component switches at `md` (768px) | None needed |
 | Two headers | Header – Admin and Header – User, each with a Page variant per link | One AppHeader, links as data | None needed |
 | Mobile menu on a wide screen | n/a | Closes when the screen widens past 768px | None needed |
 
-Figma gaps the code doesn't copy: none on the components since 3 Nov. The CAF Design screens' Settings page fakes the active link with a fill override on Nav Link / Bulk Upload, so those six headers show the fill without the semibold label and Indicator; setting the header's Page there fixes it (the screens are read-only from here).
+Figma gaps the code doesn't copy: none on the components since 3 Nov. The CAF Design screens' Settings page fakes the active link with a fill override on Nav Link / Bulk Upload, so those six headers show the fill without the semibold label and Indicator; setting the header's Page to None there (since 5 Nov 2026) fixes it (the screens are read-only from here).
 
 ### MobileHeader (30 Oct 2026)
 
@@ -5354,11 +5401,11 @@ Figma gaps the code doesn't copy:
 
 ### MobileMenu (30 Oct 2026)
 
-Source: page **Navigation** (`3:368`), component `Navigation / Mobile Menu – Admin` (`462:851`): "Open mobile navigation for admins: header with close, the 10 admin links (one Active), and the account row. Swap link labels for the user app." Pattern 15 step 3 (`530:7793`) places it at the top of a 375 × 812 screen. U08 asks for a Mobile Menu – User that doesn't exist yet. Code: `src/components/mobile-menu/`.
+Source: page **Navigation** (`3:368`), set `Navigation / Mobile Menu` (`864:1343`, since 5 Nov 2026), Links=Admin (`462:851`, the old `Navigation / Mobile Menu – Admin`, same key) and Links=User (`864:1290`): "Open mobile navigation (below 768px): header with close, the links (one Active) and the account row, which opens Navigation / Account Menu." Pattern 15 step 3 (`530:7793`) places Links=Admin at the top of a 375 × 812 screen; U08 asks for Links=User. Code: `src/components/mobile-menu/`.
 
 How Figma maps:
 - Mobile Header (Menu Open=true) → MobileHeader `menuOpen`, with ✕ asking `onClose`.
-- Links → `links` and `page` (the Active link), as on AppHeader, rendered as NavLink `orientation="vertical"` (or by `renderLink`).
+- Links (Admin / User) → `links`: the admin's ten or the user's five (`APP_HEADER_ADMIN_PAGES`, `APP_HEADER_USER_PAGES`), as data. `page` is the Active link, as on AppHeader; left out (a page outside the navigation), no link is Active. Rendered as NavLink `orientation="vertical"` (or by `renderLink`).
 - Account Row → AccountMenu's `trigger`: a full-width `<button>` with the User glyph and `username`, which opens Navigation / Account Menu below it (`onAccountSelect`), as pattern 15 step 3 draws it.
 - Its open state → `open`. It asks `onClose` on ✕, Escape, a tap on the scrim, a chosen link (pattern 15: "Choosing a link or tapping ✕ closes it") or a chosen account item.
 
@@ -5398,10 +5445,11 @@ Code departs from Figma here:
 | Height | Hugs (533) | Hugs, up to the screen's height; scrolls beyond that (a phone held sideways) | None needed |
 | Elevation | Effects/Elevation Dark/3 | `shadow-elevation-3`. Tailwind compiles it to GDL's Light Elevation 3 in both themes, as on Popover | None in Figma |
 | Padding and gap | Raw 8 / 16, 2, 12 / 16, 12 | `space/8`, `space/16`, `space/2`, `space/12` | Bind to GDL's `space/*` |
-| User links | No Mobile Menu – User (U08: "add it next to Mobile Menu – Admin") | One MobileMenu; the links are data | Add Mobile Menu – User, or give Mobile Menu – Admin a links slot |
 | Account Row states | No Hover, Focus or open look (decision fc-nav-account-row: leave the row as it is) | No hover or open look, as drawn; a 2px `stroke/focused` ring inside the row on keyboard focus (the panel clips outside it), as code adds to every control | None needed |
 | Account Menu placement | Flush under the row (0 gap) | `space/4` below, Popover's, as the desktop account menu; above the row when there's no room below | None needed |
 | Behaviour | Static | Dialog, focus on ✕ and trapped, Escape / ✕ / scrim / a link closes it, focus back to ☰, page inert and still | None needed |
+
+**Changed in Figma on 5 Nov 2026** (decision mobile-menu-links; published 6 Nov): `Navigation / Mobile Menu – Admin` became the set `Navigation / Mobile Menu` (`864:1343`) with a **Links** property: Admin (`462:851`, unchanged, so placed instances keep working and now read Links=Admin) and User (`864:1290`, new): U08's links (Costs Active, Create Cost, Bulk Upload, Recurring Costs, Drafts) and "QA Test" in the account row. U08's "Mobile Menu – User (to add)" is answered. Code needed nothing new: `links` already took either list. The doc comment says so, and the open-menu stories now cover both: Links=Admin (Users Active) and Links=User (Costs Active, "QA Test"), each in Light and Dark, plus "No current page" (no `page`, no `aria-current`). Links=User inherits Admin's raw on-scale padding and gaps (below). Contrast, Light / Dark: link labels 10.35 / 16.36, the Active link 20.17 / 14.63, the account name 10.35 / 16.36.
 
 **Changed in Figma on 3 Nov 2026** (decisions mobile-menu, fc-nav-account-row, nav-active, offscale-spacing; published):
 - **Pattern 15 step 3** (`530:7659`) draws the scrim behind the menu ("Scrim (tap to close)", `793:18611`, `surface/overlay`), as code's Overlay does, so that departure is gone. Its caption: "The menu opens over a scrim (a tap or ✕ closes it). The account row opens the Account Menu."
@@ -5409,7 +5457,7 @@ Code departs from Figma here:
 - The links follow Nav Link – Vertical (35-high rows in Figma, the Active one semibold with a left Indicator) and Mobile Header (Ghost glyphs). See NavLink and MobileHeader.
 
 Figma gaps the code doesn't copy:
-- **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** like the mobile screens in pattern 15. The code follows the page's theme. The Light frame beside it (`793:18395`) shows Mobile Menu – Admin in Light.
+- **The "Account, Theme & Mobile" section (`511:1155`) is pinned to Semantics Dark,** like the mobile screens in pattern 15. The code follows the page's theme. The Light frame beside it (`793:18395`) shows Links=Admin in Light; Links=User shows in the 5 Nov review frame (`864:1393`), Light and Dark.
 
 
 ### PageHeader (2 Nov 2026)
@@ -5644,3 +5692,58 @@ Contrast (Caption, 4.5:1): `text/subtle` 4.76 on `surface/base`, 4.55 on `surfac
 | Live summary | (visual only) | The recurrence summary passes `role="status"`, as the Info Alert had; a static hint has no role. Point the field's `aria-describedby` at it when it describes one control | None needed |
 | Colour | `text/subtle` (the original was `text/tertiary`, lighter in Dark) | `text/subtle`, as drawn | Open point 7: confirm `text/subtle` |
 | Two lines | One line drawn; the text wraps | Wraps; the icon stays centred on the text, as Figma's centred auto layout puts it | Draw a two-line hint if the icon should sit at the top |
+
+### FilterClear (6 Nov 2026)
+
+Source: page **Filters** (`89:836`), section Drafts – 5 Nov 2026 (`863:3419`), set `Filter / Clear` (`863:3420`): State Default (`863:3368`), Hover (`863:3378`), Pressed (`863:3388`), Focus (`863:3398`), Disabled (`863:3409`), drafted from the design decisions filter-clear-look, filter-clear-name, filter-clear-disabled and filter-clear-height (all accepted on 5 Nov 2026) and published by the user on 6 Nov. Review frame: `863:3421` (Light `863:3422`, Dark `863:3496`), with an "In a filter bar" row. Code: `src/components/filter-clear/`. Figma's name is the API, as Filter / Field is FilterField: `FilterClear`.
+
+**Changed in Figma on 5 Nov 2026** (published 6 Nov): the set is new. Clear Filters was a stand-in before: a Filter / Field Type=Search with ArrowsClockwise in the Filter Bars and the screens, and an Outlined Button with no icon on pattern 02. Both Filter Bars and the Patterns pages now place Filter / Clear (see FilterBar).
+
+| Figma | Binding | Code |
+|---|---|---|
+| Variant (the box) | Horizontal, centred; 42 tall (Filter / Field's height), hugs its width (156); no fill, no stroke; clipping off, so the Focus ring shows | `<div data-part="box" class="flex h-10 shrink-0 items-center">`; `className` styles it |
+| Button | `Button / Normal`, Style=Outlined, Show Icons=true, State as the variant | `<Button variant="outlined">`; every other prop and the ref go to it |
+| Fill / label and icon / 1px inside stroke, Default | `action/secondary/surface/default`, `action/secondary/content/default`, `action/secondary/border/default` | Button's Outlined classes |
+| Hover | `…/surface/hover`, `…/content/hover`, `…/border/hover` | `:hover` |
+| Pressed | `…/surface/pressed`, `…/content/pressed`, `…/border/pressed` | `:active` |
+| Focus | The Default look plus Focus Ring: 2px `stroke/focused` (`stroke/2`), `radius/12`, 2px outside | `:focus-visible`: Button's 2px outline at a 2px offset |
+| Disabled | `action/secondary/surface/disabled`, `neutral/outline/content/disabled`, `neutral/outline/border/disabled` | `disabled` (only while the list is busy loading) |
+| Icon | ArrowsClockwise, Regular, 20 (the swapped leading icon) | `leftIcon={<Icon name="arrows-clockwise" />}`, 20 in Button / Normal |
+| Label | "Clear Filters", Label/md-semibold | The text, fixed: Figma has no Label property, so it isn't a prop |
+
+Contrast, Light / Dark (from the 5 Nov review, `resolveForConsumer`):
+- Label on its own fill, Default / Hover / Pressed / Focus: 6.51 / 8.65 / 8.06 / 6.51 and 14.91 / 8.65 / 6.33 / 14.91 (4.5)
+- Border on the bar (`surface/neutral/faint`) and the canvas, Default / Hover / Pressed: 6.51 / 10.29 / 13.24 and 4.63 / 7.22 / 9.96 (3)
+- Focus ring on the bar: 6.51 / 6.50 (3)
+- Disabled label / border: 2.45 / 1.42 and 3.75 / 2.36, exempt (WCAG 1.4.3), as every Outlined Disabled button
+
+The stories ("States", Light and Dark) check every state on the canvas and on the bar's `surface/neutral/faint`: the fill, label, icon and inset stroke against the tokens, ArrowsClockwise at 20, the 36 button centred in the 40 box, the focus ring, and Disabled. axe checks the label's contrast.
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Box height | 42 (Filter / Field hugs 42) | 40 (`h-10`): 42 isn't on GDL's scale, and code's FilterField is 40 | Fix Filter / Field and Filter / Clear at 40 (FilterField's "Height") |
+| Icon gap | Button / Normal's raw 10 | 8 (`gap-2`), as Button | As Button: bind it to `space/8` |
+| Hidden vs disabled | Disabled is a State | The same; and when nothing is filtered the bar leaves it out (FilterBar's `showClear`), never disables it | None needed |
+
+### FilterBar (6 Nov 2026)
+
+Source: page **Filters** (`89:836`): `Filter / Bar – Costs` (`256:4585`, Show Clear false / true) and `Filter / Bar` (`256:5338`, Page=Costs / Recurring, and **Show Clear** since 5 Nov 2026). Code: `src/patterns/filters/CostsFilterBar.tsx`, a pattern-level organism, not exported from `src/index.ts` (docs/patterns.md, pattern 02). `FilterBar` is the bar's frame (Bar, `176:1690`); `CostsFilterBar` is Filter / Bar – Costs and its two pages.
+
+**Changed in Figma on 5 Nov 2026** (decision filter-clear-disabled, accepted; published 6 Nov):
+- **Filter / Clear replaces the stand-ins.** Filter / Bar – Costs, Show Clear=true (`256:4646`, 156 × 42) and Filter / Bar, Page=Recurring (`256:5500`) were Filter / Field Type=Search instances with ArrowsClockwise; they are Filter / Clear Default now. Patterns – Admin 01 and 02 (`518:310`, `520:991`, `520:1111`, `520:1231`) and U03 (`545:18585`, `545:18656`) swapped too.
+- **Filter / Bar has a BOOLEAN `Show Clear#867:0`** (default on), bound to Page=Recurring's Filter / Clear. Page=Costs is the exposed Filter / Bar – Costs, with its own Show Clear.
+- **Page=Recurring doesn't reflow without it:** the Bar packs MIN with gap `space/12` (was space-between) and Filters fills, so the fields stay at the left either way.
+- **Clear Filters is hidden where nothing is filtered:** pattern 01 (`518:310`), U03 and U04 (Show Clear=false). It stays on pattern 02 steps 2–4, where a filter is in use. Pattern 01's guidance: "Clear Filters (far right, only while filtering) resets all."
+
+Code follows:
+- **FilterBar** takes `showClear` (Figma's Show Clear) and `onClear`, and renders FilterClear at the row's right end (`ml-auto`). It replaces the `clear` slot, which took a Button. `showClear` defaults to false: Figma's default is on so the screens keep their look, but code shows Clear Filters only while a filter or a search is in use, hidden, never disabled.
+- **Every bar** passes `showClear` while it filters and moves focus to the search field on clear: CostsFilterBar (`hasActiveCostFilters`), the Users list of pattern 02, the Cost Centers list of pattern 01, the Exports and Announcements screens.
+- **U04's Recurring bar** (ManageRecurringCosts) was a plain row with a Small Text "Clear Filters". It is now a FilterBar, as Filter / Bar Page=Recurring draws it: the bar's frame, Search and All Status in 256 slots, Filter / Clear on the far right while filtering.
+- **U03's Drafts bar** (DraftsList) was a plain row with a Text "Clear Filters" that was disabled while the search was empty. It is now a FilterBar, as U03's Filter Bar (`545:18583`) draws it: the bar's frame, Search in a 256 slot (was up to 384), and Filter / Clear only while there is a search.
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Show Clear default | On, so the CAF Design screens look the same until someone sets it | Off: a bar shows Clear Filters only when told a filter is in use | None needed; the screens' Recurring bars still show it until Show Clear is turned off where nothing is filtered |
+| Costs bar, Show Clear=true | Filter / Clear on its own line under the wrapped fields, right-aligned | At the end of the wrapping row, right-aligned (`ml-auto`) | None needed |

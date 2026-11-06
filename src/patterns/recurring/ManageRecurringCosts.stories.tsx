@@ -23,6 +23,7 @@ import {
   type RecurringCost,
 } from '../fixtures';
 import { PageHeader } from '../../components/page-header';
+import { FILTER_SLOT, FilterBar } from '../filters/CostsFilterBar';
 import { EditRecurringCostForm, type RecurringCostUpdate } from './EditRecurringCostForm';
 import { RecurringCostsTable, sortRecurringCosts, type RecurringSort } from './RecurringCostsTable';
 
@@ -154,9 +155,17 @@ function ManageRecurringCostsPage({ theme: initialTheme = 'light', schedulesFor:
             /* Add New starts a new recurring cost on the Create Cost form (U02), not in this pattern. */
             actions={<Button leftIcon={<Icon name="plus" />}>Add New</Button>}
           />
-          {/* Filter / Bar (Page=Recurring): Search, All Status, Clear Filters. */}
-          <div role="search" aria-label="Filter recurring costs" className="flex flex-wrap items-center gap-3">
-            <div className="w-64">
+          {/* Filter / Bar (Page=Recurring): Search, All Status, then Filter / Clear while a filter is in use (Show Clear). */}
+          <FilterBar
+            aria-label="Filter recurring costs"
+            showClear={filtered}
+            onClear={() => {
+              setQuery('');
+              setStatus('all');
+              searchRef.current?.focus();
+            }}
+          >
+            <div className={FILTER_SLOT}>
               <FilterField
                 ref={searchRef}
                 label="Search recurring costs"
@@ -166,27 +175,14 @@ function ManageRecurringCostsPage({ theme: initialTheme = 'light', schedulesFor:
               />
             </div>
             <FilterSelect
-              className="w-64"
+              className={FILTER_SLOT}
               label="Status"
               allLabel={STATUS_FILTER_LABEL.all}
               options={STATUS_FILTERS.filter((s) => s !== 'all').map((s) => ({ value: s, label: STATUS_FILTER_LABEL[s] }))}
               value={status === 'all' ? null : status}
               onValueChange={(next) => setStatus((next ?? 'all') as StatusFilter)}
             />
-            {filtered && (
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => {
-                  setQuery('');
-                  setStatus('all');
-                  searchRef.current?.focus();
-                }}
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
+          </FilterBar>
           <RecurringCostsTable
             ref={tableRef}
             rows={shown}
@@ -313,8 +309,10 @@ export const ViewSchedules: Story = {
     const t = tableOf(canvasElement);
     await expect(rowIds(t)).toEqual(['1882', '1240', '1239', '1207', '9', '6']);
 
-    // Search filters by ID, name or email; Clear Filters brings every row back and focus to the search box.
+    // Search filters by ID, name or email; Clear Filters (shown only while filtering) brings every row back
+    // and focus to the search box.
     const search = canvas.getByRole('searchbox', { name: 'Search recurring costs' });
+    await expect(canvas.queryByRole('button', { name: 'Clear Filters' })).not.toBeInTheDocument();
     await userEvent.type(search, 'bryan');
     await expect(rowIds(t)).toEqual(['1240', '1239']);
     await userEvent.click(canvas.getByRole('button', { name: 'Clear Filters' }));

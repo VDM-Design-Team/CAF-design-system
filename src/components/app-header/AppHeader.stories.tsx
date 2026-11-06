@@ -62,13 +62,14 @@ const meta = {
     docs: {
       description: {
         component:
-          'Built from the CAF Figma library, page **Navigation**: `Navigation / Header`, `Header – Admin` (Page ×10) and ' +
-          '`Header – User` (Page ×5), with `Mobile Header` and `Mobile Menu – Admin` below 768px. A `<header>` banner: ' +
-          'the Top Bar Area (TopBar, `surface/neutral/base`) over the Navigation Area (NavBar, `surface/neutral/faint`), both in ' +
-          'a centred container (1536 at 1920, as Figma’s 192px sides). The links are data (`links`: label and `href`; ' +
-          '`APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` are Figma’s labels), and Page is `page`, the current ' +
-          'link. `renderLink` swaps in a router’s link. Below 768px (`md:`) the MobileHeader shows instead; its ☰ ' +
-          'opens the MobileMenu with the same links. The theme is controlled (`theme`, `onThemeChange`).',
+          'Built from the CAF Figma library, page **Navigation**: `Navigation / Header`, `Header – Admin` (Page ×10) ' +
+          'and `Header – User` (Page ×5), each with Page=None, and `Mobile Header` and `Mobile Menu` below 768px. A ' +
+          '`<header>` banner: the Top Bar Area (TopBar, `surface/neutral/base`) over the Navigation Area (NavBar, ' +
+          '`surface/neutral/faint`), both in a centred container (1536 at 1920, as Figma’s 192px sides). The links are ' +
+          'data (`links`: label and `href`; `APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` are Figma’s labels), ' +
+          'and Page is `page`, the current link; leave it out for Page=None (a page outside the navigation). ' +
+          '`renderLink` swaps in a router’s link. Below 768px (`md:`) the MobileHeader shows instead; its ☰ opens the ' +
+          'MobileMenu with the same links. The theme is controlled (`theme`, `onThemeChange`).',
       },
     },
   },
@@ -137,6 +138,23 @@ export const User: Story = {
   },
 };
 
+/**
+ * Page=None (Header – Admin 866:1041, Header – User 866:1087, since 5 Nov 2026): a page outside the
+ * navigation, such as Settings or the Changelog page. `page` is left out, so no link is Active; a
+ * click still makes that link the current page.
+ */
+export const PageNone: Story = {
+  name: 'Page=None',
+  args: { page: undefined },
+  play: async ({ canvasElement }) => {
+    const nav = within(canvasElement).getByRole('navigation', { name: 'Main' });
+    await expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual([...APP_HEADER_ADMIN_PAGES]);
+    await expect(nav.querySelectorAll('[aria-current]')).toHaveLength(0);
+    await userEvent.click(within(nav).getByRole('link', { name: 'Users' }));
+    await expect(within(nav).getByRole('link', { name: 'Users' })).toHaveAttribute('aria-current', 'page');
+  },
+};
+
 /* A router's link component: it takes `to`, not `href`. */
 const RouterLink = React.forwardRef<
   HTMLAnchorElement,
@@ -167,7 +185,8 @@ export const WithRouterLinks: Story = {
    own named region (so it isn't one of several banners) with its own nav name.
    Checked against Navigation / Header's bindings: the frame and Top Bar Area
    surface.neutral.base, 72 high; the Navigation Area surface.neutral.faint, 52 high;
-   only the Page's link Active; both rows in the same centred container. */
+   only the Page's link Active (none for Page=None, since 5 Nov 2026); both rows in the
+   same centred container. */
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
    the probe is a DOM mutation, and waitFor reruns its callback on every mutation. */
@@ -180,9 +199,11 @@ function tokenColour(token: string) {
   return value;
 }
 
+/* Page=None leaves `page` out. */
+const NONE = 'None';
 const SETS = {
-  Admin: { links: ADMIN_LINKS, pages: ['Costs', 'Recurring Costs', 'Drafts'], username: 'Admin Account' },
-  User: { links: USER_LINKS, pages: ['Costs', 'Create Cost', 'Drafts'], username: 'QA Test' },
+  Admin: { links: ADMIN_LINKS, pages: ['Costs', 'Recurring Costs', 'Drafts', NONE], username: 'Admin Account' },
+  User: { links: USER_LINKS, pages: ['Costs', 'Create Cost', 'Drafts', NONE], username: 'QA Test' },
 } as const;
 
 const pages = (set: keyof typeof SETS, theme: 'light' | 'dark'): Story => ({
@@ -194,7 +215,7 @@ const pages = (set: keyof typeof SETS, theme: 'light' | 'dark'): Story => ({
           <span className="px-6 text-caption-md-medium text-text-secondary">Page={page}</span>
           <AppHeader
             links={SETS[set].links}
-            page={page}
+            page={page === NONE ? undefined : page}
             navLabel={`${set} navigation, Page=${page}`}
             username={SETS[set].username}
             theme={theme}

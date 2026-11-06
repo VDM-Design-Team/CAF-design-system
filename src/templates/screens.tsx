@@ -170,22 +170,14 @@ export function ExportsScreen({ detailsFor }: ExportsScreenProps) {
       <ExportsStatRow stats={exportStats} />
       <FilterBar
         aria-label="Filter exports"
-        clear={
-          active && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setQuery('');
-                setStatus(null);
-                setType(null);
-                setPage(1);
-                searchRef.current?.focus();
-              }}
-            >
-              Clear Filters
-            </Button>
-          )
-        }
+        showClear={active}
+        onClear={() => {
+          setQuery('');
+          setStatus(null);
+          setType(null);
+          setPage(1);
+          searchRef.current?.focus();
+        }}
       >
         <div className={FILTER_SLOT}>
           <FilterField
@@ -289,20 +281,12 @@ export function AnnouncementsScreen({ creating: startCreating = false, onViewCha
       </div>
       <FilterBar
         aria-label="Filter announcements"
-        clear={
-          active && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setQuery('');
-                setRange(null);
-                searchRef.current?.focus();
-              }}
-            >
-              Clear Filters
-            </Button>
-          )
-        }
+        showClear={active}
+        onClear={() => {
+          setQuery('');
+          setRange(null);
+          searchRef.current?.focus();
+        }}
       >
         <div className={FILTER_SLOT}>
           <FilterField

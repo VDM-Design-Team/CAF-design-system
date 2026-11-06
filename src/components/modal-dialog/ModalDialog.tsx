@@ -24,6 +24,10 @@ import { OverlayBody, OverlayFooter, OverlayHeader } from '../overlay/parts';
  * - Show Footer → `showFooter` (default true, as in Figma). The footer's
  *   Button instances (Text "Cancel", Default "Submit") → `footer`: pass the
  *   Buttons.
+ * - Show Actions + Actions (since 5 Nov 2026) → `actions`: icon buttons
+ *   (Button / Icon, Ghost, 32), such as Audit Logs' Refresh (ArrowsClockwise),
+ *   before Close in the Header Actions group, space.4 apart, as ModalHeader.
+ *   Show Actions is on when there are `actions`.
  * - The Close Button → IconButton `icon="x"` named "Close"; it calls `onClose`.
  *
  * The panel: `surface.base` fill, 1px `stroke.subtle` stroke (a border: Figma
@@ -66,6 +70,8 @@ export interface ModalDialogProps
   title: React.ReactNode;
   /** Figma Description, under the title. */
   description?: React.ReactNode;
+  /** Figma Show Actions + Actions: icon buttons before Close, such as Audit Logs' Refresh (`IconButton`s). */
+  actions?: React.ReactNode;
   /** Figma Show Description. Default: shown when there is a `description`. */
   showDescription?: boolean;
   /** Figma Show Footer. Default true; the footer shows when there is a `footer`. */
@@ -86,6 +92,7 @@ export const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(fu
     onClose,
     title,
     description,
+    actions,
     showDescription,
     showFooter = true,
     footer,
@@ -122,6 +129,7 @@ export const ModalDialog = React.forwardRef<HTMLDivElement, ModalDialogProps>(fu
         titleId={titleId}
         description={hasDescription ? description : undefined}
         descriptionId={descriptionId}
+        actions={actions}
         onClose={onClose}
       />
       <OverlayBody>{children}</OverlayBody>

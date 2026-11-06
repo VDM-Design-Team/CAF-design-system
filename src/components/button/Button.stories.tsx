@@ -18,7 +18,8 @@ const meta = {
           '`tonal` (brand tint, e.g. View Changes) and `success` (e.g. Download). ' +
           '`size` is the component set: `big` (48px), `normal` (36px) and `small` (32px). ' +
           'Hover, Pressed, Focus and Disabled are the element’s own states. ' +
-          '`leftIcon` / `rightIcon` are Show Icons; the icon takes the colour and size of the button.',
+          '`leftIcon` / `rightIcon` are Show Icons; the icon takes the colour and size of the button. ' +
+          'A Button that navigates takes `href` and renders an `<a href>` with the same look (code only).',
       },
     },
   },
@@ -50,6 +51,49 @@ export const Tonal: Story = { args: { variant: 'tonal', children: 'View Changes'
 export const Success: Story = { args: { variant: 'success', children: 'Download' } };
 
 export const WithRightIcon: Story = { args: { rightIcon: icon } };
+
+/**
+ * `href`: a Button that navigates, such as pattern 11's "Go back home" (528:6013), is an `<a href>`
+ * with the same look (Button / Normal's description; code only). With `disabled` it stays a
+ * disabled `<button>`, since a link can't be disabled.
+ */
+export const AsLink: Story = {
+  name: 'As a link (href)',
+  args: { href: '#costs', children: 'Go back home' },
+  render: (args) => (
+    <div className="flex items-center gap-4">
+      {/* The story stands in for the router: the click doesn't leave the page. */}
+      <Button
+        {...args}
+        onClick={(event) => {
+          event.preventDefault();
+          args.onClick?.(event);
+        }}
+      />
+      <Button {...args} variant="outlined" disabled>
+        Disabled
+      </Button>
+      {/* The same Button without href, to compare the look. */}
+      <Button variant={args.variant} size={args.size}>
+        As a button
+      </Button>
+    </div>
+  ),
+  play: async ({ args, canvas }) => {
+    const link = canvas.getByRole('link', { name: 'Go back home' });
+    await expect(link.tagName).toBe('A');
+    await expect(link).toHaveAttribute('href', '#costs');
+    await expect(link).not.toHaveAttribute('type');
+    // The same classes as the button.
+    await expect(link.className).toBe(canvas.getByRole('button', { name: 'As a button' }).className);
+    await userEvent.click(link);
+    await expect(args.onClick).toHaveBeenCalledOnce();
+    // Disabled: a disabled <button>, not a link.
+    const disabled = canvas.getByRole('button', { name: 'Disabled' });
+    await expect(disabled).toBeDisabled();
+    await expect(disabled).not.toHaveAttribute('href');
+  },
+};
 
 /** A disabled button ignores clicks. */
 export const Disabled: Story = {
@@ -138,11 +182,12 @@ function tokenColour(token: string) {
 
 type Row = { label: string; variant: Variant; size: Size; withIcon: boolean };
 
-function Matrix({ rows, rowHeader }: { rows: Row[]; rowHeader: string }) {
+function Matrix({ rows, rowHeader, asLink = false }: { rows: Row[]; rowHeader: string; asLink?: boolean }) {
   return (
     // No colour transition here: the forced states must be settled before
-    // axe and Chromatic look at them.
-    <table className="border-separate border-spacing-4 text-left [&_button]:transition-none">
+    // axe and Chromatic look at them. No pointer either: the checks read each
+    // cell's own state, so a stray pointer mustn't hover one.
+    <table className="pointer-events-none border-separate border-spacing-4 text-left [&_a]:transition-none [&_button]:transition-none">
       <thead>
         <tr>
           <th scope="col" className="text-caption-md-medium text-text-secondary">
@@ -168,6 +213,8 @@ function Matrix({ rows, rowHeader }: { rows: Row[]; rowHeader: string }) {
                   size={size}
                   leftIcon={withIcon ? icon : undefined}
                   disabled={state === 'disabled'}
+                  // A link (href): the Disabled cell stays a disabled <button>.
+                  href={asLink ? '#' : undefined}
                   data-variant={variant}
                   data-pseudo={state}
                 >
@@ -187,11 +234,16 @@ const withAndWithoutIcon = (label: string, variant: Variant, size: Size): Row[] 
   { label: `${label} · icon`, variant, size, withIcon: true },
 ];
 
-/* Per size: every Style, as in Figma. axe checks every cell, contrast included. */
-const sizeGrid = (size: Size, theme: 'light' | 'dark'): Story => ({
-  name: `${SIZE_LABEL[size]} — ${theme === 'light' ? 'Light' : 'Dark'}`,
+/* Per size: every Style, as in Figma. axe checks every cell, contrast included. With `asLink`,
+   every cell but Disabled is an <a href> (Button `href`), and must look the same. */
+const sizeGrid = (size: Size, theme: 'light' | 'dark', asLink = false): Story => ({
+  name: `${asLink ? 'As a link, ' : ''}${SIZE_LABEL[size]} — ${theme === 'light' ? 'Light' : 'Dark'}`,
   render: () => (
-    <Matrix rows={BUTTON_VARIANTS.flatMap((v) => withAndWithoutIcon(STYLE_LABEL[v], v, size))} rowHeader="Style" />
+    <Matrix
+      rows={BUTTON_VARIANTS.flatMap((v) => withAndWithoutIcon(STYLE_LABEL[v], v, size))}
+      rowHeader="Style"
+      asLink={asLink}
+    />
   ),
   globals: { theme },
   parameters: {
@@ -224,9 +276,10 @@ const sizeGrid = (size: Size, theme: 'light' | 'dark'): Story => ({
     const ring = tokenColour('stroke-focused');
     await waitFor(
       () => {
-        for (const button of canvasElement.querySelectorAll<HTMLButtonElement>('button[data-variant]')) {
+        for (const button of canvasElement.querySelectorAll<HTMLElement>('[data-variant]')) {
           const variant = button.dataset.variant as Variant;
           const state = button.dataset.pseudo as State;
+          expect(button.tagName).toBe(asLink && state !== 'disabled' ? 'A' : 'BUTTON');
           const [fill, label, stroke] = want[variant][state === 'focus' ? 'default' : state];
           const style = getComputedStyle(button);
           expect(style.backgroundColor).toBe(fill);
@@ -256,3 +309,5 @@ export const NormalLight = sizeGrid('normal', 'light');
 export const NormalDark = sizeGrid('normal', 'dark');
 export const SmallLight = sizeGrid('small', 'light');
 export const SmallDark = sizeGrid('small', 'dark');
+export const LinkNormalLight = sizeGrid('normal', 'light', true);
+export const LinkNormalDark = sizeGrid('normal', 'dark', true);
