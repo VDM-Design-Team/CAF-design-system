@@ -81,7 +81,7 @@ with `read:packages`, even for a public package. GDL's repo is public, so
 CAF depends on its release tag instead:
 
 ```json
-"@vdm-design-team/gdl": "github:VDM-Design-Team/GDL-design-system#semver:^0.1.0"
+"@vdm-design-team/gdl": "github:VDM-Design-Team/GDL-design-system#semver:^1.0.0"
 ```
 
 This is the same version range a registry dependency would have. It
