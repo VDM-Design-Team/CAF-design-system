@@ -24,7 +24,7 @@ const detailLabel = 'text-body-sm-regular text-text-primary';
 
 type BaseProps = Omit<React.HTMLAttributes<HTMLParagraphElement>, 'children'>;
 
-export interface TableDetailLabelLineProps extends BaseProps {
+export interface TableDetailLabelProps extends BaseProps {
   /** Figma Label: the field's name with its colon, e.g. "ID:". */
   label: React.ReactNode;
   /** Figma Value: e.g. "32430". It ends in … when the line is narrower than it. */
@@ -32,27 +32,8 @@ export interface TableDetailLabelLineProps extends BaseProps {
   children?: never;
 }
 
-/**
- * @deprecated Pass `label` and `value` (Figma's Label and Value, since 3 Nov
- * 2026). The whole line as `children` was Figma's old Text property: it still
- * renders, as one wrapping line, until the next major release.
- */
-export interface TableDetailLabelTextProps extends BaseProps {
-  children: React.ReactNode;
-  label?: never;
-  value?: never;
-}
-
-export type TableDetailLabelProps = TableDetailLabelLineProps | TableDetailLabelTextProps;
-
 export const TableDetailLabel = React.forwardRef<HTMLParagraphElement, TableDetailLabelProps>(
-  ({ label, value, children, className, ...props }, ref) => {
-    if (children !== undefined && label === undefined && value === undefined)
-      return (
-        <p ref={ref} className={cn(detailLabel, className)} {...props}>
-          {children}
-        </p>
-      );
+  ({ label, value, className, ...props }, ref) => {
     return (
       /* Horizontal, gap 4 (space.4); never wider than its container, so the value can truncate. */
       <p ref={ref} className={cn('flex max-w-full gap-1', detailLabel, className)} {...props}>

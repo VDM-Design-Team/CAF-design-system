@@ -1064,9 +1064,8 @@ in `text/primary` (fc-table-detail-label: the label stays `text/primary`),
 `space/4` apart; Value truncates. Every placed line was split, so it still
 reads as before ("ID: 37022"). Code takes `label` and `value`.
 
-`children` (the whole line, Figma's old Text) still renders, as one wrapping
-`<p>`, so existing callers keep working. It is deprecated: removing it is a
-`major` change for the next major release.
+`children` (the whole line, Figma's old Text) was deprecated on 3 Nov 2026 and
+is removed in 1.0.0: pass `label` and `value`.
 
 Code departs from Figma here:
 
@@ -4610,31 +4609,9 @@ Figma gaps the code doesn't copy: none since 3 Nov 2026.
 
 **Changed in Figma on 3 Nov 2026** (decisions overlay-surfaces, dark-pins-components): the panel has Modal / Dialog's edge and elevation, a 1px inside `stroke/subtle` and Elevation Dark/4, and the Semantics → Dark pins on it and its rows are cleared. Code: `border border-stroke-subtle shadow-elevation-4`.
 
-### VersionBadge (30 Oct 2026)
+### VersionBadge (removed in 1.0.0)
 
-**Deprecated (3 Nov 2026, decision version-badge).** Show a release version as `<Tag status="info" showIcon={false}>`, as the Announcements table and, since 3 Nov, ChangelogHeader do. Figma's `Modal / Version Badge` is kept with a "Deprecated" description and has no placements left; code keeps `VersionBadge` exported, marked `@deprecated`, until a major release removes it.
-
-Source: page **Modals** (`299:3301`), component `Modal / Version Badge` (`359:10826`), with Version. Until 3 Nov 2026 Modal / Changelog Header placed it next to the date. Code: `src/components/version-badge/`. Version is `children`. The badge is plain text with no states.
-
-**It isn't a Tag.** Tag Status=Info, which the Announcements table uses for its version column, has the `accent/info/tonal` fill and Label/sm-medium. The badge has a `surface/base` fill and Body/sm-semibold. Only the text colour is the same.
-
-| Layer | Figma | Code |
-|---|---|---|
-| Badge | Horizontal, centred; padding `space/4` / `space/12`; `radius/full` | `py-1 px-3 rounded-full` |
-| Fill | `surface/base` | `bg-surface-base` |
-| Version | Body/sm-semibold, `accent/info/tonal/content/default` | `text-body-sm-semibold text-accent-info-tonal-content-default` |
-
-Contrast, Light / Dark: the version text on its fill is 6.83 / 8.07. On the dialog's new `surface/base` the pill would vanish (1.00), one reason for the decision.
-
-**Changed in Figma on 30 Oct 2026** (clear binding fixes; the library needs publishing): the radius (raw 9999) is bound to `radius/full` and the padding (raw 4 / 12) to `space/4` and `space/12`. Nothing looks different.
-
-Code departs from Figma here:
-
-| | Figma | Code | Fix in Figma |
-|---|---|---|---|
-| Height | 25, on Inter's auto line height | 28, on GDL's 20px Body/sm line height (with GDL's 0.4px tracking) | Bind the text style's line height and letter spacing to the ramp (library-wide, as on Tag) |
-
-Figma gaps the code doesn't copy: none.
+**Removed in 1.0.0** (deprecated on 3 Nov 2026, decision version-badge). Show a release version as `<Tag status="info" showIcon={false}>`, as the Announcements table and ChangelogHeader do. Figma's `Modal / Version Badge` (`359:10826`, page Modals) is still in the library with a "Deprecated" description and no placements; deleting it there is the library's call.
 
 ### BulletItem (30 Oct 2026)
 
