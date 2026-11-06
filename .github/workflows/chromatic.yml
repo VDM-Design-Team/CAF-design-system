@@ -35,7 +35,7 @@ jobs:
         id: chromatic
         with:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
-          # storybook:build runs `npm run build` first, so dist/ is fresh.
+          # storybook:build runs `npm run tokens` first, so dist/ is fresh.
           buildScriptName: 'storybook:build'
           onlyChanged: true        # TurboSnap: only snapshot affected stories
           # The stories read dist/theme.css, built from tokens/ and GDL (via

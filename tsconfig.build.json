@@ -1,0 +1,20 @@
+{
+  // Type declarations for the published package (`npm run build`). tsup writes
+  // the JS; tsc writes the .d.ts, because tsup's own dts step needs the
+  // TypeScript compiler API, which TypeScript 7 no longer ships. (VCP's setup.)
+  //
+  // Only what the package exports is compiled — the two entry points and
+  // what they import — so stories, patterns, templates and story helpers
+  // never reach dist/. The root is the repo, not src/, because the
+  // `./tokens` entry is generated into dist/ by the token build.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "declarationDir": "dist/types"
+  },
+  "files": ["src/index.ts", "dist/tokens.ts"],
+  "include": []
+}
