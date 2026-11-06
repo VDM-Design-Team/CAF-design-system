@@ -14,7 +14,7 @@ import { Icon } from '../icon';
  * Figma → code:
  * - Each variant is a box as tall as Filter / Field, hugging its width, with
  *   no fill or stroke and clipping off → a `flex items-center` box, 40 tall
- *   (`h-10`): Figma's 42 isn't on GDL's scale, and code's FilterField is 40.
+ *   (`h-10`), as Figma's (`space/2` above and below the 36 Button, since 6 Nov 2026).
  * - Inside it, a `Button / Normal` instance, Style=Outlined, Show Icons on,
  *   the leading icon swapped to ArrowsClockwise 20 and the label "Clear
  *   Filters" → Button `variant="outlined"` with `leftIcon` `arrows-clockwise`.

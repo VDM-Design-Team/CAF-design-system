@@ -1585,11 +1585,12 @@ The radius needs no fix. It is already GDL's `radius/8`, shown under its
 old name `radius-4` because the CAF library hasn't taken GDL's rename (see
 TableExpandButton).
 
+**Changed in Figma on 6 Nov 2026** (the user's call): Filter / Field is 40 tall, as code is. Its 1px inside stroke no longer counts in the layout, so the "Height" departure is gone.
+
 Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs 42px | 40px, as TextInput and SelectTrigger | Fix the height at 40 |
 | Dropdown with no value | No such state. The bar's Select Period and Creation Date are Type=Search instances with a calendar icon | Dropdown shows `placeholder` (default: `label`) in `text/subtle` | Swap those instances to Type=Dropdown and add the look (design question) |
 | Clear (×) | A 16px icon with no states | A 24px `<button>` named "Clear search" (`clearLabel`). It pulls 4px into the gap and padding, so the glyph sits where Figma puts it. Escape clears too | Add Focus |
 | Focus | No Focus state | 2px `stroke.focused` outline, 2px offset, as on Button. It goes on the box when the search input has focus, on the dropdown button, and on × | Add a Focus state |
@@ -5697,11 +5698,11 @@ Contrast (Caption, 4.5:1): `text/subtle` 4.76 on `surface/base`, 4.55 on `surfac
 
 Source: page **Filters** (`89:836`), section Drafts – 5 Nov 2026 (`863:3419`), set `Filter / Clear` (`863:3420`): State Default (`863:3368`), Hover (`863:3378`), Pressed (`863:3388`), Focus (`863:3398`), Disabled (`863:3409`), drafted from the design decisions filter-clear-look, filter-clear-name, filter-clear-disabled and filter-clear-height (all accepted on 5 Nov 2026) and published by the user on 6 Nov. Review frame: `863:3421` (Light `863:3422`, Dark `863:3496`), with an "In a filter bar" row. Code: `src/components/filter-clear/`. Figma's name is the API, as Filter / Field is FilterField: `FilterClear`.
 
-**Changed in Figma on 5 Nov 2026** (published 6 Nov): the set is new. Clear Filters was a stand-in before: a Filter / Field Type=Search with ArrowsClockwise in the Filter Bars and the screens, and an Outlined Button with no icon on pattern 02. Both Filter Bars and the Patterns pages now place Filter / Clear (see FilterBar).
+**Changed in Figma on 5 Nov 2026** (published 6 Nov): the set is new. **On 6 Nov** (the user's call) its box became 40 tall, as code has it. Clear Filters was a stand-in before: a Filter / Field Type=Search with ArrowsClockwise in the Filter Bars and the screens, and an Outlined Button with no icon on pattern 02. Both Filter Bars and the Patterns pages now place Filter / Clear (see FilterBar).
 
 | Figma | Binding | Code |
 |---|---|---|
-| Variant (the box) | Horizontal, centred; 42 tall (Filter / Field's height), hugs its width (156); no fill, no stroke; clipping off, so the Focus ring shows | `<div data-part="box" class="flex h-10 shrink-0 items-center">`; `className` styles it |
+| Variant (the box) | Horizontal, centred; 40 tall (Filter / Field's height: `space/2` above and below the 36 Button), hugs its width (156); no fill, no stroke; clipping off, so the Focus ring shows | `<div data-part="box" class="flex h-10 shrink-0 items-center">`; `className` styles it |
 | Button | `Button / Normal`, Style=Outlined, Show Icons=true, State as the variant | `<Button variant="outlined">`; every other prop and the ref go to it |
 | Fill / label and icon / 1px inside stroke, Default | `action/secondary/surface/default`, `action/secondary/content/default`, `action/secondary/border/default` | Button's Outlined classes |
 | Hover | `…/surface/hover`, `…/content/hover`, `…/border/hover` | `:hover` |
@@ -5723,7 +5724,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Box height | 42 (Filter / Field hugs 42) | 40 (`h-10`): 42 isn't on GDL's scale, and code's FilterField is 40 | Fix Filter / Field and Filter / Clear at 40 (FilterField's "Height") |
 | Icon gap | Button / Normal's raw 10 | 8 (`gap-2`), as Button | As Button: bind it to `space/8` |
 | Hidden vs disabled | Disabled is a State | The same; and when nothing is filtered the bar leaves it out (FilterBar's `showClear`), never disables it | None needed |
 
@@ -5732,7 +5732,7 @@ Code departs from Figma here:
 Source: page **Filters** (`89:836`): `Filter / Bar – Costs` (`256:4585`, Show Clear false / true) and `Filter / Bar` (`256:5338`, Page=Costs / Recurring, and **Show Clear** since 5 Nov 2026). Code: `src/patterns/filters/CostsFilterBar.tsx`, a pattern-level organism, not exported from `src/index.ts` (docs/patterns.md, pattern 02). `FilterBar` is the bar's frame (Bar, `176:1690`); `CostsFilterBar` is Filter / Bar – Costs and its two pages.
 
 **Changed in Figma on 5 Nov 2026** (decision filter-clear-disabled, accepted; published 6 Nov):
-- **Filter / Clear replaces the stand-ins.** Filter / Bar – Costs, Show Clear=true (`256:4646`, 156 × 42) and Filter / Bar, Page=Recurring (`256:5500`) were Filter / Field Type=Search instances with ArrowsClockwise; they are Filter / Clear Default now. Patterns – Admin 01 and 02 (`518:310`, `520:991`, `520:1111`, `520:1231`) and U03 (`545:18585`, `545:18656`) swapped too.
+- **Filter / Clear replaces the stand-ins.** Filter / Bar – Costs, Show Clear=true (`256:4646`, 156 × 40) and Filter / Bar, Page=Recurring (`256:5500`) were Filter / Field Type=Search instances with ArrowsClockwise; they are Filter / Clear Default now. Patterns – Admin 01 and 02 (`518:310`, `520:991`, `520:1111`, `520:1231`) and U03 (`545:18585`, `545:18656`) swapped too.
 - **Filter / Bar has a BOOLEAN `Show Clear#867:0`** (default on), bound to Page=Recurring's Filter / Clear. Page=Costs is the exposed Filter / Bar – Costs, with its own Show Clear.
 - **Page=Recurring doesn't reflow without it:** the Bar packs MIN with gap `space/12` (was space-between) and Filters fills, so the fields stay at the left either way.
 - **Clear Filters is hidden where nothing is filtered:** pattern 01 (`518:310`), U03 and U04 (Show Clear=false). It stays on pattern 02 steps 2–4, where a filter is in use. Pattern 01's guidance: "Clear Filters (far right, only while filtering) resets all."
