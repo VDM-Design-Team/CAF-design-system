@@ -218,7 +218,8 @@ export const PageNotFound: Story = {
       <EmptyState
         title="The page you were looking for cannot be found."
         description="It’s likely an incorrect or outdated link."
-        action={<Button>Go back home</Button>}
+        // It navigates, so it is a link with the Button's look (Button `href`).
+        action={<Button href="#">Go back home</Button>}
       />
     </div>
   ),

@@ -124,7 +124,7 @@ names. A component that a second brand needs moves up to GDL.
 
 | Component | Figma | Story |
 |---|---|---|
-| `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` | Components/Button |
+| `Button` | Buttons → `Button / Big`, `/ Normal`, `/ Small` (`href`: the same look as a link, code only) | Components/Button |
 | `Checkbox` | Selection Controls → `Checkbox` | Components/Checkbox |
 | `PaginationItem` | Pagination → `Pagination / Item` | Components/PaginationItem |
 | `Pagination` | Pagination → `Pagination` | Components/Pagination |
@@ -153,6 +153,7 @@ names. A component that a second brand needs moves up to GDL.
 | `FilterField` | Filters → `Filter / Field` | Components/FilterField |
 | `FilterSelect` | Filters → `Filter / Field – Select` | Components/FilterSelect |
 | `FilterDateRange`, `formatDateRange` | Filters → `Filter / Field – Date range` | Components/FilterDateRange |
+| `FilterClear` | Filters → `Filter / Clear` (Clear Filters) | Components/FilterClear |
 | `MenuTriggerButton` | Buttons → `Button / Menu Trigger` | Components/MenuTriggerButton |
 | `SelectOption` | Form → `Select / Option` | Components/SelectOption |
 | `SelectMenu` | Form → `Select / Menu` | Components/SelectMenu |
@@ -160,7 +161,7 @@ names. A component that a second brand needs moves up to GDL.
 | `Overlay` | Patterns – Admin → the "Overlay" frame (code only) | Components/Overlay |
 | `ModalHeaderIcon` | Modals → `Modal / Header Icon` | Components/ModalHeaderIcon |
 | `ModalHeader` | Modals → `Modal / Header` | Components/ModalHeader |
-| `ModalDialog` | Modals → `Modal / Dialog` | Components/ModalDialog |
+| `ModalDialog` | Modals → `Modal / Dialog` (Show Actions → `actions`) | Components/ModalDialog |
 | `ModalConfirm` | Modals → `Modal / Confirm` | Components/ModalConfirm |
 | `SideSheet` | Modals → `Panel / Side Sheet` | Components/SideSheet |
 | `Alert` | Feedback → `Alert` | Components/Alert |
@@ -217,9 +218,9 @@ names. A component that a second brand needs moves up to GDL.
 | `AccountMenu` | Navigation → `Navigation / Account Menu`, with the account icon that opens it | Components/AccountMenu |
 | `UserActions` | Navigation → `Navigation / User Actions` | Components/UserActions |
 | `TopBar` | Navigation → `Navigation / Top Bar` | Components/TopBar |
-| `AppHeader`, `APP_HEADER_ADMIN_PAGES`, `APP_HEADER_USER_PAGES` | Navigation → `Navigation / Header`, `Header – Admin`, `Header – User` (with Mobile Header and Mobile Menu below 768px) | Components/AppHeader |
+| `AppHeader`, `APP_HEADER_ADMIN_PAGES`, `APP_HEADER_USER_PAGES` | Navigation → `Navigation / Header`, `Header – Admin`, `Header – User` (Page=None: no `page`; with Mobile Header and Mobile Menu below 768px) | Components/AppHeader |
 | `MobileHeader` | Navigation → `Navigation / Mobile Header` | Components/MobileHeader |
-| `MobileMenu` | Navigation → `Navigation / Mobile Menu – Admin` (and the user app's links) | Components/MobileMenu |
+| `MobileMenu` | Navigation → `Navigation / Mobile Menu` (Links=Admin, Links=User) | Components/MobileMenu |
 | `PageHeader` | Layout → `Page Header` | Components/PageHeader |
 | `Divider` | Layout → `Divider` | Components/Divider |
 | `PanelCard` | Layout → `Card / Panel` | Components/PanelCard |
@@ -685,6 +686,12 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `today`'s year ("12–24 Oct", "28 Sep – 31 Oct"), the year otherwise
   ("28 Dec 2025 – 3 Jan 2026"). A screen reader hears the full dates. Two
   picks close it, and `onValueChange` gets `{ start, end }`.
+- `FilterClear` is Figma's Filter / Clear: Clear Filters, an Outlined
+  Button with ArrowsClockwise in a box as tall as a field, for the filter
+  bar's right end. Render it only while a filter is in use (hidden, never
+  disabled, when nothing is filtered); `onClick` resets the filters and
+  should move focus to the search field. `disabled` is for a list that is
+  busy loading. `className` styles the box; the rest goes to the button.
 - `MenuTriggerButton` is Figma's Button / Menu Trigger: the primary Button
   with a trailing caret that opens a MenuDropdown, for Export and the bulk
   Change Status (n). `label` is the button's text, the MenuItems are
@@ -704,8 +711,10 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `ModalDialog` is Figma's Modal / Dialog. `size` is `small`, `medium` or
   `large`. `title` names the dialog, and `description` / `showDescription`
   are Description and Show Description. `children` is the Content slot,
-  `footer` holds the actions, and `showFooter` is Show Footer. The close
-  button, Escape and a backdrop click call `onClose`; you set `open`.
+  `footer` holds the actions, and `showFooter` is Show Footer. `actions`
+  is Show Actions: IconButtons before the close button, 4px apart (Audit
+  Logs' Refresh). The close button, Escape and a backdrop click call
+  `onClose`; you set `open`.
 - `ModalConfirm` is Modal / Confirm, an `alertdialog`. `type` is `default`
   or `destructive` (critical icon and Destructive button). `title` and
   `message` are Title and Message; `confirmLabel` and `cancelLabel` are the
@@ -961,7 +970,8 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   `<header>` banner with TopBar over NavBar, in a centred container (1536
   at 1920, as Figma). `links` is the navigation (label and `href`, in
   order). `APP_HEADER_ADMIN_PAGES` and `APP_HEADER_USER_PAGES` are Figma's
-  labels. `page` is Figma's Page, the current link. Links are `<a href>`;
+  labels. `page` is Figma's Page, the current link; leave it out for
+  Page=None (Settings, the Changelog page). Links are `<a href>`;
   `renderLink` swaps in a router's link through NavLink's `as`. Below
   768px (`md:`) the MobileHeader shows instead, and its ☰ opens the
   MobileMenu with the same links. `menuOpen` / `defaultMenuOpen` /
@@ -974,12 +984,13 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   (☰ "Open menu" or ✕ "Close menu"). The button has `aria-expanded`, and
   `aria-controls` from `menuId`, and reports the state it asks for in
   `onMenuOpenChange`.
-- `MobileMenu` is Navigation / Mobile Menu – Admin: a full-width modal
+- `MobileMenu` is Navigation / Mobile Menu: a full-width modal
   dialog ("Menu") against the top of the screen. It holds the Mobile
   Header with ✕, the links as vertical NavLinks (`links`, `page`) and the
   Account Row (`username`). Focus opens on ✕ and is trapped. ✕, Escape, a
   tap on the scrim or a chosen link call `onClose`; you set `open`, and
-  focus goes back to ☰. The user app passes its five links.
+  focus goes back to ☰. Figma's Links=Admin / Links=User is `links`: the
+  admin's ten or the user's five.
 
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story

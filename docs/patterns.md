@@ -215,7 +215,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Design questions.**
 - Short lists are drawn sortable but described as not sortable.
-- Clear Filters is on its own row in Filter / Bar – Costs but at the far right in the patterns.
+- Clear Filters is on its own row in Filter / Bar – Costs but at the far right in the patterns. Since 5 Nov 2026 both are `Filter / Clear`, and pattern 01's guidance says "Clear Filters (far right, only while filtering) resets all" (518:247).
 - How should the bar and the ~977px Costs table behave on narrower screens?
 - Does a new sort return to page 1?
 - 240 vs 256 field width.
@@ -230,7 +230,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - Date filters open a two-month range picker under the field: the first day picked is the start, the second the end.
 
 **Components.** The organism `src/patterns/filters/CostsFilterBar.tsx` (Filter / Bar – Costs 256:4585; Filter / Bar 256:5338, Page=Costs / Recurring) is story-level, not exported from `src/index.ts`:
-- **FilterBar:** Figma's Bar as a `search` landmark: surface.neutral.faint, a 1px stroke.subtle inset stroke, radius 12, 16 padding, fields 12 apart. Clear Filters (Button, Outlined) sits on the far right, with an optional row under the fields.
+- **FilterBar:** Figma's Bar as a `search` landmark: surface.neutral.faint, a 1px stroke.subtle inset stroke, radius 12, 16 padding, fields 12 apart, with an optional row under the fields. `showClear` (Filter / Bar's Show Clear, since 5 Nov 2026) puts **FilterClear** (DS, `Filter / Clear`: an Outlined Button with ArrowsClockwise) on the far right; `onClear` resets. Every bar sets it only while a filter or a search is in use: hidden, never disabled (decision filter-clear-disabled).
 - **FilterSelect** (DS, Filter / Field – Select, since 2 Nov 2026): the Status, Payment Method and Currency dropdowns. A Select / Menu under the field with the chosen option checked; "All Status" is the reset item. Select's keys.
 - **FilterDateRange** (DS, Filter / Field – Date range, since 2 Nov 2026): Select Period and Creation Date. Focus goes into the calendar, and the picker closes after the second pick with focus back on the field, which shows the range as "12–24 Oct" (no year in the current year; a screen reader hears it). Filter / Summary keeps the ISO days.
 - **Filter / Summary:** "Current Filters" with the lines in use, when `showSummary` is set.
@@ -255,7 +255,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What Figma draws that the stories don't.**
 - Users' sortable headers: not wired, per pattern 01's text.
-- Filter / Bar – Costs' second-row Clear Filters field: the patterns' far-right button is used instead.
+- Filter / Bar – Costs puts Filter / Clear on its own line under the wrapped fields: code keeps it at the end of the wrapping row, on the far right.
 - The open state of a status dropdown: Figma doesn't draw it, so code uses a Menu / Dropdown.
 
 **What code adds.**
@@ -276,6 +276,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Missing components.**
 - ~~Filter / Field – Select~~ and ~~Filter / Field – Date range~~: FilterSelect and FilterDateRange since 2 Nov 2026.
+- ~~A Clear Filters control~~: FilterClear (`Filter / Clear`) since 6 Nov 2026.
 
 ### 03 · Row actions menu (Figma 520:2387)
 
@@ -370,11 +371,11 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves:** rows show a summary and open in place to reveal more (a cost’s breakdown, or what changed in an audit log entry), so the user keeps their place in the list.
 
-**Components:** CostsTable (TableExpandButton, TableAccountDetails, the breakdown table under the row), PageHeader, Button (outlined View Audit Logs, small Text View Changes), ModalDialog (Large), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (text, two-line; Custom for the detail row), Tag (Created, Updated, Deleted), ChangeDiff and ChangeDiffRow, Alert (Error, Compact) and Pagination. The audit log is a story-level composition, `src/patterns/expand-details/AuditLogs.tsx` (AuditLogTable, AuditLogsDialog).
+**Components:** CostsTable (TableExpandButton, TableAccountDetails, the breakdown table under the row), PageHeader, Button (outlined View Audit Logs, small Text View Changes), ModalDialog (Large, with `actions`: an IconButton Refresh), TableList, TableHeaderRow, TableHeaderCell, TableRow, TableCell (text, two-line; Custom for the detail row), Tag (Created, Updated, Deleted), ChangeDiff and ChangeDiffRow, Alert (Error, Compact) and Pagination. The audit log is a story-level composition, `src/patterns/expand-details/AuditLogs.tsx` (AuditLogTable, AuditLogsDialog).
 
 **Flow in the stories** (`ExpandDetails.stories.tsx`):
 - *Expand for details*: rows start collapsed with the account summary (ID, Applicant, Beneficiary, IBAN, Recurring). The caret opens cost 32430’s six-line breakdown under its row and pushes the next row down. Several rows can be open, and Enter closes one again with focus kept on the caret.
-- *Audit logs: view changes*: View Audit Logs opens “Audit Logs” (Cost ID, User, Timestamp, Activity). View Changes is a disclosure (`aria-expanded`, `aria-controls`) that opens a Field / Before / After table (Status: Unknown → Pending, `<del>` and `<ins>`) and then reads Hide Changes. A deleted record (#32418) shows the Alert “This cost was deleted”. Pagination shows four entries a page and open entries stay open. Escape closes the dialog and focus returns to View Audit Logs.
+- *Audit logs: view changes*: View Audit Logs opens “Audit Logs” (Cost ID, User, Timestamp, Activity), with Refresh beside × (Modal / Dialog's Show Actions, since 5 Nov 2026: `actions`; Refresh calls `onRefresh`). View Changes is a disclosure (`aria-expanded`, `aria-controls`) that opens a Field / Before / After table (Status: Unknown → Pending, `<del>` and `<ins>`) and then reads Hide Changes. A deleted record (#32418) shows the Alert “This cost was deleted”. Pagination shows four entries a page and open entries stay open. Escape closes the dialog and focus returns to View Audit Logs.
 - Snapshots: *Audit logs open* (the first two entries open, as Figma), *Dark* (a row expanded), *Audit logs — Dark*.
 
 **What Figma draws that the stories don’t:** the Costs rows’ checkboxes and the page header’s tabs and Export (patterns 07 and 01). The audit table’s Pagination shows 3 pages, not Figma’s 25: the fixtures hold 12 entries.
@@ -442,15 +443,15 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **Flow the stories show:**
 - *Loading a list* (Step 1): the Users header, filters and table header are in place at once. The body shows five SkeletonTableRows of three cells, the table is `aria-busy`, and a visually hidden status says "Loading users". This story never answers, so it can be snapshotted.
 - *Loads, then no results*: the skeletons give way to 12 rows in the same columns, at least as tall as the skeletons. Searching for "zzz" shows the Compact Empty State "No items." inside the table, with the filters still visible. Escape clears the search and the rows come back.
-- *Load fails, then retry*: the first request fails. An Error Alert ("Couldn’t load users." / "Check your connection and try again.") appears above the table, which keeps its header, with a Retry Button under the Alert. Retry (from the keyboard) loads again and moves focus to the table, because the button disappears. Then the rows arrive.
+- *Load fails, then retry*: the first request fails. An Error Alert ("Couldn’t load users." / "Check your connection and try again.") appears above the table, which keeps its header, with Retry as its own action (Alert's Show Action, `action="Retry"`, since 6 Nov 2026; it was a Button under the Alert). Retry (from the keyboard) loads again and moves focus to the table, because the alert and its button disappear. Then the rows arrive.
 - *Loading a dialog* (Step 2): Export Details opens straight away with a 24px Spinner, centred over "Loading…", and has no footer. The Spinner's status says "Loading export details", so the visible text is hidden from screen readers to avoid reading it twice. Pattern 13's View Details shows the content arriving.
 - *Nothing here yet* (Step 3): Announcements has no rows. The Default Empty State ("No announcements yet" / "Create an announcement to tell users what’s new.") sits in the table with Add New, which opens Create Announcement (pattern 14). Escape closes it and returns focus to that button.
-- *Page not found* (Step 4): "404" (Display/xl-bold, text.brand.medium) sits over the Empty State. "Go back home" shows Costs and moves focus to the new page, as a router would.
+- *Page not found* (Step 4): "404" (Display/xl-bold, text.brand.medium) sits over the Empty State. "Go back home" is a link with the Button's look (Button `href`, since 6 Nov 2026). It shows Costs and moves focus to the new page, as a router would.
 - *Dark*: the list loading.
 
 **What Figma draws that the stories don't:** nothing is left out. The stories add a failed load, which Figma doesn't draw.
 
-**Design questions:** what a failed list load should look like, and its copy. Alert has no action slot for Retry. "Go back home" navigates, but Button has no link form. Should the 404 page sit inside the app shell?
+**Design questions:** what a failed list load should look like, and its copy (Figma draws none). ~~Alert has no action slot for Retry~~ (it has since 2 Nov 2026; UsersPage uses it since 6 Nov). ~~"Go back home" navigates, but Button has no link form~~ (Button `href`, 6 Nov 2026). Should the 404 page sit inside the app shell?
 
 ### 12 · Feedback messages (Figma 528:6347)
 
@@ -501,7 +502,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What Figma draws that the stories don't:** Step 1 draws no table under the totals (a Spacer); the stories add `AnnouncementsTable` with pattern 11's columns. Step 2's Costs table repeats one row; the stories show QA Test's own costs. Whether the user has seen a release is kept in story state; the app stores it per user. The Changelog isn't in the nav, so on that page no link is active, as U07 says.
 
-**Design questions:** the dialog's title vs the Changelog's for v2.5.6. The Changelog's releases (2.5.0, 2.4.0) that aren't announcements. Latest by date or by version. "Add New" vs "New Announcement", and the column sets. A status for inactive announcements. What View Change Log does in an admin preview. A Changelog item in the account menu (U07 guidance). ~~RepeatableField has no error state~~ (added 2 Nov 2026).
+**Design questions:** the dialog's title vs the Changelog's for v2.5.6. The Changelog's releases (2.5.0, 2.4.0) that aren't announcements. Latest by date or by version. "Add New" vs "New Announcement", and the column sets. A status for inactive announcements. What View Change Log does in an admin preview. ~~A Changelog item in the account menu (U07 guidance)~~ (AccountMenu's `changelog` since 2 Nov 2026, #33). ~~RepeatableField has no error state~~ (added 2 Nov 2026).
 
 ### 15 / U08 · App shell & navigation (Figma 530:7799, U08 545:26643)
 
@@ -523,7 +524,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - "Remembers the choice" (530:7290) is the app's job, for example local storage. A story doesn't persist the theme, so one story never changes the next.
 
 **Design questions.**
-- Figma has no Mobile Menu – User yet (545:26655). Could Mobile Menu take its links as a property instead?
+- ~~Figma has no Mobile Menu – User yet (545:26655). Could Mobile Menu take its links as a property instead?~~ Yes: `Navigation / Mobile Menu` has Links=Admin / User since 5 Nov 2026, as code's `links`.
 - AppHeader with `defaultMenuOpen` leaves focus on `<body>` when the menu closes. It could pass ☰ to MobileMenu as `returnFocusRef`.
 
 ## Patterns – User (U01–U08)
@@ -569,12 +570,12 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What it solves:** parking an unfinished cost and picking it up again later from Drafts.
 
-**Components:** NewCostForm (Save to Drafts; the form in its PanelCard under the page's PageHeader, which names the open draft), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterField (Search), Button Text (Clear Filters), the list table (TableList, two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
+**Components:** NewCostForm (Save to Drafts; the form in its PanelCard under the page's PageHeader, which names the open draft), and the organism `src/patterns/drafts/DraftsList.tsx`: PageHeader, FilterBar with FilterField (Search) and FilterClear (Clear Filters, only while there is a search; it was a disabled Text Button until 6 Nov 2026), the list table (TableList, two-line cells, RowActionsMenu), Pagination, ModalConfirm, EmptyState (Default and Compact). Plus ToastProvider.
 
 **Flow the stories show:**
 - *Save and resume:* a half-done cost is saved to Drafts without checks, and the FormData is checked. The view switches to Drafts with focus on its heading, and "Draft #36742 saved." appears. The new draft is the first row (Single, QA Test, November 2, 2026). Edit reopens New Cost with "Draft #36742" in the page's header, above the form's card, and the values loaded. Saving again updates the row instead of adding one.
 - *Resume a recurring draft:* it opens on the Recurring Cost tab with every 1 month.
-- *Search and delete:* the search narrows the list or says nothing matched, and Clear Filters brings it back. Delete asks "Delete draft?", then "Draft deleted." appears and focus moves to the next •••.
+- *Search and delete:* the search narrows the list or says nothing matched. Clear Filters appears on the bar's far right only while there is a search; it brings the list back and puts focus in the search box. Delete asks "Delete draft?", then "Draft deleted." appears and focus moves to the next •••.
 - *No drafts:* an Empty State with Create Cost, which opens a blank New Cost.
 - *Delete confirm open* and *Dark.*
 
@@ -583,14 +584,14 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - The `?draft_id=` URL: the app routes it.
 
 **Design questions:**
-- "Clear Filters" is drawn as a search Filter / Field.
+- ~~"Clear Filters" is drawn as a search Filter / Field.~~ It is `Filter / Clear` since 5 Nov 2026, hidden while the search is empty.
 - The toast copy isn't drawn.
 
 ### U04 · Manage recurring costs (Figma 545:18695)
 
 **What it solves:** where a user reviews, changes or ends a cost that repeats on a schedule. Each due date creates a cost with a Recurring tag.
 
-**Components:** AppHeader (Header – User, Page=Recurring Costs), PageHeader, FilterField (Search and Dropdown), MenuDropdown + MenuItem (the Status filter), Button, RecurringCostsTable (story-level: `src/patterns/recurring/RecurringCostsTable.tsx`, the library’s Table / Header – Recurring Costs 260:1021, Row – Recurring Cost 260:1000 and Table / Recurring Costs 260:1065), RowActionsMenu, PaymentSchedules + PaymentRow, SideSheet with `EditRecurringCostForm` (story-level: FormSectionHeader, DateField, TextField, SelectField with FormEditLink, Alert, FileUploadField, BreakdownItem), ModalConfirm (Destructive), EmptyState (Compact), ToastProvider/Toast.
+**Components:** AppHeader (Header – User, Page=Recurring Costs), PageHeader, FilterBar (Filter / Bar, Page=Recurring, since 6 Nov 2026) with FilterField (Search), FilterSelect (the Status filter) and FilterClear (only while filtering), Button, RecurringCostsTable (story-level: `src/patterns/recurring/RecurringCostsTable.tsx`, the library’s Table / Header – Recurring Costs 260:1021, Row – Recurring Cost 260:1000 and Table / Recurring Costs 260:1065), RowActionsMenu, PaymentSchedules + PaymentRow, SideSheet with `EditRecurringCostForm` (story-level: FormSectionHeader, DateField, TextField, SelectField with FormEditLink, Alert, FileUploadField, BreakdownItem), ModalConfirm (Destructive), EmptyState (Compact), ToastProvider/Toast.
 
 **Flow in the stories** (`ManageRecurringCosts.stories.tsx`, full page):
 - *Filter and view schedules* (steps 1–3): search by ID, name or email. Clear Filters resets and focuses the search. The Status filter offers All Status, Active and Stopped. A stopped schedule’s menu leaves out Stop. ••• lists Edit, View Schedules, Stop and Delete, with Delete last and red. View Schedules opens Payment Schedules: Done “Processed on Jul 30, 2026” or Upcoming “Scheduled”. Escape closes it and focus returns to the •••.
@@ -601,7 +602,7 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What Figma draws that the stories don’t:** the side sheet’s own URL (`/recurring-costs/{id}`), because Storybook has no router. Where Add New, Breakdowns’ Add new and Currency’s [Edit] lead (Create Cost U02, the breakdown form, Manage Currencies U06); they are plain buttons. The Dividers between sections (545:19054): Divider exists since 2 Nov 2026, but the side sheet's form doesn't use it yet (the form pages and Settings did first, 3 Nov 2026). A Stopped status, which Figma doesn’t draw: a neutral Tag stands in.
 
-**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. ~~Starts At is a Text field or a Date field~~ (a Date field in U02 and U04 too since 4 Nov 2026). U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). Clear Filters shows by default in Figma. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
+**Design questions:** Status Pill vs Tag, and Stopped. The Recurring Costs columns differ between patterns 03/06 and the library row. ~~Starts At is a Text field or a Date field~~ (a Date field in U02 and U04 too since 4 Nov 2026). U04’s form isn’t the same as pattern 06’s.  ~~The “recur every” line has no component~~ (FormHint since 2 Nov 2026). ~~Clear Filters shows by default in Figma.~~ U04's bars set Show Clear off since 5 Nov 2026. The Stop/Delete copy and what Stop does to Upcoming payments aren’t drawn. Payment Schedules doesn’t name its record.
 
 ### U06 · Account, settings & currencies (Figma 545:23189)
 
@@ -689,7 +690,7 @@ Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
 **Design questions.**
 - ~~Tables are wider than a phone: on mobile the page scrolls sideways under a 320-wide header. A mobile table pattern is needed.~~ Decided (add-phone-table-layout) and built on 3 Nov 2026: each table scrolls sideways in its own region (TableList), and the row menus open outside it. Figma still has no phone layout.
 - The Costs table at 1024 scrolls by a few pixels in its region (above). Narrowing a column so it fits would be a design change.
-- Clear Filters has three treatments: the screens' Filter / Field stand-in, always shown; pattern 02's Outlined Button, shown only while a filter is in use; Drafts' disabled Text button.
+- ~~Clear Filters has three treatments~~: one since 6 Nov 2026, `Filter / Clear` (FilterClear), shown only while a filter is in use. The CAF Design screens' Filter / Field stand-ins (2102:6045, 2102:6642) are still to swap.
 
 ### Overview list (Figma: Admin / Exports 2102:6902, Admin / Announcements 2102:6628)
 
@@ -777,7 +778,7 @@ Each play checks:
 
 **Design questions.**
 - Footer verbs: the screens say "Submit" where patterns 05 and 09 say "Save" and "Add".
-- The Audit Logs header's refresh icon (ModalDialog has no header action slot).
+- ~~The Audit Logs header's refresh icon (ModalDialog has no header action slot).~~ ModalDialog's `actions` (Show Actions) since 6 Nov 2026: Refresh sits beside ×.
 - ~~Recurring Costs has two compositions: pattern 06's plain table, and the screens' and U04's filter bar with pagination.~~ Decided (add-plain-list-table): the screens' and U04's layout is canonical. The stories still show both.
 
 ## Missing components
@@ -806,16 +807,17 @@ components (or left out) until the library and code have it.
 - ~~**Filter / Field – Select**~~ Added on 2 Nov 2026 (`FilterSelect`); every dropdown filter uses it (the two `FilterMenu` stand-ins and U04's inline one are gone).
 - ~~**Filter / Field – Date range**~~ Added on 2 Nov 2026 (`FilterDateRange`); the Costs bar and Announcements use it.
 - ~~**A single-date Filter / Field**~~ Not needed: a range is right (decision); Announcements' Filter Date is a `FilterDateRange`.
-- **A Clear Filters control**: the screens draw it as a Filter / Field Type=Search instance with ArrowsClockwise (2102:6045, 2102:6642, 545:18585). No button variant matches; the templates use an Outlined Button.
-- **A removable active-filter chip**, only if design answers the Filter / Summary question that way. Nothing in the library today.
+- ~~**A Clear Filters control**~~ Added on 6 Nov 2026 (`FilterClear`, Figma `Filter / Clear` 863:3420, 5 Nov): an Outlined Button with ArrowsClockwise. FilterBar shows it while a filter is in use (`showClear`, Filter / Bar's Show Clear); every bar uses it, Drafts and Recurring Costs included. The CAF Design screens' stand-ins (2102:6045, 2102:6642) are still to swap.
+- ~~**A removable active-filter chip**~~ Not added (decision, 2 Nov 2026): Filter / Summary, with a visible count.
 
 **Forms and feedback**
 - ~~**Form hint / inline note**~~ Added on 2 Nov 2026 (`FormHint`); U02 and U04's recurrence summary uses it.
-- **Alert action**: Alert has no action slot for Retry on a failed load (pattern 11). Stand-in: a small outlined Button under the Alert.
+- ~~**Alert action**~~ Already there since 2 Nov 2026 (#33: `showAction`, `action`, `onAction`; Figma Show Action). Pattern 11's failed load uses it since 6 Nov 2026, in place of the Button under the Alert.
 - ~~**RepeatableField error / helper**~~ Added on 2 Nov 2026 (`helper`, `error`); Create Announcement's Features uses it.
-- **Button as a link** (`href` or `asChild`) for navigation actions such as "Go back home" (528:6013). Stand-in: a Button with `onClick`.
-- **Modal Header actions**: Audit Logs' refresh icon beside Close (2102:5857). ModalDialog takes only a title and Close.
+- ~~**Button as a link**~~ Added on 6 Nov 2026 (Button `href`: an `<a href>` with the same look; code only, as Button / Normal's description asks). Pattern 11's "Go back home" (528:6013) uses it.
+- ~~**Modal Header actions**~~ Added on 6 Nov 2026 (ModalDialog `actions`, Figma Modal / Dialog's Show Actions, 5 Nov). Audit Logs (pattern 08 and the 2102:5857 template) shows Refresh beside ×. Modal / Header had them since 2 Nov (#33).
 
 **Navigation**
-- **Account Menu "Changelog" item** (U07 guidance, 545:25234): AccountMenu has only Manage Currencies, Settings and Logout.
-- **Figma only: Navigation / Mobile Menu – User** (U08 545:26655 says to add it). Code's MobileMenu already takes the user's links, so code needs nothing new.
+- ~~**Account Menu "Changelog" item**~~ Already there since 2 Nov 2026 (#33: AccountMenu's `changelog`; Figma Item / Changelog 765:15596). U07's guidance says so since 5 Nov.
+- ~~**Figma only: Navigation / Mobile Menu – User**~~ Added in Figma on 5 Nov 2026 as `Navigation / Mobile Menu`, Links=User (864:1290). Code's MobileMenu already took the user's links (`links`), so code needed nothing new.
+- ~~**A header with no current page**~~ Added in Figma on 5 Nov 2026 (Header – Admin / – User, Page=None) for Settings and the Changelog page. Code: leave AppHeader's `page` out.

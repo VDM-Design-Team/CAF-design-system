@@ -22,6 +22,7 @@ export * from './components/empty-state';
 export * from './components/file-chip';
 export * from './components/file-upload-field';
 export * from './components/file-upload-zone';
+export * from './components/filter-clear';
 export * from './components/filter-date-range';
 export * from './components/filter-field';
 export * from './components/filter-select';

@@ -63,7 +63,8 @@ function EmptyListScreen() {
   );
 }
 
-/* Step 4 · Page not found (528:6010): 404 over the Default Empty State; "Go back home" returns to Costs. */
+/* Step 4 · Page not found (528:6010): 404 over the Default Empty State; "Go back home" (528:6013) is a link
+   to Costs that looks like a Button (Button `href`). The story stands in for the router: it shows Costs. */
 function NotFoundScreen() {
   const [home, setHome] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -89,7 +90,17 @@ function NotFoundScreen() {
       <EmptyState
         title={copy.title}
         description={copy.description}
-        action={<Button onClick={() => setHome(true)}>{copy.action}</Button>}
+        action={
+          <Button
+            href="#costs"
+            onClick={(event) => {
+              event.preventDefault();
+              setHome(true);
+            }}
+          >
+            {copy.action}
+          </Button>
+        }
       />
     </main>
   );
@@ -116,7 +127,7 @@ const meta = {
           'with the filters in place, and is `aria-busy`; a dialog opens straight away with a 24px **Spinner**; an ' +
           'empty list shows the Default **EmptyState** with its primary action; a search with no results shows the ' +
           'Compact one (“No items.”) inside the table; an unknown URL shows 404 and “Go back home”. Figma draws no ' +
-          'failed load: here it is an Error **Alert** above the table with a Retry Button. The Users screen is ' +
+          'failed load: here it is an Error **Alert** above the table, with Retry as its action. The Users screen is ' +
           '`UsersPage` (`src/patterns/states/`), shared with pattern 12.',
       },
     },
@@ -192,7 +203,8 @@ export const LoadsThenNoResults: Story = {
 
 /**
  * The first load fails: an Error Alert above the table says what happened and what to do, with Retry
- * under it. Retry (from the keyboard) loads again, puts focus on the table, and the rows arrive.
+ * as its action (Alert's Show Action). Retry (from the keyboard) loads again, puts focus on the table,
+ * and the rows arrive.
  */
 export const LoadFailsThenRetry: Story = {
   name: 'Load fails, then retry',
@@ -209,7 +221,9 @@ export const LoadFailsThenRetry: Story = {
     await expect(bodyRows(table)).toHaveLength(0);
     await expect(table).not.toHaveAttribute('aria-busy');
 
-    const retry = canvas.getByRole('button', { name: 'Retry' });
+    // Retry is the Alert's own action: inside it, after the text.
+    const retry = within(alert).getByRole('button', { name: 'Retry' });
+    await expect(canvas.getAllByRole('button', { name: 'Retry' })).toHaveLength(1);
     retry.focus();
     await userEvent.keyboard('{Enter}');
     await expect(canvas.queryByRole('alert')).toBeNull();
@@ -280,7 +294,10 @@ export const PageNotFound: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('heading', { level: 1 })).toHaveTextContent('404 Page not found');
     await expect(canvas.getByText(emptyStateCopy.notFound.title)).toBeVisible();
-    await userEvent.click(canvas.getByRole('button', { name: emptyStateCopy.notFound.action }));
+    // "Go back home" navigates, so it is a link, with the Button's look.
+    const home = canvas.getByRole('link', { name: emptyStateCopy.notFound.action });
+    await expect(home).toHaveAttribute('href', '#costs');
+    await userEvent.click(home);
     await expect(canvas.getByRole('heading', { level: 1, name: 'Costs' })).toBeVisible();
     await expect(canvas.getByRole('main')).toHaveFocus();
   },

@@ -139,6 +139,9 @@ export const AuditLogs: Story = {
     await expect(within(main).getByRole('button', { name: 'View Audit Logs', hidden: true })).toBeInTheDocument();
     await expect(within(dialog).getByRole('table', { name: 'Audit log' })).toBeVisible();
     await expect(within(dialog).getByRole('navigation', { name: 'Audit log pages' })).toBeVisible();
+    // The screen's Refresh beside × (Modal / Dialog, Show Actions).
+    const actions = dialog.querySelector<HTMLElement>('[data-part="header-actions"]')!;
+    await expect(within(actions).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Refresh', 'Close']);
   },
 };
 
