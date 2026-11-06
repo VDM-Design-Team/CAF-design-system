@@ -97,5 +97,4 @@ export * from './components/tooltip';
 export * from './components/top-bar';
 export * from './components/user-actions';
 export * from './components/user-greeting';
-export * from './components/version-badge';
 export { cn } from './lib/cn';

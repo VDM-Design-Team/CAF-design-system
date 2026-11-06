@@ -204,7 +204,6 @@ names. A component that a second brand needs moves up to GDL.
 | `ChangeDiffRow` | Table → `Table / Change Diff Row` | Components/ChangeDiff |
 | `PaymentRow` | Modals → `Modal / Payment Row` (with its `Modal / Status Icon`; the status is a `Tag`) | Components/PaymentRow |
 | `PaymentSchedules` | Modals → `Modal / Payment Schedules` (Modal / Header + Payment Rows, on Overlay) | Components/PaymentSchedules |
-| `VersionBadge` (deprecated: use `Tag status="info"`) | Modals → `Modal / Version Badge` (deprecated) | Components/VersionBadge |
 | `BulletItem` | Modals → `Modal / Bullet Item` | Components/BulletItem |
 | `ReleaseNotes` | Modals → `Modal / Release Notes` | Components/ReleaseNotes |
 | `ChangelogHeader` | Modals → `Modal / Changelog Header` (with `Modal / Changelog Icon`) | Components/ChangelogHeader |
@@ -498,7 +497,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 </ChangelogEntry>
 <ChangelogEntry title="IMPROVED BULK UPLOAD" meta="Version 2.5.0 • July 2, 2026">…</ChangelogEntry>  // no New (default)
 
-<Tag status="info" showIcon={false}>v2.5.6</Tag>                                 // a release version (VersionBadge is deprecated)
+<Tag status="info" showIcon={false}>v2.5.6</Tag>                                 // a release version
 
 <Logo />                                                          // 123 × 48, role="img" named "CAF"
 <a href="/"><Logo className="h-9" /></a>                          // the Mobile Header's 92 × 36; the link is named "CAF"
@@ -639,8 +638,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   row owns the state. `label` is required: it's the accessible name.
 - `TableAccountDetails` is Figma's Account Details: its lines are
   `TableDetailLabel`s (one line each: `label`, with its colon, and `value`,
-  which ends in … when the line is too narrow; the whole line as `children`
-  still works but is deprecated), and `categoryTag` is the Category Tag
+  which ends in … when the line is too narrow), and `categoryTag` is the Category Tag
   below them: `<Tag status="info" showIcon={false}>`, as in Figma, or a Tag
   Neutral. Put it in a `TableCell`.
 - `Tabs` is Figma's segmented tabs (Tabs / Cost Type, made generic). Put
@@ -931,7 +929,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 - `BulletItem` is Modal / Bullet Item, an `<li>` with a green dot that stays
   on the first line when the text wraps. A release version ("v2.5.6") is a
   `Tag status="info" showIcon={false}`, in the dialog and the Announcements
-  table. `VersionBadge` (Modal / Version Badge) is deprecated.
+  table.
 - `Logo` is Figma's Navigation / Logo, an `<svg role="img">` named "CAF".
   The mark is CAF's brand ramp (`caf-blue` 600 / 300 / 400) in both
   themes, and the wordmark is `text/primary`. It is 48 high; set another
