@@ -25,11 +25,12 @@ jobs:
           [ "$v" = "${GITHUB_REF_NAME}" ] || (echo "::error::Release tag ${GITHUB_REF_NAME} does not match package.json version $v" && exit 1)
       - name: Install the browser the story tests run in
         run: npx playwright install --with-deps chromium
-      # npm test builds the package (tokens, CSS, the component bundle and its
-      # types) and checks what it would ship (check:package).
+      # npm test builds the package (tokens, CSS, the component modules and
+      # their types) and checks what it would ship (check:package).
       - run: npm test
       # prepack runs `npm run build` again, so the tarball holds a fresh dist/:
-      # the tokens and CSS, dist/index.js and dist/types/.
+      # the tokens and CSS, dist/index.js, dist/components/, dist/lib/ and
+      # dist/types/.
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
