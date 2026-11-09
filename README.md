@@ -10,7 +10,7 @@ way the CAF Figma library subscribes to the GDL Figma library.
 ├─ tokens/semantic/color*.json    the 312 semantic colours, Light + Dark
 ├─ dist/                          theme.css, tokens.css, tokens.dark.css, …
 │                                 = GDL's tokens + CAF's, in GDL's output format;
-│                                 npm run build adds index.js (the components) and types/
+│                                 npm run build adds the components (index.js, components/, lib/) and types/
 └─ src/components/                CAF's React components, on dist/theme.css
 
 from @vdm-design-team/gdl (never copied here)
@@ -50,9 +50,11 @@ it a second time):
 ```
 
 That gives the app Tailwind, every CAF and GDL token as a utility, and the
-components' styles. The theme has an `@source` on the component bundle
-(`dist/index.js`), so the app's Tailwind generates the components' classes
-with no `@source` line in the app. Utilities follow the token names:
+components' styles. The theme has `@source` lines on the component modules
+(`dist/components/`, `dist/lib/`), so the app's Tailwind generates the
+components' classes with no `@source` line in the app. It generates every
+component's classes, not only those of the components the app imports:
+Tailwind scans files, not imports (sizes below). Utilities follow the token names:
 `bg-surface-canvas`, `text-text-primary`,
 `bg-action-primary-surface-default`, `border-stroke-default`,
 `text-body-md-regular`, `rounded-8`, `shadow-elevation-3`, `bg-caf-blue-500`.
@@ -83,11 +85,39 @@ import { Button, DateField, SelectField, ToastProvider, useToast } from '@vdm-de
 </ToastProvider>
 ```
 
-Everything in `src/index.ts` is exported, with its types. The bundle is
-ESM and starts with `"use client"`, so a Next.js Server Component can
-import and render a component directly; helpers like `cn` can only be
-*called* in client code. Overlays (Modal, Popover, Toast) render into
-`<body>` through a portal.
+Everything in `src/index.ts` is exported, with its types. The package is
+ESM, one file per module, and marked `"sideEffects": ["*.css"]`, so the
+app's bundler keeps only the components the app imports and what they use.
+Every component module starts with `"use client"`, so a Next.js Server
+Component can import and render a component directly; helpers like `cn`
+can only be *called* in client code. Overlays (Modal, Popover, Toast)
+render into `<body>` through a portal.
+
+Vite and Next.js with Turbopack (Next's default since 16) need nothing
+more. With webpack (`next build --webpack`; Next 15 and earlier build with
+webpack by default), a Server Component's import brings in every
+component unless the app adds the package to `optimizePackageImports`;
+imports in Client Components are trimmed either way:
+
+```js
+// next.config.mjs, webpack builds only
+export default { experimental: { optimizePackageImports: ['@vdm-design-team/caf'] } };
+```
+
+**What an app ships.** CAF's JS in a Vite 8 + React 19 production build
+(the app's bundle minus the same app importing nothing from CAF),
+minified / gzip:
+
+| The app imports | CAF's JS |
+|---|---|
+| `Button` | 35.2 / 10.4 kB |
+| `Button`, `SelectField`, `DateField`, `ToastProvider`, `ModalDialog` | 81.0 / 25.4 kB |
+| everything | 168.1 / 48.6 kB |
+
+About 30 / 9 kB of that is `cn()` (`tailwind-merge`), which every
+component uses, so the first component costs the most. The components'
+CSS is 49.3 / 7.3 kB whatever the app imports, on top of the theme's own
+19.7 / 3.7 kB (the tokens and Tailwind's base).
 
 **5. Tokens in JS.** `import { tokens } from '@vdm-design-team/caf/tokens'`
 has every value (Light, and Dark under `tokens.dark`). It isn't a client
@@ -102,7 +132,7 @@ app without Tailwind), `typography.desktop.css`, `tokens.json`,
 npm install            # pulls GDL from its git tag — no token needed
 npx playwright install chromium   # once: the browser the story tests run in
 npm test               # lint, build, package contents, GDL contract, contrast (strict), changelog entry, typecheck, story tests
-npm run build          # tokens → dist/, then the component bundle (dist/index.js) and its types
+npm run build          # tokens → dist/, then the components (one file per module) and their types
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
 npm run storybook:build && npm run test:static   # every story against the production build, as Chromatic runs it
 npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
@@ -1006,8 +1036,10 @@ Components use only token utilities:
 fails on hex, px or arbitrary values. Where code departs from Figma, the
 reason is in [`docs/figma-sync.md`](docs/figma-sync.md#components).
 
-The published package carries the components: `npm run build` bundles
-`src/index.ts` into `dist/index.js` with `tsup` and writes the types with
+The published package carries the components: `npm run build` compiles
+each component module into `dist/components/` and `dist/lib/` with `tsup`
+(one file per module, so apps can tree-shake them; `dist/index.js`
+re-exports them by name) and writes the types with
 `tsc -p tsconfig.build.json`, and `npm run check:package` (in `npm test`)
 checks what `npm publish` would ship. How an app uses them: "Using CAF in
 an app" above. Visual review runs through Chromatic once the CAF project's token is set

@@ -46,18 +46,23 @@ result. A CAF app installs `@vdm-design-team/caf` and nothing from GDL.
 
 | The package ships | What it is | GDL in it |
 |---|---|---|
-| `theme.css` | `@import "tailwindcss"`, an `@source` on `index.js`, every token in a Tailwind `@theme`, then `tokens.dark.css` and `typography.desktop.css` | GDL's tokens, already merged |
+| `theme.css` | `@import "tailwindcss"`, `@source` lines on `components/` and `lib/`, every token in a Tailwind `@theme`, then `tokens.dark.css` and `typography.desktop.css` | GDL's tokens, already merged |
 | `tokens.css`, `tokens.dark.css`, `typography.desktop.css` | The same tokens as plain CSS variables (`:root`, `.dark`, `[data-type-scale="desktop"]`) | merged |
 | `tokens.json`, `tokens.flat.json`, `tokens.js` (`/tokens`) | The token values as data | merged |
-| `index.js` (`.`) and `types/` | The components, ESM, with `"use client"`; React, React DOM, `class-variance-authority`, `clsx` and `tailwind-merge` stay external | none: `cn()` knows GDL's names from `src/lib/cn.ts` |
+| `index.js` (`.`), `components/`, `lib/` and `types/` | The components, ESM, one file per module, so an app's bundler keeps only what the app imports (`"sideEffects": ["*.css"]`). Each module in `components/` and `lib/` starts with `"use client"`; `index.js` re-exports them by name. React, React DOM, `class-variance-authority`, `clsx` and `tailwind-merge` stay external | none: `cn()` knows GDL's names from `src/lib/cn.ts` |
 | `tokens/*` | CAF's own token source files | aliases into GDL's names |
 
-The `@source` line is CAF's one addition to GDL's `theme.css` format
+The `@source` lines are CAF's one addition to GDL's `theme.css` format
 (`caf/tailwind-theme` in `style-dictionary.config.mjs`). Tailwind skips
-`node_modules` when it scans an app, so without it the components would
-arrive unstyled. GDL's format starts with `@import "tailwindcss"`, and CAF
-keeps that: a CAF app imports CAF's theme in place of Tailwind, as it would
-GDL's. (VCP's theme drops that import, because VCP apps import Tailwind
+`node_modules` when it scans an app, so without them the components would
+arrive unstyled. Tailwind scans files, not imports, so the app's CSS has
+every component's classes, whichever components it imports: about 49 kB
+minified (7 kB gzip) on top of the theme's 20 kB. The JS is trimmed to
+what the app imports (sizes in the README, "Using CAF in an app").
+
+GDL's format starts with `@import "tailwindcss"`, and CAF keeps that: a
+CAF app imports CAF's theme in place of Tailwind, as it would GDL's.
+(VCP's theme drops that import, because VCP apps import Tailwind
 themselves.)
 
 ## CAF's extensions to the contract

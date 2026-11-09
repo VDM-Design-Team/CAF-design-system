@@ -102,8 +102,8 @@ Read `docs/inheritance.md` before changing anything structural.
 |---|---|
 | `npm run import:figma` | `figma-export/` → `tokens/`, checked against GDL |
 | `npm run tokens` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
-| `npm run build` | `tokens`, then the component bundle (`dist/index.js`, tsup) and its types (`dist/types/`, `tsc -p tsconfig.build.json`): what the package ships |
-| `npm run check:package` | What `npm publish` would ship: every export resolves, the bundle, types and CSS are there, no stories or Storybook build |
+| `npm run build` | `tokens`, then the components, one file per module (`dist/index.js`, `dist/components/`, `dist/lib/`, tsup), and their types (`dist/types/`, `tsc -p tsconfig.build.json`): what the package ships |
+| `npm run check:package` | What `npm publish` would ship: every export and module import resolves, every component module has `"use client"` and none is stray, the types and CSS are there, no stories or Storybook build |
 | `npm run check:contract` | GDL's semantic contract, Light and Dark |
 | `npm run check:contrast` | WCAG AA report for the semantic text, focus and border pairs (`-- --strict` fails on any) |
 | `npm run lint:components` | No hex, px or arbitrary values in `src/`; spacing on GDL's scale; `cn()` in step with GDL |
