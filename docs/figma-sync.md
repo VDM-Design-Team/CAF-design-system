@@ -4611,7 +4611,7 @@ Figma gaps the code doesn't copy: none since 3 Nov 2026.
 
 ### VersionBadge (removed in 1.0.0)
 
-**Removed in 1.0.0** (deprecated on 3 Nov 2026, decision version-badge). Show a release version as `<Tag status="info" showIcon={false}>`, as the Announcements table and ChangelogHeader do. Figma's `Modal / Version Badge` (`359:10826`, page Modals) is still in the library with a "Deprecated" description and no placements; deleting it there is the library's call.
+**Removed in 1.0.0** (deprecated on 3 Nov 2026, decision version-badge). Show a release version as `<Tag status="info" showIcon={false}>`, as the Announcements table and ChangelogHeader do. Figma's `Modal / Version Badge` (`359:10826`, page Modals) was deleted from the library on 9 Nov 2026 (no placements in the library or the CAF Design screens) and the library published.
 
 ### BulletItem (30 Oct 2026)
 
