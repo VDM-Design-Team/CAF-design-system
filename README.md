@@ -21,6 +21,8 @@ from @vdm-design-team/gdl (never copied here)
 
 What comes from where, and why: [`docs/inheritance.md`](docs/inheritance.md).
 
+New to the team? Start with [`ONBOARDING.md`](ONBOARDING.md).
+
 ## Using CAF in an app
 
 The package is on GitHub Packages. Tell npm where the scope lives, in the
@@ -1070,11 +1072,13 @@ Merge that as the release PR, then create a GitHub release tagged
 tokens, the CSS and the components (`npm publish` runs `npm run build`
 through `prepack`).
 
-## Status (v0.1)
+## Status (1.0.0, 6 Nov 2026)
 
-- Tokens, plus the first components (`Button`, `Checkbox`, `TableCell`) in Storybook. More
-  components follow, built straight from the CAF Figma library onto these
-  tokens (shared ones move up into GDL once a second brand needs them).
+- Tokens, 99 components, and the patterns and templates built from them, in
+  [Storybook](https://main--6ad8873b88978c4e849351ae.chromatic.com). Apps
+  install and import them (see "Using CAF in an app"). Each is built straight
+  from the CAF Figma library onto these tokens; shared ones move up into GDL
+  once a second brand needs them.
 - Every semantic pair meets WCAG AA in Light and Dark: text and labels
   4.5:1, the focus ring and component borders 3:1. `npm test` runs
   `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
