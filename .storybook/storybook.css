@@ -1,6 +1,6 @@
 /* Storybook entry: CAF's compiled theme (GDL's tokens + CAF's, dist/theme.css)
-   + Tailwind scanning of the components. Inter is CAF's UI face. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+   + Tailwind scanning of the components. Open Sans is CAF's UI face. */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 @import '../dist/theme.css';
 @source '../src';
 

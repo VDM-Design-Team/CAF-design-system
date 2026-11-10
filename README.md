@@ -6,7 +6,7 @@ way the CAF Figma library subscribes to the GDL Figma library.
 ```
 @vdm-design-team/caf
 ├─ tokens/core/color.json         CAF's own ramps: caf-blue, caf-blue-on-dark
-├─ tokens/core/typography.json    font.family.sans → Inter (CAF's one override of GDL)
+├─ tokens/core/typography.json    font.family.sans → Open Sans (CAF's one override of GDL)
 ├─ tokens/semantic/color*.json    the 312 semantic colours, Light + Dark
 ├─ dist/                          theme.css, tokens.css, tokens.dark.css, …
 │                                 = GDL's tokens + CAF's, in GDL's output format;
@@ -66,14 +66,14 @@ Dark (what `next-themes` sets with `attribute="class"`). The tokens swap;
 the components need nothing else. Give the page CAF's canvas:
 `<body class="bg-surface-canvas text-text-primary">`.
 
-**3. Inter.** The theme sets `--font-sans` to Inter (weights 400, 500, 600
+**3. Open Sans.** The theme sets `--font-sans` to Open Sans (weights 400, 500, 600
 and 700) but doesn't load it, so the app does, for example in `index.html`:
 
 ```html
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" />
 ```
 
-or with `next/font/google` or `@fontsource/inter`.
+or with `next/font/google` or `@fontsource/open-sans`.
 
 **4. The components.**
 

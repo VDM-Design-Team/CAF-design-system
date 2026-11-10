@@ -54,6 +54,23 @@ Brand Primitives have `"s": []`, meaning hidden from pickers.
 Bound to: the five inputs' Default and Filled border, Filter / Field,
 Radio Deselected, Checkbox's unchecked border, and Toggle's off track.
 
+## Open Sans (10 Nov 2026)
+
+CAF's UI face is Open Sans, from GDL 1.1.0's `font.family.open-sans`. All
+45 CAF text styles were switched in Figma on 10 Nov 2026; sizes, the
+Caption/md-medium metrics and the elevations are unchanged.
+
+| | Figma | Code | Figma fix |
+|---|---|---|---|
+| Medium weight | Figma's Open Sans has no Medium, so the 8 `-medium` styles (Title/sm, Body/lg, md, sm, Label/md, sm, Caption/md, sm) use SemiBold | GDL's ramp: 500, from Google Fonts' Open Sans | Set them to Medium once Figma's Open Sans has it. The importer accepts SemiBold for a `-medium` style only while the face is Open Sans |
+| Family variable | Not bound: the account that made the switch can't reach GDL's library, so the styles had `font/family/inter` unbound and Open Sans set directly. `npm run import:figma` lists each style | `font.family.sans` → `{font.family.open-sans}` | Bind every text style's font family to GDL's `font/family/open sans` |
+
+The component tables below give Figma heights measured on Inter's auto line
+height ("Inter's auto line height, 17px"). Open Sans's auto line height is
+taller (about 1.36× the size, Inter about 1.21×), so those Figma heights
+are now a few pixels larger. Code is unaffected: it uses GDL's line heights,
+not the face's auto ones.
+
 ## CI guard
 
 CI runs `npm run import:figma` and fails if `tokens/` changes. So `tokens/`
