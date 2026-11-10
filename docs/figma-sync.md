@@ -73,10 +73,11 @@ Still open:
   contract check reports them as warnings. `surface.overlay` Dark is
   `#020617bf` since 3 Nov (GDL slate 950 at 75%, decision dark-modal-edge;
   it stays a CAF value, decision fc-modals-overlay-gdl).
-- Caption/md-medium's 16px line height and 0.3px letter spacing are typed
-  on the style, not bound: GDL's Figma has no line-height or
-  letter-spacing variables yet (a GDL change). The other styles keep AUTO
-  and 0%; code takes every metric from GDL.
+- Caption/md-medium's 16px line height and 0.3px letter spacing are bound
+  to GDL's `font/line-height/caption-md` and `font/letter-spacing/caption-md`
+  (GDL 1.1.0; since 10 Nov 2026, same values). The other styles keep AUTO
+  and 0%; code takes every metric from GDL. Fix in Figma: bind each style's
+  line height and letter spacing to its tier's GDL variables.
 
 ## Components
 
@@ -150,9 +151,13 @@ Also in Figma: Text / Hover keeps a zero-width raw-blue stroke, which is
 invisible and has no effect on code. The label's letter spacing is 0 in
 Figma; the GDL ramp gives Label/md-semibold 0.1px.
 
-Not in Figma: a Label text property on the three sets. The label sits
-inside a nested GDL base button, so it is a GDL task (decision
-fc-buttons-gdl-label). In code the label is `children` either way.
+**Changed in Figma on 10 Nov 2026** (decision fc-buttons-gdl-label, after
+GDL 1.1.0): in all 180 variants the nested GDL base button (`Button_Big`,
+`Button_Normal`, `Button_Small`) is swapped to GDL's published version,
+which has a **Label** text property, and is an exposed instance. A placed
+Button / Big, Normal or Small now shows the base button's Label in its
+properties panel. Placed labels kept their text (checked on every library
+page). In code the label is `children`, as before. Nothing looks different.
 
 **Changed in Figma on 5 Nov 2026:** nothing on the Button sets (published
 6 Nov). `Button / Normal`'s description already says "In code, a Button that
@@ -2043,7 +2048,7 @@ Code departs from Figma here:
 | Elevation | Elevation Dark/4 | `shadow-elevation-4` (see ModalDialog) | None in Figma |
 | Role, focus | n/a | `alertdialog`, described by the Message; focus opens on Cancel | None needed |
 | Closing | No close button | Escape and Cancel close it; a backdrop click doesn't | None needed |
-| Labels | Text overrides on the button instances | `confirmLabel` and `cancelLabel` | Text properties, once Button / Normal has a Label property (decided 3 Nov) |
+| Labels | The two buttons are exposed instances (since 10 Nov 2026), so Modal / Confirm shows each one's Label property | `confirmLabel` and `cancelLabel` | None needed |
 
 **Changed in Figma on 3 Nov 2026** (decision modal-widths): the width is 448 (was 420), as code. Its placement on Patterns – Admin follows. No code change.
 
