@@ -39,7 +39,7 @@ import {
  * - Row: TableExpandButton (in a Custom cell, as Figma's Header Row example
  *   places it), Checkbox, TableAccountDetails in a Custom cell (ID,
  *   applicant, beneficiary, account, each a Detail Label's Label and Value;
- *   a "Recurring" Tag Info, without its icon, on a recurring cost), text
+ *   a "Recurring" Tag Pending, without its icon, on a recurring cost), text
  *   cells, the status's StatusPill, and the RowActionsMenu.
  * - Expanded: a row under it with the cost's breakdown (Figma's Breakdown
  *   Table, 121:2957), or whatever `renderDetails` returns.
@@ -266,7 +266,7 @@ export const CostsTable = React.forwardRef<HTMLTableElement, CostsTableProps>(fu
                 <TableAccountDetails
                   categoryTag={
                     cost.type === 'recurring' ? (
-                      <Tag status="info" showIcon={false}>
+                      <Tag status="pending" showIcon={false}>
                         Recurring
                       </Tag>
                     ) : undefined

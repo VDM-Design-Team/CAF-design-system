@@ -12,17 +12,18 @@ import { cn } from '../../lib/cn';
  *   `<TableDetailLabel label value>` per line, stacked with no gap, as in
  *   Figma.
  * - Category Tag (instance swap) → `categoryTag`: the element to show below
- *   the lines, 12px under them. Figma's default is a Tag Status=Info with
- *   Show Icon off, "Recurring": `<Tag status="info" showIcon={false}>`. Its
- *   other preferred value is Tag Neutral. A tonal Tag, so the category
- *   doesn't read as a second status. Leave it out for no tag.
+ *   the lines, 12px under them. Figma's default is a Tag Status=Pending
+ *   with Show Icon off, "Recurring": `<Tag status="pending" showIcon={false}>`.
+ *   Its other preferred value is Tag Neutral. A tonal Tag,
+ *   not the filled Status Pill, so it stays lighter than the row's status.
+ *   Leave it out for no tag.
  *
  * It has no fill, border or states of its own: its colours are its parts'.
  * Where code departs from Figma, the reason is in docs/figma-sync.md
  * ("TableAccountDetails").
  */
 export interface TableAccountDetailsProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Figma's Category Tag: a `<Tag status="info" showIcon={false}>` (Figma's default, "Recurring") or a Tag Neutral. Optional. */
+  /** Figma's Category Tag: a `<Tag status="pending" showIcon={false}>` (Figma's default, "Recurring") or a Tag Neutral. Optional. */
   categoryTag?: React.ReactNode;
 }
 

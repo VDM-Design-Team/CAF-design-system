@@ -1081,12 +1081,12 @@ Source: page **Table** (`3:1823`), component `Table / Account Details`
 (`99:214`): the cost row's Account column. It holds four nested
 `Table / Detail Label` instances (ID, Applicant, Beneficiary name, IBAN
 Account) and a Category Tag (`Category Tag#99:3`, an instance swap whose
-default is `Tag / Status=Info` (`330:3826`) with Show Icon off, labelled
-"Recurring"; its preferred values are Tag Info and Tag Neutral). It is
-nested in every `Table / Row – Cost`. Code:
+default is `Tag / Status=Pending` (`330:3821`) with Show Icon off, labelled
+"Recurring"; its preferred values are Tag Pending and Tag Neutral). It
+is nested in every `Table / Row – Cost`. Code:
 `src/components/table-account-details/`. The Storybook grids check the
 lines' colour and stacking, the 12px gap to the tag and the tag's colours,
-for Tag Info, Tag Neutral and no tag, in Light and Dark. They also check it
+for Tag Pending, Tag Neutral and no tag, in Light and Dark. They also check it
 in a TableRow (Default, Hover, Selected, Expanded) next to a
 TableExpandButton.
 
@@ -1095,11 +1095,11 @@ TableExpandButton.
 | Frame: vertical, gap `space/12`, hugs | `flex flex-col items-start gap-3` |
 | Details: vertical, gap 0 | `flex flex-col items-start` |
 | The four `Table / Detail Label` instances | `children`: one `<TableDetailLabel label value>` per line |
-| Category Tag (instance swap; default Tag Info, Show Icon off, "Recurring") | `categoryTag`: `<Tag status="info" showIcon={false}>Recurring</Tag>`, or a Tag Neutral. Optional |
+| Category Tag (instance swap; default Tag Pending, Show Icon off, "Recurring") | `categoryTag`: `<Tag status="pending" showIcon={false}>Recurring</Tag>`, or a Tag Neutral. Optional |
 
 Contrast: the lines are `text/primary` (see TableDetailLabel). The
-category tag keeps Tag's own bindings: Tag Info's "Recurring" is 5.60
-(Light) / 5.72 (Dark), Tag Neutral's 8.40 / 5.10.
+category tag keeps Tag's own bindings: Tag Pending's "Recurring" is 4.52
+(Light) / 5.56 (Dark), Tag Neutral's 8.40 / 5.10.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes): the Category
 Tag's label had been overridden to `text/primary` on the orange pill (3.90 /
@@ -1116,6 +1116,15 @@ dark-pins-components; published):
 - **The Semantics → Dark pin** on the component is cleared, and the
   Category Tag's Light pin went with the swap. Code follows the page's
   theme.
+
+**Changed in Figma on 10 Nov 2026** (published): the Category Tag's
+default is `Tag / Status=Pending` (`330:3821`), still Show Icon off and
+"Recurring", so a recurring cost reads orange again, but as a tonal Tag,
+lighter than the row's filled Status Pill. The preferred values are Tag
+Pending and Tag Neutral; Tag Info is no longer offered. Every placed
+Category Tag (Table and both Patterns pages, 76) is Tag Pending. Code's
+stories, and the Costs table's recurring costs, use
+`<Tag status="pending" showIcon={false}>`.
 
 Code departs from Figma here:
 

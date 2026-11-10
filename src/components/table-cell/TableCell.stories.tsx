@@ -213,7 +213,7 @@ const CUSTOM: { label: string; cell: ReactNode; content: string }[] = [
         <TableAccountDetails
           data-content="account"
           categoryTag={
-            <Tag status="info" showIcon={false}>
+            <Tag status="pending" showIcon={false}>
               Recurring
             </Tag>
           }
