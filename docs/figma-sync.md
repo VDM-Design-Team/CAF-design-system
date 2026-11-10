@@ -1117,7 +1117,7 @@ dark-pins-components; published):
   Category Tag's Light pin went with the swap. Code follows the page's
   theme.
 
-**Changed in Figma on 10 Nov 2026** (not yet published): the Category Tag's
+**Changed in Figma on 10 Nov 2026** (published): the Category Tag's
 default is `Tag / Status=Pending` (`330:3821`), still Show Icon off and
 "Recurring", so a recurring cost reads orange again, but as a tonal Tag,
 lighter than the row's filled Status Pill. The preferred values are Tag
