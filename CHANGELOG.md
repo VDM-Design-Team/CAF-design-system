@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.0.1 — 2026-11-10
+
+### The "Recurring" tag on a cost is orange again (November 2026)
+
+The CAF Figma library's `Table / Account Details` now defaults its Category
+Tag to Tag Pending, without its icon, still labelled "Recurring" (it was Tag
+Info, blue). The Costs table's recurring costs follow:
+`<Tag status="pending" showIcon={false}>Recurring</Tag>`. It is the tonal
+Tag, not the filled Status Pill, so it stays lighter than the row's status.
+`TableAccountDetails` itself is unchanged: `categoryTag` still takes any
+Tag, and Figma now offers only Tag Pending and Tag Neutral for it (Tag Info
+is no longer a preferred value).
+
+In Storybook, Light and Dark: the Costs table's and TableAccountDetails'
+"Recurring" tag is orange (Tag Pending's tonal fill) instead of blue. Its
+label passes AA: 4.52 (Light), 5.56 (Dark).
+
+### Apps ship only the components they import (November 2026)
+
+The package's JS is now one file per module instead of one bundle, and
+`package.json` says `"sideEffects": ["*.css"]`, so an app's bundler drops
+every component the app doesn't import. In a Vite + React 19 app,
+importing only `Button` adds 35.2 kB of CAF's JS (10.4 kB gzip), down
+from 160.9 kB (45.6 kB gzip) in 1.0.0. An app that imports everything
+gets the same JS as before.
+
+- **Imports don't change.** `import { Button } from '@vdm-design-team/caf'`
+  works as before, with the same types; no export is added or removed.
+- **Next.js App Router.** Every component module starts with
+  `"use client"`, so Server Components can still import and render
+  components directly. With Turbopack (Next's default since 16) and in
+  Client Components, an app gets only what it imports. A webpack build
+  (`next build --webpack`) brings in every component for a Server
+  Component's import unless the app lists `@vdm-design-team/caf` in
+  `experimental.optimizePackageImports`.
+- **CSS.** `theme.css` now has `@source "./components"` and
+  `@source "./lib"` in place of `@source "./index.js"`. Tailwind scans
+  files, not imports, so an app's CSS still has every component's classes
+  (about 49 kB minified, 7 kB gzip, on top of the theme). Apps keep
+  importing `theme.css` in place of `@import "tailwindcss"`; nothing in
+  the app changes.
+
+No component looks different, in Light or Dark.
+
 ## 1.0.0 — 2026-11-06
 
 ### Deprecated APIs removed: TableDetailLabel `children` and VersionBadge (November 2026)
