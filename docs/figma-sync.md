@@ -64,6 +64,7 @@ Caption/md-medium metrics and the elevations are unchanged.
 |---|---|---|---|
 | Medium weight | Figma's Open Sans has no Medium, so the 8 `-medium` styles (Title/sm, Body/lg, md, sm, Label/md, sm, Caption/md, sm) use SemiBold | GDL's ramp: 500, from Google Fonts' Open Sans | Set them to Medium once Figma's Open Sans has it. The importer accepts SemiBold for a `-medium` style only while the face is Open Sans |
 | Family variable | Not bound: the account that made the switch can't reach GDL's library, so the styles had `font/family/inter` unbound and Open Sans set directly. `npm run import:figma` lists each style | `font.family.sans` → `{font.family.open-sans}` | Bind every text style's font family to GDL's `font/family/open sans` |
+| Weight variable | The 23 Bold and Regular styles bind GDL's `font/weight/bold` and `font/weight/regular` (10 Nov 2026). The 14 SemiBold and 8 `-medium` styles bind nothing: GDL's `font/weight/semibold` is "Semibold", which is neither Open Sans's "SemiBold" nor Inter's "Semi Bold", and Open Sans has no Medium | GDL's `font.weight.*`, as before | GDL: give `font/weight/semibold` a value Open Sans has, then bind the SemiBold styles. The `-medium` styles wait for a Medium in Figma |
 
 The component tables below give Figma heights measured on Inter's auto line
 height ("Inter's auto line height, 17px"). Open Sans's auto line height is
