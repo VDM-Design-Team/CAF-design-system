@@ -17,8 +17,9 @@ Apps now load Open Sans instead of Inter, for example:
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" />
 ```
 
-Requires `@vdm-design-team/gdl` ^1.1.0 (was ^1.0.0). In the CAF Figma
-library the 45 text styles are Open Sans; Figma's Open Sans has no Medium,
+Uses GDL 1.1.0, which CAF already installs. In the CAF Figma library the
+45 text styles are Open Sans, bound to GDL's `font/family/open sans`; Figma's
+Open Sans has no Medium,
 so the 8 `-medium` styles show SemiBold there while code keeps 500
 (`docs/figma-sync.md` → Open Sans).
 
