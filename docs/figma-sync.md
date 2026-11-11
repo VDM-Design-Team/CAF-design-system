@@ -91,12 +91,23 @@ Still open:
   contract check reports them as warnings. `surface.overlay` Dark is
   `#020617bf` since 3 Nov (GDL slate 950 at 75%, decision dark-modal-edge;
   it stays a CAF value, decision fc-modals-overlay-gdl).
-- Caption/md-medium's 16px line height and 0.3px letter spacing are typed
-  on the style, not bound: GDL's Figma has no line-height or
-  letter-spacing variables yet (a GDL change). The other styles keep AUTO
-  and 0%; code takes every metric from GDL.
+- Since 10 Nov 2026 (GDL 1.1.0) every CAF text style binds GDL's
+  `font/family/open sans` and its tier's `font/line-height/<tier>` and
+  `font/letter-spacing/<tier>`, as well as its size. Until then only
+  Caption/md-medium had the ramp's metrics, typed by hand; the rest had
+  AUTO line height and 0 letter spacing. The weights of the SemiBold and
+  `-medium` styles are still unbound: GDL's `font/weight/semibold` value
+  doesn't match a style Open Sans has.
 
 ## Components
+
+**Changed in Figma on 10 Nov 2026:** every text style binds GDL's line
+height and letter spacing (see above), so Figma's text now has the ramp's
+metrics, as code. Rows below that give a Figma height or line height "on
+Inter's auto line height" and ask to bind the text style to the ramp
+describe Figma before that date: those line-height departures are gone.
+Heights that come only from the line height now match code. A row's other
+departures, such as raw padding or gaps, still stand.
 
 Components are built straight from the CAF Design Library, never from an
 intermediate export. Each one reads its variants, states and variable
@@ -159,7 +170,7 @@ Code departs from Figma here. Fix these in Figma:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs Inter's auto line height: Big 46 / 48 with icon, Normal 35 / 36, Small 33 | Fixed 48 / 36 / 32, on GDL's line heights | Fixed heights 48 / 36 / 32 |
+| Height | Hugs the label on GDL's line heights (since 10 Nov 2026): Big 50 (26 + 12 + 12), Normal 36, Small 34 (18 + 8 + 8), with or without icons | Fixed 48 / 36 / 32 | Fixed heights 48 and 32 on Big and Small |
 | Icon gap | Big and Normal: raw 10px, unbound | 8px (`space/8`, as Small already uses) | Bind item spacing to `space/8` |
 | Hover shadow (Default, Destructive, Tonal, Success) | Two raw drop shadows, `0 1 2` and `0 4 4` at 25% black | `shadow.elevation.2`, the closest GDL elevation (Figma's is darker) | Apply the Elevation 2 effect style |
 | Radius | Bound to GDL's `radius/8`, which the file shows under its old name `radius-4` (see TableExpandButton) | `rounded-8` | None: take GDL's library update in the CAF library |
@@ -168,9 +179,13 @@ Also in Figma: Text / Hover keeps a zero-width raw-blue stroke, which is
 invisible and has no effect on code. The label's letter spacing is 0 in
 Figma; the GDL ramp gives Label/md-semibold 0.1px.
 
-Not in Figma: a Label text property on the three sets. The label sits
-inside a nested GDL base button, so it is a GDL task (decision
-fc-buttons-gdl-label). In code the label is `children` either way.
+**Changed in Figma on 10 Nov 2026** (decision fc-buttons-gdl-label, after
+GDL 1.1.0): in all 180 variants the nested GDL base button (`Button_Big`,
+`Button_Normal`, `Button_Small`) is swapped to GDL's published version,
+which has a **Label** text property, and is an exposed instance. A placed
+Button / Big, Normal or Small now shows the base button's Label in its
+properties panel. Placed labels kept their text (checked on every library
+page). In code the label is `children`, as before. Nothing looks different.
 
 **Changed in Figma on 5 Nov 2026:** nothing on the Button sets (published
 6 Nov). `Button / Normal`'s description already says "In code, a Button that
@@ -1099,12 +1114,12 @@ Source: page **Table** (`3:1823`), component `Table / Account Details`
 (`99:214`): the cost row's Account column. It holds four nested
 `Table / Detail Label` instances (ID, Applicant, Beneficiary name, IBAN
 Account) and a Category Tag (`Category Tag#99:3`, an instance swap whose
-default is `Tag / Status=Info` (`330:3826`) with Show Icon off, labelled
-"Recurring"; its preferred values are Tag Info and Tag Neutral). It is
-nested in every `Table / Row – Cost`. Code:
+default is `Tag / Status=Pending` (`330:3821`) with Show Icon off, labelled
+"Recurring"; its preferred values are Tag Pending and Tag Neutral). It
+is nested in every `Table / Row – Cost`. Code:
 `src/components/table-account-details/`. The Storybook grids check the
 lines' colour and stacking, the 12px gap to the tag and the tag's colours,
-for Tag Info, Tag Neutral and no tag, in Light and Dark. They also check it
+for Tag Pending, Tag Neutral and no tag, in Light and Dark. They also check it
 in a TableRow (Default, Hover, Selected, Expanded) next to a
 TableExpandButton.
 
@@ -1113,11 +1128,11 @@ TableExpandButton.
 | Frame: vertical, gap `space/12`, hugs | `flex flex-col items-start gap-3` |
 | Details: vertical, gap 0 | `flex flex-col items-start` |
 | The four `Table / Detail Label` instances | `children`: one `<TableDetailLabel label value>` per line |
-| Category Tag (instance swap; default Tag Info, Show Icon off, "Recurring") | `categoryTag`: `<Tag status="info" showIcon={false}>Recurring</Tag>`, or a Tag Neutral. Optional |
+| Category Tag (instance swap; default Tag Pending, Show Icon off, "Recurring") | `categoryTag`: `<Tag status="pending" showIcon={false}>Recurring</Tag>`, or a Tag Neutral. Optional |
 
 Contrast: the lines are `text/primary` (see TableDetailLabel). The
-category tag keeps Tag's own bindings: Tag Info's "Recurring" is 5.60
-(Light) / 5.72 (Dark), Tag Neutral's 8.40 / 5.10.
+category tag keeps Tag's own bindings: Tag Pending's "Recurring" is 4.52
+(Light) / 5.56 (Dark), Tag Neutral's 8.40 / 5.10.
 
 **Changed in Figma on 29 Oct 2026** (clear binding fixes): the Category
 Tag's label had been overridden to `text/primary` on the orange pill (3.90 /
@@ -1134,6 +1149,15 @@ dark-pins-components; published):
 - **The Semantics → Dark pin** on the component is cleared, and the
   Category Tag's Light pin went with the swap. Code follows the page's
   theme.
+
+**Changed in Figma on 10 Nov 2026** (published): the Category Tag's
+default is `Tag / Status=Pending` (`330:3821`), still Show Icon off and
+"Recurring", so a recurring cost reads orange again, but as a tonal Tag,
+lighter than the row's filled Status Pill. The preferred values are Tag
+Pending and Tag Neutral; Tag Info is no longer offered. Every placed
+Category Tag (Table and both Patterns pages, 76) is Tag Pending. Code's
+stories, and the Costs table's recurring costs, use
+`<Tag status="pending" showIcon={false}>`.
 
 Code departs from Figma here:
 
@@ -2052,7 +2076,7 @@ Code departs from Figma here:
 | Elevation | Elevation Dark/4 | `shadow-elevation-4` (see ModalDialog) | None in Figma |
 | Role, focus | n/a | `alertdialog`, described by the Message; focus opens on Cancel | None needed |
 | Closing | No close button | Escape and Cancel close it; a backdrop click doesn't | None needed |
-| Labels | Text overrides on the button instances | `confirmLabel` and `cancelLabel` | Text properties, once Button / Normal has a Label property (decided 3 Nov) |
+| Labels | The two buttons are exposed instances (since 10 Nov 2026), so Modal / Confirm shows each one's Label property | `confirmLabel` and `cancelLabel` | None needed |
 
 **Changed in Figma on 3 Nov 2026** (decision modal-widths): the width is 448 (was 420), as code. Its placement on Patterns – Admin follows. No code change.
 

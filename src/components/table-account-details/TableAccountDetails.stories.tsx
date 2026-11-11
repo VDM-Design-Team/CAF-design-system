@@ -25,9 +25,9 @@ function Lines({ id = '32430' }: { id?: string }) {
   );
 }
 
-/* Figma's default Category Tag: Tag Status=Info, Show Icon off, "Recurring". */
+/* Figma's default Category Tag: Tag Status=Pending, Show Icon off, "Recurring". */
 const recurring = (
-  <Tag status="info" showIcon={false}>
+  <Tag status="pending" showIcon={false}>
     Recurring
   </Tag>
 );
@@ -41,7 +41,7 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Table** (`Table / Account Details`): the cost row’s Account column. ' +
           'The lines are `children`, one `TableDetailLabel` (`label`, `value`) each. Figma’s Category Tag is `categoryTag`, ' +
-          '12px below them: Figma’s default is `<Tag status="info" showIcon={false}>` “Recurring”, and Tag Neutral is ' +
+          '12px below them: Figma’s default is `<Tag status="pending" showIcon={false}>` “Recurring”, and Tag Neutral is ' +
           'its other preferred value. Leave it out for no tag. ' +
           'In a table, put it in a `TableCell`, next to a `TableExpandButton`.',
       },
@@ -54,7 +54,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma's default: four lines and a “Recurring” Tag Info, without its icon. */
+/** Figma's default: four lines and a “Recurring” Tag Pending, without its icon. */
 export const Playground: Story = {};
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -79,13 +79,13 @@ function utilityBackground(className: string) {
 }
 
 /* ── Category Tag, in Light and Dark ───────────────────────────────────────
-   Figma's default Tag Info and its other preferred value, Tag Neutral (both
-   with Show Icon off), and no tag. Checked against Figma's layout and
+   Figma's default Tag Pending and its other preferred value, Tag Neutral
+   (both with Show Icon off), and no tag. Checked against Figma's layout and
    bindings: lines stacked with no gap in text/primary, the tag 12px below
    them in its tonal colours. */
 
 const TAGS = [
-  { name: 'Tag Info (Figma’s default)', status: 'info', tag: recurring },
+  { name: 'Tag Pending (Figma’s default)', status: 'pending', tag: recurring },
   {
     name: 'Tag Neutral',
     status: 'neutral',
@@ -120,7 +120,7 @@ const tags = (theme: 'light' | 'dark'): Story => ({
     const text = tokenColour('text-primary');
     // Tag's tonal fill and label colour per status.
     const tagColours: Record<string, string[]> = {
-      info: [tokenColour('accent-info-tonal-surface-default'), tokenColour('accent-info-tonal-content-default')],
+      pending: [tokenColour('accent-pending-tonal-surface-default'), tokenColour('accent-pending-tonal-content-default')],
       neutral: [tokenColour('neutral-tonal-surface-default'), tokenColour('neutral-tonal-content-default')],
     };
     await waitFor(() => {
