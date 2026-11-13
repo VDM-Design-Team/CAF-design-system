@@ -38,7 +38,7 @@ export const ExportsStatRow = React.forwardRef<HTMLDivElement, ExportsStatRowPro
     <StatRow ref={ref} role="group" aria-label="Export totals" {...props}>
       <StatCard label="Total Exports" value={String(stats.total)} icon="file-text" tone="info" />
       <StatCard label="Completed" value={String(stats.completed)} icon="check-circle" tone="success" />
-      <StatCard label="Processing" value={String(stats.processing)} icon="clock" tone="pending" />
+      <StatCard label="Processing" value={String(stats.processing)} icon="clock" tone="info" />
       <StatCard label="Failed" value={String(stats.failed)} icon="x-circle" tone="critical" />
     </StatRow>
   );
