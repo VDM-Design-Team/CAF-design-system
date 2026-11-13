@@ -74,10 +74,14 @@ async function expectFits(canvasElement: HTMLElement, mode: Mode) {
   if (mode !== 'mobile') return;
   const region = await within(canvasElement).findByRole('region', { name: 'Contacts' });
   await expect(region.clientWidth).toBe(288);
-  // The table is at least 1024: every column keeps Figma's width, Message the other 272. The region scrolls.
+  // The table is at least 1024, so the columns keep their widths and the region scrolls: Email 320,
+  // Date Received its sortable label, Subject 128, Actions its button (Figma's 112), Message the rest.
   await expect(region.scrollWidth).toBe(1024);
-  const widths = [...region.querySelectorAll('th')].map((th) => th.getBoundingClientRect().width);
-  await expect(widths).toEqual([320, 160, 160, 272, 112]);
+  const [email, date, subject, message, actions] = [...region.querySelectorAll('th')].map((th) => th.getBoundingClientRect().width);
+  await expect([email, subject]).toEqual([320, 128]);
+  await expect(date).toBeGreaterThanOrEqual(128);
+  await expect(Math.round(actions)).toBe(112);
+  await expect(message).toBeGreaterThanOrEqual(240);
 }
 
 /* Each step in Light, Dark and at a phone's width. A Dark story sets the theme

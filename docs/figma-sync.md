@@ -5597,9 +5597,10 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Text (Truncated) font size | The Value layer's font size is a raw 14, not bound to `font/size/body-sm` (the rest of Body/sm-regular is bound) | Body/sm-regular from GDL's ramp (14px) | Bind the font size to `font/size/body-sm` |
+| Contacts column widths | Fixed 320, 160, 160, fills, 112 (raw, not bound) | On GDL's scale: Email `w-xs` (container xs, 320); Date Received and Subject `w-32` (space.128), Date Received growing to its sortable label (about 155); Message the rest; Actions `w-1`, hugging its Remove (112 with the padding) | Use widths on the space scale (128, 256) or none, and let Message fill |
 | Text (Truncated) full value | Cut, with no way to see the rest | Cut; the whole value stays in the DOM, so screen readers read it all | None needed (an admin doesn't read messages, decision for pattern 16) |
 
-Where the patterns use them: Contacts' Message (Text (Truncated)) and Remove (Button) columns, in `src/patterns/contacts/ContactsListPage.tsx`. **Table / Header – Contacts** (`951:11007`) and **Table / Row – Contact** (`951:11026`) are composed there from TableHeaderRow, TableHeaderCell, TableRow and TableCell, not built as components, as the Costs header and row are (`CostsTable`). Their column widths (320, 160, 160, the rest, 112) are `w-80`, `w-40`, `w-40`, none and `w-28`; the table is at least 1024 wide (`min-w-5xl`) so Message keeps 272 where the region scrolls. Figma's Actions header is a visible label, so it is a TableHeaderCell, not TableHeaderRow's screen-reader-only `showActions` column.
+Where the patterns use them: Contacts' Message (Text (Truncated)) and Remove (Button) columns, in `src/patterns/contacts/ContactsListPage.tsx`. **Table / Header – Contacts** (`951:11007`) and **Table / Row – Contact** (`951:11026`) are composed there from TableHeaderRow, TableHeaderCell, TableRow and TableCell, not built as components, as the Costs header and row are (`CostsTable`). The table is at least 1024 wide (`min-w-5xl`), so the columns keep their widths where the region scrolls. Figma's Actions header is a visible label, so it is a TableHeaderCell, not TableHeaderRow's screen-reader-only `showActions` column.
 
 ### TableList (2 Nov 2026)
 

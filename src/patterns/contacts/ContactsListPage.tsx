@@ -63,8 +63,10 @@ export interface ContactsListPageProps {
   today?: Date;
 }
 
-/* Figma's column widths: Email 320, Date Received 160, Subject 160, Message fills, Actions 112. */
-const W = { email: 'w-80', date: 'w-40', subject: 'w-40', actions: 'w-28' } as const;
+/* Figma's column widths: Email 320, Date Received 160, Subject 160, Message fills, Actions 112. On GDL's
+   scale (docs/figma-sync.md): Email 320 is container xs; Date Received and Subject take space.128 (Date
+   Received grows to its sortable label, about 155); Actions hugs its Remove button, 112 with the padding. */
+const W = { email: 'w-xs', date: 'w-32', subject: 'w-32', actions: 'w-1' } as const;
 /* Message fills what the others leave. The table is at least 1024 wide (container 5xl), so Message keeps
    272 and the others their widths; on a narrower screen TableList's region scrolls sideways. */
 const TABLE_MIN = 'min-w-5xl';
