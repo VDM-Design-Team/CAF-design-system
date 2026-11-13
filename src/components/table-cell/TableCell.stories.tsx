@@ -194,8 +194,9 @@ export const ButtonCell: Story = {
     await expect(button).toHaveTextContent('Remove');
     const td = canvasElement.querySelector('td')!;
     await waitFor(() => {
-      // 112 wide (Figma's Cell / Remove; within a pixel, as fonts render a little wider on Linux), the button 16 in.
-      expect(td.getBoundingClientRect().width).toBeCloseTo(112, 0);
+      // Figma's Cell / Remove: 112 wide, the button 16 in. The column is w-28, so the cell is 112 whatever
+      // width the browser draws the label at.
+      expect(td.getBoundingClientRect().width).toBe(112);
       expect(button.getBoundingClientRect().left - td.getBoundingClientRect().left).toBe(16);
     });
   },

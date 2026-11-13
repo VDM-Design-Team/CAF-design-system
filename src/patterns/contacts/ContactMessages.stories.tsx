@@ -75,12 +75,16 @@ async function expectFits(canvasElement: HTMLElement, mode: Mode) {
   const region = await within(canvasElement).findByRole('region', { name: 'Contacts' });
   await expect(region.clientWidth).toBe(288);
   // The table is at least 1024, so the columns keep their widths and the region scrolls: Email 320,
-  // Date Received its sortable label, Subject 128, Actions its button (Figma's 112), Message the rest.
+  // Date Received its sortable label, Subject 128, Actions its button plus 16 each side (Figma's Cell / Remove
+  // is a fixed 112 around an 80-wide button; 112 isn't on GDL's scale, so the column hugs the button instead,
+  // and the button's width follows how the browser renders Open Sans), Message the rest.
   await expect(region.scrollWidth).toBe(1024);
   const [email, date, subject, message, actions] = [...region.querySelectorAll('th')].map((th) => th.getBoundingClientRect().width);
   await expect([email, subject]).toEqual([320, 128]);
   await expect(date).toBeGreaterThanOrEqual(128);
-  await expect(actions).toBeCloseTo(112, 0);
+  const button = region.querySelector<HTMLElement>('tbody [data-action="remove"]')!;
+  await expect(actions).toBeCloseTo(button.getBoundingClientRect().width + 32, 1);
+  await expect(actions).toBeLessThanOrEqual(112);
   await expect(message).toBeGreaterThanOrEqual(240);
 }
 
