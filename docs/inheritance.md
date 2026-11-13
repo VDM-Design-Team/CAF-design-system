@@ -3,7 +3,7 @@
 ```
 GDL  (@vdm-design-team/gdl)                     CAF  (this repo)
 ├─ tokens/core      palette, space, radius,     ├─ tokens/core/color.json        caf-blue, caf-blue-on-dark
-│                   stroke, fonts, elevation    ├─ tokens/core/typography.json   font.family.sans → Inter
+│                   stroke, fonts, elevation    ├─ tokens/core/typography.json   font.family.sans → Open Sans
 ├─ tokens/modes     dark elevation, desktop     └─ tokens/semantic/              312 names, Light + Dark
 ├─ tokens/semantic  the 47-style type ramp
 ├─ contract/        247 required semantic names   ──▶ gdl-check-contract in CAF's npm test
@@ -23,14 +23,14 @@ overrides a GDL default. Only `font.family.sans` is allowed to collide.
 | CAF's Brand Primitives collection | `tokens/core/color.json` |
 | CAF's Semantics collection (Light / Dark) | `tokens/semantic/color.json` / `color.dark.json` |
 | A Semantics variable aliases GDL `colors/slate/500` | `{color.slate.500}`, resolved from GDL |
-| CAF's text styles (Inter) | GDL's type ramp + `font.family.sans` → Inter |
+| CAF's text styles (Open Sans) | GDL's type ramp + `font.family.sans` → Open Sans |
 | CAF's Elevation effect styles | GDL's `shadow.elevation.*` (identical; the importer checks) |
 
 ## What CAF overrides, and why
 
 | Token | GDL | CAF | Why |
 |---|---|---|---|
-| `font.family.sans` | Poppins | Inter | All 45 CAF text styles are set in Inter |
+| `font.family.sans` | Poppins | Open Sans | All 45 CAF text styles are set in Open Sans |
 
 That's the whole list. Everything else is GDL's, unchanged. The proof is
 `dist/`: apart from the semantic colours, CAF's token build differs from

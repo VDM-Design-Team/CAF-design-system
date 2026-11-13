@@ -17,7 +17,7 @@ import { join } from 'node:path';
 
 const GDL = 'node_modules/@vdm-design-team/gdl';
 const ALLOWED_OVERRIDES = {
-  'font.family.sans': "CAF's UI face is Inter (GDL default: Poppins)",
+  'font.family.sans': "CAF's UI face is Open Sans (GDL default: Poppins)",
 };
 const MODE_ROOTS = ['dark', 'desktop'];
 
