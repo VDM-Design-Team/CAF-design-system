@@ -80,7 +80,7 @@ async function expectFits(canvasElement: HTMLElement, mode: Mode) {
   const [email, date, subject, message, actions] = [...region.querySelectorAll('th')].map((th) => th.getBoundingClientRect().width);
   await expect([email, subject]).toEqual([320, 128]);
   await expect(date).toBeGreaterThanOrEqual(128);
-  await expect(Math.round(actions)).toBe(112);
+  await expect(actions).toBeCloseTo(112, 0);
   await expect(message).toBeGreaterThanOrEqual(240);
 }
 
