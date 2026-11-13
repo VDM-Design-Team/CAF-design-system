@@ -10,7 +10,7 @@ Read `docs/inheritance.md` before changing anything structural.
 
 1. **Only CAF's own things live here.** That means CAF's brand ramps
    (`color.caf-blue`, `color.caf-blue-on-dark`), CAF's UI face
-   (`font.family.sans` → Inter) and CAF's semantic colour values. Never copy
+   (`font.family.sans` → Open Sans) and CAF's semantic colour values. Never copy
    a GDL token in. `npm run lint:tokens` fails on a GDL colour family in
    `tokens/core/color.json` and on any GDL token CAF overrides that isn't on
    `ALLOWED_OVERRIDES` in `scripts/lint-tokens.mjs`. Adding to that list is a

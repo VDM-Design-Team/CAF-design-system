@@ -156,7 +156,9 @@ for (const [name, , style, size, sizeVar, familyVar] of styles.text) {
   const key = `type.${group.toLowerCase()}-${tier}-${weightName}`;
   cafStyles.add(key);
   const gdl = gdlType.get(key);
-  if (WEIGHT[style] !== weightName) errors.push(`${name}: the name says ${weightName} but the font style is ${style}`);
+  /* Figma's Open Sans has no Medium, so CAF's -medium styles are SemiBold there; code keeps the ramp's 500 (docs/figma-sync.md → Open Sans). */
+  const figmaHasNoMedium = families[0] === 'Open Sans' && weightName === 'medium' && WEIGHT[style] === 'semibold';
+  if (WEIGHT[style] !== weightName && !figmaHasNoMedium) errors.push(`${name}: the name says ${weightName} but the font style is ${style}`);
   if (!gdl) { errors.push(`${name}: GDL's type ramp has no ${key} — a CAF-only style needs proposing to GDL`); continue; }
   if (gdl.$value.fontSize !== `${size}px`) errors.push(`${name}: ${size}px in CAF Figma, ${gdl.$value.fontSize} in GDL — CAF inherits the type ramp`);
   if (gdl.$value.fontWeight !== `{font.weight.${weightName}}`) errors.push(`${name}: weight ${weightName} in CAF Figma, ${gdl.$value.fontWeight} in GDL`);
