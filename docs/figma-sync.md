@@ -4259,9 +4259,9 @@ tones:
 
 | Tone | `tone` (accent family) | Cards |
 |---|---|---|
-| Info (default) | `info` | Total Exports (`file-text`), Total Announcements (`bell`), Last Updated (`calendar-blank`) |
+| Info (default) | `info` | Total Exports (`file-text`), Processing (`clock`), Total Announcements (`bell`), Last Updated (`calendar-blank`) |
 | Success | `success` | Completed (`check-circle`), Latest Version (`tag`) |
-| Pending | `pending` | Processing (`clock`) |
+| Pending | `pending` | None in the stat rows today |
 | Critical | `critical` | Failed (`x-circle`) |
 
 Contrast: the text passes AA, and every glyph passes 3:1 on its tile.
@@ -4302,6 +4302,11 @@ fc-table-dark-frames; published):
   cleared: they follow their frame, as code follows the page's theme.
 - The Cards page has Dark frames of Stat Foundations and Stat Rows beside
   the Light ones.
+
+**Changed in Figma on 13 Nov 2026**: the Processing card in `Card / Stat Row –
+Exports` uses the Info tone instead of Pending (still the `clock` icon), so
+an export in progress reads as active, not as waiting. Code's `StatRows`
+follows.
 
 Code departs from Figma here:
 
