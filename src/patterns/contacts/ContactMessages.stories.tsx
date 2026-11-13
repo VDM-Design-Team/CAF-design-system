@@ -84,7 +84,8 @@ async function expectFits(canvasElement: HTMLElement, mode: Mode) {
   await expect(message).toBeGreaterThanOrEqual(240);
 }
 
-/* Each step in Light, Dark and at a phone's width. A Dark story sets the theme
+/* Each step in Light, Dark and at a phone's width, named by its export (Step1BrowseLight →
+   "Step 1 Browse Light"): Storybook's indexer can't read a name set in here. A Dark story sets the theme
    on <html>, which would flip the whole docs page, so only Light is in the docs. */
 const modeStory = (mode: Mode, story: Story): Story => ({
   ...story,
@@ -93,13 +94,11 @@ const modeStory = (mode: Mode, story: Story): Story => ({
   parameters: { ...story.parameters, ...(mode === 'mobile' && { chromatic: { viewports: [320] } }) },
   tags: mode === 'light' ? story.tags : ['!autodocs'],
 });
-const label = (mode: Mode) => ({ light: 'Light', dark: 'Dark', mobile: 'Mobile' })[mode];
 
 /* ── Step 1 · Browse and filter messages ─────────────────────────────────── */
 
 const browse = (mode: Mode): Story =>
   modeStory(mode, {
-    name: `1 · Browse and filter — ${label(mode)}`,
     play: async ({ canvasElement }) => {
       const canvas = within(canvasElement);
       await expect(canvas.getByRole('heading', { level: 1, name: 'Contacts' })).toBeVisible();
@@ -170,15 +169,14 @@ const browse = (mode: Mode): Story =>
     },
   });
 
-export const BrowseLight = browse('light');
-export const BrowseDark = browse('dark');
-export const BrowseMobile = browse('mobile');
+export const Step1BrowseLight = browse('light');
+export const Step1BrowseDark = browse('dark');
+export const Step1BrowseMobile = browse('mobile');
 
 /* ── Step 2 · Confirm before removing ────────────────────────────────────── */
 
 const confirm = (mode: Mode): Story =>
   modeStory(mode, {
-    name: `2 · Confirm remove — ${label(mode)}`,
     args: { defaultConfirm: 'c-5' },
     play: async ({ args, canvasElement }) => {
       const dialog = await screen.findByRole('alertdialog', { name: 'Remove this message?' });
@@ -193,13 +191,13 @@ const confirm = (mode: Mode): Story =>
     },
   });
 
-export const ConfirmLight = confirm('light');
-export const ConfirmDark = confirm('dark');
-export const ConfirmMobile = confirm('mobile');
+export const Step2ConfirmLight = confirm('light');
+export const Step2ConfirmDark = confirm('dark');
+export const Step2ConfirmMobile = confirm('mobile');
 
 /** Cancel and Escape close the confirmation and keep the message; focus goes back to its Remove. */
 export const CancelKeepsTheMessage: Story = {
-  name: '2 · Cancel keeps the message',
+  name: 'Step 2 Cancel keeps the message',
   play: async ({ args, canvasElement }) => {
     const remove = removeButton(canvasElement, 'Sam Holt', '2025-07-16');
     await userEvent.click(remove);
@@ -220,7 +218,6 @@ export const CancelKeepsTheMessage: Story = {
 
 const removed = (mode: Mode): Story =>
   modeStory(mode, {
-    name: `3 · Removed — ${label(mode)}`,
     play: async ({ args, canvasElement }) => {
       await userEvent.click(removeButton(canvasElement, 'Sam Holt', '2025-07-16'));
       const dialog = await screen.findByRole('alertdialog', { name: 'Remove this message?' });
@@ -237,15 +234,14 @@ const removed = (mode: Mode): Story =>
     },
   });
 
-export const RemovedLight = removed('light');
-export const RemovedDark = removed('dark');
-export const RemovedMobile = removed('mobile');
+export const Step3RemovedLight = removed('light');
+export const Step3RemovedDark = removed('dark');
+export const Step3RemovedMobile = removed('mobile');
 
 /* ── Step 4 · No matching messages ───────────────────────────────────────── */
 
 const noResults = (mode: Mode): Story =>
   modeStory(mode, {
-    name: `4 · No matching messages — ${label(mode)}`,
     args: { defaultFilters: { search: 'refund', period: null } },
     play: async ({ canvasElement }) => {
       const canvas = within(canvasElement);
@@ -261,13 +257,13 @@ const noResults = (mode: Mode): Story =>
     },
   });
 
-export const NoResultsLight = noResults('light');
-export const NoResultsDark = noResults('dark');
-export const NoResultsMobile = noResults('mobile');
+export const Step4NoResultsLight = noResults('light');
+export const Step4NoResultsDark = noResults('dark');
+export const Step4NoResultsMobile = noResults('mobile');
 
 /** Select Period narrows by the date received; Clear Filters undoes it. */
 export const FilterByPeriod: Story = {
-  name: '4 · Filter by period',
+  name: 'Step 4 Filter by period',
   tags: ['!autodocs'],
   args: { defaultFilters: { search: '', period: { from: '2025-03-01', to: '2025-03-31' } } },
   play: async ({ canvasElement }) => {
@@ -287,7 +283,6 @@ export const FilterByPeriod: Story = {
 
 const empty = (mode: Mode): Story =>
   modeStory(mode, {
-    name: `5 · No messages yet — ${label(mode)}`,
     args: { defaultContacts: [] },
     play: async ({ canvasElement }) => {
       const canvas = within(canvasElement);
@@ -301,13 +296,13 @@ const empty = (mode: Mode): Story =>
     },
   });
 
-export const EmptyLight = empty('light');
-export const EmptyDark = empty('dark');
-export const EmptyMobile = empty('mobile');
+export const Step5EmptyLight = empty('light');
+export const Step5EmptyDark = empty('dark');
+export const Step5EmptyMobile = empty('mobile');
 
 /** Removing the last message leaves the page empty, with focus in the search field. */
 export const RemoveTheLastMessage: Story = {
-  name: '5 · Remove the last message',
+  name: 'Step 5 Remove the last message',
   tags: ['!autodocs'],
   args: { defaultContacts: contacts.slice(0, 1) },
   play: async ({ canvasElement }) => {
