@@ -5590,6 +5590,29 @@ Code departs from Figma here:
 
 Every Table / Cell type now has its vertical padding bound to `space/12`, as Type=Custom had first (3 Nov 2026; see TableCell).
 
+### TableCell type="text-truncated" and type="button" (13 Nov 2026)
+
+Source: set `Table / Cell` (`460:900`), two new variants drawn for pattern 16 · Contact messages (`951:7846`): **Type=Text (Truncated)** (`949:9851`) and **Type=Button** (`949:9853`). Read from the library file before publishing; published 13 Nov 2026. Code: `type="text-truncated"` and `type="button"` in `src/components/table-cell/`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root (both) | vertical, gap `space/2`; padding `space/16` sides, `space/12` top and bottom; content centred vertically | `px-4 py-3 align-middle text-left`, `gap-0.5` |
+| Text (Truncated): Value | Body/sm-regular, `text/primary`; fills the cell's width; one line, clipped, ending in … | `block truncate text-body-sm-regular text-text-primary`, the stack `items-stretch` |
+| Text (Truncated): width | Set per column; the text fills it | The value is `w-0 min-w-full`: it adds nothing to the column's width, so the column keeps the width set on it (or what a full-width table leaves), and the value fills that and cuts there |
+| Button: Button | a Button / Small instance (Style=Destructive for Contacts → Remove), at the start; the cell 112 wide | `children`: a `<Button size="small">`, in `flex flex-col items-start`; the width is the column's (`w-1` in Contacts, hugging the button) |
+
+Contrast: the cells have no colours of their own. Text (Truncated) is Text's `text/primary` (see TableCell); the Button brings its own pair (Destructive: `accent/critical/filled/*`, see Button).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Text (Truncated) font size | The Value layer's font size is a raw 14, not bound to `font/size/body-sm` (the rest of Body/sm-regular is bound) | Body/sm-regular from GDL's ramp (14px) | Bind the font size to `font/size/body-sm` |
+| Contacts column widths | Fixed 320, 160, 160, fills, 112 (raw, not bound) | On GDL's scale: Email `w-xs` (container xs, 320); Date Received and Subject `w-32` (space.128), Date Received growing to its sortable label (about 155); Message the rest; Actions `w-1`, hugging its Remove plus 16 each side (about 111 in Open Sans, Figma's 112) | Use widths on the space scale (128, 256) or none, and let Message fill |
+| Text (Truncated) full value | Cut, with no way to see the rest | Cut; the whole value stays in the DOM, so screen readers read it all | None needed: use it only where the rest can be read elsewhere (Contacts shows its messages in full instead) |
+
+Where the patterns use them: Contacts' Remove (Button) column, in `src/patterns/contacts/ContactsListPage.tsx`. Contacts' Message is a Type=Text cell, the whole message wrapped: the user's decision on 13 Nov 2026 (there is no message view, so the row shows it all). **Changed in Figma the same day** (published): Table / Row – Contact's Message cell is Type=Text, its Value fills the cell and wraps (Auto height), and the row hugs its height with the cells centred; the row's description, Table / Cell's description and pattern 16's guidance and step 1 caption say so. The pattern's 23 row instances keep their messages. No pattern uses Text (Truncated) yet. **Table / Header – Contacts** (`951:11007`) and **Table / Row – Contact** (`951:11026`) are composed there from TableHeaderRow, TableHeaderCell, TableRow and TableCell, not built as components, as the Costs header and row are (`CostsTable`). The table is at least 1024 wide (`min-w-5xl`), so the columns keep their widths where the region scrolls. Figma's Actions header is a visible label, so it is a TableHeaderCell, not TableHeaderRow's screen-reader-only `showActions` column.
+
 ### TableList (2 Nov 2026)
 
 Source: page **Table**, component `Table / List` (`768:1009`): a Table / Header Row instance (Columns=5, Show Checkbox and Show Actions on) over a native slot, Rows (`Rows#768:0`, preferred: Table / Row), with no fill and no outer border. Drafted from the design decision add-plain-list-table and published on 2 Nov 2026. Example `773:1468` (Cost Centers: Columns=3, Show Actions, Sortable=false). Code: `src/components/table-list/`. It replaces the patterns' `RecordsTable`.

@@ -18,7 +18,7 @@ import { APP_SCREENS } from './screens';
  *   `page` is the link that is Active; `children` is that page.
  * - A ToastProvider around it, for the page's messages.
  * - A link, or Settings in the account menu, moves to that page: one of
- *   APP_SCREENS, or just its title where there is none (Partners, Contacts).
+ *   APP_SCREENS, or just its title where there is none (Partners).
  *   Coming back to the first page shows `children` again, fresh. Routing goes
  *   no further: `onNavigate` hears every move.
  * - The theme starts from the story's (`globals.theme`); the header's toggle
