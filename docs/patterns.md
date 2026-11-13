@@ -534,12 +534,12 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **What it solves.** Admin → Contacts: the messages people send through the CAF contact form. An admin searches, filters and removes them. A message can’t be opened, added or edited, so rows aren’t clickable, there is no message view, and the page has no Add New. Use it for any admin list of read-only submissions the admin can only remove; records the admin creates or changes use the List page (01) with a row actions menu (03).
 
-**Components.** PageHeader (the title only), FilterBar with FilterField (Search contacts), FilterDateRange (Select Period) and FilterClear (`ContactsFilterBar`, Figma's Filter / Bar Page=Contacts), TableList with TableHeaderRow and TableHeaderCell (Table / Header – Contacts), TableRow and TableCell (Table / Row – Contact: Two Line, Text, the new Text (Truncated) and Button types), Button (Small, Destructive), Pagination, ModalConfirm (Destructive), ToastProvider / Toast (Success) and EmptyState (Default and Compact). The page is `ContactsListPage` (`src/patterns/contacts/`); `APP_SCREENS.admin.Contacts` renders it in the templates.
+**Components.** PageHeader (the title only), FilterBar with FilterField (Search contacts), FilterDateRange (Select Period) and FilterClear (`ContactsFilterBar`, Figma's Filter / Bar Page=Contacts), TableList with TableHeaderRow and TableHeaderCell (Table / Header – Contacts), TableRow and TableCell (Table / Row – Contact: Two Line, Text and the new Button type), Button (Small, Destructive), Pagination, ModalConfirm (Destructive), ToastProvider / Toast (Success) and EmptyState (Default and Compact). The page is `ContactsListPage` (`src/patterns/contacts/`); `APP_SCREENS.admin.Contacts` renders it in the templates.
 
-**The table.** Email with the sender’s name below (320), Date Received (sortable, newest first, a click toggles oldest first), Subject, Message (the rest: one line ending in …) and Actions, where every row has a red **Remove**. Figma’s 160 and 112 aren’t on GDL’s scale, so Date Received and Subject take 128 (Date Received grows to its label) and Actions hugs its button (112); see figma-sync.md. The table is at least 1024 wide, so on a narrow screen it scrolls in its own region and the columns keep their widths. Each Remove is named for its message ("Remove message from Sam Holt, received 2025-07-16"), since the visible label repeats on every row.
+**The table.** Email with the sender’s name below (320), Date Received (sortable, newest first, a click toggles oldest first), Subject, Message (the rest: the whole message, wrapping onto as many lines as it needs) and Actions, where every row has a red **Remove**. Figma’s 160 and 112 aren’t on GDL’s scale, so Date Received and Subject take 128 (Date Received grows to its label) and Actions hugs its button (112); see figma-sync.md. The table is at least 1024 wide, so on a narrow screen it scrolls in its own region and the columns keep their widths. Each Remove is named for its message ("Remove message from Sam Holt, received 2025-07-16"), since the visible label repeats on every row.
 
 **The flow in the stories** (each step in Light, Dark and Mobile at 320):
-- *1 · Browse and filter:* eight messages, newest first; a row holds no link and one button. "free demo" finds Rhea Valdez’s message; "Lena" finds her two. Clear Filters appears only while a filter is in use, resets the search, brings every message back and puts focus in the search field. Date Received sorts both ways.
+- *1 · Browse and filter:* eight messages, newest first; a row holds no link and one button. Sam Holt’s long message wraps onto more lines in its row, with nothing cut off; a short one stays on one line. "free demo" finds Rhea Valdez’s message; "Lena" finds her two. Clear Filters appears only while a filter is in use, resets the search, brings every message back and puts focus in the search field. Date Received sorts both ways.
 - *2 · Confirm remove:* "Remove this message?", "The message from Sam Holt (sam.holt@example.com), received 2025-07-16, will be removed from Contacts. This can’t be undone.", with Cancel and a red Remove. *Cancel keeps the message:* Cancel and Escape close it, nothing is removed, and focus goes back to the row’s Remove.
 - *3 · Removed:* Remove takes the row out, the Success toast says "Message removed.", and focus moves to the Remove that took the row’s place.
 - *4 · No matching messages:* "refund" leaves the header and the compact Empty State ("No items.") in the table, no pagination, and Clear Filters in the bar. *Filter by period:* March 2025 leaves the four March messages.
@@ -548,11 +548,12 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **What Figma draws that the stories don't.**
 - Figma’s compact Empty State reads "No items found"; the stories use the patterns’ shared "No items." (`emptyStateCopy.noResults`).
 - Pagination: Figma draws "Page 1 of 25" over the eight sample rows. The fixture has eight messages, so the stories show one page of ten.
-- Figma’s Sam Holt message is longer than the fixture’s; both cut to one line.
+- Message: Figma’s Table / Row – Contact draws it as Text (Truncated), one line ending in …. The page shows the whole message, wrapped (decision below). TableCell keeps `type="text-truncated"` for lists that want it.
 
-**Design questions.**
-- With no messages, the filter bar still shows (Figma step 5). Hiding it, as Drafts does, would be simpler.
-- A cut message can’t be read anywhere. That follows the decision (an admin doesn’t read messages), but past the ellipsis a long message looks like a short one.
+**Decisions (13 Nov 2026).**
+- Column widths: Date Received and Subject at 128 and Actions hugging its Remove (112) are fine for now.
+- With no messages, the filter bar still shows, as Figma’s step 5 draws it.
+- A long message is shown in full in its row, wrapped, not cut to one line: there is no message view, so the row is the only place to read it. Figma’s Table / Row – Contact still draws Message as Text (Truncated); setting it to Type=Text would bring Figma in line.
 
 ## Patterns – User (U01–U08)
 

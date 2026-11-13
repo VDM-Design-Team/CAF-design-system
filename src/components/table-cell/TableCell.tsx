@@ -14,7 +14,7 @@ import { cn } from '../../lib/cn';
  *   (Expanded) are one `list` cell whose toggle switches between them
  *   (`defaultExpanded` sets the start).
  * - Text (Truncated) → `text-truncated`: Value on one line, cut with an
- *   ellipsis at the cell's width (a Contacts message). The cell takes the
+ *   ellipsis at the cell's width. The cell takes the
  *   width its column leaves; the whole value stays in the DOM, so screen
  *   readers read all of it.
  * - Button → `button`: a single row action, a `<Button size="small">` in

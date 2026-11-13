@@ -41,8 +41,8 @@ const meta = {
           'clickable and the page has no Add New. The **List page** (01) with the title only; **Filter / Bar** ' +
           'Page=Contacts (Search contacts: name, email, subject or message; Select Period: date received; Clear ' +
           'Filters while one is in use); the table (**Table / Header – Contacts** over **Table / Row – Contact**: ' +
-          'Email with the sender’s name, Date Received sortable and newest first, Subject, Message cut to one line ' +
-          'with …, and Remove). **Remove** is the only row action, so it is a red Destructive **Button / Small** on ' +
+          'Email with the sender’s name, Date Received sortable and newest first, Subject, the whole Message, ' +
+          'wrapped onto as many lines as it needs, and Remove). **Remove** is the only row action, so it is a red Destructive **Button / Small** on ' +
           'every row, not a ••• menu. It asks first (**Modal / Confirm**, Destructive, pattern 04); on Remove the row ' +
           'goes and a Success **Toast** says so. No messages, or none that match: **Empty State** (11). Built from ' +
           'ContactsListPage and ContactsFilterBar (`src/patterns/contacts/`, `src/patterns/filters/`).',
@@ -129,11 +129,20 @@ const browse = (mode: Mode): Story =>
       const row = within(t).getAllByRole('row')[4];
       await expect(within(row).queryByRole('link')).toBeNull();
       await expect(within(row).getAllByRole('button').map((b) => b.textContent)).toEqual(['Remove']);
-      // The long message stays on one line, cut with … (the whole text is still there for screen readers).
+      // A long message is shown in full: it wraps onto more lines in its row, with nothing cut off.
       const message = within(row).getAllByRole('cell')[3].querySelector('span')!;
-      await expect(message).toHaveTextContent(/^I am not offering SEO/);
-      await waitFor(() => expect(message.scrollWidth).toBeGreaterThan(message.clientWidth));
-      await expect(message.getBoundingClientRect().height).toBe(20);
+      await expect(message).toHaveTextContent(
+        'I am not offering SEO or Pay Per Click Advertising services. This is something entirely different. Let me demonstrate how it works and you will be pleasantly surprised by the results.',
+      );
+      await expect(getComputedStyle(message).textOverflow).not.toBe('ellipsis');
+      await expect(getComputedStyle(message).whiteSpace).toBe('normal');
+      await waitFor(() => expect(message.getBoundingClientRect().height).toBeGreaterThan(20));
+      // Nothing spills out of the cell.
+      const cell = message.closest('td')!;
+      await expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth);
+      // A short one stays on one line (body/sm's 20px).
+      const short = within(within(t).getAllByRole('row')[5]).getAllByRole('cell')[3].querySelector('span')!;
+      await expect(short.getBoundingClientRect().height).toBe(20);
       await expectFits(canvasElement, mode);
 
       // No filter in use: no Clear Filters.

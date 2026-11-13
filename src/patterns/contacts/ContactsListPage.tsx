@@ -33,9 +33,11 @@ import { emptyStateCopy, type Contact } from '../fixtures';
  * - The table: Figma's Table / Header – Contacts (951:11007) over Table /
  *   Row – Contact (951:11026). Email with the sender's name below (Two Line,
  *   320), Date Received (Text, 160; sortable, newest first), Subject (Text,
- *   160), Message (Text (Truncated): the rest of the width, one line ending
- *   in …) and Remove (Button, 112). Rows aren't clickable: there is no
- *   message view.
+ *   160), Message (Text: the rest of the width, the whole message, wrapping
+ *   onto as many lines as it needs) and Remove (Button, 112). Rows aren't
+ *   clickable: there is no message view, so the row shows all of it.
+ *   Figma's row draws Message as Text (Truncated); the user decided
+ *   (13 Nov 2026) that a long message is shown in full instead.
  * - Remove is the only row action, so every row has a red Destructive Button
  *   / Small instead of a ••• menu. It asks first (pattern 04: Modal /
  *   Confirm, Destructive); on Remove the row goes, a Success toast says
@@ -157,7 +159,8 @@ export function ContactsListPage({
               <TableCell className={W.email} type="two-line" primary={c.email} secondary={c.name} />
               <TableCell className={W.date}>{c.receivedAt}</TableCell>
               <TableCell className={W.subject}>{c.subject}</TableCell>
-              <TableCell type="text-truncated">{c.message}</TableCell>
+              {/* The whole message, wrapped: there is nowhere else to read it (decision, 13 Nov 2026). */}
+              <TableCell>{c.message}</TableCell>
               <TableCell className={W.actions} type="button">
                 <Button
                   size="small"
