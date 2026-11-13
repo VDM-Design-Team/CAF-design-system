@@ -14,8 +14,9 @@ import { cn } from '../../lib/cn';
  *   (Expanded) are one `list` cell whose toggle switches between them
  *   (`defaultExpanded` sets the start).
  * - Text (Truncated) → `text-truncated`: Value on one line, cut with an
- *   ellipsis at the cell's width. The cell takes the
- *   width its column leaves; the whole value stays in the DOM, so screen
+ *   ellipsis at the cell's width. Set the column's width (`className`), or
+ *   let a full-width table give it what the other columns leave; the value
+ *   never widens the column. The whole value stays in the DOM, so screen
  *   readers read all of it.
  * - Button → `button`: a single row action, a `<Button size="small">` in
  *   `children` (Destructive for a removal: Contacts → Remove). For two or
@@ -50,9 +51,9 @@ const cell = cva('px-4 py-3', {
       /* List, Status + Date: top-left */
       list: 'align-top text-left',
       'status-date': 'align-top text-left',
-      /* Text (Truncated): vertically centred; max-w-0 lets the column shrink below the
-         value's length, so the value cuts at the width the other columns leave. */
-      'text-truncated': 'max-w-0 align-middle text-left',
+      /* Text (Truncated): vertically centred, left-aligned. Set the column's width (or let a
+         full-width table give it the rest); the value cuts there (see the span below). */
+      'text-truncated': 'align-middle text-left',
       /* Button: vertically centred, at the start */
       button: 'align-middle text-left',
       /* Custom: the Content slot, vertically centred, at the start */
@@ -134,7 +135,9 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       <div className={stack({ type })}>
         {type === 'text' && <span className="text-body-sm-regular text-text-primary">{children}</span>}
         {type === 'text-truncated' && (
-          <span className="block truncate text-body-sm-regular text-text-primary">{children}</span>
+          /* w-0 keeps the value out of the column's intrinsic width, so the table doesn't grow to fit it;
+             min-w-full then fills whatever width the column gets, and truncate cuts it there. */
+          <span className="block w-0 min-w-full truncate text-body-sm-regular text-text-primary">{children}</span>
         )}
         {type === 'two-line' && (
           <>

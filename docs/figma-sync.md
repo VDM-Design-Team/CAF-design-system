@@ -5587,7 +5587,7 @@ Source: set `Table / Cell` (`460:900`), two new variants drawn for pattern 16 ·
 |---|---|---|
 | Root (both) | vertical, gap `space/2`; padding `space/16` sides, `space/12` top and bottom; content centred vertically | `px-4 py-3 align-middle text-left`, `gap-0.5` |
 | Text (Truncated): Value | Body/sm-regular, `text/primary`; fills the cell's width; one line, clipped, ending in … | `block truncate text-body-sm-regular text-text-primary`, the stack `items-stretch` |
-| Text (Truncated): width | Set per column; the text fills it | The `<td>` is `max-w-0`, so its column takes what the other columns leave and the value cuts there instead of widening the table |
+| Text (Truncated): width | Set per column; the text fills it | The value is `w-0 min-w-full`: it adds nothing to the column's width, so the column keeps the width set on it (or what a full-width table leaves), and the value fills that and cuts there |
 | Button: Button | a Button / Small instance (Style=Destructive for Contacts → Remove), at the start; the cell 112 wide | `children`: a `<Button size="small">`, in `flex flex-col items-start`; the width is the column's (`w-28` in Contacts) |
 
 Contrast: the cells have no colours of their own. Text (Truncated) is Text's `text/primary` (see TableCell); the Button brings its own pair (Destructive: `accent/critical/filled/*`, see Button).

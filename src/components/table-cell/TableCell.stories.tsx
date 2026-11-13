@@ -160,6 +160,22 @@ export const TextTruncated: Story = {
   },
 };
 
+/** Text (Truncated) in a column of its own: the column keeps its set width (200) and the value cuts there. */
+export const TextTruncatedOwnColumn: Story = {
+  name: 'Text (Truncated), its own column',
+  decorators: inRow,
+  args: { type: 'text-truncated', className: 'w-50', children: LONG_MESSAGE },
+  play: async ({ canvasElement }) => {
+    const td = canvasElement.querySelector('td')!;
+    const text = td.querySelector('span')!;
+    await waitFor(() => {
+      expect(td.getBoundingClientRect().width).toBe(200);
+      expect(text.clientWidth).toBe(200 - 32);
+      expect(text.scrollWidth).toBeGreaterThan(text.clientWidth);
+    });
+  },
+};
+
 /** Button: one row action, a red Destructive Button / Small (Contacts → Remove). */
 export const ButtonCell: Story = {
   name: 'Button',

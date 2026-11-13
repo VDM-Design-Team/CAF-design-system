@@ -223,6 +223,20 @@ export const CancelKeepsTheMessage: Story = {
   },
 };
 
+/** A confirmation for a message that isn't on screen (filtered out): Remove still works and focus lands on the first row. */
+export const RemoveOffScreen: Story = {
+  name: 'Step 2 Remove a message that is filtered out',
+  tags: ['!autodocs'],
+  args: { defaultConfirm: 'c-5', defaultFilters: { search: 'Lena', period: null } },
+  play: async ({ args, canvasElement }) => {
+    const dialog = await screen.findByRole('alertdialog', { name: 'Remove this message?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    await expect(args.onRemove).toHaveBeenCalledWith(expect.objectContaining({ id: 'c-5' }));
+    await waitFor(() => expect(removeButton(canvasElement, 'Lena Ortiz', '2025-03-13')).toHaveFocus());
+  },
+};
+
 /* ── Step 3 · Message removed ────────────────────────────────────────────── */
 
 const removed = (mode: Mode): Story =>

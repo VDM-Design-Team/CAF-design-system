@@ -51,12 +51,10 @@ export interface ContactsFilterBarProps extends Omit<React.HTMLAttributes<HTMLDi
   onChange: (filters: ContactFilters) => void;
   /** The date picker's Today; stories pin it. */
   today?: Date;
-  /** Start with Select Period open (a story's snapshot). */
-  defaultPeriodOpen?: boolean;
 }
 
 export const ContactsFilterBar = React.forwardRef<HTMLDivElement, ContactsFilterBarProps>(function ContactsFilterBar(
-  { value, onChange, today, defaultPeriodOpen = false, 'aria-label': ariaLabel = 'Filter contacts', ...props },
+  { value, onChange, today, 'aria-label': ariaLabel = 'Filter contacts', ...props },
   ref,
 ) {
   const searchRef = React.useRef<HTMLInputElement | HTMLButtonElement | null>(null);
@@ -87,7 +85,6 @@ export const ContactsFilterBar = React.forwardRef<HTMLDivElement, ContactsFilter
         value={toDateRange(value.period)}
         onValueChange={(next) => onChange({ ...value, period: toDayRange(next) })}
         today={today}
-        defaultOpen={defaultPeriodOpen}
       />
     </FilterBar>
   );

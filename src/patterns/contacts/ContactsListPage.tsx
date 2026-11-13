@@ -102,7 +102,8 @@ export function ContactsListPage({
   const shown = matching.slice((current - 1) * pageSize, current * pageSize);
   const confirming = rows.find((c) => c.id === confirmId) ?? null;
 
-  /* After a removal: the next row's Remove (the one that took its place), else the last one, else the search field. */
+  /* After a removal: the next row's Remove (the one that took its place), else the last one, else the search field.
+     Only a removal changes `rows`, so the effect runs then. */
   React.useEffect(() => {
     const index = focusAfterRemove.current;
     if (index === null) return;
@@ -110,7 +111,7 @@ export function ContactsListPage({
     const buttons = pageRef.current?.querySelectorAll<HTMLButtonElement>('tbody [data-action="remove"]') ?? [];
     if (buttons.length) buttons[Math.min(index, buttons.length - 1)].focus();
     else pageRef.current?.querySelector<HTMLInputElement>('[role="search"] input')?.focus();
-  });
+  }, [rows]);
 
   const header = (
     <TableHeaderRow>
@@ -190,7 +191,8 @@ export function ContactsListPage({
         onClose={() => setConfirmId(null)}
         onConfirm={() => {
           if (!confirming) return;
-          focusAfterRemove.current = shown.indexOf(confirming);
+          /* Its place on the page; the first row's when it isn't on this page (a story's defaultConfirm). */
+          focusAfterRemove.current = Math.max(0, shown.indexOf(confirming));
           setConfirmId(null);
           setRows((all) => all.filter((c) => c.id !== confirming.id));
           onRemove?.(confirming);
