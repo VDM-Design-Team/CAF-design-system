@@ -4,19 +4,41 @@
 
 ### CAF installs GDL 1.1.0 (November 2026)
 
-`@vdm-design-team/gdl` goes from ^1.0.0 to ^1.1.0. It only adds tokens,
-which CAF now ships but doesn't use yet:
+`@vdm-design-team/gdl` goes from ^1.0.0 to ^1.1.0. It only adds tokens:
 
 - **The type ramp's metrics:** `--font-line-height-<tier>` and
   `--font-letter-spacing-<tier>` for all 15 tiers (in `tokens.css`,
-  `tokens.json` and `tokens.ts`). They are the values the `text-*`
-  utilities already use, now also as Figma variables, so CAF's text styles
-  can bind them.
+  `tokens.json` and `tokens.ts`), which CAF's components don't use
+  directly. They are the values the `text-*` utilities already use, now
+  also as Figma variables, so CAF's text styles bind them.
 - **Open Sans:** `font.family.open-sans` (`--font-open-sans`, the
-  `font-open-sans` utility). CAF's UI face is still Inter.
+  `font-open-sans` utility), which CAF's UI face now uses (see below).
 
-No `text-*` utility, colour or component changes, so nothing looks different
-in Light or Dark.
+The bump itself changes no `text-*` utility, colour or component.
+
+### CAF's UI face is Open Sans (November 2026)
+
+Every CAF component and text style is now set in Open Sans instead of Inter.
+`font.family.sans` points at GDL 1.1.0's new `font.family.open-sans`
+(`Open Sans`, `system-ui`, `sans-serif`), so `--font-sans` and the
+`font-sans` utility change with it. The type ramp is GDL's and unchanged:
+sizes, weights (400, 500, 600, 700), line heights and letter spacing are the
+same, so heights in code don't move. Widths do: Open Sans is wider than
+Inter, so labels, table columns and truncation points shift.
+
+Apps now load Open Sans instead of Inter, for example:
+
+```html
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" />
+```
+
+Uses GDL 1.1.0, which CAF already installs. In the CAF Figma library the
+45 text styles are Open Sans, bound to GDL's `font/family/open sans`; Figma's
+Open Sans has no Medium,
+so the 8 `-medium` styles show SemiBold there while code keeps 500
+(`docs/figma-sync.md` → Open Sans).
+
+In Storybook, Light and Dark: every story's text is Open Sans.
 
 ## 1.0.1 — 2026-11-10
 
