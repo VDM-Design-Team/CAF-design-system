@@ -36,8 +36,8 @@ import { emptyStateCopy, type Contact } from '../fixtures';
  *   160), Message (Text: the rest of the width, the whole message, wrapping
  *   onto as many lines as it needs) and Remove (Button, 112). Rows aren't
  *   clickable: there is no message view, so the row shows all of it.
- *   Figma's row draws Message as Text (Truncated); the user decided
- *   (13 Nov 2026) that a long message is shown in full instead.
+ *   Decided 13 Nov 2026; Figma's row has drawn Message as Type=Text
+ *   since then too.
  * - Remove is the only row action, so every row has a red Destructive Button
  *   / Small instead of a ••• menu. It asks first (pattern 04: Modal /
  *   Confirm, Destructive); on Remove the row goes, a Success toast says

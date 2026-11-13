@@ -548,12 +548,11 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 **What Figma draws that the stories don't.**
 - Figma’s compact Empty State reads "No items found"; the stories use the patterns’ shared "No items." (`emptyStateCopy.noResults`).
 - Pagination: Figma draws "Page 1 of 25" over the eight sample rows. The fixture has eight messages, so the stories show one page of ten.
-- Message: Figma’s Table / Row – Contact draws it as Text (Truncated), one line ending in …. The page shows the whole message, wrapped (decision below). TableCell keeps `type="text-truncated"` for lists that want it.
 
 **Decisions (13 Nov 2026).**
 - Column widths: Date Received and Subject at 128 and Actions hugging its Remove (112) are fine for now.
 - With no messages, the filter bar still shows, as Figma’s step 5 draws it.
-- A long message is shown in full in its row, wrapped, not cut to one line: there is no message view, so the row is the only place to read it. Figma’s Table / Row – Contact still draws Message as Text (Truncated); setting it to Type=Text would bring Figma in line.
+- A long message is shown in full in its row, wrapped, not cut to one line: there is no message view, so the row is the only place to read it. Figma’s Table / Row – Contact draws Message as Type=Text since the same day, wrapping, and the pattern’s guidance says so. TableCell keeps `type="text-truncated"` for lists that want it.
 
 ## Patterns – User (U01–U08)
 
