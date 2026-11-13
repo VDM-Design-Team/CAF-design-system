@@ -54,6 +54,17 @@ Brand Primitives have `"s": []`, meaning hidden from pickers.
 Bound to: the five inputs' Default and Filled border, Filter / Field,
 Radio Deselected, Checkbox's unchecked border, and Toggle's off track.
 
+## Open Sans (10 Nov 2026)
+
+CAF's UI face is Open Sans, from GDL 1.1.0's `font.family.open-sans`. All
+45 CAF text styles were switched in Figma on 10 Nov 2026 and bind GDL's
+`font/family/open sans`; sizes and the elevations are unchanged.
+
+| | Figma | Code | Figma fix |
+|---|---|---|---|
+| Medium weight | Figma's Open Sans has no Medium, so the 8 `-medium` styles (Title/sm, Body/lg, md, sm, Label/md, sm, Caption/md, sm) use SemiBold | GDL's ramp: 500, from Google Fonts' Open Sans | Set them to Medium once Figma's Open Sans has it. The importer accepts SemiBold for a `-medium` style only while the face is Open Sans |
+| Weight variable | The 23 Bold and Regular styles bind GDL's `font/weight/bold` and `font/weight/regular` (10 Nov 2026). The 14 SemiBold and 8 `-medium` styles bind nothing: GDL's `font/weight/semibold` is "Semibold", which is neither Open Sans's "SemiBold" nor Inter's "Semi Bold", and Open Sans has no Medium | GDL's `font.weight.*`, as before | GDL: give `font/weight/semibold` a value Open Sans has, then bind the SemiBold styles. The `-medium` styles wait for a Medium in Figma |
+
 ## CI guard
 
 CI runs `npm run import:figma` and fails if `tokens/` changes. So `tokens/`
