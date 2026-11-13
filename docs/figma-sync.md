@@ -5579,6 +5579,28 @@ Code departs from Figma here:
 
 Every Table / Cell type now has its vertical padding bound to `space/12`, as Type=Custom had first (3 Nov 2026; see TableCell).
 
+### TableCell type="text-truncated" and type="button" (13 Nov 2026)
+
+Source: set `Table / Cell` (`460:900`), two new variants drawn for pattern 16 · Contact messages (`951:7846`): **Type=Text (Truncated)** (`949:9851`) and **Type=Button** (`949:9853`). Not yet published when this was built; read from the library file. Code: `type="text-truncated"` and `type="button"` in `src/components/table-cell/`.
+
+| Figma | Binding | Code |
+|---|---|---|
+| Root (both) | vertical, gap `space/2`; padding `space/16` sides, `space/12` top and bottom; content centred vertically | `px-4 py-3 align-middle text-left`, `gap-0.5` |
+| Text (Truncated): Value | Body/sm-regular, `text/primary`; fills the cell's width; one line, clipped, ending in … | `block truncate text-body-sm-regular text-text-primary`, the stack `items-stretch` |
+| Text (Truncated): width | Set per column; the text fills it | The `<td>` is `max-w-0`, so its column takes what the other columns leave and the value cuts there instead of widening the table |
+| Button: Button | a Button / Small instance (Style=Destructive for Contacts → Remove), at the start; the cell 112 wide | `children`: a `<Button size="small">`, in `flex flex-col items-start`; the width is the column's (`w-28` in Contacts) |
+
+Contrast: the cells have no colours of their own. Text (Truncated) is Text's `text/primary` (see TableCell); the Button brings its own pair (Destructive: `accent/critical/filled/*`, see Button).
+
+Code departs from Figma here:
+
+| | Figma | Code | Fix in Figma |
+|---|---|---|---|
+| Text (Truncated) font size | The Value layer's font size is a raw 14, not bound to `font/size/body-sm` (the rest of Body/sm-regular is bound) | Body/sm-regular from GDL's ramp (14px) | Bind the font size to `font/size/body-sm` |
+| Text (Truncated) full value | Cut, with no way to see the rest | Cut; the whole value stays in the DOM, so screen readers read it all | None needed (an admin doesn't read messages, decision for pattern 16) |
+
+Where the patterns use them: Contacts' Message (Text (Truncated)) and Remove (Button) columns, in `src/patterns/contacts/ContactsListPage.tsx`. **Table / Header – Contacts** (`951:11007`) and **Table / Row – Contact** (`951:11026`) are composed there from TableHeaderRow, TableHeaderCell, TableRow and TableCell, not built as components, as the Costs header and row are (`CostsTable`). Their column widths (320, 160, 160, the rest, 112) are `w-80`, `w-40`, `w-40`, none and `w-28`; the table is at least 1024 wide (`min-w-5xl`) so Message keeps 272 where the region scrolls. Figma's Actions header is a visible label, so it is a TableHeaderCell, not TableHeaderRow's screen-reader-only `showActions` column.
+
 ### TableList (2 Nov 2026)
 
 Source: page **Table**, component `Table / List` (`768:1009`): a Table / Header Row instance (Columns=5, Show Checkbox and Show Actions on) over a native slot, Rows (`Rows#768:0`, preferred: Table / Row), with no fill and no outer border. Drafted from the design decision add-plain-list-table and published on 2 Nov 2026. Example `773:1468` (Cost Centers: Columns=3, Show Actions, Sortable=false). Code: `src/components/table-list/`. It replaces the patterns' `RecordsTable`.

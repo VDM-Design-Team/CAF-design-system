@@ -20,6 +20,7 @@ import { FILTER_SLOT, FilterBar, toDateRange, toDayRange, type DayRange } from '
 import {
   announcements,
   auditLog,
+  contacts,
   costs,
   drafts,
   emptyStateCopy,
@@ -46,6 +47,7 @@ import { BulkUploadForm } from '../patterns/forms/BulkUploadForm';
 import { NewCostForm } from '../patterns/forms/NewCostForm';
 import { CostsListPage } from '../patterns/list-page/CostsListPage';
 import { CostCentresPage } from '../patterns/modal-form/CostCentresPage';
+import { ContactsListPage } from '../patterns/contacts/ContactsListPage';
 import { ExportDetailsDialog } from '../patterns/overview/ExportDetailsDialog';
 import { ExportsTable } from '../patterns/overview/ExportsTable';
 import { AnnouncementsStatRow, ExportsStatRow, summariseAnnouncements } from '../patterns/overview/StatRows';
@@ -410,14 +412,16 @@ export function SettingsScreen({ app }: { app: ShellApp }) {
 
 /**
  * Each app's pages, by the navigation's labels (and Settings, from the account
- * menu): where a link goes in the templates. Partners and Contacts have no
- * page composition yet, so the frame shows just their title.
+ * menu): where a link goes in the templates. Partners has no page
+ * composition yet, so the frame shows just its title.
  */
 export const APP_SCREENS: Record<ShellApp, Partial<Record<string, () => React.ReactNode>>> = {
   admin: {
     Costs: () => <AdminCostsScreen />,
     'Bulk Upload': () => <BulkUploadScreen />,
     'Cost Centers': () => <CostCentresPage />,
+    /* Pattern 16: the list, Remove's destructive confirm and toast, and the empty states. */
+    Contacts: () => <ContactsListPage defaultContacts={contacts} today={TEMPLATE_TODAY} />,
     Users: () => <UsersPage as="div" />,
     'Recurring Costs': () => <RecurringCostsPage today={TEMPLATE_TODAY} />,
     Announcements: () => <AnnouncementsScreen />,

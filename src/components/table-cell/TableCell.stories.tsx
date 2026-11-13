@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { Button } from '../button';
 import { Checkbox } from '../checkbox';
 import { EmptyState } from '../empty-state';
 import { StatusPill } from '../status-pill';
@@ -59,7 +60,9 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Table** (`Table / Cell`, the generic body cell). It is a `<td>`. ' +
           '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list`, `status-date` and ' +
-          '`custom`. Value is `children`; Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
+          '`text-truncated`, `button` and `custom`. Value is `children`; Text (Truncated) keeps it to one line ending in … ' +
+          'at the width its column leaves. Button holds one row action, a `<Button size="small">` (Destructive for a ' +
+          'removal, as Contacts → Remove).  Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
           'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`, Status + Date ' +
           'takes `Tag`. Custom’s Content slot is `children`: any content or control at its own size (Account Details, a ' +
           'Toggle, the Expand Button, a Checkbox, an Empty State across the row). The grids show a labelled stand-in for ' +
@@ -116,6 +119,72 @@ export const ListOfOne: Story = {
   },
 };
 
+/* A long contact-form message (pattern 16), longer than any column. */
+const LONG_MESSAGE =
+  'I am not offering SEO or Pay Per Click Advertising services. This is something entirely different. Let me demonstrate how it works.';
+
+/**
+ * Text (Truncated): in a 480-wide table whose other column is 160, the
+ * message takes the rest and ends in … on one line. The whole value is still
+ * in the DOM, for screen readers.
+ */
+export const TextTruncated: Story = {
+  name: 'Text (Truncated)',
+  args: { type: 'text-truncated', children: LONG_MESSAGE },
+  decorators: [
+    (Story) => (
+      <table className="w-120 border-collapse">
+        <tbody>
+          <tr>
+            <TableCell className="w-40">2025-07-16</TableCell>
+            <Story />
+          </tr>
+        </tbody>
+      </table>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const td = canvasElement.querySelectorAll('td')[1];
+    const text = td.querySelector('span')!;
+    await expect(text).toHaveTextContent(LONG_MESSAGE);
+    await waitFor(() => {
+      // The rest of the 480: 480 − 160.
+      expect(td.getBoundingClientRect().width).toBe(320);
+      expect(getComputedStyle(text).textOverflow).toBe('ellipsis');
+      expect(getComputedStyle(text).whiteSpace).toBe('nowrap');
+      // Cut: more text than the cell shows, on one line (body/sm's 20px).
+      expect(text.scrollWidth).toBeGreaterThan(text.clientWidth);
+      expect(text.clientWidth).toBe(320 - 32);
+      expect(text.getBoundingClientRect().height).toBe(20);
+    });
+  },
+};
+
+/** Button: one row action, a red Destructive Button / Small (Contacts → Remove). */
+export const ButtonCell: Story = {
+  name: 'Button',
+  decorators: inRow,
+  args: {
+    type: 'button',
+    className: 'w-28',
+    children: (
+      <Button size="small" variant="destructive" aria-label="Remove message from Sam Holt" onClick={fn()}>
+        Remove
+      </Button>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole('button', { name: 'Remove message from Sam Holt' });
+    await expect(button).toHaveTextContent('Remove');
+    const td = canvasElement.querySelector('td')!;
+    await waitFor(() => {
+      // 112 wide (Figma's Cell / Remove), the button 16 in from the start.
+      expect(td.getBoundingClientRect().width).toBe(112);
+      expect(button.getBoundingClientRect().left - td.getBoundingClientRect().left).toBe(16);
+    });
+  },
+};
+
 /** Type=Checkbox with the real Checkbox: selecting a row. */
 export const CheckboxCell: Story = {
   name: 'Checkbox',
@@ -142,6 +211,18 @@ const TYPES: { label: string; cell: ReactNode }[] = [
   {
     label: 'Status + Date',
     cell: <TableCell className="w-45" type="status-date" date="2026-10-08"><Tag status="completed">Completed</Tag></TableCell>,
+  },
+  {
+    label: 'Text (Truncated)',
+    cell: <TableCell className="w-50" type="text-truncated">{LONG_MESSAGE}</TableCell>,
+  },
+  {
+    label: 'Button',
+    cell: (
+      <TableCell className="w-28" type="button">
+        <Button size="small" variant="destructive">Remove</Button>
+      </TableCell>
+    ),
   },
   {
     label: 'Custom',

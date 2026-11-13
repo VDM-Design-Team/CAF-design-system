@@ -10,8 +10,16 @@ import { cn } from '../../lib/cn';
  *
  * Figma → code:
  * - Type → `type`: text (default), two-line, tag, checkbox, actions, list,
- *   status-date, custom. List (Collapsed) and List (Expanded) are one `list`
- *   cell whose toggle switches between them (`defaultExpanded` sets the start).
+ *   status-date, text-truncated, button, custom. List (Collapsed) and List
+ *   (Expanded) are one `list` cell whose toggle switches between them
+ *   (`defaultExpanded` sets the start).
+ * - Text (Truncated) → `text-truncated`: Value on one line, cut with an
+ *   ellipsis at the cell's width (a Contacts message). The cell takes the
+ *   width its column leaves; the whole value stays in the DOM, so screen
+ *   readers read all of it.
+ * - Button → `button`: a single row action, a `<Button size="small">` in
+ *   `children` (Destructive for a removal: Contacts → Remove). For two or
+ *   more actions, use Actions (•••).
  * - Text properties: Value → `children`, Primary / Secondary → `primary` /
  *   `secondary`, Date → `date`.
  * - Nested components are passed in as `children`: Type=Checkbox takes
@@ -42,6 +50,11 @@ const cell = cva('px-4 py-3', {
       /* List, Status + Date: top-left */
       list: 'align-top text-left',
       'status-date': 'align-top text-left',
+      /* Text (Truncated): vertically centred; max-w-0 lets the column shrink below the
+         value's length, so the value cuts at the width the other columns leave. */
+      'text-truncated': 'max-w-0 align-middle text-left',
+      /* Button: vertically centred, at the start */
+      button: 'align-middle text-left',
       /* Custom: the Content slot, vertically centred, at the start */
       custom: 'align-middle text-left',
     },
@@ -59,6 +72,9 @@ const stack = cva('flex flex-col', {
       actions: 'items-center gap-0.5',
       list: 'items-start gap-0.5',
       'status-date': 'items-start gap-1',
+      /* Text (Truncated): the value fills the cell, so it can cut at its edge. */
+      'text-truncated': 'items-stretch gap-0.5',
+      button: 'items-start gap-0.5',
       /* Custom: the slot stacks its content with no gap; each item keeps its own size. */
       custom: 'items-start',
     },
@@ -82,11 +98,18 @@ type Td = Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'children'>;
 
 export type TableCellProps = Td &
   (
-    | { /** Figma Type=Text: Value. */ type?: 'text'; children: React.ReactNode }
+    | {
+        /** Figma Type=Text: Value. Text (Truncated): Value on one line, ending in … where it doesn't fit. */
+        type?: 'text' | 'text-truncated';
+        children: React.ReactNode;
+      }
     | { type: 'two-line'; primary: React.ReactNode; secondary: React.ReactNode }
     | {
-        /** Tag: a Status Pill. Checkbox: a `<Checkbox>`. Actions: the row actions button. Custom: any content or control. */
-        type: 'tag' | 'checkbox' | 'actions' | 'custom';
+        /**
+         * Tag: a Status Pill. Checkbox: a `<Checkbox>`. Actions: the row actions button. Button: one
+         * `<Button size="small">`. Custom: any content or control.
+         */
+        type: 'tag' | 'checkbox' | 'actions' | 'button' | 'custom';
         children: React.ReactNode;
       }
     | { type: 'list'; items: React.ReactNode[]; defaultExpanded?: boolean }
@@ -110,13 +133,16 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
     <td ref={ref} className={cn(cell({ type }), className)} {...td}>
       <div className={stack({ type })}>
         {type === 'text' && <span className="text-body-sm-regular text-text-primary">{children}</span>}
+        {type === 'text-truncated' && (
+          <span className="block truncate text-body-sm-regular text-text-primary">{children}</span>
+        )}
         {type === 'two-line' && (
           <>
             <span className="text-body-sm-medium text-text-primary">{primary}</span>
             <span className={subtle}>{secondary}</span>
           </>
         )}
-        {(type === 'tag' || type === 'checkbox' || type === 'actions' || type === 'custom') && children}
+        {(type === 'tag' || type === 'checkbox' || type === 'actions' || type === 'button' || type === 'custom') && children}
         {type === 'list' && <ListCell items={items ?? []} defaultExpanded={defaultExpanded ?? false} />}
         {type === 'status-date' && (
           <>
@@ -167,4 +193,15 @@ function ListCell({ items, defaultExpanded }: { items: React.ReactNode[]; defaul
   );
 }
 
-export const TABLE_CELL_TYPES = ['text', 'two-line', 'tag', 'checkbox', 'actions', 'list', 'status-date', 'custom'] as const;
+export const TABLE_CELL_TYPES = [
+  'text',
+  'two-line',
+  'tag',
+  'checkbox',
+  'actions',
+  'list',
+  'status-date',
+  'text-truncated',
+  'button',
+  'custom',
+] as const;
