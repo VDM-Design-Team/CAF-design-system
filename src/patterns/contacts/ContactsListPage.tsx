@@ -32,9 +32,11 @@ import { emptyStateCopy, type Contact } from '../fixtures';
  *   change returns to page 1.
  * - The table: Figma's Table / Header – Contacts (951:11007) over Table /
  *   Row – Contact (951:11026). Email with the sender's name below (Two Line,
- *   320), Date Received (Text, 160; sortable, newest first), Subject (Text,
- *   160), Message (Text: the rest of the width, the whole message, wrapping
- *   onto as many lines as it needs) and Remove (Button, 112). Rows aren't
+ *   320), Date Received (Text, 128, growing to its sortable label; newest
+ *   first), Subject (Text, 128), Message (Text: the rest of the width, the
+ *   whole message, wrapping onto as many lines as it needs) and Remove
+ *   (Button, hugging the button). Figma's widths are 320 / 160 / 160 / fill /
+ *   112; `W` below says why code differs. Rows aren't
  *   clickable: there is no message view, so the row shows all of it.
  *   Decided 13 Nov 2026; Figma's row has drawn Message as Type=Text
  *   since then too.

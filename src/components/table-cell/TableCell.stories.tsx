@@ -62,7 +62,7 @@ const meta = {
           '`type` is Figma’s Type: `text` (default), `two-line`, `tag`, `checkbox`, `actions`, `list`, `status-date` and ' +
           '`text-truncated`, `button` and `custom`. Value is `children`; Text (Truncated) keeps it to one line ending in … ' +
           'at the width its column leaves. Button holds one row action, a `<Button size="small">` (Destructive for a ' +
-          'removal, as Contacts → Remove).  Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
+          'removal, as Contacts → Remove). Primary, Secondary and Date are `primary`, `secondary` and `date`. ' +
           'Tag, Checkbox, Actions and Status + Date take their component as `children`: Tag takes `StatusPill`, Status + Date ' +
           'takes `Tag`. Custom’s Content slot is `children`: any content or control at its own size (Account Details, a ' +
           'Toggle, the Expand Button, a Checkbox, an Empty State across the row). The grids show a labelled stand-in for ' +

@@ -5607,7 +5607,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Text (Truncated) font size | The Value layer's font size is a raw 14, not bound to `font/size/body-sm` (the rest of Body/sm-regular is bound) | Body/sm-regular from GDL's ramp (14px) | Bind the font size to `font/size/body-sm` |
 | Contacts column widths | Fixed 320, 160, 160, fills, 112 (raw, not bound) | On GDL's scale: Email `w-xs` (container xs, 320); Date Received and Subject `w-32` (space.128), Date Received growing to its sortable label (about 155); Message the rest; Actions `w-1`, hugging its Remove plus 16 each side (about 111 in Open Sans, Figma's 112) | Use widths on the space scale (128, 256) or none, and let Message fill |
 | Text (Truncated) full value | Cut, with no way to see the rest | Cut; the whole value stays in the DOM, so screen readers read it all | None needed: use it only where the rest can be read elsewhere (Contacts shows its messages in full instead) |
 
