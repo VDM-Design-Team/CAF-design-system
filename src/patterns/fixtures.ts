@@ -655,7 +655,7 @@ export const contacts: Contact[] = [
   { id: 'c-2', name: 'Lena Ortiz', email: 'lena.ortiz@example.com', receivedAt: '2025-03-13', subject: 'Payments', message: 'tttttttttt' },
   { id: 'c-3', name: 'Paolo Mendez', email: 'paolo.mendez@example.com', receivedAt: '2025-03-14', subject: 'Payments', message: 'Hello, this is for testing' },
   { id: 'c-4', name: 'ITPM', email: 'itpm@example.com', receivedAt: '2025-03-14', subject: 'Payments', message: 'Testing Messages' },
-  { id: 'c-5', name: 'Sam Holt', email: 'sam.holt@example.com', receivedAt: '2025-07-16', subject: 'Payments', message: 'I am not offering SEO or Pay Per Click Advertising services. This is something entirely different. Let me demonstrate how it works.' },
+  { id: 'c-5', name: 'Sam Holt', email: 'sam.holt@example.com', receivedAt: '2025-07-16', subject: 'Payments', message: 'I am not offering SEO or Pay Per Click Advertising services. This is something entirely different. Let me demonstrate how it works and you will be pleasantly surprised by the results.' },
   { id: 'c-6', name: 'testthis', email: 'testthis@example.com', receivedAt: '2025-09-01', subject: 'Payments', message: 'test mail, kindly ignore this' },
   { id: 'c-7', name: 'Rhea Valdez', email: 'rhea.valdez@example.com', receivedAt: '2025-09-16', subject: 'Payments', message: 'Can I get a free demo? Thanks' },
   { id: 'c-8', name: 'sample', email: 'sample@example.com', receivedAt: '2025-09-23', subject: 'Payments', message: 'This is a test. This is a test. This is a test. This is a test.' },

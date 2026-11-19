@@ -1,7 +1,7 @@
 # Patterns and templates
 
 The CAF Figma library documents how its components are used together, on
-two pages: **Patterns – Admin** (01–15) and **Patterns – User** (U01–U08).
+two pages: **Patterns – Admin** (01–16) and **Patterns – User** (U01–U08).
 The CAF Design file (`z7L8r4nq6nL6Yfa8vvxJhO`) draws the real screens on
 **Admin screens** (2102:4) and **User Screens** (2102:3). Storybook has both:
 
@@ -53,6 +53,7 @@ so the stories agree with each other and with Figma.
 | 13 | Overview & record details | 529:6821 | Patterns/Overview & record details |
 | 14 / U07 | Announcements & what’s new | 529:7639, U07 545:25222 | Patterns/Announcements & what’s new |
 | 15 / U08 | App shell & navigation | 530:7799, U08 545:26643 | Patterns/App shell & navigation |
+| 16 | Contact messages | 951:7846 | Patterns/Contact messages |
 | U01 | My costs list | 545:13220 | Patterns/My costs list |
 | U03 | Save and resume drafts | 545:18365 | Patterns/Save and resume drafts |
 | U04 | Manage recurring costs | 545:18695 | Patterns/Manage recurring costs |
@@ -61,7 +62,7 @@ so the stories agree with each other and with Figma.
 | Organism | Page header | 518:232 | Patterns/Page header |
 | Organism | Recurring costs table | 260:1065, 260:1021, 260:1000 | Patterns/Recurring costs table |
 | Template | App shell | Admin screens 2102:4, User Screens 2102:3 | Templates/App shell |
-| Template | List page | 2102:5749, 2102:1069, 2102:1342, 2102:7086 | Templates/List page |
+| Template | List page | 2102:5749, 2102:1069, 2102:1342, 2102:7086, 2102:6234 | Templates/List page |
 | Template | Overview list | 2102:6902, 2102:6628 | Templates/Overview list |
 | Template | Form page | 2102:1154, 2102:1159, 2102:6027, 2102:1223 | Templates/Form page |
 | Template | Overlay flows | 2102:6074, 2102:5857, 2102:1201, 2102:1266, 2102:1284; 523:2612 | Templates/Overlay flows |
@@ -89,6 +90,8 @@ Compositions the patterns share. None is exported from the package.
 | `CostCentreDialog`, `CostCentresPage` | 523:2985, 523:1968 | `src/patterns/modal-form/` |
 | `RecurringCostSheet`, `RecurringCostsPage` | 524:3295, 524:2956 | `src/patterns/side-sheet/` |
 | `DraftsList` | 545:18578, 545:18649 | `src/patterns/drafts/DraftsList.tsx` |
+| `ContactsFilterBar` (+ `filterContacts`) | Filter / Bar Page=Contacts 949:11457 | `src/patterns/filters/ContactsFilterBar.tsx` |
+| `ContactsListPage` | 16 951:7846; Table / Header – Contacts 951:11007, Table / Row – Contact 951:11026 | `src/patterns/contacts/ContactsListPage.tsx` |
 | `UsersPage`, `UsersTable` | 528:5768, 528:5814, 528:6194 | `src/patterns/states/` |
 | `AddUserDialog` | 528:6197 | `src/patterns/feedback/AddUserDialog.tsx` |
 | `ExportsStatRow`, `AnnouncementsStatRow` | Card / Stat Row – Exports 387:3601, – Announcements 389:163 | `src/patterns/overview/StatRows.tsx` |
@@ -106,8 +109,8 @@ Known overlaps, to settle once design answers the questions below:
 - The Cost Centers list is drawn in the List page story and in
   `CostCentresPage`.
 - `CostsListPage` and `UsersPage` render `<main>` by default (`as="div"`
-  inside a template); `CostCentresPage`, `RecurringCostsPage` and
-  `DraftsList` render a `<div>`.
+  inside a template); `CostCentresPage`, `RecurringCostsPage`,
+  `DraftsList` and `ContactsListPage` render a `<div>`.
 
 ## Shared building blocks
 
@@ -179,7 +182,7 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 
 **Design questions.** On the Announcements screen, the actions sit below the stat row rather than right of the title (2102:6628 vs the rule in 518:247). The Costs screen's buttons differ from pattern 01 B's (icon on View Audit Logs; a Default button vs a Menu Trigger for Export).
 
-## Patterns – Admin (01–15)
+## Patterns – Admin (01–16)
 
 ### 01 · List page (Figma 518:900)
 
@@ -527,6 +530,30 @@ The confirm dialog and toast after a destructive action belong to patterns 03 an
 - ~~Figma has no Mobile Menu – User yet (545:26655). Could Mobile Menu take its links as a property instead?~~ Yes: `Navigation / Mobile Menu` has Links=Admin / User since 5 Nov 2026, as code's `links`.
 - AppHeader with `defaultMenuOpen` leaves focus on `<body>` when the menu closes. It could pass ☰ to MobileMenu as `returnFocusRef`.
 
+### 16 · Contact messages (Figma 951:7846)
+
+**What it solves.** Admin → Contacts: the messages people send through the CAF contact form. An admin searches, filters and removes them. A message can’t be opened, added or edited, so rows aren’t clickable, there is no message view, and the page has no Add New. Use it for any admin list of read-only submissions the admin can only remove; records the admin creates or changes use the List page (01) with a row actions menu (03).
+
+**Components.** PageHeader (the title only), FilterBar with FilterField (Search contacts), FilterDateRange (Select Period) and FilterClear (`ContactsFilterBar`, Figma's Filter / Bar Page=Contacts), TableList with TableHeaderRow and TableHeaderCell (Table / Header – Contacts), TableRow and TableCell (Table / Row – Contact: Two Line, Text and the new Button type), Button (Small, Destructive), Pagination, ModalConfirm (Destructive), ToastProvider / Toast (Success) and EmptyState (Default and Compact). The page is `ContactsListPage` (`src/patterns/contacts/`); `APP_SCREENS.admin.Contacts` renders it in the templates.
+
+**The table.** Email with the sender’s name below (320), Date Received (sortable, newest first, a click toggles oldest first), Subject, Message (the rest: the whole message, wrapping onto as many lines as it needs) and Actions, where every row has a red **Remove**. Figma’s 160 and 112 aren’t on GDL’s scale, so Date Received and Subject take 128 (Date Received grows to its label) and Actions hugs its button (112); see figma-sync.md. The table is at least 1024 wide, so on a narrow screen it scrolls in its own region and the columns keep their widths. Each Remove is named for its message ("Remove message from Sam Holt, received 2025-07-16"), since the visible label repeats on every row.
+
+**The flow in the stories** (each step in Light, Dark and Mobile at 320):
+- *1 · Browse and filter:* eight messages, newest first; a row holds no link and one button. Sam Holt’s long message wraps onto more lines in its row, with nothing cut off; a short one stays on one line. "free demo" finds Rhea Valdez’s message; "Lena" finds her two. Clear Filters appears only while a filter is in use, resets the search, brings every message back and puts focus in the search field. Date Received sorts both ways.
+- *2 · Confirm remove:* "Remove this message?", "The message from Sam Holt (sam.holt@example.com), received 2025-07-16, will be removed from Contacts. This can’t be undone.", with Cancel and a red Remove. *Cancel keeps the message:* Cancel and Escape close it, nothing is removed, and focus goes back to the row’s Remove.
+- *3 · Removed:* Remove takes the row out, the Success toast says "Message removed.", and focus moves to the Remove that took the row’s place.
+- *4 · No matching messages:* "refund" leaves the header and the compact Empty State ("No items.") in the table, no pagination, and Clear Filters in the bar. *Filter by period:* March 2025 leaves the four March messages.
+- *5 · No messages yet:* the Default Empty State "No messages yet" / "Messages sent through the contact form will appear here." in place of the table, under the filter bar. *Remove the last message* ends there, with focus in the search field.
+
+**What Figma draws that the stories don't.**
+- Figma’s compact Empty State reads "No items found"; the stories use the patterns’ shared "No items." (`emptyStateCopy.noResults`).
+- Pagination: Figma draws "Page 1 of 25" over the eight sample rows. The fixture has eight messages, so the stories show one page of ten.
+
+**Decisions (13 Nov 2026).**
+- Column widths: Date Received and Subject at 128 and Actions hugging its Remove (112) are fine for now.
+- With no messages, the filter bar still shows, as Figma’s step 5 draws it.
+- A long message is shown in full in its row, wrapped, not cut to one line: there is no message view, so the row is the only place to read it. Figma’s Table / Row – Contact draws Message as Type=Text since the same day, wrapping, and the pattern’s guidance says so. TableCell keeps `type="text-truncated"` for lists that want it.
+
 ## Patterns – User (U01–U08)
 
 U02 (Multi-section form), U05 (File upload), U07 (What's new & changelog)
@@ -654,12 +681,12 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 
 **What Figma draws that the stories don't.**
 - The file has no phone frames, so the mobile layout is AppShell's (patterns 15 and U08).
-- Partners (2102:6128) and Contacts (2102:6234) have no page composition yet, so the frame shows only their title.
+- Partners (2102:6128) has no page composition yet, so the frame shows only its title. Contacts (2102:6234) is pattern 16’s page.
 - Routing goes no further than swapping the page in the container.
 
 **Design questions.** ~~The list pages' tables don't fit a phone, which is why the mobile stories open on form pages (see List page).~~ Decided (add-phone-table-layout) and built on 3 Nov 2026: the tables scroll in their own region, so the list pages fit a phone too (the List page template's mobile stories). The mobile stories here still open on form pages.
 
-### List page (Figma: Admin / Costs 2102:5749, User / Costs 2102:1069, Drafts 2102:1342 / 2102:7086)
+### List page (Figma: Admin / Costs 2102:5749, User / Costs 2102:1069, Drafts 2102:1342 / 2102:7086, Admin / Contacts 2102:6234)
 
 **What it solves.** The layout of every list, top to bottom, 24 apart:
 - the page title, with Tabs beside it where the list has types, and the actions on the right (primary last);
@@ -667,20 +694,21 @@ and U08 (App shell) are covered with 09, 10, 14 and 15 above.
 - the table;
 - pagination at the bottom right.
 
-Cost Centers, Partners, Contacts, Users and Recurring Costs follow it too.
+Cost Centers, Partners, Users and Recurring Costs follow it too.
 
 **Built from.**
 - CostsListPage (patterns 01, 02, U01): PageHeader, Tabs, CostsFilterBar, CostsTable, Pagination, MenuTriggerButton (Export). It now takes `as="div"` so it can sit in AppShell's `<main>`.
 - DraftsList (U03): FilterField, TableList, Pagination, ModalConfirm.
-- Composed in `AdminCostsScreen`, `UserCostsScreen` and `DraftsScreen` (`src/templates/screens.tsx`).
+- ContactsListPage (pattern 16): ContactsFilterBar, TableList, Button (Destructive, Small), Pagination, ModalConfirm, EmptyState.
+- Composed in `AdminCostsScreen`, `UserCostsScreen`, `DraftsScreen` and `APP_SCREENS.admin.Contacts` (`src/templates/screens.tsx`).
 
-**Stories.** Each screen has a Light, a Dark and a Mobile (320) story: **Costs** (admin), **My costs** (user) and **Drafts**. Each play checks:
+**Stories.** Each screen has a Light, a Dark and a Mobile (320) story: **Costs** (admin), **My costs** (user), **Drafts** and **Contacts** (admin). Each play checks:
 - one banner, one main and one h1, with headings that don't skip a level;
 - the parts in order;
 - pagination's right edge on the filter bar's;
 - a page of eight costs and no selection column;
 - for the admin: View Audit Logs and Export, right of the title and tabs. The user has Export only.
-- Drafts' columns and the ••• named for the draft.
+- Drafts' columns and the ••• named for the draft; Contacts' columns and a Remove on every row, named for its message.
 - the table in its own scroll region and no sideways page scroll: on a phone the region scrolls, is a tab stop and is named like the table; where the table fits it is a plain box.
 
 **Costs, 1024** (a 1024 × 768 viewport; `chromatic.viewports: [1024]`): AppShell's content box is 976, and the Costs table needs a few pixels more (the decision's estimate was 977; 982 in headless Chromium with Inter), so it scrolls by those pixels inside its region and the page doesn't scroll. The other lists fit at 1024.

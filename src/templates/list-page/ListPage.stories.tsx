@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, within } from 'storybook/test';
 import type { ThemeToggleTheme } from '../../components/theme-toggle';
-import { COSTS_PAGE_SIZE, drafts, myCosts, type Draft } from '../../patterns/fixtures';
+import { contacts, COSTS_PAGE_SIZE, drafts, myCosts, type Draft } from '../../patterns/fixtures';
 import { expectFrame, expectInOrder, expectTableInItsRegion, isDesktop, MOBILE_SNAPSHOT, MOBILE_VIEWPORT } from '../checks';
-import { AdminCostsScreen, DraftsScreen, UserCostsScreen } from '../screens';
+import { AdminCostsScreen, APP_SCREENS, DraftsScreen, UserCostsScreen } from '../screens';
 import { TemplateFrame } from '../TemplateFrame';
 
 /** The real screens this template lays out (CAF Design file). */
-type ListScreen = 'costs' | 'my-costs' | 'drafts';
+type ListScreen = 'costs' | 'my-costs' | 'drafts' | 'contacts';
 
 interface ListTemplateProps {
   screen: ListScreen;
@@ -32,6 +32,13 @@ function ListTemplate({ screen, theme, onNavigate, onEditDraft }: ListTemplatePr
       </TemplateFrame>
     );
   }
+  if (screen === 'contacts') {
+    return (
+      <TemplateFrame app="admin" page="Contacts" theme={theme} onNavigate={onNavigate}>
+        {APP_SCREENS.admin.Contacts?.()}
+      </TemplateFrame>
+    );
+  }
   return (
     <TemplateFrame app="user" page="Drafts" theme={theme} onNavigate={onNavigate}>
       <DraftsScreen onEdit={onEditDraft} />
@@ -51,9 +58,9 @@ const meta = {
           'The layout of every list in the CAF Design file: the page title with its actions on the right (and Tabs ' +
           'beside the title where the list has types), the filter bar, the table, and pagination at the bottom right, ' +
           '24 apart in the app’s frame. Three of the screens it covers: **Admin / Costs** (2102:5749), the user’s ' +
-          '**Costs** (2102:1069) and **Drafts** (User 2102:1342; Admin 2102:7086 is the same page). Cost Centers, ' +
-          'Partners, Contacts, Users and Recurring Costs follow it too (Overlay flows shows Cost Centers and Recurring ' +
-          'Costs). Built from CostsListPage, DraftsList and the patterns they use (01, 02, U01, U03); the rows’ menus, ' +
+          '**Costs** (2102:1069), **Drafts** (User 2102:1342; Admin 2102:7086 is the same page) and **Admin / Contacts** ' +
+          '(2102:6234, pattern 16). Cost Centers, Partners, Users and Recurring Costs follow it too (Overlay flows shows Cost Centers and Recurring ' +
+          'Costs). Built from CostsListPage, DraftsList, ContactsListPage and the patterns they use (01, 02, U01, U03, 16); the rows’ menus, ' +
           'selection and expanded details are the patterns’ stories.',
       },
     },
@@ -228,4 +235,52 @@ export const DraftsMobile: Story = {
   globals: { viewport: MOBILE_VIEWPORT },
   parameters: { chromatic: MOBILE_SNAPSHOT },
   play: ({ canvasElement }) => expectDraftsList(canvasElement),
+};
+
+/* ── Admin / Contacts ───────────────────────────────────────────────────── */
+
+/** Contacts: the title alone, Search contacts and Select Period, the Contacts table with Remove on every row, pagination. */
+async function expectContactsList(canvasElement: HTMLElement) {
+  const { main, heading } = await expectFrame(canvasElement, 'Contacts');
+  const page = within(main);
+  const bar = page.getByRole('search', { name: 'Filter contacts' });
+  await expect(within(bar).getByRole('searchbox', { name: 'Search contacts' })).toBeVisible();
+  await expect(page.queryByRole('button', { name: 'Clear Filters' })).toBeNull();
+  const table = page.getByRole('table', { name: 'Contacts' }) as HTMLTableElement;
+  const pagination = page.getByRole('navigation', { name: 'Pagination' });
+  await expectInOrder([heading, bar, table, pagination]);
+  await expectPaginationRight(pagination, bar);
+  await expectTableInItsRegion(table);
+  await expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
+    'Email',
+    'Date Received',
+    'Subject',
+    'Message',
+    'Actions',
+  ]);
+  // Every message, newest first, each with its own Remove.
+  await expect(rowIds(table)).toHaveLength(contacts.length);
+  await expect(within(table).getAllByRole('button', { name: /^Remove message from / })).toHaveLength(contacts.length);
+}
+
+/** Admin / Contacts (2102:6234), as pattern 16 draws it: no page actions; rows don't open. */
+export const Contacts: Story = {
+  args: { screen: 'contacts' },
+  play: ({ canvasElement }) => expectContactsList(canvasElement),
+};
+
+export const ContactsDark: Story = {
+  name: 'Contacts, dark',
+  args: { screen: 'contacts' },
+  globals: { theme: 'dark' },
+  tags: ['!autodocs'],
+  play: ({ canvasElement }) => expectContactsList(canvasElement),
+};
+
+export const ContactsMobile: Story = {
+  name: 'Contacts, mobile',
+  args: { screen: 'contacts' },
+  globals: { viewport: MOBILE_VIEWPORT },
+  parameters: { chromatic: MOBILE_SNAPSHOT },
+  play: ({ canvasElement }) => expectContactsList(canvasElement),
 };

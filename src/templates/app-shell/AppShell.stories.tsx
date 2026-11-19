@@ -26,8 +26,8 @@ const meta = {
           '**Navigation / Header – Admin** or **– User** over the page container (each screen’s Content frame: 1536 wide ' +
           'at 1920, 32 above the page, 24 between its parts). Below 768px the header is the Mobile Header, and ☰ opens ' +
           'the Mobile Menu. Built from AppShell (pattern 15) and `TemplateFrame` (`src/templates/`), which routes the ' +
-          'links to the other templates’ screens: choose a link to move there. Partners and Contacts have no page ' +
-          'composition yet, so they show their title only.',
+          'links to the other templates’ screens: choose a link to move there. Partners has no page ' +
+          'composition yet, so it shows its title only.',
       },
     },
   },
