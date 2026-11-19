@@ -18,6 +18,7 @@ import {
   type ContactFilters,
 } from '../filters/ContactsFilterBar';
 import { emptyStateCopy, type Contact } from '../fixtures';
+import { useFocusAfterRemoval } from '../useFocusAfterRemoval';
 
 /**
  * ContactsListPage — a story-level organism, not a DS component: Admin →
@@ -43,8 +44,9 @@ import { emptyStateCopy, type Contact } from '../fixtures';
  * - Remove is the only row action, so every row has a red Destructive Button
  *   / Small instead of a ••• menu. It asks first (pattern 04: Modal /
  *   Confirm, Destructive); on Remove the row goes, a Success toast says
- *   "Message removed.", and focus moves to the next row's Remove (or the
- *   search field when none is left).
+ *   "Message removed.", and focus moves to the next row's Remove
+ *   (useFocusAfterRemoval: the last row's on the page before when the message
+ *   was alone on the last page; the search field when none is left).
  * - Nothing matches: the compact Empty State in the table, no pagination.
  *   No messages at all: the Default Empty State "No messages yet" in place
  *   of the table (pattern 11).
@@ -96,7 +98,6 @@ export function ContactsListPage({
   const [page, setPage] = React.useState(1);
   const [confirmId, setConfirmId] = React.useState<string | null>(defaultConfirm ?? null);
   const pageRef = React.useRef<HTMLDivElement>(null);
-  const focusAfterRemove = React.useRef<number | null>(null);
 
   const matching = filterContacts(rows, filters).sort(byDate(sort));
   const pageCount = Math.ceil(matching.length / pageSize);
@@ -104,16 +105,11 @@ export function ContactsListPage({
   const shown = matching.slice((current - 1) * pageSize, current * pageSize);
   const confirming = rows.find((c) => c.id === confirmId) ?? null;
 
-  /* After a removal: the next row's Remove (the one that took its place), else the last one, else the search field.
-     Only a removal changes `rows`, so the effect runs then. */
-  React.useEffect(() => {
-    const index = focusAfterRemove.current;
-    if (index === null) return;
-    focusAfterRemove.current = null;
-    const buttons = pageRef.current?.querySelectorAll<HTMLButtonElement>('tbody [data-action="remove"]') ?? [];
-    if (buttons.length) buttons[Math.min(index, buttons.length - 1)].focus();
-    else pageRef.current?.querySelector<HTMLInputElement>('[role="search"] input')?.focus();
-  }, [rows]);
+  const focusAfterRemove = useFocusAfterRemoval({
+    container: pageRef,
+    selector: 'tbody [data-action="remove"]',
+    fallback: () => pageRef.current?.querySelector<HTMLInputElement>('[role="search"] input'),
+  });
 
   const header = (
     <TableHeaderRow>
@@ -193,8 +189,7 @@ export function ContactsListPage({
         onClose={() => setConfirmId(null)}
         onConfirm={() => {
           if (!confirming) return;
-          /* Its place on the page; the first row's when it isn't on this page (a story's defaultConfirm). */
-          focusAfterRemove.current = Math.max(0, shown.indexOf(confirming));
+          focusAfterRemove(shown, confirming);
           setConfirmId(null);
           setRows((all) => all.filter((c) => c.id !== confirming.id));
           onRemove?.(confirming);

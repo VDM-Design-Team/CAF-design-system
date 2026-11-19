@@ -265,6 +265,32 @@ export const Step3RemovedLight = removed('light');
 export const Step3RemovedDark = removed('dark');
 export const Step3RemovedMobile = removed('mobile');
 
+/* Removing the only message on the last page: page 2 of 2 goes, and focus lands on the last row of the page
+   that is left (the row just above where the message was), not its first. */
+const removedFromLastPage = (mode: Mode): Story =>
+  modeStory(mode, {
+    args: { pageSize: 7 },
+    play: async ({ args, canvasElement }) => {
+      const pagination = within(canvasElement).getByRole('navigation', { name: 'Pagination' });
+      await userEvent.click(within(pagination).getByRole('button', { name: 'Page 2' }));
+      await expect(emails(canvasElement)).toEqual(['lena.ortiz@example.com']);
+      await userEvent.click(removeButton(canvasElement, 'Lena Ortiz', '2025-03-11'));
+      const dialog = await screen.findByRole('alertdialog', { name: 'Remove this message?' });
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+
+      await expect(args.onRemove).toHaveBeenCalledWith(expect.objectContaining({ id: 'c-1' }));
+      await expect(emails(canvasElement)).toHaveLength(7);
+      await expect(pagination).toHaveTextContent('Page 1 of 1');
+      await waitFor(() => expect(removeButton(canvasElement, 'Lena Ortiz', '2025-03-13')).toHaveFocus());
+      await expectFits(canvasElement, mode);
+    },
+  });
+
+export const Step3RemovedFromLastPageLight = removedFromLastPage('light');
+export const Step3RemovedFromLastPageDark = removedFromLastPage('dark');
+export const Step3RemovedFromLastPageMobile = removedFromLastPage('mobile');
+
 /* ── Step 4 · No matching messages ───────────────────────────────────────── */
 
 const noResults = (mode: Mode): Story =>
