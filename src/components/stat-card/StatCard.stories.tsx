@@ -59,11 +59,13 @@ const CARDS: (Pick<StatCardProps, 'icon'> & {
 })[] = [
   { label: 'Total Exports', value: '5981', icon: 'file-text', tone: 'info' },
   { label: 'Completed', value: '5648', icon: 'check-circle', tone: 'success' },
-  { label: 'Processing', value: '0', icon: 'clock', tone: 'pending' },
+  { label: 'Processing', value: '0', icon: 'clock', tone: 'info' },
   { label: 'Failed', value: '333', icon: 'x-circle', tone: 'critical' },
   { label: 'Total Announcements', value: '7', icon: 'bell', tone: 'info' },
   { label: 'Latest Version', value: '2.5.6', icon: 'tag', tone: 'success' },
   { label: 'Last Updated', value: 'Aug 10, 2026', icon: 'calendar-blank', tone: 'info' },
+  // No stat-row card uses Pending since Processing moved to Info; this keeps the tone in the grids.
+  { label: 'Pending', value: '0', icon: 'clock', tone: 'pending' },
 ];
 
 const tones = (theme: 'light' | 'dark'): Story => ({
