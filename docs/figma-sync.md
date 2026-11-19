@@ -75,7 +75,7 @@ can only move together with the snapshot.
 Fixed in Figma on 3 Nov 2026 (no value changed): Heading/md-bold and the
 Title/sm-* styles bind GDL's `font/size/…`; the Label/md-* styles bind
 `font/size/label-md`; Label/sm-bold binds `font/size/label-sm`;
-Heading/lg-regular binds `font/family/inter`. `npm run import:figma` no
+Heading/lg-regular binds `font/family/inter` (every style binds `font/family/open sans` since 10 Nov). `npm run import:figma` no
 longer lists any of them.
 
 Still open:
@@ -94,13 +94,16 @@ Still open:
 
 ## Components
 
-**Changed in Figma on 10 Nov 2026:** every text style binds GDL's line
-height and letter spacing (see above), so Figma's text now has the ramp's
-metrics, as code. Rows below that give a Figma height or line height "on
-Inter's auto line height" and ask to bind the text style to the ramp
-describe Figma before that date: those line-height departures are gone.
-Heights that come only from the line height now match code. A row's other
-departures, such as raw padding or gaps, still stand.
+**Changed in Figma on 10 Nov 2026:** every text style binds GDL's family
+(Open Sans), line height and letter spacing (see above), so Figma's text has
+the ramp's metrics, as code. **Checked on 19 Nov 2026:** the rows that asked
+to bind a text style to the ramp, and gave heights or widths on Inter's auto
+line height, are gone: the library's heights now match code (Table / Cell,
+Status Pill, Header Cell, Tag, Menu / Item, the form fields, Alert, File
+Upload Zone, Card / Stat, the Changelog parts, Nav Link and others). Where a
+height still differs for another reason, such as a stroke inside the layout
+(Breakdown Item, Change Diff Row), the row gives the library's current
+value.
 
 Components are built straight from the CAF Design Library, never from an
 intermediate export. Each one reads its variants, states and variable
@@ -163,7 +166,7 @@ Code departs from Figma here. Fix these in Figma:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs the label on GDL's line heights (since 10 Nov 2026): Big 50 (26 + 12 + 12), Normal 36, Small 34 (18 + 8 + 8), with or without icons | Fixed 48 / 36 / 32 | Fixed heights 48 and 32 on Big and Small |
+| Height | Fixed: Big 48 and Small 32 since 19 Nov 2026 (library not yet published; 50 and 34 until then, hugging the label on GDL's line heights). Normal hugs 36 (8 + 20 + 8), with or without icons | Fixed 48 / 36 / 32 | None, once the library is published |
 | Icon gap | Big and Normal: raw 10px, unbound | 8px (`space/8`, as Small already uses) | Bind item spacing to `space/8` |
 | Hover shadow (Default, Destructive, Tonal, Success) | Two raw drop shadows, `0 1 2` and `0 4 4` at 25% black | `shadow.elevation.2`, the closest GDL elevation (Figma's is darker) | Apply the Elevation 2 effect style |
 | Radius | Bound to GDL's `radius/8`, which the file shows under its old name `radius-4` (see TableExpandButton) | `rounded-8` | None: take GDL's library update in the CAF library |
@@ -286,7 +289,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Line height | Inter's auto line height (17px for Body/sm) | GDL's ramp (20px), so a Text cell is 44px (Figma 41) and List (Expanded) 106px | Bind the text styles' line heights to the ramp |
 | List toggle | A text layer with no states | A `<button>` with `aria-expanded`, in `text/link/default`, with a 2px `stroke.focused` focus ring | Add Hover and Focus states for the toggle |
 | Nested Status Pill, Tag, Row Actions | Instances | `children`. Type=Tag takes `StatusPill`; the stories show labelled stand-ins for Tag and Row Actions until they're built | None needed |
 
@@ -344,15 +346,8 @@ on the CAF screens). Its labels there are "Pending", "Recurring" and
 copied exactly, and the Storybook grids check each pill against the
 variables its layers are bound to, in Light and Dark.
 
-Code departs from Figma here:
-
-| | Figma | Code | Fix in Figma |
-|---|---|---|---|
-| Line height | Inter's auto (15px for Caption/md) | GDL's ramp (16px), so the pill is 24px tall (Figma 23) | Bind the text style's line height to the ramp |
-| Letter spacing | 0 | GDL's Caption/md-semibold, 0.3px | As above |
-
-With the letter spacing, "Pending" is 74px wide (Figma 72) and
-"Recurring" 84px (Figma 81).
+Code matches Figma: since 10 Nov 2026 the label's text style has GDL's
+16px line height and 0.3px letter spacing, so the pill is 24 tall in both.
 
 Contrast: every label passes AA.
 
@@ -406,8 +401,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Padding and gap | Raw 6px, unbound | 6px (`space/6`). Inside a TableHeaderRow, `space/16` sides and `space/12` top and bottom, as the Header Row overrides it (since 2 Nov 2026) | Bind to `space/6` |
-| Height | Hugs Inter's auto line height: 32 with the arrows, 29 without | 32 for both, on GDL's 20px Body/sm line height | Bind the text style's line height to the ramp |
-| Letter spacing | 0 | GDL's Body/sm-regular, 0.4px, so a label is about 2px wider | As above |
 | Sort control | Part of the cell, with no states | A `<button>` around the label and arrows that calls `onSort`, with a 2px `stroke.focused` focus ring. A sorted column sets `aria-sort` on the `<th>` | Add Hover and Focus states for the sort control |
 | Default | Sortable=true | `sortable` is off unless set, because a sortable header needs an `onSort` handler | None needed |
 
@@ -589,8 +582,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Active's icon | `Bolt`: Heroicons' micro bolt, not Phosphor | Phosphor `lightning` | Swap to Phosphor `Lightning` |
 | Pending's icon | `Clock` drawn as a 1px stroked outline, coloured through its stroke | Phosphor `clock` (filled path, like every other icon) | Use the Phosphor `Clock` glyph |
-| Height | 25px, on Inter's auto line height | 26px, on GDL's 18px Label/sm line height | Bind the text style's line height to the ramp |
-| Letter spacing | 0 | GDL's 0.2px; widths stay within about 1px of Figma | As above |
 
 Figma gaps the code doesn't copy:
 
@@ -643,7 +634,6 @@ Code departs from Figma here:
 | The … gap | An Item with the label "…" | A non-interactive `<span>` with the item's look, hidden from screen readers | None needed |
 | Arrows and pages | Labels only | `aria-label` "Previous page", "Next page" and "Page N"; the current page has `aria-current="page"`; ‹ / › are `disabled` at the ends | None needed |
 | Page window | Figma shows 1 2 3 4 5 … 25 | Up to 7 pages show them all. Otherwise the first and last, plus five pages at an end or three around the current page | None needed |
-| Letter spacing | 0 | GDL's ramp, so "Page 1 of 25" is 86px (Figma 83) | Bind the text styles to the ramp |
 
 Figma gaps the code doesn't copy:
 
@@ -740,8 +730,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Hugs Inter's auto line height: 33 | 36, on Body/sm's 20px line height | Use the ramp's line height |
-| Letter spacing | 0 | GDL's ramp (0.4px for Body/sm) | Bind the text style to the ramp |
 | Width | Fixed 200 in the set (Fill inside Menu / Dropdown) | Fills the menu | None needed |
 | Focus | No Focus state | Hover's fill plus a 2px `stroke.focused` outline, 2px offset, as on Button | Add a Focus state |
 | Disabled | No such state | No `disabled` prop: leave out an action the user can't take | Add one if the screens need it |
@@ -879,7 +867,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Letter spacing | 0, auto line height (17px, centred in the 40) | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp (left to the text-style work) |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus`. The browser's outline is hidden, but stays transparent so forced-colours mode still shows a ring | None needed |
 | Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
 
@@ -975,7 +962,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Gap | 0, space-between | 8px (`space/8`), so a long value truncates (…) before the caret | Set item spacing to `space/8` |
-| Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus-visible` (keyboard focus). The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
 | Semantics | None | `role="combobox"`, `aria-haspopup="listbox"`, `aria-expanded` from `open`. Select passes `aria-controls` | None needed |
 
@@ -1071,7 +1057,7 @@ text in Light and Dark, and the truncation (Truncated).
 | Line | Horizontal, gap `space/4`, hugs | `<p>` `flex max-w-full gap-1` |
 | Label | Body/sm-regular, `colors/text/primary`, hugs | `<span>` `shrink-0`: it never shrinks |
 | Value | Body/sm-regular, `colors/text/primary`; truncates (ending …, 1 line) when the line has a fixed width | `<span>` `min-w-0 truncate`: one line, cut with … when the line is narrower than it |
-| Text style | Body/sm-regular (`font/size/body-sm`, `font/weight/regular`, `font/family/inter`) | `text-body-sm-regular text-text-primary` on the line |
+| Text style | Body/sm-regular (`font/size/body-sm`, `font/weight/regular`, `font/family/open sans`) | `text-body-sm-regular text-text-primary` on the line |
 
 A space between the two spans, which the flex layout doesn't draw, keeps
 the line's text "ID: 32430" when it is copied or read by a screen reader.
@@ -1097,8 +1083,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Line height | Inter's auto line height, 17px | GDL's Body/sm, 20px. Four lines are 80px (Figma 68) | Bind the text style's line height to the ramp |
-| Letter spacing | 0 | GDL's Body/sm-regular, 0.4px | As above |
 | When the value truncates | When the line is given a fixed width | When its container is narrower than the line (`max-w-full`). In a table, give the column a width | None needed |
 
 ### TableAccountDetails (29 Oct 2026)
@@ -1157,7 +1141,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Category Tag | Always shown | `categoryTag` is optional, and has no default: leave it out for no tag (a single cost has none) | Add a Show Category Tag boolean if the screens need one |
-| Height | 105 (17px lines, 25px tag) | 116 (20px lines, 24px tag), on GDL's ramp | Bind the text styles' line heights to the ramp |
 | Width | 301 in the cost row | Hugs; the table sets the column width | None needed |
 
 Figma gaps the code doesn't copy:
@@ -1229,7 +1212,6 @@ Code departs from Figma here:
 | Focus, Disabled | No such states | 2px `stroke/focused` focus ring, as on Button. No `disabled` | Add a Focus state if tabs need it |
 | Style | A variant property | Chosen by the list (Tabs or FormTabNavigation), not a TabItem prop | None needed |
 | `value` | None: the Selected variant names the tab | Each TabItem has a `value`, which the list's `selected` / `active` refers to | None needed |
-| Letter spacing | 0 | GDL's 0.4px (Body/sm), so "Recurring" is 102px wide (Figma 98) | Bind the text styles to the ramp |
 
 ### Tabs (29 Oct 2026)
 
@@ -1268,7 +1250,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Selected | One variant per value (All, Recurring, Single) | `selected` takes any tab's `value`, and the tabs are `children` | None needed |
-| Width | 238 | 245, from GDL's letter spacing on the labels | Bind the text styles to the ramp |
 | Focus | None | Each tab's focus ring (see TabItem) | Add a Focus state |
 
 **Changed in Figma on 3 Nov 2026** (decision dark-pins-components;
@@ -1332,12 +1313,10 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 510 | Full width of its container (`w-full`), shared equally by the tabs | None needed |
-| Height | Tabs 33, bar 41 (Inter's auto line height, 17) | 36 and 44 (GDL's Body/sm line height, 20) | Bind the text styles' line height to the ramp |
 | Active values | Tab 1, Tab 2 (positions) | The active tab's `value` | None needed |
 | Tab 1 / Tab 2 | Plain frames, not instances (Tab Item's Style=Form draws the same tab) | TabItem in Style=Form | None: the sets stay apart (fc-buttons-tabs-one-set) |
 | Focus | None | 2px `stroke/focused` focus ring | Add a Focus state |
 | Hover | Tab 1 / Tab 2 have no Hover | Tab Item's Style=Form Hover | Swap the frames for Tab Item instances, if the sets merge |
-| Letter spacing | 0 | GDL's 0.4px | Bind the text styles to the ramp |
 
 Figma gaps the code doesn't copy:
 
@@ -1402,7 +1381,6 @@ Code departs from Figma here:
 | Focus, Hover | No such states | 2px `stroke.focused` focus ring with a 2px offset, as on Button; no hover | Add a Focus state, and Hover if wanted |
 | States combine | One State each; Today + Selected is its own | `today` adds its ring to In Range too (Figma has no Today + In Range); `outsideMonth` wins over everything | Draw Today + In Range if it should differ |
 | Outside Month | A look only | The button is `disabled`, so clicks and Tab skip it | None needed |
-| Line height | Body/sm-regular, auto (17) | GDL's 20, with 0.4px letter spacing. The cell is a fixed 36, so nothing moves | Bind the text style to the ramp |
 
 ### Calendar (29 Oct 2026)
 
@@ -1461,7 +1439,6 @@ Code departs from Figma here:
 | Weekdays | "Mo" … "Su" | Shown as Figma; screen readers hear "Monday" … as column headers | None needed |
 | Structure | Frames | An ARIA grid: weekday column headers, and a gridcell per day with `aria-selected` | None needed |
 | Keyboard | (none) | One tab stop (the selected day, else today, else the 1st). Arrows move by day and week, Home / End go to Monday / Sunday, Page Up / Page Down move by month (with Shift, by year), clamped to the month's length. The view follows the focus | None needed |
-| Line height | Body/sm-semibold 17, Caption/md-medium 15 (auto) | GDL's 20 and 16, with letter spacing; header 20 and weekday 24 as in Figma | Bind the text styles to the ramp |
 
 Figma gaps the code doesn't copy:
 
@@ -1631,7 +1608,6 @@ Code departs from Figma here:
 | Hover, Disabled, Open | No such states | No hover. Native `disabled` only changes the cursor. Open is `aria-expanded` with no visual change | Add them if the screens need them |
 | Icon default | One default for the set, MagnifyingGlass; a Dropdown picks Funnel (decision fc-table-filter-icon) | Search defaults to `magnifying-glass`, Dropdown to `funnel` | None needed: Figma has one default per set |
 | Long values | No truncation; at 256 Figma's values fit ("All Payment Method" needed 250 of the old 240) | Truncated with an ellipsis | Turn on text truncation |
-| Line height, letter spacing | Inter's auto line height (17px), 0 | GDL's Body/sm-regular, 20px and 0.4px | Bind the text style to the ramp |
 
 Figma gaps the code doesn't copy:
 
@@ -1751,8 +1727,7 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 280 in the set; Fill in the menu | Fills the menu | None needed |
-| Height | Fixed 36 | Hugs: 8 + 20 + 8 = 36 (GDL's Body/sm line height; Figma's label is 17px tall on Inter's auto line height) | Bind the text style's line height to the ramp |
-| Letter spacing | 0 | GDL's 0.4px (Body/sm) | As above |
+| Height | Fixed 36 | Hugs: 8 + 20 + 8 = 36 | None needed |
 | Active from the pointer | Active always has the Focus Ring | The ring only when the keyboard put the option there (`data-focus-visible`); from the pointer, Hover's fill alone | None needed |
 | Selected + Hover | Not drawn | Stays `neutral/tonal/surface/default` | None needed |
 | Disabled | No such state | None: leave the choice out | Add one if the screens need it |
@@ -1946,7 +1921,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | Fixed 80; the text is 39 tall on Inter's auto line height | At least 80; the text is 44 tall on GDL's line heights | None needed |
+| Height | Fixed 80 | At least 80 | None needed |
 | Width | Fixed 512 | Fills its container | Set the width to Fill |
 | Description | Always shown | Renders only when given | Add Show Description, as Modal / Dialog has |
 | Element | n/a | A `<div>`, because a `<header>` could become a second banner landmark | None needed |
@@ -2003,7 +1978,7 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Elevation | Effects/Elevation Dark/4 | `shadow-elevation-4`. Tailwind compiles it to GDL's Light Elevation 4 in both themes, so Dark is a little lighter than Figma until the theme output carries Dark elevation (as on Popover) | None in Figma |
-| Height | Hugs; footer 68 with Inter's 35px buttons | Footer 69 (GDL's 36px Button); never taller than the viewport minus 16 on each side; the body scrolls | None needed |
+| Height | Hugs; footer 69 (36px buttons) | Footer 69; never taller than the viewport minus 16 on each side; the body scrolls | None needed |
 | Show Description default | Off | On whenever there is a description | None needed |
 | Focus, keyboard | n/a | Focus moves to the dialog and is trapped; Escape, Close and a backdrop click call `onClose`; focus returns to the opener | None needed |
 | Header and footer elements | n/a | `<div>`s, because `<header>` and `<footer>` can become landmarks | None needed |
@@ -2174,8 +2149,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Width | Fixed 464 | Fills its container | None needed: instances are stretched |
-| Height | Default 66 (68 until 3 Nov), on Inter's auto line height; Compact 44, as code | Default 70, on GDL's 20px Body/sm and 16px Caption/md line heights | Bind the text styles' line heights to the ramp |
-| Letter spacing | 0 | GDL's ramp (0.4px Body/sm, 0.3px Caption/md) | As above |
 | Focus | No Focus state | 2px `stroke.focused` ring on the X, as on Button | Add a Focus state |
 | Role | None | `role="alert"` for Error and Warning, `role="status"` for Info and Success | None needed |
 
@@ -2500,7 +2473,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Line height | Inter's auto line height (17px), letter spacing 0 | GDL's Body/sm: 20px, 0.4px | Bind the text style to the ramp |
 | Marker semantics | Not defined | `aria-hidden`; the control is `required` or `aria-required` | None needed |
 
 Figma gaps the code doesn't copy: none (no pinned modes).
@@ -2599,7 +2571,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Label Row height | 37px: Inter's auto 17px line plus 20 | 40px: GDL's 20px line plus 20 | Bind the label's text style to the ramp |
 | Width | Fixed 510 | Fills its container, as every placement does | Set the components to Fill |
 | Helper and error | State=Error swaps the Helper for the Error Text | `error` wins over `helper` while both are given | None needed |
 | Wiring | Not defined | `htmlFor`, `aria-describedby`, `aria-invalid`, `required` on the control | None needed |
@@ -2677,7 +2648,6 @@ Code departs from Figma here:
 | Element | Text | `<button type="button">` | None needed |
 | Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button | Add a Focus state |
 | Accessible name | "[Edit]" | "[Edit] Currency" inside a field | None needed |
-| Line height | Inter's auto line height (12px) | GDL's Caption/sm: 14px | Bind the text style to the ramp |
 
 Figma gaps the code doesn't copy: none.
 
@@ -2835,7 +2805,6 @@ Code departs from Figma here:
 | Title element | Text | A heading, `<h2>` by default | None needed |
 | Title to action | Space-between, gap 0 | Space-between, at least `space/16`, so a long title never touches the button | Set item spacing to `space/16` |
 | Width | Section Header hugs; – Action is fixed 510 | Fills its container | Set both to Fill |
-| Line heights | Inter's auto (22px, 17px) | GDL's ramp (26px, 20px) | Bind the text styles to the ramp |
 | Description and action together | No such component | Both show: the title and description on the left, the action on the right | Add it if forms need it |
 | The action's label | An override, not a property | `action` takes any Button | Expose the button's label |
 
@@ -2902,7 +2871,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Height | Fixed 96 | `rows`, 4 by default: 4 × 20 + 8 + 8 = 96. More `rows` make it taller | None needed |
 | Resize | "Resize height as needed" (the description) | `rows`, and the native vertical resize handle (`resize-y`). Disabled can't be resized | None needed |
-| Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus`. The browser's outline is hidden, but stays transparent so forced-colours mode still shows a ring | None needed |
 | Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
 
@@ -3134,7 +3102,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp |
 | Focus | The Focus state is the 2px stroke | Copied on `:focus`, as TextInput. The browser's outline is hidden, but stays transparent in forced-colours mode | None needed |
 | Disabled with a value | Only the placeholder is shown | A value also takes Disabled's `text/disabled` | None needed |
 | Show Clear | A boolean the designer turns on | On by itself: an optional field with text (a date or typed), enabled and closed. No prop | None needed |
@@ -3374,7 +3341,6 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Layout | Auto layout: icon, Value (Fill), Caret Button, `space/8` gap, `space/12` / `space/4` sides | One `<input>` fills the box. The search icon sits over its left padding (12 + 20 + 8 = 40) and lets clicks through; the Caret Button sits over its right padding (4 + 32 + 8 = 44) | None needed |
-| Letter spacing | 0, auto line height | GDL's ramp: 0.4px, 20px | Bind the text style to the ramp (as TextInput) |
 | Focus | Focus ("typing") is the 2px stroke | Copied on `:focus`. The browser's outline stays transparent, so forced-colours mode still shows one | None needed |
 | Open with a value | Only the placeholder is drawn | The chosen label in `text/primary` | None needed |
 | Filtering, keyboard | Not drawn | The WAI-ARIA behaviour above. The active option is Select / Option's State=Active (the ring only when the keyboard put it there) | None needed |
@@ -3623,7 +3589,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Letter spacing | 0 | GDL's 0.4px (Body/sm) | Bind the text style to the ramp |
 | Disabled | Not drawn | The radio's Disabled; the label unchanged | Add it if the label should dim |
 | Hover | Only the Radio's own | Hovering the radio; hovering the label text shows no Hover | Add it if the label should trigger Hover |
 
@@ -3702,7 +3667,6 @@ Code departs from Figma here:
 | Width | Hugs (223) in the library; Fill (752) in Create Announcement | Fills its container | None needed |
 | Narrow screens | One row, no wrap | The row wraps, with `space/8` between rows | Set the Options frame to wrap, if wanted |
 | Disabled | Not drawn | As above | See the design question |
-| Label's line height | Inter's auto (17px) | GDL's 20px | Bind the text style to the ramp |
 
 Figma gaps the code copies exactly. These are for the designer to decide:
 
@@ -3790,7 +3754,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Box position | Top-aligned with the label on Inter's 17px line | 2px down (`mt-0.5`), so the 16px box is centred on GDL's 20px Body/sm line | Bind the text style to the ramp |
+| Box position | Top-aligned with the label's 20px line | 2px down (`mt-0.5`), so the 16px box is centred on the 20px Body/sm line | Move the box 2px down, centred on the label's first line |
 | Width | Fixed 464 in the library; Fill (512) in Add New User | Fills its container | None needed |
 | Click target | — | The whole field (a `<label>`) | None needed |
 | Focus | Checkbox's Focus, not a field State | Checkbox's 2px `stroke/focused` ring on the box | None needed |
@@ -3960,7 +3924,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Dash pattern | Dash 6, gap 4 | CSS `border-dashed`, with the browser's dash length. CSS can't set the pattern without an SVG border | None needed |
 | Width | Fixed 510 (Fill inside the field) | Fills its container (`w-full`) | None needed |
-| Height | 122px (124 in Drag-over): Inter's auto line heights (17, 15), strokes in layout | 126px (128 in Drag-over): GDL's 20px and 16px line heights | Bind the text styles to the ramp |
 | Focus | No such state | The ring, as above | Add a Focus state (design question) |
 
 Figma gaps the code doesn't copy: none (no pinned modes).
@@ -4314,7 +4277,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Element | A frame | An `<article>` named by its label. The value is a `<p>`, not a heading, though its style is Heading/lg-semibold: as headings, bare numbers would fill heading navigation | None needed (decision stat-card-structure) |
 | Width | Fixed 372 | Fills its container | None needed |
-| Height | 98 (17px label, 29px value on Inter's auto line height) | 102 (20px and 30px, GDL's ramp) | Bind the text styles' line heights to the ramp |
 
 Figma gaps the code doesn't copy: none.
 
@@ -4400,7 +4362,6 @@ Code departs from Figma here:
 | Columns | Fixed 220px items wrapping in a 464px frame: one column below 464, and two with 48px to spare in the 512px dialog | Two equal columns at any width: 220 at 464, 244 in the 512px dialog. Pass `className="grid-cols-1"` for one column | None needed, or a narrow variant (design question) |
 | Value | Text | Any content (a `Tag`, a link) | None needed |
 | Long values | Break mid-word ("…05333" / "2.zip") | `break-words`: wrap at spaces, and break a word only when it doesn't fit | None needed |
-| Height | 34 an item (15 + 2 + 17) | 38 (16 + 2 + 20), on GDL's ramp | Bind the text styles' line heights to the ramp |
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
@@ -4462,7 +4423,6 @@ Code departs from Figma here:
 | The Key's colon | Typed into the Key text ("Search:") | `key` is the filter's name ("Search"); code adds the colon | Optional: leave the colon out of the property's text |
 | Lines | Summary Line instances, added or removed by hand | `filters`: an array with one line per entry | None needed |
 | Width | Fixed 464 | Fills its container; the box hugs its lines, as in Figma | None needed |
-| Height | 17px lines | 20px lines, on GDL's ramp | Bind the text styles' line heights to the ramp |
 
 Figma gaps the code doesn't copy: none (no pinned modes).
 
@@ -4500,7 +4460,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | 89, on Inter's auto line heights | 92, on GDL's 20 / 16px lines | Bind the text styles' line heights to the ramp |
+| Height | 94: the 1px stroke is in the layout (16 + 60 + 16 + 2) | 92: the edge is an inset ring, outside the layout | Exclude the stroke from the layout |
 | Width | Fixed 624 | Fills its container | Set the width to Fill |
 | ••• button | The one-off 32×32: radius 6, 20px DotsThree in `text/primary`, no hover | IconButton Ghost 32 (see "RowActionsMenu") | Swap for a `Button / Icon` instance, Ghost 32 |
 | Its name | None | `actionsLabel`, default "Actions for <title>" | None needed |
@@ -4555,7 +4515,7 @@ Code departs from Figma here:
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
 | Field column | Fixed 200 of 960 | A quarter of the table: 240 at 960, with its 16px gap. GDL has no width scale | None needed (decision change-diff: a proportional column is fine) |
-| Row height | 47: the boxes' strokes are in the layout, on Inter's 17px line | 48: the boxes' rings are drawn inside, on GDL's 20px line | Bind the text styles' line heights to the ramp |
+| Row height | 50: the boxes' strokes are in the layout (8 + 34 + 8) | 48: the boxes' rings are drawn inside (8 + 32 + 8) | Exclude the boxes' strokes from the layout |
 | Width | Fixed 960 | Fills its container | Set the width to Fill |
 | Header labels | Fixed text | Fixed text | None needed |
 | Removed / added in text | Colour, column and the strike | Also `<del>` / `<ins>`, each led by a visually hidden "Removed:" / "Added:" | None needed |
@@ -4737,7 +4697,6 @@ Code departs from Figma here:
 | Width | Hugs (186) | Fills its container, as the dialog's instance does | None needed |
 | Metadata Row | Never wraps | Wraps on a narrow width | None needed |
 | Date and version | Always shown | Each renders only when given | None needed |
-| Title height | Inter's auto line height | GDL's 28px Title/md line height | Bind the text style's line height to the ramp |
 | Element | n/a | A `<div>`, because a `<header>` could become a second banner landmark | None needed |
 
 Figma gaps the code doesn't copy: none since 3 Nov 2026.
@@ -4785,7 +4744,6 @@ Code departs from Figma here:
 |---|---|---|---|
 | Width | Fixed 640 | Fills its container | Set the width to Fill |
 | Header gap | 0 (Space Between) | 16 between the title group and the New tag, so a long title never touches it | Set the gap to `space/16` |
-| Height | Inter's auto line heights (header 69) | GDL's line heights (header 75) | Bind the text styles' line heights to the ramp |
 | Semantics | n/a | An `<article>` named by its `<h2>` title; the notes are a `<ul>` | None needed |
 
 Figma gaps the code doesn't copy: none. The component pins no mode. The Cards page shows it in Dark and in Light.
@@ -4831,7 +4789,6 @@ Code departs from Figma here:
 | Width | Fixed 500 | Capped at 512 (`max-w-lg`, the nearest container width; GDL has no width scale) | Resize to 512, or bind to a width scale |
 | Elevation | Effects/Elevation Dark/4 | `shadow-elevation-4`. Tailwind compiles it to GDL's Light Elevation 4 in both themes (as on ModalDialog) | None in Figma |
 | Actions on a phone | Always side by side | Stacked under 384 inside the panel (a container query), so "View Change Log" isn't cut | None needed, or add a narrow variant |
-| Button height | 35, on Inter | 36 (GDL's Button) | As Button |
 | Close | No close button | Got It, Escape and a backdrop click call `onClose`; focus moves into the dialog, is trapped there and returns to the opener | None needed |
 | Height | Hugs | Never taller than the viewport minus 16 on each side; the panel scrolls | None needed |
 
@@ -4976,9 +4933,7 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Height | 33 (horizontal), 35 (vertical): Figma's labels are 17 and 19 high | 36 and 40, from GDL's 20px Body/sm and 24px Body/md line heights | Bind the text styles to the ramp |
 | Indicator | A 2px rectangle layer, absolutely placed (constraints Left & Right / Bottom, and Left / Top & Bottom) | A pseudo-element on the link, the same place and size | None needed |
-| Letter spacing | 0 | GDL's ramp (0.4px on Body/sm), so "Recurring Costs" is 136px (Figma 130) | Bind the text styles to the ramp |
 | Focus | No Focus state | 2px `stroke/focused` outline, 2px offset, as on Button | Add a Focus state |
 | Active + Hover | Not drawn | Active keeps its look on hover | None needed |
 | Name | Two component sets | One NavLink with `orientation` | None needed |
@@ -5056,7 +5011,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Size | 466 × 49 (User), 909 × 49 (Admin) | 481 × 52 and 938 × 52, from GDL's line height and letter spacing on the links | Bind the text styles to the ramp |
 | Semantics | A frame of instances | `<nav aria-label>` › `<ul>` › `<li>` › `<a>` | None needed |
 | Focus | None | Each link's focus ring (see NavLink) | Add a Focus state to Nav Link |
 
@@ -5087,8 +5041,6 @@ Code departs from Figma here:
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Line height | Auto (Inter): 17px | Body/sm's 20px | Use the ramp's line height |
-| Letter spacing | 0 | GDL's ramp, 0.4px | Bind the text style to the ramp |
 | Username | The property holds the whole greeting | `username` is the name; "Hi, " comes from the description's template | Optional: a fixed "Hi, " plus a Username property holding the name |
 
 Figma gaps the code doesn't copy: none. No modes are pinned.
@@ -5645,7 +5597,7 @@ Code departs from Figma here:
 - While the columns need more than the region's width, the region is a tab stop (`tabIndex` 0), so the keyboard can reach it and the arrow keys scroll it (WCAG 2.1.1; axe's scrollable-region-focusable), a `role="region"` named like the table (its `aria-label`, or its `aria-labelledby`), and shows the focus ring. While everything fits, it is a plain `<div>`: no tab stop, no landmark. It is measured before paint and again on any size change (`useScrollableTabStop(ref, true, 'x')`, the hook the modal bodies use for `y`). An unnamed table gets the tab stop but no region role.
 - Row menus open outside it: RowActionsMenu renders its menu on `<body>` (Popover's `portal`), so the region never cuts one off.
 - Every list in the patterns and templates is a TableList (Costs, Cost Centers, Recurring Costs, Drafts, Users, Exports, Announcements, Audit Logs, Manage Currencies, the Costs breakdown), so every one scrolls in its region. At 320 no template scrolls sideways any more.
-- **The Costs table at 1024:** AppShell's content box is 976 (24 at each side). The table needs a few pixels more (the decision's estimate was 977; 982 in headless Chromium with Inter), so at 1024 it scrolls by those pixels inside its region, a tab stop named Costs, and the page doesn't scroll. The other lists fit at 1024. Making Costs fit would mean narrowing a column, a design change.
+- **The Costs table at 1024:** AppShell's content box is 976 (24 at each side). The table needs more: **1038 in headless Chromium with Open Sans** (measured 19 Nov 2026; it was 977–982 with Inter, before 1.1.0), so at 1024 it scrolls by 62px inside its region, a tab stop named Costs, and the page doesn't scroll. Of the other lists, only Admin → Contacts doesn't fit at 1024 (1024 wide, so 48px). Making them fit would mean narrowing a column, a design change.
 - Stories: TableList At a phone's width (Light, Dark; the mobile viewport and `chromatic.viewports: [320]`, in a 320 frame with AppShell's 16 gutters so every runner gets 288): the region scrolls and the page doesn't; Tab stops on the region, then on the rows' •••; the last row's menu opens on `<body>`, 4px under its •••, past the region's bottom edge, inside the viewport and not clipped (its last item is the menu's own pixels). Focus ring (Light, Dark; forced `:focus-visible`). Playground checks that a table that fits has no tab stop. Costs table At a phone's width; the List page and Overview list templates check the region on every screen; List page Costs, 1024. The arrow keys are the browser's own scrolling of a focused scroll container, which a play's synthetic key events don't trigger; checked with Playwright's real keyboard instead (Tab reaches the region, → scrolls it 40px a press, ← back).
 
 ### FilterSelect (2 Nov 2026)
@@ -5696,11 +5648,11 @@ The range's format (decision period-field-width, "shorter range text", and the u
 - **Across years**: both years: "28 Dec 2025 – 3 Jan 2026".
 - **A screen reader always gets the full dates**: when the year is left out, the shown text is `aria-hidden` and a visually hidden copy carries the year ("12–24 Oct 2026"), so the combobox's value has it. `formatDateRange(range, null)` gives that full form. Filter / Summary keeps the ISO days ("2026-10-12 – 2026-10-24").
 
-**The 256 width, measured in code.** The field holds 256 − 2 × 24 (padding) − 20 (icon) − 12 − 20 (caret) − the content-to-caret gap: 140px of text with Filter / Field's 16 gap, 144 with 12. Figma sets the value with 0 letter spacing, where "12 Oct – 24 Oct 2026" is 141px (the drafting note's "about 1px too long"). Code uses GDL's Body/sm-regular, with 0.4px letter spacing, where the same text is **147.5px**: 7.5px too long with the 16 gap and 3.5px with 12. So code:
-- **Keeps the year out of a current-year range** and writes one month once. Measured in Inter with the ramp's letter spacing over every range in a year (66,795 of them), the widest is **"30 May – 30 Nov", 118.4px**; the widest one-month range is "20–30 May" (77.6px). Every current-year range fits: the widest leaves **25.6px** of the field's 144px spare (about 18%; 21.6px with the 16 gap), enough for a platform that draws Inter a little wider (CI's Linux runner did, by a pixel or two).
-- **Sets the gap to `space/12`** on this field (`gap-3` over FilterField's `gap-4`). With space-between it only shows when the text is long; it lets a short range from another year fit ("12 Oct – 4 Nov 2025", 142px).
+**The 256 width, measured in code.** The field holds 256 − 2 × 24 (padding) − 20 (icon) − 12 − 20 (caret) − the content-to-caret gap: 140px of text with Filter / Field's 16 gap, 144 with 12. Figma sets the value with 0 letter spacing, where "12 Oct – 24 Oct 2026" is 141px (the drafting note's "about 1px too long"). Code uses GDL's Body/sm-regular, with 0.4px letter spacing, where the same text was **147.5px** in Inter (CAF's face until 1.1.0): 7.5px too long with the 16 gap and 3.5px with 12. In Open Sans it is 142.4px, still too long with the 16 gap. So code:
+- **Keeps the year out of a current-year range** and writes one month once. Measured in Open Sans with the ramp's letter spacing over every range in a year (66,795 of them, 19 Nov 2026), the widest is **"10 Mar – 10 May", 113px**; the widest one-month range is "10–11 May" (73.6px). Every current-year range fits: the widest leaves **31px** of the field's 144px spare (about 22%; 27px with the 16 gap), enough for a platform that draws the text a little wider (CI's Linux runner can, by a pixel or two). In Inter the widest was "30 May – 30 Nov", 118.4px.
+- **Sets the gap to `space/12`** on this field (`gap-3` over FilterField's `gap-4`). With space-between it only shows when the text is long; it lets a short range from another year fit ("12 Oct – 4 Nov 2025", 137.4px in Open Sans; 142 in Inter).
 
-A range in another year can still be cut with an ellipsis ("28 Sep – 31 Oct 2025" is 150px; "28 Dec 2025 – 3 Jan 2026" is 185px). Its value keeps the whole text for a screen reader. The Formats story checks each case's text with `today` pinned to 24 October 2026, and measures the fit only where the margin is wide (18% or more spare, or 25% or more over), once Inter has loaded, so text rendering can't flip it.
+A range in another year can still be cut with an ellipsis ("28 Dec 2025 – 3 Jan 2026" is 171.3px; "28 Sep – 31 Oct 2025", 143.9px, only just fits). Its value keeps the whole text for a screen reader. The Formats story checks each case's text with `today` pinned to 24 October 2026, and measures the fit only where the margin is wide (18% or more spare, or 15% or more over), once Open Sans has loaded, so text rendering can't flip it.
 
 Contrast: as FilterSelect's field (value 20.17 / 17.85, placeholder and icons 4.76 / 6.96), and RangeCalendar's.
 
@@ -5708,7 +5660,6 @@ Contrast: as FilterSelect's field (value 20.17 / 17.85, placeholder and icons 4.
 
 | | Figma | Code | Fix in Figma |
 |---|---|---|---|
-| Letter spacing | 0 | GDL's Body/sm-regular (0.4px); a screen reader hears "12–24 Oct 2026" | Bind the Value to the ramp's letter spacing (FilterField's "Line height, letter spacing") |
 | Another year's long ranges | Not drawn | Cut with an ellipsis; the full text stays in the value | None needed (rare in a costs filter) |
 | Open | The picker sits inside the component and pushes content down | It floats (Popover), and flips above or to the right edge when there's no room | None needed (open point 6) |
 | Name | (visual only) | A combobox named by `label`; the picker takes the same name | None needed |
