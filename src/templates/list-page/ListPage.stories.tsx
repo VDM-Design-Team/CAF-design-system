@@ -166,10 +166,10 @@ export const CostsMobile: Story = {
 const LAPTOP_VIEWPORTS = { laptop1024: { name: 'Laptop (1024)', styles: { width: '1024px', height: '768px' }, type: 'desktop' } };
 
 /**
- * At 1024 the Costs table needs a few pixels more than the 976 it gets (about
- * 977–982, depending on the font's metrics): it scrolls by those pixels inside
- * its region, and the page doesn't scroll sideways. Where it fits, the region
- * is a plain box.
+ * At 1024 the Costs table needs more than the 976 it gets (1038 in Open Sans;
+ * 977–982 in Inter, before 1.1.0): it scrolls by those pixels inside its
+ * region, and the page doesn't scroll sideways. Where it fits, the region is a
+ * plain box.
  */
 export const CostsAt1024: Story = {
   name: 'Costs, 1024',

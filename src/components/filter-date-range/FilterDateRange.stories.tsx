@@ -143,24 +143,24 @@ export const Disabled: Story = {
 
 /* ── The short format, in the 256 field ───────────────────────────────────
    The decisions (period-field-width, and "drop the current year" on 2 Nov 2026) keep
-   the field at 256 and shorten the range. GDL's Body/sm-regular has 0.4px letter
-   spacing, so code's text is wider than Figma's ("12 Oct – 24 Oct 2026" is 147.5px,
-   where the field holds 144 with the 12 gap). A current-year range leaves the year
-   out and writes one month once; the widest, "30 May – 30 Nov", is 118.4px. Today
-   is pinned to 24 October 2026. */
+   the field at 256 and shorten the range. They were made in Inter, where "12 Oct –
+   24 Oct 2026" was 147.5px and the field holds 144 with the 12 gap. A current-year
+   range leaves the year out and writes one month once; in Open Sans (since 1.1.0)
+   the widest, "10 Mar – 10 May", is 113px. Today is pinned to 24 October 2026. */
 
-/* `fit`: checked only where the margin is wide, so a platform's text rendering (Linux draws Inter a little wider)
-   can't flip it. `true`: 18% or more to spare in the 144px the field holds; `false`: 25% or more too long. */
+/* `fit`: checked only where the margin is wide, so a platform's text rendering (Linux can draw a little wider)
+   can't flip it. `true`: 18% or more to spare in the 144px the field holds; `false`: 15% or more too long.
+   Widths in Open Sans, with the ramp's 0.4px letter spacing. */
 const RANGES = [
   { start: OCT_12, end: OCT_24, text: '12–24 Oct', full: '12–24 Oct 2026', fit: true },
   { start: new Date(2026, 9, 1), end: new Date(2026, 9, 31), text: '1–31 Oct', full: '1–31 Oct 2026', fit: true },
   { start: OCT_12, end: OCT_12, text: '12 Oct', full: '12 Oct 2026', fit: true },
   { start: new Date(2026, 8, 28), end: new Date(2026, 9, 31), text: '28 Sep – 31 Oct', full: '28 Sep – 31 Oct 2026', fit: true },
-  // The widest current-year range: 118.4px.
+  // Among the widest current-year ranges: 112.9px (the widest, "10 Mar – 10 May", is 113).
   { start: new Date(2026, 4, 30), end: new Date(2026, 10, 30), text: '30 May – 30 Nov', full: '30 May – 30 Nov 2026', fit: true },
   // Another year keeps its year; one that crosses a year keeps both.
   { start: new Date(2025, 9, 12), end: new Date(2025, 9, 24), text: '12–24 Oct 2025', full: '12–24 Oct 2025', fit: true },
-  // 150px: just over, so not measured here.
+  // 143.9px: at the edge, so not measured here.
   { start: new Date(2025, 8, 28), end: new Date(2025, 9, 31), text: '28 Sep – 31 Oct 2025', full: '28 Sep – 31 Oct 2025' },
   { start: new Date(2025, 11, 28), end: new Date(2026, 0, 3), text: '28 Dec 2025 – 3 Jan 2026', full: '28 Dec 2025 – 3 Jan 2026', fit: false },
 ];
@@ -189,10 +189,10 @@ export const Formats: Story = {
       await expect(shown(field)).toBe(text);
       await expect(spoken(field)).toBe(full);
     }
-    // The widths are Inter's: measure once it has loaded. Without it (a fallback face) the fit isn't checked.
-    const inter = await document.fonts.load('400 14px Inter', RANGES.map((r) => r.full).join(' '));
+    // The widths are Open Sans's: measure once it has loaded. Without it (a fallback face) the fit isn't checked.
+    const face = await document.fonts.load('400 14px "Open Sans"', RANGES.map((r) => r.full).join(' '));
     await document.fonts.ready;
-    if (inter.length === 0) return;
+    if (face.length === 0) return;
     for (const [i, { fit }] of RANGES.entries()) {
       if (fit === undefined) continue;
       const value = valueSpan(canvas.getByRole('combobox', { name: `Range ${i + 1}` }));

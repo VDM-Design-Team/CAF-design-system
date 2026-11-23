@@ -9,7 +9,7 @@ function ExportsStats() {
     <>
       <StatCard label="Total Exports" value="5981" icon="file-text" tone="info" />
       <StatCard label="Completed" value="5648" icon="check-circle" tone="success" />
-      <StatCard label="Processing" value="0" icon="clock" tone="pending" />
+      <StatCard label="Processing" value="0" icon="clock" tone="info" />
       <StatCard label="Failed" value="333" icon="x-circle" tone="critical" />
     </>
   );
