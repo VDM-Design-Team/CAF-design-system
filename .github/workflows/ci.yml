@@ -17,10 +17,6 @@ jobs:
         with: { node-version: 22, cache: npm }
       # GDL comes from its public git tag (package.json), so no registry token is needed.
       - run: npm ci
-      - name: tokens/ matches the Figma snapshot
-        run: |
-          npm run import:figma
-          git diff --exit-code tokens/ || (echo "::error::tokens/ differs from figma-export/ — never hand-edit tokens/; refresh the snapshot and run 'npm run import:figma'." && exit 1)
       - name: Install the browser the story tests run in
         run: npx playwright install --with-deps chromium
       # Lint, build, contract, contrast report, changelog entry, typecheck,

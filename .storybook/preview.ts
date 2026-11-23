@@ -28,7 +28,7 @@ const preview: Preview = {
   ],
   parameters: {
     // Every story is an axe test, and a violation fails `npm test` (as in VCP).
-    // The one exception is a component pair Figma binds below AA: a story
+    // The one exception is a component pair the tokens leave below AA: a story
     // that shows it uses `a11y: { test: 'todo' }` and says where it's tracked.
     a11y: { test: 'error' },
     options: {

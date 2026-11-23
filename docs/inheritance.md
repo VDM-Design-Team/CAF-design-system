@@ -14,7 +14,11 @@ CAF's build reads GDL's `tokens/` first (`include`) and then CAF's own
 `tokens/` (`source`). On a collision CAF wins, which is how a brand
 overrides a GDL default. Only `font.family.sans` is allowed to collide.
 
-## Figma ↔ GitHub
+## What each part mirrored in Figma (history)
+
+CAF left Figma on 23 Nov 2026, and the repo is the source of truth. This
+table records what each part of the repo mirrored in the CAF Figma library
+up to 1.2.0.
 
 | Figma | GitHub |
 |---|---|
@@ -24,7 +28,7 @@ overrides a GDL default. Only `font.family.sans` is allowed to collide.
 | CAF's Semantics collection (Light / Dark) | `tokens/semantic/color.json` / `color.dark.json` |
 | A Semantics variable aliases GDL `colors/slate/500` | `{color.slate.500}`, resolved from GDL |
 | CAF's text styles (Open Sans) | GDL's type ramp + `font.family.sans` → Open Sans |
-| CAF's Elevation effect styles | GDL's `shadow.elevation.*` (identical; the importer checks) |
+| CAF's Elevation effect styles | GDL's `shadow.elevation.*` (identical) |
 
 ## What CAF overrides, and why
 
@@ -96,6 +100,14 @@ canonical form). So `npm ci` needs no token, locally or in CI.
 
 Switching to the registry later is a one-line change, once every machine
 and workflow that installs CAF has `read:packages`.
+
+## Decisions (November 2026)
+
+- **The repo is the source of truth (23 Nov 2026).** CAF left Figma. Tokens
+  are edited in `tokens/` and components in `src/`; `figma-export/` and the
+  importer are gone. This replaces "Faithful to Figma" below: a contrast
+  failure is fixed in the tokens. A colour that isn't CAF's brand still comes
+  from GDL, and `lint:tokens` and `check:contract` enforce it.
 
 ## Decisions (October 2026)
 

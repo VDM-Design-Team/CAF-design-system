@@ -15,19 +15,23 @@ Read `docs/inheritance.md` before changing anything structural.
    `tokens/core/color.json` and on any GDL token CAF overrides that isn't on
    `ALLOWED_OVERRIDES` in `scripts/lint-tokens.mjs`. Adding to that list is a
    reviewed decision that CAF departs from GDL.
-2. **Tokens come from the CAF Figma library.** `tokens/` is generated from
-   `figma-export/` by `npm run import:figma`. Never hand-edit `tokens/`. To
-   change a value, change the CAF Figma library first, then refresh the
-   snapshot (`docs/figma-sync.md`) and run the import. Commit the snapshot
-   and the tokens together. CI fails if `tokens/` differs from what the
-   snapshot produces.
-3. **CAF's semantics alias only GDL's Primitives or CAF's Brand Primitives.**
-   The importer fails on an alias to any other library (VCP, shadcn, a
-   Material kit). That is the repo enforcing what Figma can't.
-4. **CAF inherits the type ramp and elevation.** The importer fails if a CAF
-   text style's size or weight, or an elevation effect, differs from GDL's.
-   Fix drift in CAF Figma. A real CAF-only decision goes through rule 1's
-   allow-list.
+2. **The repo is the source of truth.** CAF left Figma on 23 Nov 2026, so
+   nothing is generated or copied from it any more. Edit `tokens/` directly:
+   `tokens/core/color.json` (CAF's brand ramps), `tokens/core/typography.json`
+   (CAF's UI face), and `tokens/semantic/color.json` with
+   `tokens/semantic/color.dark.json` (the semantic names, Light and Dark;
+   change both in the same PR). A colour that isn't CAF's brand is a GDL
+   colour: reference it (`{color.slate.500}`), and if GDL doesn't have it,
+   add it to GDL first (rule 6). Don't type a new hex into a semantic token;
+   `check:contract` counts the raw values that are left. `docs/figma-sync.md`
+   is the record of how the tokens and components came from Figma up to
+   1.2.0. It is history, not a process.
+3. **CAF's semantics reference only GDL's colours or CAF's brand ramps.**
+   `npm run lint:tokens` fails on a reference that resolves to neither, and
+   `check:contract` fails on one that points outside GDL and CAF's own core.
+4. **CAF inherits the type ramp and elevation.** CAF's tokens don't define
+   them, and `lint:tokens` fails on a GDL token CAF overrides. A real
+   CAF-only decision goes through rule 1's allow-list.
 5. **The GDL contract must hold.** `gdl-check-contract` runs in `npm test`.
    A new semantic name is allowed, and it is reported. If a second brand
    needs it, propose it to GDL; don't wait for it to spread.
@@ -41,47 +45,48 @@ Read `docs/inheritance.md` before changing anything structural.
 8. **Contrast is enforced.** Every semantic pair meets WCAG AA in Light
    and Dark: text and labels 4.5:1, the focus ring and component borders
    3:1. `npm test` runs `check:contrast --strict`, so a new failure fails
-   CI. Fix a failure in Figma (rule 2), not in `tokens/`.
+   CI. Fix a failure in `tokens/` (rule 2), in Light and Dark, not with a
+   one-off in a component.
 
 ## Components
 
 `src/components/<name>/` holds `<Name>.tsx`, `<Name>.stories.tsx` and
 `index.ts`, exported from `src/index.ts`. Button is the reference.
 
-- **Build from the CAF Figma library itself.** Read the component set's
-  variants, states and variable bindings with the Figma connector (the
-  `figma-design-to-code` skill). Never go through an intermediate export:
-  VCP's Claude Design export invented its own vocabulary.
-- **Figma's names are the API.** Figma's Style becomes `variant`, because
-  React reserves `style`. The component set's size becomes `size`. Other
-  properties keep their names, lower-cased (`big`, `outlined`). A Figma
-  state is the element's own state: Hover is `:hover`, Pressed is `:active`,
-  Disabled is `disabled`. Don't add props Figma doesn't have.
-- **Copy every binding exactly.** Use the semantic utility for the variable
-  the layer is bound to in that state, even when it looks wrong. A wrong
-  binding is fixed in Figma, then here.
+- **Storybook is the reference.** The components were built from the CAF
+  Figma library up to 1.2.0. Now a component's stories are its spec, and
+  the design for new work comes with the task (a design canvas, a prototype,
+  a written decision). Translate its colours and sizes to tokens; never copy
+  its raw values.
+- **The API keeps its vocabulary.** The names came from Figma and stay:
+  `variant` for the style (React reserves `style`), `size` for the size, and
+  other properties lower-cased (`big`, `outlined`). Name new props the same
+  way. A state is the element's own state: Hover is `:hover`, Pressed is
+  `:active`, Disabled is `disabled`. Don't add a prop no design or screen
+  needs.
+- **Use the semantic token for the role, in every state.** If a pair looks
+  wrong or fails contrast, fix the token (rule 2), not the component.
 - **Only token utilities.** Semantic colours (`bg-action-primary-surface-default`),
   GDL's type ramp (`text-label-md-semibold`), radius (`rounded-8`),
   elevation (`shadow-elevation-2`) and spacing on GDL's scale (`h-9` = 36px
   = `space.36`). `npm run lint:components` fails on hex, px, arbitrary
   values and off-scale spacing. Merge classes with `cn()` from
   `src/lib/cn.ts`, which knows GDL's names.
-- **When Figma has a raw value**, use the nearest GDL token. Record the
-  departure, and the Figma fix that would remove it, under "Components" in
-  `docs/figma-sync.md`. Do the same for anything code adds that Figma
-  lacks, like a focus ring.
+- **When a design has a raw value**, use the nearest GDL token and say so
+  in the PR. "Components" in `docs/figma-sync.md` lists where the code
+  departed from Figma, and why. It is history, so don't add to it.
 - **Stories show every variant × state, in Light and Dark.** Force Hover
   and Pressed with `storybook-addon-pseudo-states`
   (`pseudo: { rootSelector: 'body', … }`), and check them in the story's
   `afterEach`, not `play`: the addon rewrites its CSS on `STORY_RENDERED`,
   which fires after play, so a play function never sees the forced states
   in a static build (Chromatic). Every story is an axe test that fails
-  `npm test` (contrast is enforced, rule 8). If a Figma binding gives a
-  component pair below AA (Tonal, today), the grids skip only those cells,
+  `npm test` (contrast is enforced, rule 8). If a component pair is
+  below AA (Tonal, today), the grids skip only those cells,
   and only in axe's contrast check. A separate story for them uses
   `a11y: { test: 'todo' }`, so the pairs stay visible in the a11y panel.
-  List the ratios in `docs/figma-sync.md`, and remove the exception when
-  Figma passes. A story that sets a mobile `viewport` global also sets
+  The ratios are in `docs/figma-sync.md`; remove the exception when the
+  tokens pass. A story that sets a mobile `viewport` global also sets
   `parameters.chromatic.viewports` (e.g. `[320]`): Chromatic ignores the
   global and would snapshot it at desktop width. Run `npm run storybook:build && npm run test:static`
   before opening a component PR: Vitest renders stories differently from
@@ -92,8 +97,8 @@ Read `docs/inheritance.md` before changing anything structural.
 ## Naming
 
 - Brand colour: `color.caf-blue.<step>` → `--color-caf-blue-500`, `bg-caf-blue-500`.
-- Semantic: Figma `colors/surface/elevated secondary` → `surface.elevated-secondary`
-  → `--color-surface-elevated-secondary`, `bg-surface-elevated-secondary`.
+- Semantic: `surface.elevated-secondary` →
+  `--color-surface-elevated-secondary`, `bg-surface-elevated-secondary`.
 - Everything else is GDL's naming (see GDL's `CLAUDE.md`): `space.16`,
   `radius.8`, `type.body-md-regular`, `shadow.elevation.3`.
 - Every path segment is lower-case kebab (`lint:tokens` enforces it).
@@ -102,7 +107,6 @@ Read `docs/inheritance.md` before changing anything structural.
 
 | | |
 |---|---|
-| `npm run import:figma` | `figma-export/` → `tokens/`, checked against GDL |
 | `npm run tokens` | GDL tokens + CAF tokens → `dist/` (GDL's formats) |
 | `npm run build` | `tokens`, then the components, one file per module (`dist/index.js`, `dist/components/`, `dist/lib/`, tsup), and their types (`dist/types/`, `tsc -p tsconfig.build.json`): what the package ships |
 | `npm run check:package` | What `npm publish` would ship: every export and module import resolves, every component module has `"use client"` and none is stray, the types and CSS are there, no stories or Storybook build |
@@ -124,7 +128,7 @@ Read `docs/inheritance.md` before changing anything structural.
   files and confirm they match the task.
 - Open a draft PR early. Describe the change in product terms and say which
   CAF screens or components look different, in Light and Dark. A component
-  change is checked in Storybook against the Figma render.
+  change is checked in Storybook, in Light and Dark.
 - Merge `main` into your branch, never rebase; never force-push.
 - Finish by reporting files changed and why, checks run with results, any
   breaking change, and a PR description.

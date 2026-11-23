@@ -1,5 +1,12 @@
 # Syncing tokens from Figma
 
+> **Retired on 23 Nov 2026.** CAF left Figma. The repo is the source of
+> truth: `tokens/` is edited directly, and `figma-export/` and
+> `npm run import:figma` are gone. This file is kept as the record of how the
+> tokens and components came from the CAF Figma library up to 1.2.0, and of
+> where the code departed from it. Don't follow the process below, and don't
+> add to this file.
+
 CAF's tokens are generated from the CAF Design Library
 (`WhVkTrQRI9bDTfOeAJXTrR`). Figma's REST variables API needs an Enterprise
 plan, so the snapshot is taken through the Figma plugin API (Claude's Figma
