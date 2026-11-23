@@ -15,6 +15,10 @@ import * as React from 'react';
  *   the last page, so focus stays next to where the row was;
  * - the first row's, when the removed row wasn't on screen (filtered out);
  * - `fallback()` (the search field, say) when no row is left.
+ *
+ * If the removal is async (it waits on the server), call it when the data
+ * changes, not on Confirm: the first render after Confirm still has the row,
+ * so focus would go to the row that is about to go, and then be lost.
  */
 export interface FocusAfterRemovalOptions {
   /** Holds the rows. */
