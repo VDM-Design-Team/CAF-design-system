@@ -17,7 +17,8 @@ import { Icon, type IconName } from '../icon';
  *   column also sets `aria-sort` on the `<th>`.
  *
  * Every colour is the semantic variable the Figma layer is bound to. The
- * arrows are Icons at 20px: ArrowsDownUp, ArrowUp and ArrowDown, as in
+ * arrows are Icons at 20px: sort, sort-ascending and sort-descending (CAF Icons;
+ * Figma placed ArrowsDownUp, ArrowUp and ArrowDown), as in
  * Figma. The cell has no fill or
  * border: the header row draws those. Where code departs from Figma, the
  * reason is in docs/figma-sync.md ("TableHeaderCell").
@@ -34,7 +35,7 @@ export type TableSort = 'none' | 'ascending' | 'descending';
 export const TableHeaderRowContext = React.createContext(false);
 
 /* Figma's sort glyphs: ArrowsDownUp, ArrowUp, ArrowDown. */
-const ARROW: Record<TableSort, IconName> = { none: 'arrows-down-up', ascending: 'arrow-up', descending: 'arrow-down' };
+const ARROW: Record<TableSort, IconName> = { none: 'sort', ascending: 'sort-ascending', descending: 'sort-descending' };
 
 const sortButton = [
   // flex, not inline-flex: inline content would sit on the <th>'s line box and add height.

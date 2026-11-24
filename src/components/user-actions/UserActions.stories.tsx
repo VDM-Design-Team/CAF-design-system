@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import type { ThemeToggleTheme } from '../theme-toggle';
 import { UserActions, type UserActionsProps } from './UserActions';
 
@@ -65,7 +64,7 @@ export const Playground: Story = {
     await userEvent.click(toggle);
     await expect(args.onThemeChange).toHaveBeenLastCalledWith('light');
     await expect(toggle).toHaveAccessibleName('Switch to dark theme');
-    await expect(toggle.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.sun);
+    await expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe('light-mode');
     // The toggle asked; the document's theme is the app's to change.
     await expect(document.documentElement.className).toBe(themeBefore);
 
@@ -188,7 +187,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
       none: 'rgba(0, 0, 0, 0)',
     };
     const name = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-    const glyph = theme === 'dark' ? ICON_PATHS.moon : ICON_PATHS.sun;
+    const glyph = theme === 'dark' ? 'dark-mode' : 'light-mode';
     await waitFor(
       () => {
         const groups = canvasElement.querySelectorAll<HTMLElement>('[data-pseudo]');
@@ -200,8 +199,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
           const account = within(group).getByRole('button', { name: 'Account' });
           expect(getComputedStyle(greeting).color).toBe(want.greeting);
           // Toggle: the page theme's glyph. Both glyphs text.secondary (Ghost's); neutral.tonal fill on hover.
-          expect(toggle.querySelector('path')!.getAttribute('d')).toBe(glyph);
-          expect(account.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
+          expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe(glyph);
+          expect((account.closest('svg') ?? account.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
           for (const button of [toggle, account]) {
             expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(hovered ? want.hover : want.none);

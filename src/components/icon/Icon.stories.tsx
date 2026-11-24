@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
-import { Icon, ICON_NAMES, ICON_SIZES } from './Icon';
+import { Icon, ICON_ALIASES, ICON_NAMES, ICON_SIZES } from './Icon';
 
 const meta = {
   title: 'Components/Icon',
@@ -9,14 +9,16 @@ const meta = {
     docs: {
       description: {
         component:
-          'A Phosphor glyph (MIT) at Regular weight, the icon set the CAF Figma library draws from. `name` is Phosphor’s ' +
-          'kebab-case name (`CaretDown` → `caret-down`); `size` is 16, 20 (default), 24, 32 or 48. It takes the text colour ' +
-          'around it. Decorative by default; pass `label` only when the icon alone carries the meaning. ' +
-          'To add a glyph, add its name to `scripts/icons.mjs` and run `npm run icons`.',
+          'CAF Icons v1.4: a 24-unit grid, 2px round lines, an open ring on outlined circles. `name` is the icon’s name ' +
+          '(`chevron-down`, `delete`, `search`); the old Phosphor names still work as deprecated aliases (`caret-down`). ' +
+          'A few Phosphor glyphs with no CAF counterpart yet (`funnel`, `tray`, `tag` …) still draw as Phosphor. ' +
+          '`size` is 16, 20 (default), 24, 32 or 48. It takes the text colour around it. Decorative by default; pass ' +
+          '`label` only when the icon alone carries the meaning. To add or redraw one, edit `icons/caf/<name>.svg` and ' +
+          'run `npm run icons`.',
       },
     },
   },
-  args: { name: 'caret-down', size: 20 },
+  args: { name: 'chevron-down', size: 20 },
   argTypes: {
     name: { control: 'select', options: ICON_NAMES },
     size: { control: 'radio', options: ICON_SIZES },
@@ -38,7 +40,7 @@ export const TakesTheTextColour: Story = {
   ),
 };
 
-/** Every glyph CAF ships, at 24px, with its name. */
+/** Every icon, at 24px, with its name: CAF Icons v1.4, then the Phosphor glyphs not redrawn yet. */
 export const Gallery: Story = {
   render: () => (
     <ul className="grid grid-cols-6 gap-4">
@@ -52,18 +54,43 @@ export const Gallery: Story = {
   ),
   parameters: { controls: { disable: true } },
   play: async ({ canvasElement }) => {
-    const paths = canvasElement.querySelectorAll('svg path');
-    await expect(paths).toHaveLength(ICON_NAMES.length);
-    for (const path of paths) await expect(path.getAttribute('d')).toMatch(/^M/);
+    const svgs = canvasElement.querySelectorAll('svg');
+    await expect(svgs).toHaveLength(ICON_NAMES.length);
+    // Every icon draws something, and none carries its own colour.
+    for (const svg of svgs) {
+      await expect(svg.children.length).toBeGreaterThan(0);
+      await expect(svg.outerHTML).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+    }
   },
 };
 
-/** The sizes Figma places icons at. */
+/** Old Phosphor names still work: each draws its CAF icon. Deprecated; use the CAF name. */
+export const Aliases: Story = {
+  render: () => (
+    <ul className="grid grid-cols-4 gap-4">
+      {Object.entries(ICON_ALIASES).map(([old, to]) => (
+        <li key={old} className="flex items-center gap-2 text-text-primary">
+          <Icon name={old as keyof typeof ICON_ALIASES} size={24} />
+          <span className="text-caption-md-regular text-text-secondary">
+            {old} → {to}
+          </span>
+        </li>
+      ))}
+    </ul>
+  ),
+  parameters: { controls: { disable: true } },
+  play: async ({ canvasElement }) => {
+    const svgs = [...canvasElement.querySelectorAll<SVGElement>('svg')];
+    await expect(svgs.map((svg) => svg.dataset.icon)).toEqual(Object.values(ICON_ALIASES));
+  },
+};
+
+/** The sizes icons are placed at. The line scales with the icon. */
 export const Sizes: Story = {
   render: () => (
     <div className="flex items-end gap-4 text-text-primary">
       {ICON_SIZES.map((size) => (
-        <Icon key={size} name="calendar-blank" size={size} data-size={size} />
+        <Icon key={size} name="calendar" size={size} data-size={size} />
       ))}
     </div>
   ),
