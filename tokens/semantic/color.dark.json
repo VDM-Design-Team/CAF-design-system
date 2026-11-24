@@ -36,16 +36,16 @@
       },
       "link": {
         "default": {
-          "$value": "#6ab5ff"
+          "$value": "{color.blue.300}"
         },
         "hover": {
-          "$value": "#4794e2"
+          "$value": "{color.blue.400}"
         },
         "pressed": {
           "$value": "{color.blue.400}"
         },
         "selected": {
-          "$value": "#6ab5ff"
+          "$value": "{color.blue.300}"
         }
       },
       "brand": {
@@ -125,6 +125,16 @@
       },
       "track": {
         "$value": "{color.slate.400}"
+      },
+      "table": {
+        "header": {
+          "$value": "{color.slate.900}"
+        },
+        "row": {
+          "hover": {
+            "$value": "{color.slate.700}"
+          }
+        }
       }
     },
     "action": {
@@ -465,6 +475,36 @@
             "$value": "{color.slate.950}"
           }
         }
+      },
+      "sidebar": {
+        "surface": {
+          "default": {
+            "$value": "{color.slate.950}"
+          },
+          "selected": {
+            "$value": "{color.slate.800}"
+          }
+        },
+        "content": {
+          "default": {
+            "$value": "{color.slate.300}"
+          },
+          "selected": {
+            "$value": "{color.monochrome.white}"
+          }
+        }
+      },
+      "inverted": {
+        "surface": {
+          "default": {
+            "$value": "{color.slate.200}"
+          }
+        },
+        "content": {
+          "default": {
+            "$value": "{color.slate.900}"
+          }
+        }
       }
     },
     "stroke": {
@@ -685,6 +725,23 @@
             },
             "disabled": {
               "$value": "{color.red.900}"
+            }
+          }
+        },
+        "soft-outline": {
+          "surface": {
+            "default": {
+              "$value": "{color.slate.800}"
+            }
+          },
+          "border": {
+            "default": {
+              "$value": "{color.red.300}"
+            }
+          },
+          "content": {
+            "default": {
+              "$value": "{color.red.300}"
             }
           }
         },

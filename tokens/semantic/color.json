@@ -35,16 +35,16 @@
     },
     "link": {
       "default": {
-        "$value": "#006dd9"
+        "$value": "{color.blue.700}"
       },
       "hover": {
-        "$value": "#0059b1"
+        "$value": "{color.blue.800}"
       },
       "pressed": {
-        "$value": "#004181"
+        "$value": "{color.blue.900}"
       },
       "selected": {
-        "$value": "#0059b1"
+        "$value": "{color.blue.800}"
       }
     },
     "brand": {
@@ -131,6 +131,16 @@
     "track": {
       "$value": "{color.slate.500}",
       "$description": "Unfilled track of toggles, sliders and progress bars. Reaches 3:1 on surface/base, surface/canvas and surface/neutral/faint in Light and Dark (WCAG 1.4.11). GDL recommended name surface.track."
+    },
+    "table": {
+      "header": {
+        "$value": "{color.slate.50}"
+      },
+      "row": {
+        "hover": {
+          "$value": "{color.slate.100}"
+        }
+      }
     }
   },
   "action": {
@@ -472,6 +482,36 @@
           "$value": "{color.monochrome.white}"
         }
       }
+    },
+    "sidebar": {
+      "surface": {
+        "default": {
+          "$value": "{color.slate.900}"
+        },
+        "selected": {
+          "$value": "{color.slate.800}"
+        }
+      },
+      "content": {
+        "default": {
+          "$value": "{color.slate.300}"
+        },
+        "selected": {
+          "$value": "{color.monochrome.white}"
+        }
+      }
+    },
+    "inverted": {
+      "surface": {
+        "default": {
+          "$value": "{color.slate.900}"
+        }
+      },
+      "content": {
+        "default": {
+          "$value": "{color.monochrome.white}"
+        }
+      }
     }
   },
   "stroke": {
@@ -693,6 +733,23 @@
           },
           "disabled": {
             "$value": "{color.red.300}"
+          }
+        }
+      },
+      "soft-outline": {
+        "surface": {
+          "default": {
+            "$value": "{color.monochrome.white}"
+          }
+        },
+        "border": {
+          "default": {
+            "$value": "{color.red.500}"
+          }
+        },
+        "content": {
+          "default": {
+            "$value": "{color.red.800}"
           }
         }
       },
