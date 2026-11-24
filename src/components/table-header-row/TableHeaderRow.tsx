@@ -24,7 +24,8 @@ import { TableHeaderRowContext } from '../table-header-cell/TableHeaderCell';
  * Each control has its own column, as the rows do. Inside the row, the
  * TableHeaderCells take the rows' cell padding (space.16 at the sides,
  * space.12 above and below), so the labels line up with the cells under
- * them. No fill; a 1px stroke.subtle line underneath (stroke/1).
+ * them. Filled with surface.table.header (new with the CAF design refresh,
+ * 23 Nov 2026), with a 1px stroke.subtle line underneath (stroke/1).
  *
  * Widths belong to the columns (`className` on a TableHeaderCell). The
  * control columns are as narrow as their content. Where code departs from
@@ -47,8 +48,8 @@ export interface TableHeaderRowProps extends React.HTMLAttributes<HTMLTableRowEl
 
 export const TableHeaderRow = React.forwardRef<HTMLTableRowElement, TableHeaderRowProps>(
   ({ className, showExpand = false, showCheckbox = false, checkboxProps, showActions = false, children, ...props }, ref) => (
-    /* No fill; the bottom line is stroke/1 in colors/stroke/subtle, as Table / Row's. */
-    <tr ref={ref} className={cn('border-b border-stroke-subtle', className)} {...props}>
+    /* surface.table.header fill; the bottom line is stroke/1 in stroke.subtle, as TableRow's. */
+    <tr ref={ref} className={cn('border-b border-stroke-subtle bg-surface-table-header', className)} {...props}>
       {showExpand && (
         <th scope="col" className={cn(control, 'text-left')}>
           <span className="sr-only">Details</span>

@@ -134,7 +134,7 @@ const inATable = (theme: 'light' | 'dark'): Story => ({
     const want = {
       fill: tokenColour('neutral-tonal-surface-default'),
       stroke: tokenColour('stroke-subtle'),
-      hover: tokenColour('surface-base'),
+      hover: tokenColour('surface-table-row-hover'),
     };
     await waitFor(
       () => {

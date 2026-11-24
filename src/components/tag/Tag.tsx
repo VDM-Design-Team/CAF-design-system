@@ -7,7 +7,7 @@ import { Icon, type IconName } from '../icon';
  * Tag — built from the CAF Figma library, page "Tags": `Tag` (Status ×
  * Show Icon), the tonal status tag with an optional icon (Exports' Completed
  * / Failed, Costs' Deleted / Updated, Announcements' versions). For the
- * filled pill in the Costs tables, use StatusPill.
+ * tonal status pill in the Costs tables, use StatusPill.
  *
  * Figma → code:
  * - Status    → `status`: pending (default), active, completed, error,

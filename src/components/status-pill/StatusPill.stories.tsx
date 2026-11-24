@@ -9,8 +9,9 @@ const meta = {
     docs: {
       description: {
         component:
-          'Built from the CAF Figma library, page **Tags** (`Status Pill`): the filled pill in the Costs and Recurring Costs tables. ' +
-          '`status` is Figma’s Status: `pending` (default) or `active`. Label is `children`. ' +
+          'The tonal pill for a row’s status in the Costs, Recurring Costs and Announcements tables. ' +
+          '`status`: `pending` (default), `active`, `approved` (“To be paid”), `paid`, `rejected`, `stopped`, `inactive`, ' +
+          '`payment-rejected` (outlined) or `waiting` (solid). Label is `children`. ' +
           'It is plain text with no states. For a tonal tag with an icon, use Tag.',
       },
     },
@@ -27,29 +28,38 @@ export const Playground: Story = {};
 export const Active: Story = { args: { status: 'active', children: 'Active' } };
 
 /* ── Every Status, in Light and Dark ───────────────────────────────────────
-   Figma's Status × the labels the CAF screens use. Each pill is checked
-   against the variables its Figma layers are bound to. */
+   Every status × the labels the CAF screens use. Each pill is checked
+   against its semantic pair. */
 
 const ROWS = [
   { status: 'pending', label: 'Pending' },
   { status: 'pending', label: 'Recurring' },
   { status: 'active', label: 'Active' },
-  { status: 'approved', label: 'Approved' },
+  { status: 'approved', label: 'To be paid' },
   { status: 'paid', label: 'Paid' },
   { status: 'rejected', label: 'Rejected' },
   { status: 'stopped', label: 'Stopped' },
   { status: 'inactive', label: 'Inactive' },
+  { status: 'payment-rejected', label: 'Payment rejected' },
+  { status: 'waiting', label: 'Waiting on you' },
+  { status: 'waiting', label: 'New' },
 ] as const;
 
-/* Figma's bindings: [fill, label]. */
+/* Each status's pair: [fill, label, border or null]. */
 const BOUND = {
-  pending: ['accent-pending-filled-surface-default', 'accent-pending-filled-content-default'],
-  active: ['action-primary-surface-default', 'action-primary-content-default'],
-  approved: ['accent-info-filled-surface-default', 'accent-info-filled-content-default'],
-  paid: ['accent-success-filled-surface-default', 'accent-success-filled-content-default'],
-  rejected: ['accent-critical-filled-surface-default', 'accent-critical-filled-content-default'],
-  stopped: ['neutral-filled-surface-default', 'neutral-filled-content-default'],
-  inactive: ['neutral-filled-surface-default', 'neutral-filled-content-default'],
+  pending: ['accent-pending-tonal-surface-default', 'accent-pending-tonal-content-default', null],
+  active: ['accent-success-tonal-surface-default', 'accent-success-tonal-content-default', null],
+  approved: ['accent-info-tonal-surface-default', 'accent-info-tonal-content-default', null],
+  paid: ['accent-success-tonal-surface-default', 'accent-success-tonal-content-default', null],
+  rejected: ['accent-critical-tonal-surface-default', 'accent-critical-tonal-content-default', null],
+  stopped: ['neutral-tonal-surface-default', 'neutral-tonal-content-default', null],
+  inactive: ['neutral-tonal-surface-default', 'neutral-tonal-content-default', null],
+  'payment-rejected': [
+    'accent-critical-soft-outline-surface-default',
+    'accent-critical-soft-outline-content-default',
+    'accent-critical-soft-outline-border-default',
+  ],
+  waiting: ['neutral-inverted-surface-default', 'neutral-inverted-content-default', null],
 } as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -99,14 +109,19 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = Object.fromEntries(
-      Object.entries(BOUND).map(([status, [fill, label]]) => [status, [tokenColour(fill), tokenColour(label)]]),
+      Object.entries(BOUND).map(([status, [fill, label, border]]) => [
+        status,
+        [tokenColour(fill), tokenColour(label), border && tokenColour(border)],
+      ]),
     );
     await waitFor(() => {
       for (const pill of canvasElement.querySelectorAll<HTMLElement>('[data-status]')) {
-        const [fill, label] = want[pill.dataset.status!];
+        const [fill, label, border] = want[pill.dataset.status!];
         const style = getComputedStyle(pill);
         expect(style.backgroundColor).toBe(fill);
         expect(style.color).toBe(label);
+        // The outline is an inset ring: a box-shadow in the border colour.
+        if (border) expect(style.boxShadow).toContain(border);
       }
     });
   },
