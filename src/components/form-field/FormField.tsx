@@ -116,7 +116,7 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(functi
               invalid && 'flex items-start gap-1.5 text-caption-md-semibold text-accent-critical-tonal-content-default',
             )}
           >
-            {invalid && <Icon name="warning-circle" size={16} />}
+            {invalid && <Icon name="alert-circle" size={16} />}
             {invalid ? <span>{message}</span> : message}
           </FormHelperText>
         )}
@@ -143,7 +143,7 @@ export function FormFieldStatusIcon({ state, multiline = false }: { state: 'inva
         state === 'invalid' ? 'text-accent-critical-tonal-content-default' : 'text-accent-success-tonal-content-default',
       )}
     >
-      <Icon name={state === 'invalid' ? 'warning-circle' : 'check-circle'} size={16} />
+      <Icon name={state === 'invalid' ? 'alert-circle' : 'check-circle'} size={16} />
     </span>
   );
 }
