@@ -13,6 +13,7 @@ export const CAF_ICONS = {
   'arrow-down': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"M12 5v14"}],["path",{"d":"m6 13 6 6 6-6"}]] },
   'arrow-left': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"M19 12H5"}],["path",{"d":"m11 18-6-6 6-6"}]] },
   'arrow-right': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"M5 12h14"}],["path",{"d":"m13 6 6 6-6 6"}]] },
+  'arrow-up': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"M12 19V5"}],["path",{"d":"m6 11 6-6 6 6"}]] },
   'attach': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"m19.5 11.5-7.6 7.6a4.8 4.8 0 0 1-6.8-6.8l8-8a3.2 3.2 0 0 1 4.5 4.5l-7.9 7.9a1.6 1.6 0 0 1-2.3-2.3l7.2-7.2"}]] },
   'audit-log': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["rect",{"x":"5","y":"4.5","width":"14","height":"16.5","rx":"3"}],["path",{"d":"M9 4.5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v.5"}],["path",{"d":"M9 10h6M9 14h6M9 18h3"}]] },
   'bank': { root: {"fill":"none","stroke":"currentColor","strokeWidth":"2","strokeLinecap":"round","strokeLinejoin":"round"}, children: [["path",{"d":"M3.5 9.5 12 4l8.5 5.5"}],["path",{"d":"M5 10v7M9.5 10v7M14.5 10v7M19 10v7"}],["path",{"d":"M3.5 20h17"}]] },
@@ -88,7 +89,6 @@ export const CAF_ICONS = {
 
 /** Phosphor (MIT) Regular glyphs, 256-unit grid, one path each: the ones CAF Icons has no counterpart for yet. */
 export const LEGACY_PATHS = {
-  'arrow-up': 'M205.66,117.66a8,8,0,0,1-11.32,0L136,59.31V216a8,8,0,0,1-16,0V59.31L61.66,117.66a8,8,0,0,1-11.32-11.32l72-72a8,8,0,0,1,11.32,0l72,72A8,8,0,0,1,205.66,117.66Z',
   'files': 'M213.66,66.34l-40-40A8,8,0,0,0,168,24H88A16,16,0,0,0,72,40V56H56A16,16,0,0,0,40,72V216a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V200h16a16,16,0,0,0,16-16V72A8,8,0,0,0,213.66,66.34ZM168,216H56V72h76.69L168,107.31v84.53c0,.06,0,.11,0,.16s0,.1,0,.16V216Zm32-32H184V104a8,8,0,0,0-2.34-5.66l-40-40A8,8,0,0,0,136,56H88V40h76.69L200,75.31Zm-56-32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h48A8,8,0,0,1,144,152Zm0,32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h48A8,8,0,0,1,144,184Z',
   'funnel': 'M230.6,49.53A15.81,15.81,0,0,0,216,40H40A16,16,0,0,0,28.19,66.76l.08.09L96,139.17V216a16,16,0,0,0,24.87,13.32l32-21.34A16,16,0,0,0,160,194.66V139.17l67.74-72.32.08-.09A15.8,15.8,0,0,0,230.6,49.53ZM40,56h0Zm106.18,74.58A8,8,0,0,0,144,136v58.66L112,216V136a8,8,0,0,0-2.16-5.47L40,56H216Z',
   'lightning': 'M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z',

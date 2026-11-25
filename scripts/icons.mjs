@@ -19,7 +19,7 @@ const CAF_DIR = 'icons/caf';
 const OUT = 'src/components/icon/icons.ts';
 
 /* Phosphor glyphs still in use that CAF Icons doesn't have yet. */
-const LEGACY = ['arrow-up', 'files', 'funnel', 'lightning', 'minus-circle', 'rocket-launch', 'tag', 'tray'];
+const LEGACY = ['files', 'funnel', 'lightning', 'minus-circle', 'rocket-launch', 'tag', 'tray'];
 
 /* Old (Phosphor) name → CAF name. Deprecated: use the CAF name. */
 const ALIASES = {
