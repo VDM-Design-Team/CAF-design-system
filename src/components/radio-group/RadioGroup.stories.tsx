@@ -57,7 +57,7 @@ function tokenColour(token: string) {
 }
 
 /* The stroke drawn inside the edge (Tailwind's inset-ring), as computed box-shadow text. */
-const insetStroke = (colour: string, width: 1 | 2) => `${colour} 0px 0px 0px ${width}px inset`;
+const insetStroke = (colour: string, width: 1 | 6) => `${colour} 0px 0px 0px ${width}px inset`;
 
 /** Uncontrolled, starting on All (Figma’s placement). The label names the group and the Helper describes it; a click chooses. */
 export const Playground: Story = {
@@ -74,6 +74,26 @@ export const Playground: Story = {
 };
 
 /** The keyboard is the browser’s: the group is one tab stop (the chosen radio), and ← → ↑ ↓ move, choose and wrap. */
+/** Options with a description stack in a column, 12px apart, each line describing its radio. */
+export const WithDescriptions: Story = {
+  args: {
+    label: 'Payment method',
+    options: [
+      { value: 'wire', label: 'Wire transfer', description: 'Paid to the IBAN on the invoice.' },
+      { value: 'sepa', label: 'SEPA', description: 'For euro payments inside the SEPA area.' },
+      { value: 'card', label: 'Credit card', description: 'Charged to the card on file.', disabled: true },
+    ],
+    defaultValue: 'wire',
+  },
+  play: async ({ canvas }) => {
+    const [wire, sepa] = canvas.getAllByRole('radio');
+    await expect(wire).toHaveAccessibleName('Wire transfer');
+    await expect(wire).toHaveAccessibleDescription('Paid to the IBAN on the invoice.');
+    const gap = sepa.closest('label')!.getBoundingClientRect().top - wire.closest('label')!.getBoundingClientRect().bottom;
+    await expect(gap).toBe(12);
+  },
+};
+
 export const Keyboard: Story = {
   args: { defaultValue: 'all' },
   render: (args) => (
@@ -286,14 +306,14 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const option = tokenColour('text-primary');
     const helper = tokenColour('text-subtle');
     const errorText = tokenColour('accent-critical-tonal-content-default');
-    const selected = insetStroke(tokenColour('action-primary-surface-default'), 2);
+    const selected = insetStroke(tokenColour('action-primary-surface-default'), 6);
     const resting = insetStroke(tokenColour('stroke-field'), 1);
     const hover = insetStroke(tokenColour('stroke-focused'), 1);
     // Error: Radio's critical stroke on every unchecked radio (Radio Option Error=true).
     const invalid = insetStroke(tokenColour('accent-critical-outline-border-default'), 1);
     // Disabled: Radio's disabled stroke; the chosen one, surface.brand.medium (code's Disabled Selected).
     const restingDisabled = insetStroke(tokenColour('neutral-outline-border-disabled'), 1);
-    const selectedDisabled = insetStroke(tokenColour('surface-brand-medium'), 2);
+    const selectedDisabled = insetStroke(tokenColour('surface-brand-medium'), 6);
     await waitFor(
       () => {
         for (const { state, props, message } of STATES) {

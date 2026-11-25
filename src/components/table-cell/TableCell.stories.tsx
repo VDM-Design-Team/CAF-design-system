@@ -401,11 +401,11 @@ const custom = (theme: 'light' | 'dark'): Story => ({
         // Vertically centred (the cell hugs its content, 12 above and below it).
         expect(Math.abs(box.top + box.height / 2 - (cell.top + cell.height / 2))).toBeLessThan(1);
       }
-      // A Toggle keeps Figma's 36 × 20, and its cell is 44 tall, as Figma's Type=Custom.
+      // A Toggle is 44 × 24 (the new design's switch), so its cell is 48 tall: 12 above and below.
       const toggleCell = canvasElement.querySelector<HTMLElement>('[data-content-row="Toggle"] td')!;
       const toggle = toggleCell.querySelector('input[role="switch"]')!.getBoundingClientRect();
-      expect([toggle.width, toggle.height]).toEqual([36, 20]);
-      expect(toggleCell.clientHeight).toBe(44);
+      expect([toggle.width, toggle.height]).toEqual([44, 24]);
+      expect(toggleCell.clientHeight).toBe(48);
     });
   },
 });

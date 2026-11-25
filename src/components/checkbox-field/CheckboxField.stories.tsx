@@ -311,8 +311,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const fieldRect = field.getBoundingClientRect();
           const { bordered, defaultChecked: checked, disabled, error, required } = props;
           const text = (colour: string) => (disabled ? c.disabledText : colour);
-          // The box: the 16px Checkbox in its state (Checkbox Disabled / Disabled Selected; critical when invalid and unchecked).
-          expect([boxRect.width, boxRect.height]).toEqual([16, 16]);
+          // The box: the 20px Checkbox in its state (Checkbox Disabled / Disabled Selected; critical when invalid and unchecked).
+          expect([boxRect.width, boxRect.height]).toEqual([20, 20]);
           const [fill, border] = checked
             ? disabled
               ? c.box.checkedDisabled
@@ -326,12 +326,12 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(box).borderTopColor).toBe(border);
           expect(box.getAttribute('aria-invalid')).toBe(error ? 'true' : null);
           // Label: Body/sm-semibold, text.primary (text.disabled when disabled), 12px after the box, whose top is
-          // 2px below the label's.
+          // level with the label's.
           expect(getComputedStyle(title).color).toBe(text(c.label));
           expect(getComputedStyle(title).fontSize).toBe('14px');
           expect(getComputedStyle(title).fontWeight).toBe('600');
           expect(title.getBoundingClientRect().left - boxRect.right).toBe(12);
-          expect(boxRect.top - title.getBoundingClientRect().top).toBe(2);
+          expect(boxRect.top - title.getBoundingClientRect().top).toBe(0);
           const star = title.querySelector('[aria-hidden]');
           if (required) expect(getComputedStyle(star!).color).toBe(text(c.marker));
           else expect(star).toBeNull();
@@ -358,7 +358,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             const card = disabled ? c.card.disabled : error ? c.card.invalid : checked ? c.card.checked : c.card.rest;
             expect(style.boxShadow).toContain(card);
             expect(style.borderRadius).toBe('8px');
-            expect([boxRect.left - fieldRect.left, boxRect.top - fieldRect.top]).toEqual([16, 18]);
+            expect([boxRect.left - fieldRect.left, boxRect.top - fieldRect.top]).toEqual([16, 16]);
           } else {
             expect(style.boxShadow).toBe('none');
             expect(boxRect.left).toBe(fieldRect.left);

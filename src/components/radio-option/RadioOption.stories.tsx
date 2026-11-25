@@ -49,6 +49,26 @@ export const Playground: Story = {
 
 export const Selected: Story = { args: { defaultChecked: true } };
 
+/** With a description: the label turns semibold, the line sits 2px under it, and it describes the radio. */
+export const WithDescription: Story = {
+  args: {
+    label: 'Wire transfer',
+    description: 'Paid to the IBAN on the invoice, in 1 to 2 working days.',
+    value: 'wire',
+  },
+  play: async ({ canvas }) => {
+    const radio = canvas.getByRole('radio', { name: 'Wire transfer' });
+    await expect(radio).toHaveAccessibleDescription('Paid to the IBAN on the invoice, in 1 to 2 working days.');
+    const label = canvas.getByText('Wire transfer');
+    const line = canvas.getByText(/Paid to the IBAN/);
+    await expect(getComputedStyle(label).fontWeight).toBe('600');
+    await expect(getComputedStyle(line).color).toBe(tokenColour('text-secondary'));
+    await expect(line.getBoundingClientRect().top - label.getBoundingClientRect().bottom).toBe(2);
+    // The radio sits level with the label's first line.
+    await expect(radio.getBoundingClientRect().top).toBe(label.getBoundingClientRect().top);
+  },
+};
+
 /** Disabled: the radio takes its disabled colours and a click on the label does nothing. */
 export const Disabled: Story = {
   args: { disabled: true },
