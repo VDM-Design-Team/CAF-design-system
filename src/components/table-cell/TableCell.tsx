@@ -84,8 +84,10 @@ const stack = cva('flex flex-col', {
 });
 
 /* Secondary text (the second line, the date): text.subtle, or text.secondary in a
-   selected TableRow, where text.subtle is below 4.5:1 on the row's tint in Light. */
-const subtle = 'text-caption-md-regular text-text-subtle group-data-selected/row:text-text-secondary';
+   selected or hovered TableRow, where text.subtle is below 4.5:1 on the row's fill
+   (on surface.table.row.hover: 4.34:1 in Light, 4.03:1 in Dark). */
+const subtle =
+  'text-caption-md-regular text-text-subtle group-hover/row:text-text-secondary group-data-selected/row:text-text-secondary';
 
 const toggle = [
   'cursor-pointer rounded-2 text-caption-md-regular text-text-link-default',

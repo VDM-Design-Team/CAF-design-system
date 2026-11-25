@@ -284,7 +284,7 @@ const inRow = (theme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const want = {
-      hover: tokenColour('surface-base'),
+      hover: tokenColour('surface-table-row-hover'),
       selected: utilityBackground('bg-action-primary-surface-default/16'),
       text: tokenColour('text-primary'),
       fill: tokenColour('neutral-tonal-surface-default'),

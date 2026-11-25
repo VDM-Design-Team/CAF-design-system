@@ -131,3 +131,22 @@ const grid = (theme: 'light' | 'dark'): Story => ({
 
 export const LookLight = grid('light');
 export const LookDark = grid('dark');
+
+/** `inverse`: the version for a dark surface, as in the Sidebar. White wordmark and outer mark, caf-blue-200 and slate-300 inside. */
+export const Inverse: Story = {
+  args: { inverse: true },
+  render: (args) => (
+    <div className="inline-flex bg-neutral-sidebar-surface-default p-4">
+      <Logo {...args} />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const logo = canvas.getByRole('img', { name: 'CAF' });
+    const fill = (part: string) => getComputedStyle(logo.querySelector(`[data-part="${part}"]`)!).fill;
+    await waitFor(() => {
+      expect(fill('wordmark')).toBe('rgb(255, 255, 255)');
+      expect(fill('mark-1')).toBe('rgb(255, 255, 255)');
+      expect(fill('mark-4')).toBe('rgb(255, 255, 255)');
+    });
+  },
+};
