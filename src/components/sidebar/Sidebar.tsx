@@ -20,8 +20,9 @@ import { cn } from '../../lib/cn';
  *
  * Hover uses the selected pair too: the design draws hover as a fainter tint
  * of the current item's, and there is no hover token yet. The focus ring is
- * stroke.inverse (white), as the design's; stroke.focused (caf-blue-500) is
- * too dark on the sidebar. The design's collapsed mobile version and the
+ * neutral.sidebar.content.selected, white in Light and Dark, as the design's.
+ * stroke.focused (caf-blue-500) is too dark on the sidebar, and
+ * stroke.inverse flips to slate-900 in Dark, which vanishes on slate-950. The design's collapsed mobile version and the
  * count badge (Disputes) are not built yet.
  */
 export interface SidebarProps extends Omit<React.HTMLAttributes<HTMLElement>, 'aria-label'> {
@@ -128,7 +129,7 @@ const SidebarLinkImpl = React.forwardRef<Element, SidebarLinkImplProps>(function
         active
           ? 'bg-neutral-sidebar-surface-selected text-neutral-sidebar-content-selected'
           : 'text-neutral-sidebar-content-default hover:bg-neutral-sidebar-surface-selected hover:text-neutral-sidebar-content-selected',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-inverse',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-sidebar-content-selected',
         className,
       )}
     >

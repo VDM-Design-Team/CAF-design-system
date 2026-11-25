@@ -34,7 +34,7 @@ const GROUPS: { label: string; links: { label: string; icon: IconName }[] }[] = 
   },
 ];
 
-function AdminSidebar({ current = 'Costs', hover }: { current?: string; hover?: string }) {
+function AdminSidebar({ current = 'Costs', hover, focus }: { current?: string; hover?: string; focus?: string }) {
   return (
     <Sidebar
       aria-label="App navigation"
@@ -43,7 +43,7 @@ function AdminSidebar({ current = 'Costs', hover }: { current?: string; hover?: 
         <a
           href="#home"
           aria-label="CAF home"
-          className="inline-flex rounded-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-inverse"
+          className="inline-flex rounded-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-sidebar-content-selected"
         >
           <Logo inverse aria-hidden className="h-8" />
         </a>
@@ -63,7 +63,7 @@ function AdminSidebar({ current = 'Costs', hover }: { current?: string; hover?: 
               href={`#${link.label.toLowerCase().replace(/ /g, '-')}`}
               active={link.label === current}
               icon={<Icon name={link.icon} />}
-              data-pseudo={link.label === hover ? 'hover' : undefined}
+              data-pseudo={link.label === hover ? 'hover' : link.label === focus ? 'focus-visible' : undefined}
             >
               {link.label}
             </SidebarLink>
@@ -122,15 +122,15 @@ function tokenColour(token: string) {
   return value;
 }
 
-/* Default, Hover (forced on Drafts) and Current (Costs), in each theme. */
+/* Default, Hover (forced on Drafts), Focus (forced on Partners) and Current (Costs), in each theme. */
 const states = (theme: 'light' | 'dark'): Story => ({
   name: `States — ${theme === 'light' ? 'Light' : 'Dark'}`,
-  render: () => <AdminSidebar hover="Drafts" />,
+  render: () => <AdminSidebar hover="Drafts" focus="Partners" />,
   globals: { theme },
   parameters: {
     controls: { disable: true },
     // rootSelector: Vitest doesn't render into #storybook-root, the addon's default.
-    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'] },
+    pseudo: { rootSelector: 'body', hover: ['[data-pseudo="hover"]'], focusVisible: ['[data-pseudo="focus-visible"]'] },
   },
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
@@ -143,6 +143,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
       selected: tokenColour('neutral-sidebar-surface-selected'),
       selectedContent: tokenColour('neutral-sidebar-content-selected'),
     };
+    // The ring must stay light on the dark sidebar in both themes (rule 8, 3:1).
+    const ring = want.selectedContent;
     await waitFor(() => {
       const aside = getComputedStyle(canvas.getByRole('complementary', { name: 'App navigation' }));
       expect(aside.backgroundColor).toBe(want.surface);
@@ -155,6 +157,13 @@ const states = (theme: 'light' | 'dark'): Story => ({
         expect(link(name).backgroundColor).toBe(want.selected);
         expect(link(name).color).toBe(want.selectedContent);
       }
+      // Focus: a 2px ring, 2px out, in the sidebar's selected content colour.
+      const focused = link('Partners');
+      expect(focused.outlineStyle).toBe('solid');
+      expect(focused.outlineWidth).toBe('2px');
+      expect(focused.outlineOffset).toBe('2px');
+      expect(focused.outlineColor).toBe(ring);
+      expect(link('Bulk upload').outlineStyle).toBe('none');
     });
   },
 });
