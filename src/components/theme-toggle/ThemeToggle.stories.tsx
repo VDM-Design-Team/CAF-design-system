@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import { ThemeToggle, THEME_TOGGLE_THEMES, type ThemeToggleTheme } from './ThemeToggle';
 
 const meta = {
@@ -66,13 +65,13 @@ export const Controlled: Story = {
   play: async ({ args, canvas }) => {
     const themeBefore = document.documentElement.className;
     const toggle = canvas.getByRole('button', { name: 'Switch to dark theme' });
-    const glyph = () => toggle.querySelector('path')!.getAttribute('d');
-    await expect(glyph()).toBe(ICON_PATHS.sun);
+    const glyph = () => (toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon');
+    await expect(glyph()).toBe('light-mode');
 
     await userEvent.click(toggle);
     await expect(args.onThemeChange).toHaveBeenLastCalledWith('dark');
     await expect(toggle).toHaveAccessibleName('Switch to light theme');
-    await expect(glyph()).toBe(ICON_PATHS.moon);
+    await expect(glyph()).toBe('dark-mode');
     await expect(canvas.getByRole('status')).toHaveTextContent('App theme: dark');
     // Focus stays on the toggle, so it can be pressed again.
     await expect(toggle).toHaveFocus();
@@ -174,7 +173,7 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
           const style = getComputedStyle(toggle);
           const svg = toggle.querySelector('svg')!;
           // Theme=Dark: the moon, "Switch to light theme". Theme=Light: the sun, "Switch to dark theme".
-          expect(svg.querySelector('path')!.getAttribute('d')).toBe(theme === 'dark' ? ICON_PATHS.moon : ICON_PATHS.sun);
+          expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe(theme === 'dark' ? 'dark-mode' : 'light-mode');
           expect(toggle).toHaveAccessibleName(theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
           // Glyph: text.secondary (Figma's binding, Ghost's). No fill at rest; Ghost's neutral.tonal fill on hover.
           expect(getComputedStyle(svg).color).toBe(want.glyph);

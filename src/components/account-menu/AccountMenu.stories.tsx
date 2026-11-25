@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import { AccountMenu, ACCOUNT_MENU_ITEMS, type AccountMenuItem, type AccountMenuProps } from './AccountMenu';
 
 /* The account icon sits at the right of the header, so the stories put it at the right of a row:
@@ -219,7 +218,7 @@ const open = (theme: 'light' | 'dark'): Story => ({
         // The account icon: User glyph in text.secondary (Ghost's); no fill at rest, neutral.tonal on hover.
         for (const icon of [trigger, ...closedIcons]) {
           const svg = icon.querySelector('svg')!;
-          expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
+          expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
           expect(getComputedStyle(svg).color).toBe(want.glyph);
         }
         expect(getComputedStyle(closedIcons[0]).backgroundColor).toBe(want.none);

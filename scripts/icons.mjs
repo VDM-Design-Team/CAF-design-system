@@ -1,50 +1,126 @@
 /**
- * Writes src/components/icon/icons.ts: the Phosphor Icons (MIT) glyphs CAF
- * uses, Regular weight, as path data on Phosphor's 256-unit grid.
+ * Writes src/components/icon/icons.ts from two sources:
  *
- * The CAF Figma library draws its icons from Phosphor, so the set here is the
- * one Figma references, not all 1,512 glyphs. To add one, add its Phosphor name
- * (kebab-case, as in @phosphor-icons/core/assets/regular) to ICONS and run
- * `npm run icons`. `--check` fails if icons.ts is out of date; `npm test` runs it.
+ * 1. CAF Icons (icons/caf/*.svg): CAF's own set, v1.4 of the new CAF design.
+ *    24-unit grid, 2px round strokes in currentColor. Each file is the source:
+ *    to add or redraw an icon, edit or add its SVG there and run `npm run icons`.
+ * 2. Phosphor Icons (MIT), Regular weight: only the glyphs CAF Icons has no
+ *    counterpart for yet (LEGACY below). Each goes once it is redrawn in CAF.
+ *
+ * ALIASES keeps the old Phosphor names that now resolve to a CAF icon, so
+ * `name="caret-down"` still works (deprecated; use `chevron-down`).
+ *
+ * `--check` fails if icons.ts is out of date; `npm test` runs it.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
-/* Every Phosphor icon the CAF Figma library or the CAF screens place, by name. */
-const ICONS = [
-  // Arrows and carets: sort, selects, pagination, date picker, expand
-  'arrow-down', 'arrow-up', 'arrows-clockwise', 'arrows-down-up',
-  'caret-down', 'caret-left', 'caret-right', 'caret-up',
-  // Actions
-  'check', 'dots-three', 'download-simple', 'list', 'magnifying-glass', 'note-pencil', 'plus', 'trash', 'upload', 'x',
-  // Status: tags, alerts, toasts, stat cards
-  'check-circle', 'clock', 'info', 'lightning', 'minus-circle', 'warning', 'warning-circle', 'x-circle',
-  // Objects: filters, files, header, cards, empty states
-  'bell', 'calendar-blank', 'credit-card', 'currency-circle-dollar', 'file-arrow-up', 'file-text', 'files', 'funnel',
-  'moon', 'rocket-launch', 'sun', 'tag', 'tray', 'user',
-];
+const CAF_DIR = 'icons/caf';
+const OUT = 'src/components/icon/icons.ts';
+
+/* Phosphor glyphs still in use that CAF Icons doesn't have yet. */
+const LEGACY = ['files', 'funnel', 'lightning', 'minus-circle', 'rocket-launch', 'tag', 'tray'];
+
+/* Old (Phosphor) name → CAF name. Deprecated: use the CAF name. */
+const ALIASES = {
+  'arrows-clockwise': 'retry',
+  'arrows-down-up': 'sort',
+  bell: 'announcements',
+  'calendar-blank': 'calendar',
+  'caret-down': 'chevron-down',
+  'caret-left': 'chevron-left',
+  'caret-right': 'chevron-right',
+  'caret-up': 'chevron-up',
+  'credit-card': 'card',
+  'currency-circle-dollar': 'currencies',
+  'dots-three': 'more',
+  'download-simple': 'download',
+  'file-arrow-up': 'upload',
+  list: 'menu',
+  'magnifying-glass': 'search',
+  moon: 'dark-mode',
+  'note-pencil': 'edit',
+  plus: 'add',
+  sun: 'light-mode',
+  trash: 'delete',
+  'warning-circle': 'alert-circle',
+  x: 'close',
+};
+
+/* ── CAF Icons ───────────────────────────────────────────────────────────── */
+
+const camel = (attr) => attr.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+const attrs = (source) =>
+  Object.fromEntries([...source.matchAll(/([a-zA-Z-]+)="([^"]*)"/g)].map(([, k, v]) => [camel(k), v]));
+
+const caf = readdirSync(CAF_DIR)
+  .filter((f) => f.endsWith('.svg'))
+  .sort()
+  .map((file) => {
+    const name = file.slice(0, -4);
+    const svg = readFileSync(`${CAF_DIR}/${file}`, 'utf8').trim();
+    const root = svg.match(/^<svg([^>]*)>/);
+    if (!root) throw new Error(`${file}: not an <svg>.`);
+    const { xmlns, viewBox, ...rootAttrs } = attrs(root[1]);
+    if (viewBox !== '0 0 24 24') throw new Error(`${file}: CAF icons are drawn on a 24-unit grid (viewBox "0 0 24 24").`);
+    const body = svg.slice(root[0].length, -'</svg>'.length);
+    const children = [...body.matchAll(/<(path|circle|rect)\b([^>]*?)\/>/g)].map(([, tag, a]) => [tag, attrs(a)]);
+    const leftover = body.replace(/<(path|circle|rect)\b[^>]*?\/>/g, '').trim();
+    if (leftover) throw new Error(`${file}: only self-closed <path>, <circle> and <rect> are supported, found "${leftover.slice(0, 40)}".`);
+    if (/#[0-9a-f]{3,8}\b/i.test(svg)) throw new Error(`${file}: no hex colours; use currentColor or a var(--color-…) token.`);
+    return { name, root: rootAttrs, children };
+  });
+
+const cafNames = new Set(caf.map((i) => i.name));
+for (const [old, to] of Object.entries(ALIASES)) {
+  if (!cafNames.has(to)) throw new Error(`Alias ${old} → ${to}: no icons/caf/${to}.svg.`);
+  if (cafNames.has(old)) throw new Error(`Alias ${old}: a CAF icon already has that name.`);
+}
+
+/* ── Phosphor (legacy) ───────────────────────────────────────────────────── */
 
 const require = createRequire(import.meta.url);
 /* The package exports each glyph's SVG file, not its folder. */
 const svgPath = (name) => require.resolve(`@phosphor-icons/core/assets/regular/${name}.svg`);
-const OUT = 'src/components/icon/icons.ts';
 
-const entries = [...new Set(ICONS)].sort().map((name) => {
+const legacy = [...new Set(LEGACY)].sort().map((name) => {
+  if (cafNames.has(name)) throw new Error(`${name}: CAF Icons has it now; remove it from LEGACY.`);
   const svg = readFileSync(svgPath(name), 'utf8');
   const paths = [...svg.matchAll(/<path d="([^"]+)"\/>/g)].map((m) => m[1]);
   if (paths.length !== 1 || /<(circle|rect|line|polyline|polygon|ellipse)\b/.test(svg)) {
-    throw new Error(`${name}: expected one <path>, found something else. Icon only draws single-path glyphs.`);
+    throw new Error(`${name}: expected one <path>, found something else.`);
   }
   return `  '${name}': '${paths[0]}',`;
 });
 
-const source = `/* Generated by scripts/icons.mjs from @phosphor-icons/core (MIT). Don't edit by hand: add the
-   name to ICONS there and run \`npm run icons\`. Regular weight, 256-unit grid, one path each. */
-export const ICON_PATHS = {
-${entries.join('\n')}
+/* ── Output ──────────────────────────────────────────────────────────────── */
+
+const json = (value) => JSON.stringify(value);
+
+const source = `/* Generated by scripts/icons.mjs. Don't edit by hand: CAF icons come from icons/caf/*.svg,
+   the Phosphor (MIT) glyphs from LEGACY there. Run \`npm run icons\`. */
+
+type Element = readonly ['path' | 'circle' | 'rect', Readonly<Record<string, string>>];
+
+/** CAF Icons v1.4: 24-unit grid, 2px round strokes in currentColor. Each icon's root attributes and elements. */
+export const CAF_ICONS = {
+${caf.map(({ name, root, children }) => `  '${name}': { root: ${json(root)}, children: ${json(children)} },`).join('\n')}
+} as const satisfies Record<string, { root: Readonly<Record<string, string>>; children: readonly Element[] }>;
+
+/** Phosphor (MIT) Regular glyphs, 256-unit grid, one path each: the ones CAF Icons has no counterpart for yet. */
+export const LEGACY_PATHS = {
+${legacy.join('\n')}
+} as const;
+
+/** Old Phosphor names that now draw a CAF icon. Deprecated: use the CAF name. */
+export const ICON_ALIASES = {
+${Object.entries(ALIASES)
+  .map(([old, to]) => `  '${old}': '${to}',`)
+  .join('\n')}
 } as const;
 `;
 
+const count = `${caf.length} CAF, ${legacy.length} Phosphor, ${Object.keys(ALIASES).length} aliases`;
 if (process.argv.includes('--check')) {
   let current = '';
   try {
@@ -54,8 +130,8 @@ if (process.argv.includes('--check')) {
     console.error(`✖ ${OUT} is out of date. Run \`npm run icons\`.`);
     process.exit(1);
   }
-  console.log(`✔ ${OUT} matches scripts/icons.mjs (${entries.length} icons)`);
+  console.log(`✔ ${OUT} matches icons/caf and scripts/icons.mjs (${count})`);
 } else {
   writeFileSync(OUT, source);
-  console.log(`✔ ${OUT}: ${entries.length} icons`);
+  console.log(`✔ ${OUT}: ${count}`);
 }
