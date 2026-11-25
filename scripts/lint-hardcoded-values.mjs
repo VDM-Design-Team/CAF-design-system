@@ -94,7 +94,7 @@ for (const [constName, tokens] of Object.entries(expected)) {
 }
 
 if (failed) {
-  console.error(`\n✖ ${failed} problem(s). Components use token utilities only; a missing value goes into Figma and tokens/ first.`);
+  console.error(`\n✖ ${failed} problem(s). Components use token utilities only; a missing value goes into tokens/ (or GDL) first.`);
   process.exit(1);
 }
 console.log('✔ No hardcoded values in src/; cn() matches GDL’s scales');

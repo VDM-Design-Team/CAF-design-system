@@ -1,7 +1,8 @@
 # CAF Design System
 
-CAF's design system, built on **GDL** (the General Design Library), the same
-way the CAF Figma library subscribes to the GDL Figma library.
+CAF's design system, built on **GDL** (the General Design Library). This
+repository is CAF's source of truth: its tokens and components are changed
+here. (CAF left Figma on 23 Nov 2026.)
 
 ```
 @vdm-design-team/caf
@@ -137,10 +138,11 @@ npm test               # lint, build, package contents, GDL contract, contrast (
 npm run build          # tokens → dist/, then the components (one file per module) and their types
 npm run storybook      # the components on :6006, Light/Dark in the toolbar
 npm run storybook:build && npm run test:static   # every story against the production build, as Chromatic runs it
-npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.md
 ```
 
-- Tokens are generated from the CAF Figma library — never hand-edit `tokens/`.
+- The repo is the source of truth: edit `tokens/` directly, Light and Dark
+  together. A colour that isn't CAF's brand comes from GDL; if GDL doesn't
+  have it, it is added to GDL first.
 - Anything GDL has stays in GDL. `lint:tokens` fails on a copied GDL colour
   family or an override that isn't on its allow-list.
 - Every PR touching `tokens/`, the build config, the GDL version or a
@@ -150,9 +152,10 @@ npm run import:figma   # after refreshing figma-export/ — see docs/figma-sync.
 
 ## Components
 
-Built straight from the CAF Figma library (page by page, no intermediate
-export), in React with Tailwind v4 on `dist/theme.css`. Props use Figma's
-names. A component that a second brand needs moves up to GDL.
+Built from the CAF Figma library up to 1.2.0 (page by page, no intermediate
+export), in React with Tailwind v4 on `dist/theme.css`. Props keep the names
+they got from Figma, and the Figma column below records where each component
+came from. Storybook is the reference now. A component that a second brand needs moves up to GDL.
 
 | Component | Figma | Story |
 |---|---|---|
@@ -1025,9 +1028,9 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
 Each component's stories show every variant × state in Light and Dark,
 with Hover and Pressed forced by `storybook-addon-pseudo-states`. Every story
 is a Vitest test: it must render, its play function must pass, and axe must
-find nothing. One exception: Tonal's label/fill pairs are below AA in Figma.
+find nothing. One exception: Tonal's label/fill pairs are below AA.
 Their own story reports them in the a11y panel without failing, until the
-Figma fix lands. Vitest renders stories differently from the static build
+tokens are fixed. Vitest renders stories differently from the static build
 Chromatic snapshots, so `npm run test:static` runs every story again against
 `storybook-static/`, as Chromatic does, and fails on the same errors. CI runs
 it in 8 parallel jobs, each on one slice (`-- --shard=i/8`); run the whole
@@ -1035,8 +1038,9 @@ of it before opening a component PR.
 Components use only token utilities:
 `bg-action-primary-surface-default`, `text-label-md-semibold`, `rounded-8`,
 `shadow-elevation-2`, and spacing on GDL's scale. `npm run lint:components`
-fails on hex, px or arbitrary values. Where code departs from Figma, the
-reason is in [`docs/figma-sync.md`](docs/figma-sync.md#components).
+fails on hex, px or arbitrary values. Where the code departed from Figma, the
+reason is in [`docs/figma-sync.md`](docs/figma-sync.md#components), which is
+kept as history.
 
 The published package carries the components: `npm run build` compiles
 each component module into `dist/components/` and `dist/lib/` with `tsup`
@@ -1087,7 +1091,7 @@ A GDL release is CAF's "Library updates available". Bump it in its own PR:
 
 ```bash
 npm install --save-dev "github:VDM-Design-Team/GDL-design-system#semver:^0.2.0"
-npm run import:figma && npm test
+npm test
 ```
 
 Read GDL's `CHANGELOG.md` for the versions in between. A `major` GDL release
@@ -1113,11 +1117,14 @@ through `prepack`).
   once a second brand needs them.
 - Every semantic pair meets WCAG AA in Light and Dark: text and labels
   4.5:1, the focus ring and component borders 3:1. `npm test` runs
-  `check:contrast --strict`, so a new failure fails CI. Fix it in Figma.
+  `check:contrast --strict`, so a new failure fails CI. Fix it in `tokens/`.
 - Field and control borders use `stroke.field`, and toggle tracks `surface.track`
   (GDL's recommended names), so both reach 3:1.
 
-## Figma
+## Figma (retired)
+
+CAF left Figma on 23 Nov 2026. These files are where the tokens and
+components came from, up to 1.2.0. They are a record, not a source of truth.
 
 - CAF Design Library: `WhVkTrQRI9bDTfOeAJXTrR` (components only).
 - CAF Design file (screens): `z7L8r4nq6nL6Yfa8vvxJhO`.

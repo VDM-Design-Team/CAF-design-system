@@ -18,8 +18,8 @@
  * Disabled and deselected states are exempt (WCAG 1.4.3, 1.4.11). A
  * translucent surface is composited over surface.base first.
  *
- * `npm test` runs it with --strict: Light and Dark both pass. The values come
- * from the CAF Figma file, so a fix belongs there (then refresh the snapshot).
+ * `npm test` runs it with --strict: Light and Dark both pass. A fix goes into
+ * tokens/semantic/color.json and color.dark.json (the repo is the source of truth).
  */
 import { readFileSync } from 'node:fs';
 
@@ -92,5 +92,5 @@ for (const [mode, tokens] of [['light', light], ['dark', dark]]) {
     console.log(`  ✖ ${fg} on ${bg}: ${r.toFixed(2)}:1 (needs ${min}:1)  ${tokens.get(fg)} on ${tokens.get(bg)}`);
 }
 if (failures && strict) process.exit(1);
-if (failures) console.log(`⚠ ${failures} pair(s) below WCAG AA — report only. Fix in the CAF Figma file, then refresh the snapshot (docs/figma-sync.md).`);
+if (failures) console.log(`⚠ ${failures} pair(s) below WCAG AA — report only. Fix the pair in tokens/semantic/color.json and color.dark.json.`);
 else console.log('✔ every checked pair meets WCAG AA');
