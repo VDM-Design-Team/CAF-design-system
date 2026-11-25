@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import type { ThemeToggleTheme } from '../theme-toggle';
 import { TopBar, type TopBarProps } from './TopBar';
 
@@ -149,7 +148,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
           expect(getComputedStyle(within(bar).getByText('Hi, Admin Account')).color).toBe(want.greeting);
           const toggle = within(bar).getByRole('button', { name });
           const account = within(bar).getByRole('button', { name: 'Account' });
-          expect(toggle.querySelector('path')!.getAttribute('d')).toBe(theme === 'dark' ? ICON_PATHS.moon : ICON_PATHS.sun);
+          expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe(theme === 'dark' ? 'dark-mode' : 'light-mode');
           for (const button of [toggle, account]) {
             expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(hovered ? want.hover : want.none);

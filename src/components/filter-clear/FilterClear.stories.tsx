@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import { FilterClear } from './FilterClear';
 
 const meta = {
@@ -147,7 +146,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(style.boxShadow).toContain(`${stroke} 0px 0px 0px 1px inset`);
           // ArrowsClockwise, 20px, in the label's colour.
           const svg = button.querySelector('svg')!;
-          expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS['arrows-clockwise']);
+          expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe('retry');
           expect(svg.getBoundingClientRect().width).toBe(20);
           expect(getComputedStyle(svg).color).toBe(label);
           // Button / Normal: 36 high, in a box as tall as Filter / Field (40 in code), centred.

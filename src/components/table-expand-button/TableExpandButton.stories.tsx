@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useId, useState } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
+import { ICON_ALIASES } from '../icon/icons';
 import { TableExpandButton } from './TableExpandButton';
 
 const meta = {
@@ -137,7 +137,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             const g = svg.getBoundingClientRect();
             expect([g.width, g.left - box.left, g.top - box.top]).toEqual([20, 4, 4]);
             // CaretDown when collapsed, CaretUp when expanded.
-            expect(svg.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS[glyph]);
+            expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe(ICON_ALIASES[glyph]);
             // Focus: a 2px stroke.focused ring 2px outside the button, as Figma's Focus Ring (36×36 at −4, −4).
             if (state === 'Focus') {
               expect(style.outlineStyle).toBe('solid');
@@ -187,16 +187,16 @@ export const Toggles: Story = {
   play: async ({ canvas, canvasElement }) => {
     const button = canvas.getByRole('button', { name: 'Show details for cost 123456' });
     const panel = canvasElement.querySelector<HTMLElement>(`#${CSS.escape(button.getAttribute('aria-controls')!)}`)!;
-    const glyph = () => button.querySelector('path')!.getAttribute('d');
+    const glyph = () => (button.closest('svg') ?? button.querySelector('svg'))!.getAttribute('data-icon');
 
     await expect(button).toHaveAttribute('aria-expanded', 'false');
     await expect(panel).not.toBeVisible();
-    await expect(glyph()).toBe(ICON_PATHS['caret-down']);
+    await expect(glyph()).toBe('chevron-down');
 
     await userEvent.click(button);
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(panel).toBeVisible();
-    await expect(glyph()).toBe(ICON_PATHS['caret-up']);
+    await expect(glyph()).toBe('chevron-up');
 
     // Keyboard: the button is in the tab order, shows the focus ring, and Enter / Space toggle it.
     button.blur();

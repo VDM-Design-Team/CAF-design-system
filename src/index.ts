@@ -68,6 +68,7 @@ export * from './components/select-menu';
 export * from './components/select-option';
 export * from './components/select-trigger';
 export * from './components/side-sheet';
+export * from './components/sidebar';
 export * from './components/skeleton';
 export * from './components/skeleton-table-row';
 export * from './components/spinner';

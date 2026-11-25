@@ -2,7 +2,6 @@ import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { APP_HEADER_ADMIN_PAGES, APP_HEADER_USER_PAGES, type AppHeaderLink } from '../app-header';
-import { ICON_PATHS } from '../icon/icons';
 import { MobileHeader } from '../mobile-header';
 import { NavLink } from '../nav-link';
 import type { ThemeToggleTheme } from '../theme-toggle';
@@ -159,7 +158,7 @@ const opened = (set: keyof typeof MENUS, theme: 'light' | 'dark'): Story => ({
     await expect(header.getBoundingClientRect().height).toBe(64);
     const close = within(header).getByRole('button', { name: 'Close menu' });
     await expect(close).toHaveAttribute('aria-expanded', 'true');
-    await expect(close.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.x);
+    await expect((close.closest('svg') ?? close.querySelector('svg'))!.getAttribute('data-icon')).toBe('close');
     await waitFor(() => expect(close).toHaveFocus());
 
     // Links: vertical, 8 / 16 padding, 2 apart, the menu's width; the page's link is Active.
@@ -198,7 +197,7 @@ const opened = (set: keyof typeof MENUS, theme: 'light' | 'dark'): Story => ({
     await expect(row.color).toBe(want.secondary);
     await expect([row.fontSize, row.fontWeight]).toEqual([want.accountSize, want.accountWeight]);
     const glyph = account.querySelector('svg')!;
-    await expect(glyph.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
+    await expect((glyph.closest('svg') ?? glyph.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
     await expect(glyph.getBoundingClientRect().width).toBe(20);
     // Last, at the end of the menu's content. On a screen shorter than the menu, the menu scrolls.
     await expect(menu.lastElementChild).toBe(account.parentElement);

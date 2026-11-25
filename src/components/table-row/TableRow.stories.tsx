@@ -76,8 +76,8 @@ const meta = {
         component:
           'Built from the CAF Figma library, page **Table** (`Table / Row`, the generic body row). It is a `<tr>` of TableCells. ' +
           'Figma’s State: Default; Hover is `:hover`; Selected is `selected`. Put a checked `Checkbox` in the row too: ' +
-          'it is what tells assistive tech the row is selected. On a selected row, cells darken their secondary text ' +
-          '(`text/secondary`) and links (`text/link/selected`), so they pass AA on its tint.',
+          'it is what tells assistive tech the row is selected. On a hovered or selected row, cells darken their secondary text ' +
+          '(`text/secondary`), and on a selected row their links (`text/link/selected`), so they pass AA on its fill.',
       },
     },
   },
@@ -165,7 +165,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
     const bg = (state: string) => getComputedStyle(row(state)).backgroundColor;
     const colour = (el: Element | null) => getComputedStyle(el!).color;
     const want = {
-      hover: tokenColour('surface-base'),
+      hover: tokenColour('surface-table-row-hover'),
       selected: utilityBackground('bg-action-primary-surface-default/16'),
       subtle: tokenColour('text-subtle'),
       secondary: tokenColour('text-secondary'),
@@ -173,13 +173,14 @@ const states = (theme: 'light' | 'dark'): Story => ({
     };
     await waitFor(
       () => {
-        // Fills: none, surface.base, action.primary at 16%.
+        // Fills: none, surface.table.row.hover, action.primary at 16%.
         expect(bg('Default')).toBe('rgba(0, 0, 0, 0)');
         expect(bg('Hover')).toBe(want.hover);
         expect(bg('Selected')).toBe(want.selected);
-        // Secondary text: text.subtle, or text.secondary on a selected row.
+        // Secondary text: text.subtle, or text.secondary on a hovered or selected row.
         const secondary = (state: string) => row(state).querySelector('td:nth-of-type(3) span:last-child');
         expect(colour(secondary('Default'))).toBe(want.subtle);
+        expect(colour(secondary('Hover'))).toBe(want.secondary);
         expect(colour(secondary('Selected'))).toBe(want.secondary);
         // On the selected row with every text: the date and the "+N more" link.
         const every = row('Selected, every text');

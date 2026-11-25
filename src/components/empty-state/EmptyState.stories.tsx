@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
 import { Icon, ICON_NAMES } from '../icon';
-import { ICON_PATHS } from '../icon/icons';
 import { TableHeaderCell } from '../table-header-cell';
 import { EmptyState } from './EmptyState';
 
@@ -112,7 +111,7 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
         expect(getComputedStyle(tile).backgroundColor).toBe(want.tile);
         expect(icon.getBoundingClientRect().width).toBe(32);
         expect(getComputedStyle(icon).color).toBe(want.glyph);
-        expect(icon.querySelector('path')!.getAttribute('d')).toBe(id === 'default-icon' ? ICON_PATHS.info : ICON_PATHS.tray);
+        expect((icon.closest('svg') ?? icon.querySelector('svg'))!.getAttribute('data-icon')).toBe(id === 'default-icon' ? 'info' : 'tray');
         expect(getComputedStyle(title).color).toBe(want.primary);
         expect([getComputedStyle(title).fontSize, getComputedStyle(title).fontWeight]).toEqual(['16px', '600']);
         expect(getComputedStyle(description).color).toBe(want.subtle);
@@ -129,7 +128,7 @@ const sizes = (theme: 'light' | 'dark'): Story => ({
       expect(getComputedStyle(compact.tile).backgroundColor).toBe('rgba(0, 0, 0, 0)');
       expect(compact.icon.getBoundingClientRect().width).toBe(20);
       expect(getComputedStyle(compact.icon).color).toBe(want.subtle);
-      expect(compact.icon.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.tray);
+      expect((compact.icon.closest('svg') ?? compact.icon.querySelector('svg'))!.getAttribute('data-icon')).toBe('tray');
       expect(getComputedStyle(compact.title).color).toBe(want.subtle);
       expect([getComputedStyle(compact.title).fontSize, getComputedStyle(compact.title).fontWeight]).toEqual(['14px', '400']);
       expect(compact.root.children).toHaveLength(2);
