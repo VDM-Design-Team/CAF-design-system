@@ -2,7 +2,6 @@ import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button';
-import { ICON_PATHS } from '../icon/icons';
 import { IconButton } from '../icon-button';
 import { TextInput } from '../text-input';
 import { ModalDialog, MODAL_DIALOG_SIZES, type ModalDialogSize } from './ModalDialog';
@@ -304,7 +303,7 @@ const withActions = (theme: 'light' | 'dark'): Story => ({
         expect(button.getBoundingClientRect().width).toBe(32);
         expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(16);
       }
-      expect(refresh.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS['arrows-clockwise']);
+      expect((refresh.closest('svg') ?? refresh.querySelector('svg'))!.getAttribute('data-icon')).toBe('retry');
       // Header still 73 high (20 + 32 + 20 + the 1px line), as in Figma.
       expect(header.getBoundingClientRect().height).toBe(73);
     });

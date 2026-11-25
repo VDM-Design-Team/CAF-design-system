@@ -8,7 +8,8 @@ import { cn } from '../../lib/cn';
  *
  * Figma → code:
  * - State=Default  → the row as it is.
- * - State=Hover    → `:hover` (not on a selected row; Figma has no Selected + Hover).
+ * - State=Hover    → `:hover`: surface.table.row.hover (new with the CAF
+ *   design refresh, 23 Nov 2026). Not on a selected row.
  * - State=Selected → `selected`. Put a `<Checkbox checked>` in the row's
  *   checkbox cell too: the checkbox is what tells assistive tech, because a
  *   plain table row can't carry `aria-selected`.
@@ -21,8 +22,8 @@ import { cn } from '../../lib/cn';
 const row = [
   /* group/row: TableCell reads `data-selected` through it. */
   'group/row border-b border-stroke-subtle',
-  /* State=Hover — surface.base, for a row that isn't selected. */
-  'not-data-selected:hover:bg-surface-base',
+  /* State=Hover — surface.table.row.hover, for a row that isn't selected. */
+  'not-data-selected:hover:bg-surface-table-row-hover',
   /* State=Selected — action.primary.surface.default at 16% opacity. */
   'data-selected:bg-action-primary-surface-default/16',
 ];

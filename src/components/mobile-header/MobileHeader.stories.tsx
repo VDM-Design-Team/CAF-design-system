@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import type { ThemeToggleTheme } from '../theme-toggle';
 import { MobileHeader, type MobileHeaderProps } from './MobileHeader';
 
@@ -95,7 +94,7 @@ export const Playground: Story = {
     // The same button, now ✕.
     await expect(menu).toHaveAccessibleName('Close menu');
     await expect(menu).toHaveAttribute('aria-expanded', 'true');
-    await expect(menu.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.x);
+    await expect((menu.closest('svg') ?? menu.querySelector('svg'))!.getAttribute('data-icon')).toBe('close');
     await userEvent.click(menu);
     await expect(args.onMenuOpenChange).toHaveBeenLastCalledWith(false);
     await expect(menu).toHaveAccessibleName('Open menu');
@@ -224,9 +223,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(a.left - t.right).toBeCloseTo(8, 0);
           expect(m.left - a.right).toBeCloseTo(8, 0);
           expect(m.right).toBeCloseTo(box.right - 16, 0);
-          expect(toggle.querySelector('path')!.getAttribute('d')).toBe(theme === 'dark' ? ICON_PATHS.moon : ICON_PATHS.sun);
-          expect(account.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.user);
-          expect(menu.querySelector('path')!.getAttribute('d')).toBe(menuOpen ? ICON_PATHS.x : ICON_PATHS.list);
+          expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe(theme === 'dark' ? 'dark-mode' : 'light-mode');
+          expect((account.closest('svg') ?? account.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
+          expect((menu.closest('svg') ?? menu.querySelector('svg'))!.getAttribute('data-icon')).toBe(menuOpen ? 'close' : 'menu');
           expect(menu.getAttribute('aria-expanded')).toBe(String(menuOpen));
           // Every glyph text.secondary (Ghost's); neutral.tonal fill on hover.
           for (const button of [toggle, account, menu]) {

@@ -186,14 +186,18 @@ const properties = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark grid would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
-    const want = { line: tokenColour('stroke-subtle'), label: tokenColour('text-secondary') };
+    const want = {
+      fill: tokenColour('surface-table-header'),
+      line: tokenColour('stroke-subtle'),
+      label: tokenColour('text-secondary'),
+    };
     await waitFor(() => {
       for (const { name, props, mixed, selected } of VARIANTS) {
         const block = canvasElement.querySelector<HTMLElement>(`[data-variant="${name}"]`)!;
         const head = block.querySelector('thead tr')!;
         const style = getComputedStyle(head);
-        // No fill; stroke/1 in colors/stroke/subtle under it.
-        expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+        // surface.table.header fill; stroke/1 in stroke.subtle under it.
+        expect(style.backgroundColor).toBe(want.fill);
         expect(style.borderBottomWidth).toBe('1px');
         expect(style.borderBottomColor).toBe(want.line);
         // 44 inside its line (12 + the 20px label + 12); with the 1px line, Figma's 45.

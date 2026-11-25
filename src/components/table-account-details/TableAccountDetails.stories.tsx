@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useId, useState, type ReactNode } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Checkbox } from '../checkbox';
-import { ICON_PATHS } from '../icon/icons';
 import { IconButton } from '../icon-button';
 import { StatusPill } from '../status-pill';
 import { TableCell } from '../table-cell';
@@ -284,7 +283,7 @@ const inRow = (theme: 'light' | 'dark'): Story => ({
   // STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
     const want = {
-      hover: tokenColour('surface-base'),
+      hover: tokenColour('surface-table-row-hover'),
       selected: utilityBackground('bg-action-primary-surface-default/16'),
       text: tokenColour('text-primary'),
       fill: tokenColour('neutral-tonal-surface-default'),
@@ -302,7 +301,7 @@ const inRow = (theme: 'light' | 'dark'): Story => ({
           const button = within(row).getByRole('button', { name: /^Show details/ });
           expect(getComputedStyle(button).backgroundColor).toBe(want.fill);
           expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.text);
-          expect(button.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS[expanded ? 'caret-up' : 'caret-down']);
+          expect((button.closest('svg') ?? button.querySelector('svg'))!.getAttribute('data-icon')).toBe(expanded ? 'chevron-up' : 'chevron-down');
           expect(button).toHaveAttribute('aria-expanded', String(expanded));
           const breakdown = canvasElement.querySelector<HTMLElement>(`#${CSS.escape(button.getAttribute('aria-controls')!)}`)!;
           expect(breakdown.hidden).toBe(!expanded);

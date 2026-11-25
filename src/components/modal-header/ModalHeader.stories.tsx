@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { ICON_NAMES } from '../icon';
-import { ICON_PATHS } from '../icon/icons';
 import { IconButton } from '../icon-button';
 import { ModalHeader } from './ModalHeader';
 
@@ -75,7 +74,7 @@ export const IconSwap: Story = {
   play: async ({ canvasElement }) => {
     const colour = tokenColour('accent-info-tonal-content-default');
     const glyph = canvasElement.querySelector<SVGElement>('span[aria-hidden="true"] > svg')!;
-    await expect(glyph.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.info);
+    await expect((glyph.closest('svg') ?? glyph.querySelector('svg'))!.getAttribute('data-icon')).toBe('info');
     await expect(glyph.getBoundingClientRect().width).toBe(24);
     await expect(getComputedStyle(glyph).color).toBe(colour);
   },

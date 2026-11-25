@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
-import { ICON_PATHS } from '../icon/icons';
 import { NavLink } from '../nav-link';
 import type { ThemeToggleTheme } from '../theme-toggle';
 import { AppHeader, type AppHeaderProps } from './AppHeader';
@@ -316,7 +315,7 @@ const mobile = (theme: 'light' | 'dark'): Story => ({
     await expect(banner.getBoundingClientRect().height).toBe(64);
     const opener = within(banner).getByRole('button', { name: 'Open menu' });
     await expect(opener).toHaveAttribute('aria-expanded', 'false');
-    await expect(opener.querySelector('path')!.getAttribute('d')).toBe(ICON_PATHS.list);
+    await expect((opener.closest('svg') ?? opener.querySelector('svg'))!.getAttribute('data-icon')).toBe('menu');
     await expect(getComputedStyle(opener.querySelector('svg')!).color).toBe(want.glyph);
     await expect(opener.getBoundingClientRect().right).toBeCloseTo(window.innerWidth - 16, 0);
   },
