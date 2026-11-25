@@ -257,7 +257,7 @@ const STATES = [
     state: 'Error',
     props: { required: true, error: 'Choose a payment method.' },
     text: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Disabled',

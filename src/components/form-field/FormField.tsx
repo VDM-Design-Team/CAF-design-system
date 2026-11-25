@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '../../lib/cn';
 import { FormLabel } from '../form-label';
+import { Icon } from '../icon';
 import { FormFieldContext, type FormFieldContextValue, type FormFieldControlProps } from './useFormField';
 
 /**
@@ -21,8 +22,9 @@ import { FormFieldContext, type FormFieldContextValue, type FormFieldControlProp
  *   Input Wrapper gap): Caption/md-regular, text/subtle.
  * - State=Error + Error → `error`: the control's State=Error (it is
  *   `aria-invalid`), and the Error Text in the helper's place, space.8 under
- *   the control: Caption/md-regular, accent/critical/tonal/content/default
- *   (the Required marker's colour).
+ *   the control: Caption/md-semibold, accent/critical/tonal/content/default
+ *   (the Required marker's colour), after a 16px alert icon, as the new CAF
+ *   design (Nov 2026) draws it: colour, an icon and words together.
  *
  * Wiring: FormField puts its ids in a context (`useFormField`). A control
  * calls `useFormFieldControl(props)`, as TextInput, SelectTrigger and Select
@@ -105,13 +107,17 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(functi
           {action}
         </div>
         {control}
-        {/* Helper Text or Error Text, space.8 under the control. */}
+        {/* Helper Text or Error Text, space.8 under the control. The error leads with an alert icon. */}
         {messageId && (
           <FormHelperText
             id={messageId}
-            className={cn('mt-2', invalid && 'text-accent-critical-tonal-content-default')}
+            className={cn(
+              'mt-2',
+              invalid && 'flex items-start gap-1.5 text-caption-md-semibold text-accent-critical-tonal-content-default',
+            )}
           >
-            {message}
+            {invalid && <Icon name="warning-circle" size={16} />}
+            {invalid ? <span>{message}</span> : message}
           </FormHelperText>
         )}
       </div>
@@ -119,3 +125,25 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(functi
   );
 });
 FormField.displayName = 'FormField';
+
+/**
+ * The status icon inside a text field (new CAF design, Nov 2026): an alert
+ * while the field has an error, a check while it is `valid`. TextField and
+ * TextareaField place it at the control's end; the control leaves room with
+ * `pr-10`. It is decoration: the message under the field says the same in words.
+ */
+export function FormFieldStatusIcon({ state, multiline = false }: { state: 'invalid' | 'valid'; multiline?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-field-status={state}
+      className={cn(
+        'pointer-events-none absolute right-3 flex',
+        multiline ? 'top-3' : 'top-1/2 -translate-y-1/2',
+        state === 'invalid' ? 'text-accent-critical-tonal-content-default' : 'text-accent-success-tonal-content-default',
+      )}
+    >
+      <Icon name={state === 'invalid' ? 'warning-circle' : 'check-circle'} size={16} />
+    </span>
+  );
+}

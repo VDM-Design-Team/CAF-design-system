@@ -189,7 +189,7 @@ const STATES = [
     state: 'Error',
     props: { required: true, error: 'Choose a location.' },
     text: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   { state: 'Disabled', props: { disabled: true }, text: 'text-disabled', stroke: ['neutral-outline-border-disabled', 1] },
   { state: 'Required', props: { required: true }, text: 'text-subtle', stroke: ['stroke-field', 1] },

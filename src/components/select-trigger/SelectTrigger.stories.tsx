@@ -141,7 +141,7 @@ export const ErrorState: Story = {
     await expect(trigger).toBeInvalid();
     await expect(trigger).toHaveAccessibleDescription('Monthly costs need an end date.');
     const critical = tokenColour('accent-critical-outline-border-default');
-    await expect(getComputedStyle(trigger).boxShadow).toContain(insetStroke(critical, 1));
+    await expect(getComputedStyle(trigger).boxShadow).toContain(insetStroke(critical, 2));
     await userEvent.tab();
     await expect(trigger).toHaveFocus();
     await waitFor(() => expect(getComputedStyle(trigger).boxShadow).toContain(insetStroke(critical, 2)));
@@ -198,7 +198,7 @@ const STATES = [
     text: 'text-primary',
     fill: FIELD,
     caret: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Error + Focus',

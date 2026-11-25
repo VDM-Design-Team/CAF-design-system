@@ -118,7 +118,7 @@ export const ErrorState: Story = {
     await expect(textarea).toBeInvalid();
     await expect(textarea).toHaveAccessibleDescription('Add at least 20 characters.');
     const critical = tokenColour('accent-critical-outline-border-default');
-    await expect(getComputedStyle(textarea).boxShadow).toContain(insetStroke(critical, 1));
+    await expect(getComputedStyle(textarea).boxShadow).toContain(insetStroke(critical, 2));
     await userEvent.click(textarea);
     await waitFor(() => expect(getComputedStyle(textarea).boxShadow).toContain(insetStroke(critical, 2)));
   },
@@ -181,7 +181,7 @@ const STATES = [
     },
     value: 'text-primary',
     fill: 'surface-elevated-secondary',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Error + Focus',
