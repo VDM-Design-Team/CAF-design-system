@@ -14,7 +14,8 @@ import { Icon } from '../icon';
  * - State=Default  → no `value`: the `placeholder` shows, in text/subtle.
  * - State=Filled   → a `value`, in text/primary.
  * - State=Focus    → `:focus-visible`: a 2px stroke/focused stroke inside the edge.
- * - State=Error    → `aria-invalid`: the accent/critical/outline border.
+ * - State=Error    → `aria-invalid`: a 2px accent/critical/outline border
+ *   (the new CAF design's error border, as every field's).
  * - State=Disabled → the native `disabled` attribute: the disabled fill and stroke, the text in text/disabled.
  * - State=Open     → `open`, which sets `aria-expanded`: Focus's 2px stroke.
  * - Value          → `value`, the chosen option's label; `placeholder` while empty.
@@ -48,7 +49,8 @@ const selectTriggerClasses = [
   'aria-expanded:inset-ring-2 aria-expanded:inset-ring-stroke-focused',
   /* State=Error: the accent.critical.outline border. It keeps that colour when
      focused or open (at their 2px width), so the error stays visible. */
-  'aria-invalid:inset-ring-accent-critical-outline-border-default',
+  /* Error: a 2px border, as every field's in the new CAF design. */
+  'aria-invalid:inset-ring-2 aria-invalid:inset-ring-accent-critical-outline-border-default',
   /* State=Disabled: the neutral.tonal disabled fill, a 1px
      neutral.outline.border.disabled stroke, and the value or the placeholder
      in text.disabled (the caret too, below). No opacity. */

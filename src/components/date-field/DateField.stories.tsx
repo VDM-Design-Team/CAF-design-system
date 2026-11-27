@@ -353,7 +353,7 @@ const STATES = [
     state: 'Error',
     props: { required: true, error: 'Choose a start date.' },
     text: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Disabled',
@@ -487,7 +487,7 @@ const typedError = (theme: 'light' | 'dark'): Story => ({
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ canvasElement }) => {
     const want = {
-      stroke: insetStroke(tokenColour('accent-critical-outline-border-default'), 1),
+      stroke: insetStroke(tokenColour('accent-critical-outline-border-default'), 2),
       message: tokenColour('accent-critical-tonal-content-default'),
       text: tokenColour('text-primary'),
     };

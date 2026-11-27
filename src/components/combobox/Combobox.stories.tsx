@@ -470,7 +470,7 @@ const STATES = [
     text: 'text-primary',
     fill: FIELD,
     icon: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Error + Focus',

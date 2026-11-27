@@ -40,9 +40,9 @@ const textareaClasses = [
   /* State=Focus: a 2px stroke.focused stroke inside the edge. It replaces the
      browser's outline, which stays transparent so forced-colours mode still shows one. */
   'outline-hidden focus:inset-ring-2 focus:inset-ring-stroke-focused',
-  /* State=Error: the accent.critical.outline border. It keeps that colour while
-     focused (Focus's 2px width), so the error stays visible as you type. */
-  'aria-invalid:inset-ring-accent-critical-outline-border-default',
+  /* State=Error: a 2px accent.critical.outline border (the new design's 1px border
+     plus 1px inset), focused or not, so the error stays visible as you type. */
+  'aria-invalid:inset-ring-2 aria-invalid:inset-ring-accent-critical-outline-border-default',
   /* State=Disabled: the neutral.tonal disabled fill, a 1px
      neutral.outline.border.disabled stroke, and the value and the placeholder
      in text.disabled. No opacity. It can't be resized. */

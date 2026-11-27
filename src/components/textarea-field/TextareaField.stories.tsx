@@ -126,6 +126,34 @@ export const ErrorState: Story = {
 };
 
 /** Disabled: it can’t be focused or typed into, and a disabled textarea isn’t submitted. */
+/** `maxLength` shows a counter at the end of the label row, which follows what you type. */
+export const WithCounter: Story = {
+  args: { label: 'Describe the problem', maxLength: 500, placeholder: 'Include dates, amounts and references.' },
+  play: async ({ canvas }) => {
+    const textarea = canvas.getByRole('textbox', { name: 'Describe the problem' });
+    const counter = canvas.getByText('0/500');
+    await expect(counter).toHaveAttribute('aria-live', 'polite');
+    await expect(getComputedStyle(counter).color).toBe(tokenColour('text-secondary'));
+    await expect(getComputedStyle(counter).fontVariantNumeric).toBe('tabular-nums');
+    // At the end of the label row, level with the textarea's end.
+    await expect(counter.getBoundingClientRect().right).toBe(textarea.getBoundingClientRect().right);
+    await userEvent.type(textarea, 'Paid twice');
+    await expect(canvas.getByText('10/500')).toBeInTheDocument();
+  },
+};
+
+/** An error also puts an alert icon in the top end corner. */
+export const ErrorIcon: Story = {
+  args: { label: 'Reason', defaultValue: 'x', error: 'Say a bit more, at least 10 characters.' },
+  play: async ({ canvas }) => {
+    const textarea = canvas.getByRole('textbox', { name: 'Reason' });
+    const icon = textarea.parentElement!.querySelector<HTMLElement>('[data-field-status="invalid"]')!;
+    const [box, glyph] = [textarea.getBoundingClientRect(), icon.getBoundingClientRect()];
+    await expect([box.right - glyph.right, glyph.top - box.top]).toEqual([12, 12]);
+    await expect(getComputedStyle(icon).color).toBe(tokenColour('accent-critical-tonal-content-default'));
+  },
+};
+
 export const Disabled: Story = {
   args: {
     disabled: true,
@@ -229,7 +257,7 @@ const STATES = [
     state: 'Error',
     props: { required: true, error: 'Add a reason for the rejection.' },
     value: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Disabled',
@@ -297,7 +325,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       () => {
         for (const { state, filled, required, message, error, value, stroke } of want) {
           const textarea = canvasElement.querySelector<HTMLTextAreaElement>(`textarea[data-state="${state}"]`)!;
-          const field = textarea.parentElement!;
+          // The textarea sits in a wrapper that holds the status icon; the field is its parent.
+          const field = textarea.parentElement!.parentElement!;
           const labelNode = field.querySelector('label')!;
           // The label: Body/sm-regular, text.secondary; the marker when Required.
           expect(getComputedStyle(labelNode).color).toBe(label);

@@ -211,14 +211,25 @@ const message = (theme: 'light' | 'dark'): Story => ({
           expect(field.getBoundingClientRect().bottom).toBe(control.bottom);
           continue;
         }
-        // The message: space.8 under the control, Caption/md-regular, filling the width.
+        // The message: space.8 under the control, filling the width. Helper: Caption/md-regular.
+        // Error: Caption/md-semibold after a 16px alert icon, 6px apart.
         const box = text.getBoundingClientRect();
         const style = getComputedStyle(text);
         expect(box.top - control.bottom).toBe(8);
         expect(box.width).toBe(control.width);
         expect(style.fontSize).toBe('12px');
-        expect(style.fontWeight).toBe('400');
-        expect(style.color).toBe(id.startsWith('error') ? want.error : want.helper);
+        const isError = id.startsWith('error');
+        expect(style.fontWeight).toBe(isError ? '600' : '400');
+        expect(style.color).toBe(isError ? want.error : want.helper);
+        const icon = text.querySelector('svg');
+        if (isError) {
+          expect(icon).not.toBeNull();
+          expect(icon!.getAttribute('aria-hidden')).toBe('true');
+          expect([icon!.getBoundingClientRect().width, icon!.getBoundingClientRect().height]).toEqual([16, 16]);
+          expect(text.lastElementChild!.getBoundingClientRect().left - icon!.getBoundingClientRect().right).toBe(6);
+        } else {
+          expect(icon).toBeNull();
+        }
         expect(text).toHaveTextContent(id.startsWith('error') ? 'This field is required.' : 'As it appears on the bank statement.');
         expect(input).toHaveAccessibleDescription(text.textContent!);
         expect(input.getAttribute('aria-invalid')).toBe(id.startsWith('error') ? 'true' : null);

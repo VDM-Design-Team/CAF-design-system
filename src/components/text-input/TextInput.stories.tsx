@@ -91,7 +91,7 @@ export const ErrorState: Story = {
     await expect(input).toBeInvalid();
     await expect(input).toHaveAccessibleDescription('This reference is already in use.');
     const critical = tokenColour('accent-critical-outline-border-default');
-    await expect(getComputedStyle(input).boxShadow).toContain(insetStroke(critical, 1));
+    await expect(getComputedStyle(input).boxShadow).toContain(insetStroke(critical, 2));
     await userEvent.click(input);
     await waitFor(() => expect(getComputedStyle(input).boxShadow).toContain(insetStroke(critical, 2)));
   },
@@ -141,7 +141,7 @@ const STATES = [
     props: { defaultValue: 'Acme Ltd', 'aria-invalid': true },
     value: 'text-primary',
     fill: 'surface-elevated-secondary',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Error + Focus',

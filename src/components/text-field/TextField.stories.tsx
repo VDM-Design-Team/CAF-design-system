@@ -112,6 +112,63 @@ export const ErrorState: Story = {
 };
 
 /** Disabled: it can’t be focused or typed into, and a disabled input isn’t submitted. */
+/* ── Status icons (new CAF design): an alert with an error, a check when valid ── */
+
+const status = (theme: 'light' | 'dark'): Story => ({
+  name: `Status — ${theme === 'light' ? 'Light' : 'Dark'}`,
+  render: () => (
+    <div className="flex w-80 flex-col gap-6">
+      <TextField label="IBAN" defaultValue="CY17 0020 0128" error="This IBAN is too short. Cyprus IBANs have 28 characters." />
+      <TextField
+        label="Work email"
+        type="email"
+        defaultValue="ana@example.com"
+        valid
+        helper="Only on fields with a real rule, like email or IBAN."
+      />
+      <TextField label="Both" defaultValue="x" valid error="The error wins over valid." />
+    </div>
+  ),
+  globals: { theme },
+  parameters: { controls: { disable: true } },
+  // The theme is set on <html>, so a Dark grid would flip the whole docs page.
+  tags: theme === 'dark' ? ['!autodocs'] : [],
+  play: async ({ canvas }) => {
+    const want = {
+      critical: tokenColour('accent-critical-tonal-content-default'),
+      success: tokenColour('accent-success-tonal-content-default'),
+      successBorder: tokenColour('accent-success-outline-border-default'),
+    };
+    const iban = canvas.getByRole('textbox', { name: 'IBAN' });
+    const email = canvas.getByRole('textbox', { name: 'Work email' });
+    const both = canvas.getByRole('textbox', { name: 'Both' });
+    await waitFor(() => {
+      for (const [input, state, colour] of [
+        [iban, 'invalid', want.critical],
+        [email, 'valid', want.success],
+        [both, 'invalid', want.critical],
+      ] as const) {
+        const icon = input.parentElement!.querySelector<HTMLElement>('[data-field-status]')!;
+        // The icon sits 12px from the input's end, centred on it, in the state's colour, hidden from screen readers.
+        expect(icon.dataset.fieldStatus).toBe(state);
+        expect(icon.getAttribute('aria-hidden')).toBe('true');
+        expect(getComputedStyle(icon).color).toBe(colour);
+        const [box, glyph] = [input.getBoundingClientRect(), icon.getBoundingClientRect()];
+        expect(box.right - glyph.right).toBe(12);
+        expect(Math.abs(glyph.top + glyph.height / 2 - (box.top + box.height / 2))).toBeLessThan(1);
+        // The text stops short of the icon: 40px of padding at the end.
+        expect(getComputedStyle(input).paddingRight).toBe('40px');
+      }
+      // Valid: a 1px green border while not focused; no message of its own.
+      expect(getComputedStyle(email).boxShadow).toContain(`${want.successBorder} 0px 0px 0px 1px inset`);
+      expect(email).not.toHaveAttribute('aria-invalid');
+    });
+  },
+});
+
+export const StatusLight = status('light');
+export const StatusDark = status('dark');
+
 export const Disabled: Story = {
   args: { disabled: true, defaultValue: 'QA Test' },
   play: async ({ args, canvas }) => {
@@ -193,7 +250,7 @@ const STATES = [
     state: 'Error',
     props: { required: true, error: 'Location is required.' },
     value: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
   },
   {
     state: 'Disabled',
@@ -256,7 +313,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       () => {
         for (const { state, filled, required, message, error, value, stroke } of want) {
           const input = canvasElement.querySelector<HTMLInputElement>(`input[data-state="${state}"]`)!;
-          const field = input.parentElement!;
+          // The input sits in a wrapper that holds the status icon; the field is its parent.
+          const field = input.parentElement!.parentElement!;
           const labelNode = field.querySelector('label')!;
           // The label: Body/sm-regular, text.secondary; the marker when Required.
           expect(getComputedStyle(labelNode).color).toBe(label);

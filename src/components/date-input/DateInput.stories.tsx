@@ -278,7 +278,7 @@ export const InvalidDate: Story = {
     await expect(args.onInvalidChange).toHaveBeenLastCalledWith(true);
     await expect(args.onValueChange).toHaveBeenLastCalledWith('');
     await expect(status).toHaveTextContent('Stored: "", not a date');
-    await expect(getComputedStyle(field).boxShadow).toContain(insetStroke(critical, 1));
+    await expect(getComputedStyle(field).boxShadow).toContain(insetStroke(critical, 2));
 
     // Back in the field: Error + Focus, the critical stroke at 2px.
     await userEvent.click(field);
@@ -520,7 +520,7 @@ export const ErrorState: Story = {
     await expect(field).not.toHaveAttribute('required');
     await expect(field).toHaveAccessibleDescription('Choose a start date.');
     const critical = tokenColour('accent-critical-outline-border-default');
-    await expect(getComputedStyle(field).boxShadow).toContain(insetStroke(critical, 1));
+    await expect(getComputedStyle(field).boxShadow).toContain(insetStroke(critical, 2));
     await userEvent.tab();
     await waitFor(() => expect(getComputedStyle(field).boxShadow).toContain(insetStroke(critical, 2)));
   },
@@ -738,7 +738,7 @@ const typedError = (theme: 'light' | 'dark'): Story => ({
     const style = getComputedStyle(field);
     await expect(style.color).toBe(want.text);
     await expect(style.backgroundColor).toBe(want.fill);
-    await expect(style.boxShadow).toContain(insetStroke(want.critical, 1));
+    await expect(style.boxShadow).toContain(insetStroke(want.critical, 2));
     await expect(field.getBoundingClientRect().height).toBe(40);
     await expect(getComputedStyle(calendarButton(canvas).querySelector('svg')!).color).toBe(want.icon);
     const clear = canvas.getByRole('button', { name: 'Clear date' });
@@ -919,7 +919,7 @@ const STATES = [
     text: 'text-primary',
     fill: FIELD,
     icon: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
     clear: false,
   },
   {
@@ -928,7 +928,7 @@ const STATES = [
     text: 'text-primary',
     fill: FIELD,
     icon: 'text-subtle',
-    stroke: ['accent-critical-outline-border-default', 1],
+    stroke: ['accent-critical-outline-border-default', 2],
     clear: true,
   },
   {

@@ -443,7 +443,7 @@ const messages = (theme: 'light' | 'dark'): Story => ({
       helper: tokenColour('text-subtle'),
       error: tokenColour('accent-critical-tonal-content-default'),
       stroke: insetStroke(tokenColour('stroke-field'), 1),
-      critical: insetStroke(tokenColour('accent-critical-outline-border-default'), 1),
+      critical: insetStroke(tokenColour('accent-critical-outline-border-default'), 2),
     };
     for (const { state, props, invalid, full } of MESSAGES) {
       const field = canvasElement.querySelector<HTMLFieldSetElement>(`fieldset[data-state="${state}"]`)!;
