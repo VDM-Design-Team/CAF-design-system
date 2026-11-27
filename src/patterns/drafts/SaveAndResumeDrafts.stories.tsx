@@ -80,6 +80,8 @@ interface FlowProps {
   initialDrafts?: StoredDraft[];
   /** Start with the delete confirmation open for a draft id. */
   defaultConfirm?: string;
+  /** Drafts' rows per page. */
+  pageSize?: number;
   onSaveDraft?: (data: FormData) => void;
   onSubmit?: (data: FormData) => void;
 }
@@ -89,7 +91,14 @@ interface FlowProps {
  * routes: /new-cost and /drafts, ?draft_id=… when a draft is open). When it
  * switches, focus goes to the new page's heading.
  */
-function DraftsFlow({ view: initialView = 'form', initialDrafts, defaultConfirm, onSaveDraft, onSubmit }: FlowProps) {
+function DraftsFlow({
+  view: initialView = 'form',
+  initialDrafts,
+  defaultConfirm,
+  pageSize,
+  onSaveDraft,
+  onSubmit,
+}: FlowProps) {
   const { toast } = useToast();
   const [view, setView] = React.useState(initialView);
   const [drafts, setDrafts] = React.useState<StoredDraft[]>(() => initialDrafts ?? fixtureDrafts.map(fromFixture));
@@ -147,6 +156,7 @@ function DraftsFlow({ view: initialView = 'form', initialDrafts, defaultConfirm,
         <DraftsList
           drafts={drafts}
           defaultConfirm={defaultConfirm}
+          pageSize={pageSize}
           onEdit={(draft) => {
             setOpenDraft(draft);
             go('form');
@@ -347,6 +357,44 @@ export const SearchAndDelete: Story = {
     await expect(await notifications(canvasElement).findByText('Draft deleted.')).toBeVisible();
     await waitFor(() => expect(canvas.getByRole('button', { name: 'Actions for draft 36700' })).toHaveFocus());
   },
+};
+
+/**
+ * Step 4, the last page: deleting the only draft on page 2 of 2 leaves one
+ * page, and focus goes to its last row's ••• (the row just above where the
+ * draft was), not its first.
+ */
+const deleteOnlyOnLastPage: Story = {
+  args: { view: 'drafts', pageSize: 7 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const pagination = canvas.getByRole('navigation', { name: 'Pagination' });
+    await userEvent.click(within(pagination).getByRole('button', { name: 'Page 2' }));
+    const table = canvas.getByRole('table', { name: 'Drafts' });
+    await expect(within(table).getAllByRole('row').slice(1).map((r) => r.dataset.id)).toEqual(['34941']);
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Actions for draft 34941' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete draft?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+
+    await expect(canvasElement.querySelector('tr[data-id="34941"]')).toBeNull();
+    await expect(within(table).getAllByRole('row')).toHaveLength(8);
+    await expect(pagination).toHaveTextContent('Page 1 of 1');
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Actions for draft 35323' })).toHaveFocus());
+  },
+};
+
+export const DeleteOnlyOnLastPage: Story = { ...deleteOnlyOnLastPage, name: 'Delete the only draft on the last page' };
+
+/** Dark: Step 4, the last page. */
+export const DeleteOnlyOnLastPageDark: Story = {
+  ...deleteOnlyOnLastPage,
+  name: 'Delete the only draft on the last page, Dark',
+  globals: { theme: 'dark' },
+  // The theme is set on <html>, so a Dark story would flip the whole docs page.
+  tags: ['!autodocs'],
 };
 
 /** Step 5: no drafts. The Empty State offers Create Cost, which opens a blank New Cost. */

@@ -13,6 +13,7 @@ import { TableList } from '../../components/table-list';
 import { TableRow } from '../../components/table-row';
 import { FILTER_SLOT, FilterBar } from '../filters/CostsFilterBar';
 import { formatDate, type Draft } from '../fixtures';
+import { useFocusAfterRemoval } from '../useFocusAfterRemoval';
 import { PageHeader } from '../../components/page-header';
 
 /**
@@ -27,7 +28,9 @@ import { PageHeader } from '../../components/page-header';
  *   `data-id`.
  * - ••• → Edit calls `onEdit` (the page reopens New Cost with the draft).
  *   ••• → Delete asks first (pattern 04): a destructive Modal / Confirm; Delete
- *   calls `onDelete`, and focus moves to the next row's •••.
+ *   calls `onDelete`, and focus moves to the next row's ••• (useFocusAfterRemoval:
+ *   the last row's on the page before when the draft was alone on the last page;
+ *   Create Cost when none is left).
  * - With no drafts, the Empty State with a Create Cost action (pattern 11),
  *   not just "No items."; a search that matches nothing says so in the table.
  *
@@ -71,7 +74,6 @@ export function DraftsList<T extends Draft>({
   const tableRef = React.useRef<HTMLTableElement>(null);
   const createRef = React.useRef<HTMLButtonElement>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
-  const focusAfterDelete = React.useRef<number | null>(null);
 
   const filtered = drafts.filter((d) => matches(d, query));
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -79,13 +81,10 @@ export function DraftsList<T extends Draft>({
   const shown = filtered.slice((current - 1) * pageSize, current * pageSize);
   const confirming = drafts.find((d) => d.id === confirmId);
 
-  React.useEffect(() => {
-    const index = focusAfterDelete.current;
-    if (index === null) return;
-    focusAfterDelete.current = null;
-    const triggers = tableRef.current?.querySelectorAll<HTMLButtonElement>('tbody [aria-haspopup="menu"]') ?? [];
-    if (triggers.length) triggers[Math.min(index, triggers.length - 1)].focus();
-    else (createRef.current ?? searchRef.current)?.focus();
+  const focusAfterDelete = useFocusAfterRemoval({
+    container: tableRef,
+    selector: 'tbody [aria-haspopup="menu"]',
+    fallback: () => createRef.current ?? searchRef.current,
   });
 
   return (
@@ -175,7 +174,7 @@ export function DraftsList<T extends Draft>({
         onClose={() => setConfirmId(null)}
         onConfirm={() => {
           if (!confirming) return;
-          focusAfterDelete.current = shown.indexOf(confirming);
+          focusAfterDelete(shown, confirming);
           setConfirmId(null);
           onDelete(confirming);
         }}
