@@ -109,6 +109,10 @@ export const FileChip = React.forwardRef<HTMLDivElement, FileChipProps>(function
         <IconButton
           icon="x"
           label={`Remove ${fileName}`}
+          size={32}
+          /* No tooltip until the chip becomes the design's file row: the × keeps its own colours,
+             which a tooltip's wrapper wouldn't take. */
+          tooltip={false}
           onClick={onRemove}
           /* Figma's × is text/subtle; hovered, it takes IconButton ghost's own
              glyph, text/secondary, over its hover fill. The -8px margin puts the

@@ -122,7 +122,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
       wordmark: tokenColour('text-primary'),
       greeting: tokenColour('text-secondary'),
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     const name = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
@@ -150,7 +151,7 @@ const states = (theme: 'light' | 'dark'): Story => ({
           const account = within(bar).getByRole('button', { name: 'Account' });
           expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe(theme === 'dark' ? 'dark-mode' : 'light-mode');
           for (const button of [toggle, account]) {
-            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
+            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(hovered ? want.glyphHover : want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(hovered ? want.hover : want.none);
           }
         }

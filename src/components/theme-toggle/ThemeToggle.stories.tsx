@@ -139,6 +139,8 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
                   data-theme-variant={theme}
                   data-pseudo={state}
                   // No colour transition in the grid, so the check reads the end colour, not a frame of the fade.
+                  // tooltip={false}: with the tooltip on, className goes on its wrapper, not the button.
+                  tooltip={false}
                   className="transition-none"
                 />
               </td>
@@ -161,7 +163,8 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
   afterEach: async ({ canvasElement }) => {
     const want = {
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     await waitFor(
@@ -175,9 +178,11 @@ const grid = (pageTheme: 'light' | 'dark'): Story => ({
           // Theme=Dark: the moon, "Switch to light theme". Theme=Light: the sun, "Switch to dark theme".
           expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe(theme === 'dark' ? 'dark-mode' : 'light-mode');
           expect(toggle).toHaveAccessibleName(theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-          // Glyph: text.secondary (Figma's binding, Ghost's). No fill at rest; Ghost's neutral.tonal fill on hover.
-          expect(getComputedStyle(svg).color).toBe(want.glyph);
-          expect(style.backgroundColor).toBe(toggle.dataset.pseudo === 'hover' ? want.hover : want.none);
+          // Glyph: text.secondary (Ghost's). No fill at rest. On hover, Ghost's action.secondary hover
+          // fill and the glyph in text.primary.
+          const hovered = toggle.dataset.pseudo === 'hover';
+          expect(getComputedStyle(svg).color).toBe(hovered ? want.glyphHover : want.glyph);
+          expect(style.backgroundColor).toBe(hovered ? want.hover : want.none);
           // 40×40, radius 8, 20px glyph.
           const box = toggle.getBoundingClientRect();
           expect([box.width, box.height]).toEqual([40, 40]);

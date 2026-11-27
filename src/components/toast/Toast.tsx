@@ -102,6 +102,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         <IconButton
           icon="x"
           label={dismissLabel}
+          size={32}
           /* -m-2: the 32px button takes the 16px slot Figma's bare X has, so the toast keeps Figma's height. */
           className="-m-2"
           data-toast-dismiss=""

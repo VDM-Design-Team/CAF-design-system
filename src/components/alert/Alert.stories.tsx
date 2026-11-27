@@ -113,12 +113,12 @@ const withAction = (theme: 'light' | 'dark'): Story => ({
   // The theme is set on <html>, so a Dark story would flip the whole docs page.
   tags: theme === 'dark' ? ['!autodocs'] : [],
   play: async ({ args, canvasElement }) => {
-    const label = colourOf('action-tertiary-content-default');
+    const label = colourOf('text-primary');
     const canvas = within(canvasElement);
     for (const type of ALERT_TYPES) {
       const alert = canvasElement.querySelector<HTMLElement>(`[data-type="${type}"]`)!;
       const [action, dismiss] = within(alert).getAllByRole('button');
-      // Action, then Dismiss, in that order; the label in action.tertiary.content.
+      // Action, then Dismiss, in that order; the label in text.primary (the Text button's).
       await expect(action).toHaveAccessibleName('Retry');
       await expect(dismiss).toHaveAccessibleName('Dismiss');
       await waitFor(() => expect(getComputedStyle(action).color).toBe(label));
@@ -253,7 +253,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     );
     const none = 'rgba(0, 0, 0, 0)';
     const glyph = tokenColour('text-secondary');
-    const hover = tokenColour('neutral-tonal-surface-default');
+    const glyphHover = tokenColour('text-primary');
+    const hover = tokenColour('action-secondary-surface-hover');
     await waitFor(
       () => {
         const alerts = canvasElement.querySelectorAll<HTMLElement>('[data-type]');
@@ -277,8 +278,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           for (const text of texts) expect(getComputedStyle(text).color).toBe(content);
           const dismiss = el.querySelector('button');
           if (dismiss) {
-            expect(getComputedStyle(dismiss.querySelector('svg')!).color).toBe(glyph);
-            expect(getComputedStyle(dismiss).backgroundColor).toBe(el.dataset.pseudo === 'hover' ? hover : none);
+            const hovered = el.dataset.pseudo === 'hover';
+            expect(getComputedStyle(dismiss.querySelector('svg')!).color).toBe(hovered ? glyphHover : glyph);
+            expect(getComputedStyle(dismiss).backgroundColor).toBe(hovered ? hover : none);
           }
         }
       },

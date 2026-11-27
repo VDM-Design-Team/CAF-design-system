@@ -116,7 +116,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
       dot: tokenColour('accent-success-tonal-content-default'),
       primary: tokenColour('action-primary-surface-default'),
       primaryText: tokenColour('action-primary-content-default'),
-      outlinedText: tokenColour('action-secondary-content-default'),
+      outlinedText: tokenColour('text-primary'),
       shadow: utilityShadow('shadow-elevation-4 inset-ring inset-ring-stroke-subtle'),
     };
     // The dialog is named by the header's title, and it's modal.
@@ -167,7 +167,7 @@ const opened = (theme: 'light' | 'dark'): Story => ({
       expect(getComputedStyle(view).backgroundColor).toBe(want.primary);
       expect(getComputedStyle(view).color).toBe(want.primaryText);
       expect(getComputedStyle(gotIt).color).toBe(want.outlinedText);
-      expect(view.getBoundingClientRect().height).toBe(36);
+      expect(view.getBoundingClientRect().height).toBe(40);
       expect(view.getBoundingClientRect().width).toBeCloseTo(gotIt.getBoundingClientRect().width, 0);
       expect(getComputedStyle(actions).columnGap).toBe('16px');
       const room = actions.getBoundingClientRect();

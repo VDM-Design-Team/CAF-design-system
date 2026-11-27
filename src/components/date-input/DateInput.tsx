@@ -434,12 +434,14 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(func
     <div className={cn('relative flex w-full', className)}>
       {popover}
       {/* Clear Button: Button / Icon, Size=32, Tone=Ghost, glyph X 16, 12 + 20 + 8 from the right edge, centred.
-          Pressing it doesn't take focus, so typed text isn't checked on the way. */}
+          Pressing it doesn't take focus, so typed text isn't checked on the way. className places the
+          tooltip's wrapper: it spans the field's height and centres the button in it. */}
       {clearable && (
         <IconButton
           icon="x"
           label="Clear date"
-          className="absolute inset-y-0 right-10 my-auto"
+          size={32}
+          className="absolute inset-y-0 right-10 items-center"
           onMouseDown={(event) => event.preventDefault()}
           onClick={clear}
         />

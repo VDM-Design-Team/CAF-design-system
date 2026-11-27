@@ -183,18 +183,23 @@ const grid = (theme: 'light' | 'dark'): Story => ({
   // Checked in afterEach, not play: pseudo-states applies the forced Hover and
   // Pressed on STORY_RENDERED, which comes after play (see Button's stories).
   afterEach: async ({ canvasElement }) => {
-    // Button / Normal, Style=Default: action.primary per state; Disabled is the neutral.tonal disabled pair.
+    // Button Normal, Style=Default: action.primary per state; Disabled is every Button's one disabled look
+    // (surface.neutral.faint, the label in neutral.outline.content.default, a stroke.subtle inside stroke).
     const want = Object.fromEntries(
       MENU_TRIGGER_BUTTON_STATES.map((s) => [
         s,
         s === 'disabled'
-          ? [tokenColour('neutral-tonal-surface-disabled'), tokenColour('neutral-tonal-content-disabled')]
+          ? [tokenColour('surface-neutral-faint'), tokenColour('neutral-outline-content-default')]
           : [tokenColour(`action-primary-surface-${s}`), tokenColour(`action-primary-content-${s}`)],
       ]),
     ) as Record<State, [string, string]>;
-    /* A box-shadow that shows: not `none`, and not only Tailwind's transparent placeholder layers. */
+    const disabledStroke = `${tokenColour('stroke-subtle')} 0px 0px 0px 1px inset`;
+    /* A drop shadow that shows: an outer layer that isn't Tailwind's transparent placeholder (inset rings aside). */
     const lifted = (shadow: string) =>
-      shadow !== 'none' && shadow.split(/,(?![^(]*\))/).some((layer) => !layer.trim().startsWith('rgba(0, 0, 0, 0)'));
+      shadow !== 'none' &&
+      shadow
+        .split(/,(?![^(]*\))/)
+        .some((layer) => !layer.includes('inset') && !layer.trim().startsWith('rgba(0, 0, 0, 0)'));
     await waitFor(
       () => {
         for (const wrapper of canvasElement.querySelectorAll<HTMLElement>('[data-pseudo]')) {
@@ -204,14 +209,15 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const [fill, label] = want[state];
           expect(style.backgroundColor).toBe(fill);
           expect(style.color).toBe(label);
-          // Hover lifts the button (Elevation 2); the other states are flat.
-          expect(lifted(style.boxShadow)).toBe(state === 'hover');
+          // Every state is flat: no shadow, hovered or not. Disabled has its 1px stroke.subtle inside.
+          expect(lifted(style.boxShadow)).toBe(false);
+          if (state === 'disabled') expect(style.boxShadow).toContain(disabledStroke);
           // The caret: Phosphor CaretDown at 20px, in the label's colour.
           const caret = button.querySelector('svg')!;
           expect(getComputedStyle(caret).color).toBe(label);
           expect(caret.getBoundingClientRect().width).toBe(20);
-          // Button / Normal: 36px high, 16px sides, Label/md-semibold.
-          expect(button.getBoundingClientRect().height).toBe(36);
+          // Button Normal: 40px high, 16px sides, Label/md-semibold.
+          expect(button.getBoundingClientRect().height).toBe(40);
           expect(style.paddingLeft).toBe('16px');
           expect(style.fontWeight).toBe('600');
         }

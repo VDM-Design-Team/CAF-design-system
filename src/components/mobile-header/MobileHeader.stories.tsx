@@ -191,7 +191,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       fill: tokenColour('surface-neutral-base'),
       wordmark: tokenColour('text-primary'),
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     const name = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
@@ -227,9 +228,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect((account.closest('svg') ?? account.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
           expect((menu.closest('svg') ?? menu.querySelector('svg'))!.getAttribute('data-icon')).toBe(menuOpen ? 'close' : 'menu');
           expect(menu.getAttribute('aria-expanded')).toBe(String(menuOpen));
-          // Every glyph text.secondary (Ghost's); neutral.tonal fill on hover.
+          // Every glyph text.secondary (Ghost's). On hover, action.secondary's hover fill and the glyph in text.primary.
           for (const button of [toggle, account, menu]) {
-            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
+            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(state === 'hover' ? want.glyphHover : want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(state === 'hover' ? want.hover : want.none);
           }
         });
