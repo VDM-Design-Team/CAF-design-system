@@ -84,7 +84,7 @@ export const MobileHeader = React.forwardRef<HTMLDivElement, MobileHeaderProps>(
       <div className="flex items-center gap-2">
         {/* Theme. Below it: the header is at the top of the screen. */}
         <Tooltip text={THEME_TOGGLE_LABELS[theme]} placement="bottom">
-          <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
+          <ThemeToggle theme={theme} onThemeChange={onThemeChange} tooltip={false} />
         </Tooltip>
         {/* Account: the User icon opens Navigation / Account Menu. */}
         <AccountMenu onSelect={onAccountSelect} />
@@ -94,6 +94,7 @@ export const MobileHeader = React.forwardRef<HTMLDivElement, MobileHeaderProps>(
           icon={menuOpen ? 'x' : 'list'}
           label={menuOpen ? 'Close menu' : 'Open menu'}
           size={40}
+          tooltipPlacement="bottom"
           aria-expanded={menuOpen}
           aria-controls={menuId}
           onClick={() => onMenuOpenChange?.(!menuOpen)}

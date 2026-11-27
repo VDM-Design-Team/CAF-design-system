@@ -178,11 +178,12 @@ export const Toasts: Story = {
     const region = screen.getByRole('region', { name: 'Notifications' });
     const toasts = () => Array.from(region.querySelectorAll<HTMLElement>('[data-toast-id]'));
     await waitFor(() => expect(toasts()).toHaveLength(4));
+    // Each ends with the X's tooltip text, "Dismiss" (hidden until hover, and from screen readers).
     await expect(toasts().map((t) => t.textContent)).toEqual([
-      toastMessages.costSaved,
-      toastMessages.exportStarted,
-      toastMessages.rowsSkipped,
-      `${toastMessages.uploadFailed}Retry`,
+      `${toastMessages.costSaved}Dismiss`,
+      `${toastMessages.exportStarted}Dismiss`,
+      `${toastMessages.rowsSkipped}Dismiss`,
+      `${toastMessages.uploadFailed}RetryDismiss`,
     ]);
     // Bottom right: the stack hugs the viewport's right and bottom edges, 16px in.
     const last = toasts()[3].getBoundingClientRect();

@@ -46,7 +46,7 @@ export const UserActions = React.forwardRef<HTMLDivElement, UserActionsProps>(
       <UserGreeting username={username} />
       {/* Pattern 15: the toggle is icon-only, so it gets a tooltip. Below it: the header is at the top. */}
       <Tooltip text={THEME_TOGGLE_LABELS[theme]} placement="bottom">
-        <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
+        <ThemeToggle theme={theme} onThemeChange={onThemeChange} tooltip={false} />
       </Tooltip>
       <AccountMenu onSelect={onAccountSelect} />
     </div>

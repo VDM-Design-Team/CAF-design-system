@@ -217,7 +217,7 @@ export const KeyboardFocus: Story = {
 export const Hover: Story = {
   render: () => (
     <Tooltip text="Updated nightly at 02:00" placement="bottom">
-      <IconButton icon="info" label="About sync status" />
+      <IconButton icon="info" label="About sync status" tooltip={false} />
     </Tooltip>
   ),
   parameters: { controls: { disable: true } },
@@ -264,7 +264,7 @@ export const Edges: Story = {
     <>
       {CORNERS.map(({ name, at, asked }) => (
         <Tooltip key={name} className={`fixed ${at}`} placement={asked} defaultOpen text="Downloads the filtered rows as CSV">
-          <IconButton icon="download-simple" label={`Export, ${name.toLowerCase()}`} data-corner={name} />
+          <IconButton icon="download-simple" label={`Export, ${name.toLowerCase()}`} data-corner={name} tooltip={false} />
         </Tooltip>
       ))}
     </>

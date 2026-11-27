@@ -186,7 +186,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const subtle = tokenColour('text-subtle');
     const meta = { default: subtle, error: tokenColour('accent-critical-tonal-content-default') };
     const secondary = tokenColour('text-secondary');
-    const xHover = tokenColour('neutral-tonal-surface-default');
+    // IconButton ghost's hover fill: action.secondary.surface.hover.
+    const xHover = tokenColour('action-secondary-surface-hover');
     const tonal = [tokenColour('surface-brand-faint'), tokenColour('surface-brand-subtle')];
     // Button Tonal's label: text.brand.strong (Figma, 3 Nov 2026).
     const tonalLabel = tokenColour('text-brand-strong');

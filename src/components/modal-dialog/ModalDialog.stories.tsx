@@ -259,8 +259,8 @@ export const DescriptionNoFooterDark = described('dark');
 
 /* ── Show Actions, in Light and Dark ───────────────────────────────────────
    Modal / Dialog's Show Actions (since 5 Nov 2026), as its review frame
-   (864:471) draws it: a Small dialog titled "Audit Logs" with Refresh (Button
-   / Icon, Ghost, 32, ArrowsClockwise 16) before Close, space.4 apart, in the
+   (864:471) draws it: a Small dialog titled "Audit Logs" with Refresh (IconButton,
+   Ghost, 36, ArrowsClockwise 20) before Close, space.4 apart, in the
    header's Header Actions. Refresh is forced to Hover, so the dialog shows
    Ghost's Default (Close) and Hover (Refresh) side by side. */
 const withActions = (theme: 'light' | 'dark'): Story => ({
@@ -273,7 +273,16 @@ const withActions = (theme: 'light' | 'dark'): Story => ({
         // The checks read each button's own state, so a stray pointer mustn't hover Close.
         className="pointer-events-none"
         // transition-none: the forced Hover must be settled before axe and Chromatic look.
-        actions={<IconButton icon="arrows-clockwise" label="Refresh" className="transition-none" data-pseudo="hover" />}
+        // tooltip={false}: with the tooltip on, className goes on its wrapper, not the button.
+        actions={
+          <IconButton
+            icon="arrows-clockwise"
+            label="Refresh"
+            tooltip={false}
+            className="transition-none"
+            data-pseudo="hover"
+          />
+        }
       >
         <p className="text-body-sm-regular text-text-secondary">Changes to cost 32430 and the costs around it.</p>
       </ModalDialog>
@@ -300,19 +309,20 @@ const withActions = (theme: 'light' | 'dark'): Story => ({
       expect(close.getBoundingClientRect().left - refresh.getBoundingClientRect().right).toBe(4);
       expect(header.getBoundingClientRect().right - close.getBoundingClientRect().right).toBe(24);
       for (const button of [refresh, close]) {
-        expect(button.getBoundingClientRect().width).toBe(32);
-        expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(16);
+        expect(button.getBoundingClientRect().width).toBe(36);
+        expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(20);
       }
       expect((refresh.closest('svg') ?? refresh.querySelector('svg'))!.getAttribute('data-icon')).toBe('retry');
-      // Header still 73 high (20 + 32 + 20 + the 1px line), as in Figma.
-      expect(header.getBoundingClientRect().height).toBe(73);
+      // Header 77 high (20 + 36 + 20 + the 1px line).
+      expect(header.getBoundingClientRect().height).toBe(77);
     });
   },
   // The forced Hover is checked in afterEach: pseudo-states rewrites :hover on STORY_RENDERED, after play.
   afterEach: async () => {
     const want = {
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      hoverGlyph: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     await waitFor(
@@ -322,7 +332,7 @@ const withActions = (theme: 'light' | 'dark'): Story => ({
         const close = within(dialog).getByRole('button', { name: 'Close' });
         expect(getComputedStyle(refresh).backgroundColor).toBe(want.hover);
         expect(getComputedStyle(close).backgroundColor).toBe(want.none);
-        expect(getComputedStyle(refresh.querySelector('svg')!).color).toBe(want.glyph);
+        expect(getComputedStyle(refresh.querySelector('svg')!).color).toBe(want.hoverGlyph);
         expect(getComputedStyle(close.querySelector('svg')!).color).toBe(want.glyph);
       },
       { timeout: 3000 },

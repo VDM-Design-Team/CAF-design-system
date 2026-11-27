@@ -187,7 +187,8 @@ const open = (theme: 'light' | 'dark'): Story => ({
       hover: tokenColour('neutral-tonal-surface-default'),
       divider: tokenColour('stroke-subtle'),
       glyph: tokenColour('text-secondary'),
-      iconHover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      iconHover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     const canvas = within(canvasElement);
@@ -215,11 +216,12 @@ const open = (theme: 'light' | 'dark'): Story => ({
         expect(line.borderTopColor).toBe(want.divider);
         expect(line.borderTopWidth).toBe('1px');
         expect(divider.getBoundingClientRect().height).toBe(1);
-        // The account icon: User glyph in text.secondary (Ghost's); no fill at rest, neutral.tonal on hover.
+        // The account icon: User glyph in text.secondary (Ghost's); no fill at rest. On hover,
+        // action.secondary's hover fill and the glyph in text.primary.
         for (const icon of [trigger, ...closedIcons]) {
           const svg = icon.querySelector('svg')!;
           expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
-          expect(getComputedStyle(svg).color).toBe(want.glyph);
+          expect(getComputedStyle(svg).color).toBe(icon === closedIcons[1] ? want.glyphHover : want.glyph);
         }
         expect(getComputedStyle(closedIcons[0]).backgroundColor).toBe(want.none);
         expect(getComputedStyle(closedIcons[1]).backgroundColor).toBe(want.iconHover);

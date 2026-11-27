@@ -38,8 +38,8 @@ export const Playground: Story = {
 /* ── Every State, on the canvas and on the filter bar, in Light and Dark ────
    The Figma set's five variants: Default, Hover, Pressed, Focus, Disabled.
    Hover, Pressed and Focus are forced with storybook-addon-pseudo-states, so
-   Chromatic snapshots them too, and every cell is checked against Button /
-   Normal Outlined's bindings in that state, and the box against Figma's. The
+   Chromatic snapshots them too, and every cell is checked against Button
+   Normal Outlined's look in that state, and the box against Figma's. The
    second row sits on the bar's surface.neutral.faint, as the review frame's
    "In a filter bar" row (863:3465). */
 
@@ -53,13 +53,13 @@ const STATE_LABEL: Record<State, string> = {
   disabled: 'Disabled',
 };
 
-/* Figma's bindings per State (the nested Button_Normal): [fill, label and icon, 1px inside stroke].
-   Focus is the Default look plus the ring. */
+/* Button Outlined's look per State: [fill, label and icon, 1px inside stroke]. Disabled is every
+   Button's one disabled look. Focus is the Default look plus the ring. */
 const BOUND: Record<Exclude<State, 'focus'>, readonly [string, string, string]> = {
-  default: ['action-secondary-surface-default', 'action-secondary-content-default', 'action-secondary-border-default'],
-  hover: ['action-secondary-surface-hover', 'action-secondary-content-hover', 'action-secondary-border-hover'],
-  pressed: ['action-secondary-surface-pressed', 'action-secondary-content-pressed', 'action-secondary-border-pressed'],
-  disabled: ['action-secondary-surface-disabled', 'neutral-outline-content-disabled', 'neutral-outline-border-disabled'],
+  default: ['surface-base', 'text-primary', 'stroke-default'],
+  hover: ['surface-base', 'text-primary', 'stroke-strong'],
+  pressed: ['surface-neutral-faint', 'text-primary', 'stroke-strong'],
+  disabled: ['surface-neutral-faint', 'neutral-outline-content-default', 'stroke-subtle'],
 };
 
 const SURFACES = [
@@ -149,13 +149,13 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect((svg.closest('svg') ?? svg.querySelector('svg'))!.getAttribute('data-icon')).toBe('retry');
           expect(svg.getBoundingClientRect().width).toBe(20);
           expect(getComputedStyle(svg).color).toBe(label);
-          // Button / Normal: 36 high, in a box as tall as Filter / Field (40 in code), centred.
+          // Button Normal: 40 high, in a box as tall as Filter / Field (40 in code), so it fills it.
           const box = button.parentElement!;
           expect(box.dataset.part).toBe('box');
-          expect(button.getBoundingClientRect().height).toBe(36);
+          expect(button.getBoundingClientRect().height).toBe(40);
           expect(box.getBoundingClientRect().height).toBe(40);
           expect(box.getBoundingClientRect().width).toBe(button.getBoundingClientRect().width);
-          expect(button.getBoundingClientRect().top - box.getBoundingClientRect().top).toBe(2);
+          expect(button.getBoundingClientRect().top - box.getBoundingClientRect().top).toBe(0);
           // The box has no fill or stroke of its own.
           expect(getComputedStyle(box).backgroundColor).toBe('rgba(0, 0, 0, 0)');
           // Focus: Button's ring, 2px stroke.focused, 2px outside the button.

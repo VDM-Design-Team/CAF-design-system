@@ -109,6 +109,9 @@ const ComboboxInput = React.forwardRef<HTMLInputElement, ComboboxInputProps>(fun
       <IconButton
         icon="caret-down"
         label="Show options"
+        size={32}
+        /* The caret is part of the field and out of the tab order: no tooltip. */
+        tooltip={false}
         tabIndex={-1}
         disabled={disabled}
         aria-expanded={props['aria-expanded'] === true || props['aria-expanded'] === 'true'}

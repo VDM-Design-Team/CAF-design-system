@@ -256,7 +256,8 @@ export const SaveAndResume: Story = {
       'QA Test',
       'qa.test@example.com',
       'November 2, 2026',
-      '',
+      // The ••• cell: only its tooltip's text (hidden until hover, and from screen readers).
+      'Actions for draft 36742',
     ]);
 
     // Step 3: Edit loads it back, named in the page's header above the form's card.

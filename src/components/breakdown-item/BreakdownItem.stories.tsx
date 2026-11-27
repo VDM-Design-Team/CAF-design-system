@@ -174,7 +174,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       primary: tokenColour('text-primary'),
       secondary: tokenColour('text-secondary'),
       subtle: tokenColour('text-subtle'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      hover: tokenColour('action-secondary-surface-hover'),
     };
     const items = Array.from(canvasElement.querySelectorAll<HTMLElement>('[data-variant]'));
     await expect(items).toHaveLength(3);
@@ -194,14 +194,16 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           expect(colourOf(item, 'USD 900')).toBe(want.primary);
           expect(colourOf(item, 'Employee Expenses · Salary · Philippines')).toBe(want.secondary);
           expect(colourOf(item, '2026-09-01 - 2026-09-30')).toBe(want.subtle);
-          // The ••• button: only with Show Actions; text.secondary glyph; neutral.tonal fill on Hover.
+          // The ••• button: only with Show Actions; text.secondary glyph. On Hover, action.secondary's
+          // hover fill and the glyph in text.primary.
           const button = item.querySelector('button');
           if (item.dataset.variant === 'Show Actions off') {
             expect(button).toBeNull();
             continue;
           }
-          expect(getComputedStyle(button!.querySelector('svg')!).color).toBe(want.secondary);
-          expect(getComputedStyle(button!).backgroundColor).toBe(item.dataset.pseudo === 'hover' ? want.hover : 'rgba(0, 0, 0, 0)');
+          const hovered = item.dataset.pseudo === 'hover';
+          expect(getComputedStyle(button!.querySelector('svg')!).color).toBe(hovered ? want.primary : want.secondary);
+          expect(getComputedStyle(button!).backgroundColor).toBe(hovered ? want.hover : 'rgba(0, 0, 0, 0)');
         }
       },
       { timeout: 3000 },

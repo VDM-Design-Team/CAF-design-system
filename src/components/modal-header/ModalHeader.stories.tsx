@@ -139,7 +139,7 @@ const bindings = (theme: 'light' | 'dark'): Story => ({
 
     const close = canvas.getByRole('button', { name: 'Close' });
     await expect(getComputedStyle(close.querySelector('svg')!).color).toBe(want.close);
-    await expect(close.getBoundingClientRect().width).toBe(32);
+    await expect(close.getBoundingClientRect().width).toBe(36);
   },
 });
 

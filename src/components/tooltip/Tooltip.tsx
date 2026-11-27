@@ -27,7 +27,8 @@ import { cn } from '../../lib/cn';
  *   and when the target loses focus. The pointer can move onto the tooltip
  *   without closing it: the `space.4` gap to the target is the tooltip's own
  *   padding, so there is no dead zone (WCAG 1.4.13).
- * - `role="tooltip"`, and the target is described by it. Closed, it is
+ * - `role="tooltip"`, and the target is described by it (unless `describes`
+ *   is false: the text only repeats the target's name, as on an IconButton). Closed, it is
  *   `hidden`: still the target's description, never in the way.
  * - Centred on the target, `space.4` away. It flips to the other side when
  *   there's no room and more on the other side, and it is nudged back inside
@@ -70,6 +71,12 @@ export interface TooltipProps extends Omit<React.HTMLAttributes<HTMLSpanElement>
   /** Uncontrolled starting state: open on first render (screenshots, Storybook). */
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Whether the tooltip describes its target (default). `false` when the text only repeats the
+   * target's accessible name, as on an IconButton: the target then doesn't get `aria-describedby`,
+   * and the tooltip is hidden from screen readers, so its name isn't read twice.
+   */
+  describes?: boolean;
 }
 
 /** Point several refs at one node. */
@@ -90,6 +97,7 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
     open,
     defaultOpen = false,
     onOpenChange,
+    describes = true,
     className,
     onMouseEnter,
     onMouseLeave,
@@ -131,18 +139,22 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
   /* Escape dismisses it, wherever focus is (a hovered tooltip has none near it). When the key
      comes from its own target, Escape belongs to the tooltip: it doesn't also close the dialog
      or menu behind it. On window, capturing, so it runs before Overlay's and the menus'
-     document listeners, which were added earlier and would otherwise see the key first. */
+     document listeners, which were added earlier and would otherwise see the key first.
+     With `describes={false}` (an IconButton's label) it hides and lets the key through: the
+     tooltip is hidden from screen readers and only repeats the name, so Escape on a dialog's ✕
+     still closes the dialog, as it does without the tooltip. */
   React.useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (event.target instanceof Node && wrapperRef.current?.contains(event.target)) event.stopPropagation();
+      if (describes && event.target instanceof Node && wrapperRef.current?.contains(event.target))
+        event.stopPropagation();
       clearTimer();
       setOpen(false);
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [isOpen, setOpen, clearTimer]);
+  }, [isOpen, setOpen, clearTimer, describes]);
 
   /* Flip and nudge. Measured before paint from the target's box and the tooltip's size, so it
      never shows on the wrong side first; re-measured on resize and on any scroll while open.
@@ -239,7 +251,9 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
   };
 
   const target = React.Children.only(children);
-  const describedBy = [target.props?.['aria-describedby'], tooltipId].filter(Boolean).join(' ');
+  const describedBy = describes
+    ? [target.props?.['aria-describedby'], tooltipId].filter(Boolean).join(' ')
+    : target.props?.['aria-describedby'];
 
   const arrow = (
     <svg
@@ -267,7 +281,8 @@ export const Tooltip = React.forwardRef<HTMLSpanElement, TooltipProps>(function 
       <span
         ref={tipRef}
         id={tooltipId}
-        role="tooltip"
+        role={describes ? 'tooltip' : undefined}
+        aria-hidden={describes ? undefined : true}
         hidden={!isOpen}
         data-placement={layout.side}
         className={tooltip({ placement: layout.side })}

@@ -68,7 +68,7 @@ export const AccountMenu = React.forwardRef<HTMLDivElement, AccountMenuProps>(fu
       trigger={
         trigger ?? (
           /* Navigation / Icon Button: 40×40, User glyph 20, text.secondary (Ghost's). */
-          <IconButton icon="user" label="Account" size={40} />
+          <IconButton icon="user" label="Account" size={40} tooltipPlacement="bottom" />
         )
       }
       align={align}

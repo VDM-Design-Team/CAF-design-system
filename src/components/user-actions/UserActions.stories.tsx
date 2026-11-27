@@ -183,7 +183,8 @@ const states = (theme: 'light' | 'dark'): Story => ({
     const want = {
       greeting: tokenColour('text-secondary'),
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     const name = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
@@ -198,11 +199,12 @@ const states = (theme: 'light' | 'dark'): Story => ({
           const toggle = within(group).getByRole('button', { name });
           const account = within(group).getByRole('button', { name: 'Account' });
           expect(getComputedStyle(greeting).color).toBe(want.greeting);
-          // Toggle: the page theme's glyph. Both glyphs text.secondary (Ghost's); neutral.tonal fill on hover.
+          // Toggle: the page theme's glyph. Both glyphs text.secondary (Ghost's). On hover, action.secondary's
+          // hover fill and the glyphs in text.primary.
           expect((toggle.closest('svg') ?? toggle.querySelector('svg'))!.getAttribute('data-icon')).toBe(glyph);
           expect((account.closest('svg') ?? account.querySelector('svg'))!.getAttribute('data-icon')).toBe('user');
           for (const button of [toggle, account]) {
-            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(want.glyph);
+            expect(getComputedStyle(button.querySelector('svg')!).color).toBe(hovered ? want.glyphHover : want.glyph);
             expect(getComputedStyle(button).backgroundColor).toBe(hovered ? want.hover : want.none);
           }
           // Auto layout: greeting, toggle, account, space.8 between, centred on one line.

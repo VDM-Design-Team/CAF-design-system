@@ -133,6 +133,7 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           <IconButton
             icon="x"
             label={dismissLabel}
+            size={32}
             /* -m-2: the 32px button takes the 16px slot Figma's bare X has, so the alert keeps Figma's height. */
             className="-m-2"
             onClick={() => {

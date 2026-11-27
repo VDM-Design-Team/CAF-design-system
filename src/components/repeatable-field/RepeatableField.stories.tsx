@@ -531,23 +531,18 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       value: tokenColour('text-primary'),
       placeholder: tokenColour('text-subtle'),
       glyph: tokenColour('accent-critical-tonal-content-default'),
+      glyphHover: tokenColour('accent-critical-tonal-content-hover'),
       removeHover: tokenColour('accent-critical-tonal-surface-default'),
       add: {
-        rest: [
-          tokenColour('action-secondary-surface-default'),
-          tokenColour('action-secondary-content-default'),
-          tokenColour('action-secondary-border-default'),
-        ],
-        hover: [
-          tokenColour('action-secondary-surface-hover'),
-          tokenColour('action-secondary-content-hover'),
-          tokenColour('action-secondary-border-hover'),
-        ],
-        // Button Outlined, Disabled: neutral.outline's disabled label and border (Figma, 3 Nov 2026).
+        // Button Outlined: surface.base, the label in text.primary, a stroke.default border.
+        rest: [tokenColour('surface-base'), tokenColour('text-primary'), tokenColour('stroke-default')],
+        // Hover darkens the border to stroke.strong.
+        hover: [tokenColour('surface-base'), tokenColour('text-primary'), tokenColour('stroke-strong')],
+        // Disabled: every Button's one disabled look.
         disabled: [
-          tokenColour('action-secondary-surface-disabled'),
-          tokenColour('neutral-outline-content-disabled'),
-          tokenColour('neutral-outline-border-disabled'),
+          tokenColour('surface-neutral-faint'),
+          tokenColour('neutral-outline-content-default'),
+          tokenColour('stroke-subtle'),
         ],
       },
     };
@@ -597,7 +592,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             expect(button!.getBoundingClientRect().width).toBe(40);
             expect(getComputedStyle(button!).backgroundColor).toBe(hovered ? c.removeHover : none);
             const glyph = button!.querySelector('svg')!;
-            expect(getComputedStyle(glyph).color).toBe(c.glyph);
+            expect(getComputedStyle(glyph).color).toBe(hovered ? c.glyphHover : c.glyph);
             expect(glyph.getBoundingClientRect().width).toBe(20);
           }
 

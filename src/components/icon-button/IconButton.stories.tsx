@@ -10,14 +10,15 @@ const meta = {
     docs: {
       description: {
         component:
-          'Built from the CAF Figma library, page **Buttons** (`Button / Icon`): the icon-only button for refresh, close, ' +
-          'theme, trash and the table row’s •••. `size` is 32 (default) or 40; `tone` is `ghost` (default), `tonal` or ' +
-          '`destructive`; Hover is `:hover` and Disabled is `disabled` (the glyph in text/disabled, no hover). `icon` is an ' +
-          'Icon name. `label` is required: it is the accessible name.',
+          'The new CAF design’s icon-only button, for refresh, close, download, delete and the table row’s •••. ' +
+          '`size` is 36 (default), 32 (inside a field, an alert or a toast) or 40 (the header); `tone` is `ghost` (default), ' +
+          '`tonal` or `destructive`; Hover is `:hover` and Disabled is `disabled` (the glyph in text/disabled, no hover). ' +
+          '`icon` is an Icon name. `label` is required: it is the accessible name, and a tooltip with the same words shows ' +
+          'on hover and keyboard focus (`tooltipPlacement` puts it below; `tooltip={false}` turns it off).',
       },
     },
   },
-  args: { icon: 'dots-three', label: 'Row actions', onClick: fn() },
+  args: { icon: 'more', label: 'Row actions', onClick: fn() },
   argTypes: {
     icon: { control: 'select', options: ICON_NAMES },
     size: { control: 'radio', options: ICON_BUTTON_SIZES },
@@ -36,18 +37,57 @@ export const Playground: Story = {
   },
 };
 
-/** The glyphs Figma's description names: refresh, close, theme, trash. */
+/** In use: refresh, close, download, delete, the row's •••. */
 export const InUse: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <IconButton icon="arrows-clockwise" label="Refresh" />
-      <IconButton icon="x" label="Close" />
-      <IconButton icon="moon" label="Switch to dark theme" size={40} />
-      <IconButton icon="trash" label="Remove feature" tone="destructive" />
-      <IconButton icon="dots-three" label="Row actions" />
+    <div className="flex items-center gap-2 pt-10">
+      <IconButton icon="retry" label="Refresh" />
+      <IconButton icon="close" label="Close" />
+      <IconButton icon="download" label="Download invoice" />
+      <IconButton icon="delete" label="Remove line" tone="destructive" />
+      <IconButton icon="more" label="More actions" />
     </div>
   ),
   parameters: { controls: { disable: true } },
+};
+
+/**
+ * The tooltip repeats the label, on hover and on keyboard focus, and Escape hides it. It only
+ * repeats the name, so screen readers don't hear it twice: the button isn't described by it.
+ */
+export const Tooltip: Story = {
+  args: { label: 'Download invoice', icon: 'download' },
+  render: (args) => (
+    <div className="pt-10">
+      <IconButton {...args} />
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const button = canvas.getByRole('button', { name: 'Download invoice' });
+    await expect(button).not.toHaveAttribute('aria-describedby');
+    const tip = () => canvasElement.querySelector<HTMLElement>('[data-tooltip-body]')!.parentElement!;
+    await userEvent.hover(button);
+    await waitFor(() => expect(tip()).toBeVisible());
+    await expect(tip()).toHaveTextContent('Download invoice');
+    await expect(tip()).toHaveAttribute('aria-hidden', 'true');
+    await userEvent.unhover(button);
+    await waitFor(() => expect(tip()).not.toBeVisible());
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await waitFor(() => expect(tip()).toBeVisible());
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(tip()).not.toBeVisible());
+  },
+};
+
+/** `tooltip={false}`: no tooltip, where something else names the button (a caret inside a field). */
+export const NoTooltip: Story = {
+  name: 'Without a tooltip',
+  args: { tooltip: false },
+  play: async ({ canvas, canvasElement }) => {
+    await userEvent.hover(canvas.getByRole('button', { name: 'Row actions' }));
+    await expect(canvasElement.querySelector('[data-tooltip-body]')).toBeNull();
+  },
 };
 
 /** Disabled: the glyph in text/disabled, and a click does nothing. */
@@ -62,19 +102,23 @@ export const Disabled: Story = {
 };
 
 /* ── Every Size × Tone × State, in Light and Dark ──────────────────────────
-   The same grid as the Figma component set. Hover is forced with
-   storybook-addon-pseudo-states and checked against Figma's bindings. The
-   Disabled cells are hovered too: a disabled button shows no hover. */
+   Hover is forced with storybook-addon-pseudo-states and checked against the
+   tokens. The Disabled cells are hovered too: a disabled button shows no hover. */
 
 const STATES = ['default', 'hover', 'disabled'] as const;
 const STATE_LABEL = { default: 'Default', hover: 'Hover', disabled: 'Disabled' } as const;
 
-/* Figma's bindings per tone: [fill at rest, fill on hover, glyph]. `null` is no fill.
-   Disabled keeps the fill at rest and draws the glyph in text/disabled. */
+/* The tokens per tone: [fill at rest, fill on hover, glyph at rest, glyph on hover]. `null` is
+   no fill. Disabled keeps the fill at rest and draws the glyph in text/disabled. */
 const BOUND = {
-  ghost: [null, 'neutral-tonal-surface-default', 'text-secondary'],
-  tonal: ['surface-base', 'neutral-tonal-surface-default', 'text-primary'],
-  destructive: [null, 'accent-critical-tonal-surface-default', 'accent-critical-tonal-content-default'],
+  ghost: [null, 'action-secondary-surface-hover', 'text-secondary', 'text-primary'],
+  tonal: ['surface-base', 'action-secondary-surface-hover', 'text-primary', 'text-primary'],
+  destructive: [
+    null,
+    'accent-critical-tonal-surface-default',
+    'accent-critical-tonal-content-default',
+    'accent-critical-tonal-content-hover',
+  ],
 } as const;
 
 /* A token's computed colour in the current theme. Measure before waitFor, never inside it:
@@ -116,13 +160,15 @@ const grid = (theme: 'light' | 'dark'): Story => ({
               STATES.map((state) => (
                 <td key={`${tone}-${state}`}>
                   <IconButton
-                    icon="dots-three"
+                    icon="more"
                     label={`${tone} ${state}, ${size}`}
                     size={size}
                     tone={tone}
                     data-tone={tone}
                     data-pseudo={state}
                     disabled={state === 'disabled'}
+                    // The grid needs no tooltips, and className then lands on the button.
+                    tooltip={false}
                     // No colour transition in the grid, so the check reads the end colour, not a frame of the fade.
                     className="transition-none"
                   />
@@ -148,22 +194,24 @@ const grid = (theme: 'light' | 'dark'): Story => ({
     const none = 'rgba(0, 0, 0, 0)';
     const disabledGlyph = tokenColour('text-disabled');
     const want = Object.fromEntries(
-      Object.entries(BOUND).map(([tone, [rest, hover, glyph]]) => [
+      Object.entries(BOUND).map(([tone, [rest, hover, glyph, hoverGlyph]]) => [
         tone,
-        [rest ? tokenColour(rest) : none, tokenColour(hover), tokenColour(glyph)],
+        [rest ? tokenColour(rest) : none, tokenColour(hover), tokenColour(glyph), tokenColour(hoverGlyph)],
       ]),
     );
     await waitFor(
       () => {
         for (const button of canvasElement.querySelectorAll<HTMLElement>('button[data-tone]')) {
-          const [rest, hover, glyph] = want[button.dataset.tone!];
+          const [rest, hover, glyph, hoverGlyph] = want[button.dataset.tone!];
           const style = getComputedStyle(button);
           const state = button.dataset.pseudo;
           expect(style.backgroundColor).toBe(state === 'hover' ? hover : rest);
-          expect(getComputedStyle(button.querySelector('svg')!).color).toBe(state === 'disabled' ? disabledGlyph : glyph);
-          // Size 32 → 16px glyph, 40 → 20px.
+          expect(getComputedStyle(button.querySelector('svg')!).color).toBe(
+            state === 'disabled' ? disabledGlyph : state === 'hover' ? hoverGlyph : glyph,
+          );
+          // Size 32 → 16px glyph, 36 and 40 → 20px.
           const box = button.getBoundingClientRect().width;
-          expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(box === 40 ? 20 : 16);
+          expect(button.querySelector('svg')!.getBoundingClientRect().width).toBe(box === 32 ? 16 : 20);
         }
       },
       { timeout: 3000 },

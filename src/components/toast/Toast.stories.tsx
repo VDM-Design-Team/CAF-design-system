@@ -157,7 +157,8 @@ const grid = (theme: 'light' | 'dark'): Story => ({
       action: tokenColour('text-link-default'),
       actionHover: tokenColour('text-link-hover'),
       glyph: tokenColour('text-secondary'),
-      hover: tokenColour('neutral-tonal-surface-default'),
+      glyphHover: tokenColour('text-primary'),
+      hover: tokenColour('action-secondary-surface-hover'),
       none: 'rgba(0, 0, 0, 0)',
     };
     await waitFor(
@@ -183,8 +184,9 @@ const grid = (theme: 'light' | 'dark'): Story => ({
             expect(getComputedStyle(action).color).toBe(el.dataset.pseudo === 'action-hover' ? want.actionHover : want.action);
           }
           const dismiss = el.querySelector<HTMLElement>('[data-toast-dismiss]')!;
-          expect(getComputedStyle(dismiss.querySelector('svg')!).color).toBe(want.glyph);
-          expect(getComputedStyle(dismiss).backgroundColor).toBe(el.dataset.pseudo === 'hover' ? want.hover : want.none);
+          const hovered = el.dataset.pseudo === 'hover';
+          expect(getComputedStyle(dismiss.querySelector('svg')!).color).toBe(hovered ? want.glyphHover : want.glyph);
+          expect(getComputedStyle(dismiss).backgroundColor).toBe(hovered ? want.hover : want.none);
         }
       },
       { timeout: 3000 },
@@ -263,7 +265,10 @@ export const Stack: Story = {
 
     // Stacked bottom right, in the order raised, 12px apart.
     const items = [...region.querySelectorAll<HTMLElement>('[data-toast-id]')];
-    await expect(items.map((t) => t.textContent)).toEqual(PATTERN_12.map((t) => `${t.message}${t.action ?? ''}`));
+    // Each ends with the X's tooltip text, "Dismiss" (hidden until hover, and from screen readers).
+    await expect(items.map((t) => t.textContent)).toEqual(
+      PATTERN_12.map((t) => `${t.message}${t.action ?? ''}Dismiss`),
+    );
     const [first, second] = items.map((t) => t.getBoundingClientRect());
     await expect(second.top - first.bottom).toBeCloseTo(12, 1);
     await expect(document.documentElement.clientWidth - first.right).toBeCloseTo(16, 1);

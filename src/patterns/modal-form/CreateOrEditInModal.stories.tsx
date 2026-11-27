@@ -110,7 +110,8 @@ export const AddNew: Story = {
       'IT Expenses',
       'Software',
       'Philippines',
-      '',
+      // The ••• cell: only its tooltip's text (hidden until hover, and from screen readers).
+      'Actions for IT Expenses, Philippines',
     ]);
     await expect(await notifications(canvasElement).findByText('Cost center added.')).toBeVisible();
 
