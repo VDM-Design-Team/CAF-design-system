@@ -3,10 +3,16 @@ import { cn } from '../../lib/cn';
 
 /**
  * Checkbox — built from the CAF Figma library, page "Selection Controls":
- * `Checkbox` (State × Size).
+ * `Checkbox` (State × Size), restyled for the new CAF design (Nov 2026).
+ *
+ * The new design has one size, 18px: code draws 20 (the nearest step on
+ * GDL's scale, and the Radio's size), so 20 is the default. 16 stays for
+ * code that asks for it. Hover now draws the unchecked box's border in the
+ * brand colour, as the design does. The design's 1.5px border and radius 5
+ * snap to GDL's 1px border and radius/4.
  *
  * Figma → code:
- * - Size  → `size`: 16 or 20 (Figma's 16px / 20px).
+ * - Size  → `size`: 20 (default) or 16.
  * - State → the native checkbox's own state:
  *   Deselected = unchecked, Selected = `checked`, Mixed-State =
  *   `indeterminate` (a DOM property, set from the prop), Hover = `:hover`
@@ -37,8 +43,9 @@ const box = [
   'peer size-full shrink-0 cursor-pointer appearance-none',
   /* State=Deselected: surface.base fill, a 1px stroke.field border; radius/4 in every state. */
   'rounded-4 border border-stroke-field bg-surface-base',
-  /* State=Hover — defined for an unchecked box only: stroke.stronger. */
-  'not-checked:not-indeterminate:enabled:hover:border-stroke-stronger',
+  /* Hover, on an unchecked box only: the border in the brand colour (action.primary). */
+  'not-checked:not-indeterminate:enabled:hover:border-action-primary-surface-default',
+  'transition-colors',
   /* State=Selected and Mixed-State: the action.primary fill, no border. */
   'checked:border-transparent checked:bg-action-primary-surface-default',
   'indeterminate:border-transparent indeterminate:bg-action-primary-surface-default',
@@ -58,14 +65,14 @@ const glyph =
   'pointer-events-none absolute inset-0 hidden size-full text-action-primary-content-default peer-disabled:text-action-primary-content-disabled';
 
 export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
-  /** Figma Size: 16px (default) or 20px. */
+  /** 20px (default; the new design's one size) or 16px. */
   size?: 16 | 20;
   /** Figma State=Mixed-State. Shown instead of the check while true. */
   indeterminate?: boolean;
 }
 
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, style, size = 16, indeterminate = false, ...props }, ref) => {
+  ({ className, style, size = 20, indeterminate = false, ...props }, ref) => {
     const inner = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => inner.current as HTMLInputElement);
     // `indeterminate` has no HTML attribute; it is only a DOM property. Set it

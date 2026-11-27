@@ -48,6 +48,8 @@ export interface RadioGroupOptionData {
   value: string;
   /** Figma Radio Option's Label: the text that names the radio. */
   label: React.ReactNode;
+  /** A line under the label that explains the option. When any option has one, the options stack in a column. */
+  description?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -98,6 +100,8 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
   const groupName = name ?? `${uid}-radio`;
   const labelId = `${uid}-label`;
   const invalid = shows(error);
+  const resolved = options.map(toOption);
+  const described = resolved.some((option) => option.description != null && option.description !== '');
   const message = invalid ? error : helper;
   const messageId = shows(message) ? `${uid}-message` : undefined;
   const controlled = value !== undefined;
@@ -118,14 +122,16 @@ export const RadioGroup = React.forwardRef<HTMLFieldSetElement, RadioGroupProps>
       <FormLabel as="legend" id={labelId} required={required} className="mb-2">
         {label}
       </FormLabel>
-      {/* Options: a row, 24px apart. It wraps on a narrow screen, with the group's 8px between rows. */}
-      <div className="flex flex-wrap gap-x-6 gap-y-2">
-        {options.map(toOption).map((option) => (
+      {/* Options: a row, 24px apart. It wraps on a narrow screen, with the group's 8px between rows.
+          Options with a description stack in a column, 12px apart. */}
+      <div className={cn(described ? 'flex flex-col gap-3' : 'flex flex-wrap gap-x-6 gap-y-2')}>
+        {resolved.map((option) => (
           <RadioOption
             key={option.value}
             name={groupName}
             value={option.value}
             label={option.label}
+            description={option.description}
             disabled={option.disabled}
             required={required || undefined}
             aria-invalid={invalid || undefined}

@@ -204,17 +204,18 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const track = input.getBoundingClientRect();
           const dot = knob.getBoundingClientRect();
           const d = Number(variant.disabled);
-          // Track: 36 × 20, a pill: surface.track off, action.primary on; disabled, surface.neutral.medium and
+          // Track: 44 × 24 (the new design's 44 × 26 on GDL's scale), a pill: surface.track off, action.primary on; disabled, surface.neutral.medium and
           // surface.brand.medium.
-          expect([track.width, track.height]).toEqual([36, 20]);
+          expect([track.width, track.height]).toEqual([44, 24]);
           expect(getComputedStyle(input).borderRadius).toBe('1000px');
           expect(getComputedStyle(input).backgroundColor).toBe((variant.checked ? on : off)[d]);
-          // Knob: 16px, action.primary.content (its disabled colour when disabled), 2px in from the start (off)
+          // Knob: 20px with elevation 1, action.primary.content (its disabled colour when disabled), 2px in from the start (off)
           // or the end (on).
-          expect([dot.width, dot.height]).toEqual([16, 16]);
+          expect([dot.width, dot.height]).toEqual([20, 20]);
+          expect(getComputedStyle(knob).boxShadow).not.toBe('none');
           expect(getComputedStyle(knob).backgroundColor).toBe(knobFill[d]);
           expect(dot.top - track.top).toBe(2);
-          expect(dot.left - track.left).toBe(variant.checked ? 18 : 2);
+          expect(dot.left - track.left).toBe(variant.checked ? 22 : 2);
           // Disabled is drawn with its own colours, not layer opacity.
           expect(getComputedStyle(wrapper).opacity).toBe('1');
           // Forced colours keep these fills, so the switch doesn't vanish in High Contrast.

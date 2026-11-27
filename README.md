@@ -873,7 +873,7 @@ toast({ type: 'error', message: 'Upload failed.', showAction: true, action: 'Ret
   and the chosen `value` is submitted under `name`.
 - `CheckboxField` and `ToggleField` are Form / Checkbox Field and Form /
   Toggle Field. Each has a `label` and an optional `description`, placed
-  beside a 16px Checkbox (`bordered` adds Figma's card) or before a Toggle
+  beside a 20px Checkbox (`bordered` adds Figma's card) or before a Toggle
   at the end of the row. The whole field is a `<label>`. The label names the
   control and the description describes it. Every other prop and the ref go
   to the native input, `id` included. `required` also shows the Required

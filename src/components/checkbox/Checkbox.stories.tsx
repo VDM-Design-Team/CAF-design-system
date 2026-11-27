@@ -9,8 +9,9 @@ const meta = {
     docs: {
       description: {
         component:
-          'Built from the CAF Figma library, page **Selection Controls** (`Checkbox`). ' +
-          '`size` is Figma’s Size: `16` (default) or `20`. Figma’s States are the native checkbox’s own: ' +
+          'Built from the CAF Figma library, page **Selection Controls** (`Checkbox`), restyled for the new CAF design: ' +
+          'one size, `20` (the default; the design’s 18px on GDL’s scale), with `16` kept for code that asks for it, ' +
+          'and a brand-coloured border on Hover. Figma’s States are the native checkbox’s own: ' +
           'Deselected is unchecked, Selected is `checked`, Mixed-State is `indeterminate`, Hover is hovering an unchecked box, ' +
           'Focus is `:focus-visible`, and Disabled / Disabled Selected are `disabled`. ' +
           'It is a real `<input type="checkbox">`: give it a `<label>` or `aria-label`.',
@@ -98,7 +99,7 @@ type Cell = {
 
 const CELLS: Cell[] = [
   { label: 'Deselected', props: {}, fill: 'surface-base', border: 'stroke-field', glyph: null },
-  { label: 'Hover', props: {}, pseudo: 'hover', fill: 'surface-base', border: 'stroke-stronger', glyph: null },
+  { label: 'Hover', props: {}, pseudo: 'hover', fill: 'surface-base', border: 'action-primary-surface-default', glyph: null },
   { label: 'Focus', props: {}, pseudo: 'focus', fill: 'surface-base', border: 'stroke-field', glyph: null },
   {
     label: 'Selected',

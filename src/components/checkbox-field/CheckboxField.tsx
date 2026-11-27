@@ -11,7 +11,8 @@ import { joinIds } from '../form-field/useFormField';
  * (Add New User's "Restricted User").
  *
  * Figma → code:
- * - Checkbox → a 16px Checkbox, top-aligned with the text, 12px before it
+ * - Checkbox → a 20px Checkbox (the new design's one size), level with the
+ *   label's first line, 12px before it
  *   (space/12).
  * - Label → `label`: Body/sm-semibold in text/primary.
  * - Required → `required`: the native `required`, and the "*" marker after
@@ -94,10 +95,9 @@ export const CheckboxField = React.forwardRef<HTMLInputElement, CheckboxFieldPro
   const errorId = invalid ? `${uid}-error` : undefined;
   return (
     <label className={cn(field({ bordered, invalid }), className)} style={style}>
-      {/* 2px down: the 16px box centred on the label's first 20px line (Figma: top-aligned on Inter's 17px line). */}
+      {/* The 20px box sits level with the label's first 20px line. */}
       <Checkbox
         ref={ref}
-        className="mt-0.5"
         required={required}
         aria-labelledby={labelId}
         aria-describedby={joinIds(descriptionId, errorId, describedBy)}

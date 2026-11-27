@@ -138,6 +138,22 @@ function ControlledActive() {
 }
 
 /** Controlled: `checked` + `onChange`. */
+/** Locked on: a setting people can't turn off says why in its description. */
+export const LockedOn: Story = {
+  args: {
+    label: 'Email me about payment failures',
+    description: 'Always on for admins, so a failed payment is never missed.',
+    defaultChecked: true,
+    disabled: true,
+  },
+  play: async ({ canvas }) => {
+    const toggle = canvas.getByRole('switch', { name: 'Email me about payment failures' });
+    await expect(toggle).toBeChecked();
+    await expect(toggle).toBeDisabled();
+    await expect(toggle).toHaveAccessibleDescription('Always on for admins, so a failed payment is never missed.');
+  },
+};
+
 export const Controlled: Story = {
   render: () => <ControlledActive />,
   parameters: { controls: { disable: true } },
@@ -264,7 +280,7 @@ const grid = (theme: 'light' | 'dark'): Story => ({
           const { defaultChecked: checked, disabled, error, required } = props;
           const colour = (c: string) => (disabled ? disabledText : c);
           // The switch: the Toggle (Disabled=true when disabled), at the row's end, 16px after the text, centred on it.
-          expect([track.width, track.height]).toEqual([36, 20]);
+          expect([track.width, track.height]).toEqual([44, 24]);
           expect(getComputedStyle(toggle).backgroundColor).toBe((checked ? on : off)[Number(!!disabled)]);
           expect(toggle.getAttribute('aria-invalid')).toBe(error ? 'true' : null);
           expect(track.right).toBe(fieldRect.right);
